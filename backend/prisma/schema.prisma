@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  passwordHash String?
+  name         String?
+  googleId     String? @unique
+  avatarUrl    String?
+
+  stripeCustomerId String? @unique
+  projects         Project[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  currentStage ProjectStage @default(BRIEF)
+
+  title       String?
+  topic       String
+  language    String  @default("en")
+  guidelines  String? @db.Text
+  targetPages Int
+  stylePreset String  @default("modern")
+  bookFormat  String  @default("a5")
+
+  priceUsdCents   Int?
+  currency        String        @default("usd")
+  stripeSessionId String?
+  stripePaymentId String?
+  paymentStatus   PaymentStatus @default(PENDING)
+  paidAt          DateTime?
+
+  structure         ProjectStructure?
+  structureRedoUsed Boolean @default(false)
+
+  images      ProjectImage[]
+  useAiImages Boolean        @default(false)
+
+  chapters           Chapter[]
+  generationStatus   GenerationStatus @default(NOT_STARTED)
+  generationProgress Float            @default(0)
+
+  outputPdfKey  String?
+  outputEpubKey String?
+
+  totalTokensUsed Int   @default(0)
+  totalCostUsd    Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([currentStage])
+}
+
+enum ProjectStage {
+  BRIEF
+  PRICING
+  PAYMENT
+  STRUCTURE
+  STRUCTURE_REVIEW
+  IMAGES
+  GENERATING
+  COMPILING
+  COMPLETED
+  ERROR
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum GenerationStatus {
+  NOT_STARTED
+  GENERATING_STRUCTURE
+  STRUCTURE_READY
+  GENERATING_CONTENT
+  CONTENT_READY
+  COMPILING_LATEX
+  COMPILING_EPUB
+  COMPLETED
+  ERROR
+}
+
+model ProjectStructure {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  structureJson      String  @db.Text
+  generationPrompt   String? @db.Text
+  generationResponse String? @db.Text
+
+  version      Int     @default(1)
+  isUserEdited Boolean @default(false)
+
+  approvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Chapter {
+  id            String  @id @default(cuid())
+  projectId     String
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  chapterNumber Int
+  title         String
+
+  latexContent  String? @db.Text
+  markdownDraft String? @db.Text
+
+  targetPages Int
+  actualPages Float?
+  targetWords Int
+  actualWords Int?
+
+  writerPrompts   String? @db.Text
+  writerResponses String? @db.Text
+
+  imagePlacements ImagePlacement[]
+  status          ChapterStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, chapterNumber])
+  @@index([projectId])
+}
+
+enum ChapterStatus {
+  PENDING
+  GENERATING
+  GENERATED
+  LATEX_READY
+  ERROR
+}
+
+model ProjectImage {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  source       ImageSource
+  originalName String?
+  s3Key        String
+  s3Url        String?
+
+  description      String? @db.Text
+  suggestedContext String? @db.Text
+
+  width  Int?
+  height Int?
+  format String?
+
+  fluxPrompt String? @db.Text
+  fluxSeed   Int?
+
+  placements ImagePlacement[]
+  createdAt  DateTime         @default(now())
+
+  @@index([projectId])
+}
+
+enum ImageSource {
+  USER_UPLOAD
+  AI_GENERATED
+  STOCK
+}
+
+model ImagePlacement {
+  id        String       @id @default(cuid())
+  chapterId String
+  chapter   Chapter      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  imageId   String
+  image     ProjectImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  position String
+  caption  String?
+  width    Float  @default(0.8)
+
+  createdAt DateTime @default(now())
+
+  @@index([chapterId])
+}

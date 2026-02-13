@@ -1,0 +1,48 @@
+\babel@toc {polish}{}\relax 
+\contentsline {chapter}{\numberline {1}Rewolucja AI w świecie copywritingu}{7}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Czym jest AI w copywritingu?}{7}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}Ewolucja technologii AI w content marketingu}{8}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}Podstawowe pojęcia i mechanizmy działania}{9}{subsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.1.3}Różnice między tradycyjnym a wspieranym AI copywritingiem}{9}{subsection.1.1.3}%
+\contentsline {section}{\numberline {1.2}Popularne narzędzia AI dla copywriterów}{10}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}ChatGPT --- uniwersalny asystent copywritera}{11}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2}Jasper --- specjalista od content marketingu}{11}{subsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.2.3}Copy.ai --- szybkość i prostota}{12}{subsection.1.2.3}%
+\contentsline {subsection}{\numberline {1.2.4}Inne godne uwagi narzędzia}{13}{subsection.1.2.4}%
+\contentsline {section}{\numberline {1.3}Mity i rzeczywistość AI w copywritingu}{14}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}Mit 1: AI zastąpi copywriterów}{14}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}Mit 2: Treści generowane przez AI są niskiej jakości}{15}{subsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.3.3}Mit 3: Używanie AI to oszukiwanie lub brak kreatywności}{15}{subsection.1.3.3}%
+\contentsline {chapter}{\numberline {2}Praktyczne zastosowania AI w tworzeniu treści}{17}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Generowanie pomysłów i brainstorming z AI}{18}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Tworzenie koncepcji kampanii}{18}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Generowanie nagłówków i tytułów}{19}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Burza mózgów dla CTA i ofert}{20}{subsection.2.1.3}%
+\contentsline {section}{\numberline {2.2}Tworzenie tekstów sprzedażowych i reklamowych}{21}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Landing page --- od struktury do detali}{21}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Reklamy Google Ads i Facebook Ads}{22}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Email marketing --- sekwencje i newslettery}{23}{subsection.2.2.3}%
+\contentsline {section}{\numberline {2.3}Optymalizacja i personalizacja treści}{24}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Dostosowanie tonu i stylu do różnych grup odbiorców}{25}{subsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.3.2}A/B testing na skalę}{26}{subsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.3.3}Lokalizacja i adaptacja kulturowa}{26}{subsection.2.3.3}%
+\contentsline {subsection}{\numberline {2.3.4}Personalizacja dynamiczna}{27}{subsection.2.3.4}%
+\contentsline {section}{\numberline {2.4}SEO i content marketing wspierany przez AI}{28}{section.2.4}%
+\contentsline {subsection}{\numberline {2.4.1}Badanie słów kluczowych i analiza intencji wyszukiwania}{28}{subsection.2.4.1}%
+\contentsline {subsection}{\numberline {2.4.2}Tworzenie briefów contentowych i struktur artykułów}{29}{subsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.4.3}Optymalizacja istniejących treści}{30}{subsection.2.4.3}%
+\contentsline {subsection}{\numberline {2.4.4}Tworzenie strategii contentowej}{30}{subsection.2.4.4}%
+\contentsline {subsection}{\numberline {2.4.5}Automatyzacja meta tagów i opisów}{31}{subsection.2.4.5}%
+\contentsline {subsection}{\numberline {2.4.6}Content gap analysis}{32}{subsection.2.4.6}%
+\contentsline {subsection}{\numberline {2.4.7}Generowanie content upgrades i lead magnets}{33}{subsection.2.4.7}%
+\contentsline {subsection}{\numberline {2.4.8}Monitoring i analiza performance treści}{33}{subsection.2.4.8}%
+\contentsline {chapter}{\numberline {3}Przyszłość copywritingu w erze AI}{35}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Umiejętności copywritera jutra}{35}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Myślenie strategiczne i biznesowe}{36}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Empatia i rozumienie psychologii człowieka}{37}{subsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.1.3}Kreatywność i unikalna perspektywa}{38}{subsection.3.1.3}%
+\contentsline {section}{\numberline {3.2}Etyka i odpowiedzialność w używaniu AI}{39}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Transparentność wobec klientów i odbiorców}{40}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Autentyczność i odpowiedzialność za treści}{41}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Prawa autorskie i własność intelektualna}{42}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Strategia współpracy człowiek-AI}{43}{section.3.3}%
