@@ -1,6 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge.ai — Types & Pricing (canonical source)
-// All backend files import from here: "../lib/types"
+// BookForge.ai — Shared Types & Pricing
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ── Enums (mirror Prisma) ──
@@ -77,7 +76,7 @@ export const WORDS_PER_PAGE_BY_FORMAT: Record<string, number> = {
   letter: 260, // 12pt, letterpaper, onehalfspacing
 };
 
-// Legacy fallback
+// Legacy fallback (keep for backward compat)
 export const WORDS_PER_PAGE = 120;
 
 export function getWordsPerPage(format: string): number {
@@ -86,13 +85,14 @@ export function getWordsPerPage(format: string): number {
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Page size tiers — discrete steps, not per-page slider
+// Scaling works by ADDING CHAPTERS (not making chapters longer)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export interface PageSizeTier {
   id: string;
-  targetPages: number;
-  minPages: number;
-  maxPages: number;
+  targetPages: number; // stored in DB
+  minPages: number; // for display
+  maxPages: number; // for display
   chapters: number;
   sectionsPerChapter: string;
   label: string;
@@ -152,8 +152,8 @@ export const PAGE_SIZE_TIERS: PageSizeTier[] = [
   },
 ];
 
-/** Find best matching tier for a page count */
 export function getPageSizeTier(pages: number): PageSizeTier {
+  // Find best matching tier
   if (pages <= 45) return PAGE_SIZE_TIERS[0];
   if (pages <= 75) return PAGE_SIZE_TIERS[1];
   if (pages <= 115) return PAGE_SIZE_TIERS[2];
@@ -161,60 +161,7 @@ export function getPageSizeTier(pages: number): PageSizeTier {
   return PAGE_SIZE_TIERS[4];
 }
 
-/** Alias — used by structureGenerator & projects */
-export const getTierByPages = getPageSizeTier;
-
-/** Structure generation config derived from tier */
-export function getStructureConfig(pages: number) {
-  const tier = getPageSizeTier(pages);
-  const [secMin, secMax] = tier.sectionsPerChapter.split("-").map(Number);
-
-  const configs: Record<
-    string,
-    {
-      chapterCount: { min: number; max: number };
-      sectionsPerChapter: { min: number; max: number };
-      contentDepth: string;
-    }
-  > = {
-    compact: {
-      chapterCount: { min: 3, max: 3 },
-      sectionsPerChapter: { min: secMin, max: secMax },
-      contentDepth:
-        "Focused, practical content. Cover essentials without filler. Each chapter should be concise and actionable.",
-    },
-    standard: {
-      chapterCount: { min: 4, max: 5 },
-      sectionsPerChapter: { min: secMin, max: secMax },
-      contentDepth:
-        "Balanced depth. Include examples and case studies. Cover the topic thoroughly but avoid repetition.",
-    },
-    extended: {
-      chapterCount: { min: 5, max: 7 },
-      sectionsPerChapter: { min: secMin, max: secMax },
-      contentDepth:
-        "In-depth coverage with detailed examples, case studies, data, and analysis. Expert-level insights on each subtopic.",
-    },
-    comprehensive: {
-      chapterCount: { min: 7, max: 9 },
-      sectionsPerChapter: { min: secMin, max: secMax },
-      contentDepth:
-        "Comprehensive treatment. Multiple perspectives, detailed analysis, real-world data, industry insights, tools comparison, and practical frameworks.",
-    },
-    complete: {
-      chapterCount: { min: 9, max: 11 },
-      sectionsPerChapter: { min: secMin, max: secMax },
-      contentDepth:
-        "Exhaustive reference-grade content. Deep-dive into every aspect, multiple case studies per chapter, detailed appendices, complete toolkits, and expert interviews.",
-    },
-  };
-
-  return configs[tier.id] || configs.standard;
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Pricing (aligned with tiers)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ── Pricing (aligned with tiers) ──
 
 export interface PricingTier {
   minPages: number;

@@ -9,14 +9,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 const BUILD_DIR = path.join(process.cwd(), "tmp", "builds");
 
 export async function downloadRoutes(app: FastifyInstance) {
-  // Auth via header OR query param (for direct download links)
-  app.addHook("preHandler", async (request, reply) => {
-    const queryToken = (request.query as any)?.token;
-    if (queryToken && !request.headers.authorization) {
-      request.headers.authorization = `Bearer ${queryToken}`;
-    }
-    return authenticate(request, reply);
-  });
+  app.addHook("preHandler", authenticate);
 
   // ━━━ GET /api/projects/:id/download/pdf ━━━
   app.get("/api/projects/:id/download/pdf", async (request, reply) => {
@@ -46,6 +39,14 @@ export async function downloadRoutes(app: FastifyInstance) {
       process.env.S3_BUCKET
     ) {
       try {
+        console.log(`📥 Download PDF for ${id}:`);
+        console.log(`   Key: ${project.outputPdfKey}`);
+        console.log(`   Bucket: ${process.env.S3_BUCKET}`);
+        console.log(`   Region: ${process.env.AWS_REGION || "eu-north-1"}`);
+        console.log(
+          `   AWS Key: ${process.env.AWS_ACCESS_KEY_ID?.substring(0, 8)}...`,
+        );
+
         const s3 = new S3Client({
           region: process.env.AWS_REGION || "eu-north-1",
           credentials: {
@@ -64,10 +65,21 @@ export async function downloadRoutes(app: FastifyInstance) {
           { expiresIn: 3600 },
         );
 
+        console.log(
+          `   ✅ Presigned URL generated (first 100 chars): ${url.substring(0, 100)}...`,
+        );
         return reply.redirect(url);
-      } catch (err) {
-        console.error("S3 presign failed, falling back to local:", err);
+      } catch (err: any) {
+        console.error("   ❌ S3 presign failed:", err.message);
+        console.error("   Falling back to local file...");
       }
+    } else {
+      console.log(`📥 Download PDF for ${id}: S3 not configured`);
+      console.log(`   outputPdfKey: ${project.outputPdfKey || "MISSING"}`);
+      console.log(
+        `   AWS_ACCESS_KEY_ID: ${process.env.AWS_ACCESS_KEY_ID ? "SET" : "MISSING"}`,
+      );
+      console.log(`   S3_BUCKET: ${process.env.S3_BUCKET || "MISSING"}`);
     }
 
     // Fallback: local file

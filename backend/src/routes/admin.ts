@@ -3,17 +3,13 @@ import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 
 export async function adminRoutes(app: FastifyInstance) {
-  // Simple admin check — in production use proper role-based auth
-  // For now: first registered user = admin, or check ADMIN_EMAIL env
   app.addHook("preHandler", async (request, reply) => {
-    // Allow query param auth for convenience
     const queryToken = (request.query as any)?.token;
     if (queryToken && !request.headers.authorization) {
       request.headers.authorization = `Bearer ${queryToken}`;
     }
     await authenticate(request, reply);
 
-    // Check admin
     const adminEmail = process.env.ADMIN_EMAIL;
     if (adminEmail && request.user.email !== adminEmail) {
       return reply.status(403).send({ error: "Not admin" });
@@ -70,6 +66,7 @@ export async function adminRoutes(app: FastifyInstance) {
           cost: p.totalCostUsd?.toFixed(4),
           user: p.user.email,
           chapters: p._count.chapters,
+          hasResearch: !!p.researchData,
           createdAt: p.createdAt,
           updatedAt: p.updatedAt,
         })),
@@ -77,7 +74,7 @@ export async function adminRoutes(app: FastifyInstance) {
     });
   });
 
-  // ━━━ GET /api/admin/projects/:id ━━━ Full project detail with ALL data
+  // ━━━ GET /api/admin/projects/:id ━━━ Full project detail
   app.get("/api/admin/projects/:id", async (request, reply) => {
     const { id } = request.params as any;
 
@@ -86,25 +83,171 @@ export async function adminRoutes(app: FastifyInstance) {
       include: {
         user: { select: { id: true, email: true, name: true } },
         structure: true,
-        chapters: {
-          orderBy: { chapterNumber: "asc" },
-        },
+        chapters: { orderBy: { chapterNumber: "asc" } },
         images: true,
       },
     });
 
-    if (!project)
-      return reply.status(404).send({ error: "Project not found" });
+    if (!project) return reply.status(404).send({ error: "Project not found" });
+
+    // Parse research summary (don't send full source texts here — too heavy)
+    let researchSummary = null;
+    if (project.researchData) {
+      try {
+        const rd = JSON.parse(project.researchData);
+        researchSummary = {
+          googleQuery: rd.googleQuery,
+          searchResultsCount: rd.searchResults?.length || 0,
+          scrapedCount: rd.allScraped?.length || 0,
+          scrapedSuccessCount:
+            rd.allScraped?.filter((s: any) => s.status === "success").length ||
+            0,
+          selectedSourcesCount: rd.selectedSources?.length || 0,
+          totalSourcesLength: rd.totalSourcesLength || 0,
+          researchedAt: rd.researchedAt,
+        };
+      } catch {}
+    }
 
     return reply.send({
       success: true,
       data: {
         ...project,
+        researchData: undefined, // Don't send raw blob in overview
+        researchSummary,
         priceFormatted: project.priceUsdCents
           ? `$${(project.priceUsdCents / 100).toFixed(2)}`
           : null,
       },
     });
+  });
+
+  // ━━━ GET /api/admin/projects/:id/research ━━━ Full research pipeline data
+  app.get("/api/admin/projects/:id/research", async (request, reply) => {
+    const { id } = request.params as any;
+
+    const project = await prisma.project.findUnique({
+      where: { id },
+      select: { researchData: true, topic: true, language: true },
+    });
+
+    if (!project) return reply.status(404).send({ error: "Project not found" });
+
+    if (!project.researchData) {
+      return reply.send({
+        success: true,
+        data: null,
+        message: "No research conducted yet",
+      });
+    }
+
+    try {
+      const research = JSON.parse(project.researchData);
+      return reply.send({
+        success: true,
+        data: {
+          googleQuery: research.googleQuery,
+          englishQuery: research.englishQuery || null,
+          researchedAt: research.researchedAt,
+          selectionReasoning: research.selectionReasoning || null,
+
+          // Google search results (target language)
+          searchResults: research.searchResults || [],
+
+          // English search results (if supplement was run)
+          englishSearchResults: research.englishSearchResults || [],
+
+          // Scraping results (metadata only)
+          scrapingResults: (research.allScraped || []).map((s: any) => ({
+            url: s.url,
+            status: s.status,
+            length: s.length,
+          })),
+
+          // Selected sources (with preview + lang tag)
+          selectedSources: (research.selectedSources || []).map(
+            (s: any, i: number) => ({
+              index: i + 1,
+              url: s.url,
+              lang: s.lang || "?",
+              length: s.length,
+              textPreview: s.text?.substring(0, 2000) || "",
+              fullTextLength: s.text?.length || 0,
+            }),
+          ),
+
+          // Stats
+          stats: {
+            totalSearchResults:
+              (research.searchResults?.length || 0) +
+              (research.englishSearchResults?.length || 0),
+            totalScraped: research.allScraped?.length || 0,
+            successfulScrapes:
+              research.allScraped?.filter((s: any) => s.status === "success")
+                .length || 0,
+            failedScrapes:
+              research.allScraped?.filter((s: any) => s.status !== "success")
+                .length || 0,
+            selectedCount: research.selectedSources?.length || 0,
+            nativeSources:
+              research.selectedSources?.filter((s: any) => s.lang !== "en")
+                .length || 0,
+            englishSources:
+              research.selectedSources?.filter((s: any) => s.lang === "en")
+                .length || 0,
+            totalSourceChars: research.totalSourcesLength || 0,
+          },
+        },
+      });
+    } catch (error) {
+      return reply.status(500).send({ error: "Failed to parse research data" });
+    }
+  });
+
+  // ━━━ GET /api/admin/projects/:id/research/source/:num ━━━ Full text of a single source
+  app.get(
+    "/api/admin/projects/:id/research/source/:num",
+    async (request, reply) => {
+      const { id, num } = request.params as any;
+      const sourceIndex = parseInt(num) - 1;
+
+      const project = await prisma.project.findUnique({
+        where: { id },
+        select: { researchData: true },
+      });
+
+      if (!project?.researchData)
+        return reply.status(404).send({ error: "No research data" });
+
+      try {
+        const research = JSON.parse(project.researchData);
+        const source = research.selectedSources?.[sourceIndex];
+        if (!source)
+          return reply.status(404).send({ error: `Source ${num} not found` });
+
+        return reply.send({
+          success: true,
+          data: {
+            index: sourceIndex + 1,
+            url: source.url,
+            length: source.length,
+            text: source.text,
+          },
+        });
+      } catch {
+        return reply
+          .status(500)
+          .send({ error: "Failed to parse research data" });
+      }
+    },
+  );
+
+  // ━━━ POST /api/admin/projects/:id/re-research ━━━ Re-run research pipeline
+  app.post("/api/admin/projects/:id/re-research", async (request, reply) => {
+    const { id } = request.params as any;
+    const { conductResearch } = await import("../services/researchService");
+    conductResearch(id).catch(console.error);
+    return reply.send({ success: true, message: "Research pipeline started" });
   });
 
   // ━━━ GET /api/admin/projects/:id/prompts ━━━ All prompts & responses
@@ -139,10 +282,8 @@ export async function adminRoutes(app: FastifyInstance) {
       },
     });
 
-    if (!project)
-      return reply.status(404).send({ error: "Project not found" });
+    if (!project) return reply.status(404).send({ error: "Project not found" });
 
-    // Parse chapter prompts/responses (stored as JSON arrays)
     const chapters = project.chapters.map((ch) => ({
       id: ch.id,
       number: ch.chapterNumber,
@@ -204,7 +345,7 @@ export async function adminRoutes(app: FastifyInstance) {
     },
   );
 
-  // ━━━ POST /api/admin/projects/:id/recompile ━━━ Re-run pdflatex
+  // ━━━ POST /api/admin/projects/:id/recompile ━━━
   app.post("/api/admin/projects/:id/recompile", async (request, reply) => {
     const { id } = request.params as any;
     const { compileBook } = await import("../services/bookCompiler");
@@ -212,12 +353,46 @@ export async function adminRoutes(app: FastifyInstance) {
     return reply.send({ success: true, message: "Recompilation started" });
   });
 
-  // ━━━ POST /api/admin/projects/:id/regenerate ━━━ Re-run full generation
+  // ━━━ POST /api/admin/projects/:id/regenerate ━━━
   app.post("/api/admin/projects/:id/regenerate", async (request, reply) => {
     const { id } = request.params as any;
     const { generateContent } = await import("../services/contentGenerator");
     generateContent(id).catch(console.error);
     return reply.send({ success: true, message: "Regeneration started" });
+  });
+
+  // ━━━ POST /api/admin/projects/:id/regenerate-structure ━━━
+  app.post(
+    "/api/admin/projects/:id/regenerate-structure",
+    async (request, reply) => {
+      const { id } = request.params as any;
+      const { generateStructure } =
+        await import("../services/structureGenerator");
+      generateStructure(id).catch(console.error);
+      return reply.send({
+        success: true,
+        message: "Structure regeneration started",
+      });
+    },
+  );
+
+  // ━━━ DELETE /api/admin/projects/:id ━━━ Admin force-delete (even paid)
+  app.delete("/api/admin/projects/:id", async (request, reply) => {
+    const { id } = request.params as any;
+
+    const project = await prisma.project.findUnique({
+      where: { id },
+      select: { id: true, title: true, topic: true, paymentStatus: true },
+    });
+    if (!project) return reply.status(404).send({ error: "Project not found" });
+
+    // Cascade deletes handle chapters, structure, images, placements
+    await prisma.project.delete({ where: { id } });
+
+    console.log(
+      `🗑️ Admin deleted project ${id} (${project.title || project.topic})`,
+    );
+    return reply.send({ success: true, message: "Project deleted" });
   });
 
   // ━━━ GET /api/admin/users ━━━

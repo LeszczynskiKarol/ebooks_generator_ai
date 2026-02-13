@@ -2,7 +2,12 @@ import { FastifyInstance } from "fastify";
 import Stripe from "stripe";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
-import { calculatePrice } from "../lib/types";
+import {
+  calculatePrice,
+  getPageSizeTier,
+  MIN_PAGES,
+  MAX_PAGES,
+} from "../lib/types";
 
 export async function projectRoutes(app: FastifyInstance) {
   // All routes need auth
@@ -25,7 +30,14 @@ export async function projectRoutes(app: FastifyInstance) {
         .status(400)
         .send({ success: false, error: "Topic must be at least 5 characters" });
     }
-    const pages = Math.max(10, Math.min(300, parseInt(targetPages) || 50));
+
+    // Snap to nearest tier
+    const rawPages = Math.max(
+      MIN_PAGES,
+      Math.min(MAX_PAGES, parseInt(targetPages) || 60),
+    );
+    const tier = getPageSizeTier(rawPages);
+    const pages = tier.targetPages;
     const pricing = calculatePrice(pages);
 
     const project = await prisma.project.create({
@@ -127,10 +139,12 @@ export async function projectRoutes(app: FastifyInstance) {
     if (body.stylePreset) data.stylePreset = body.stylePreset;
     if (body.bookFormat) data.bookFormat = body.bookFormat;
     if (body.targetPages) {
-      data.targetPages = Math.max(
-        10,
-        Math.min(300, parseInt(body.targetPages)),
+      const rawPages = Math.max(
+        MIN_PAGES,
+        Math.min(MAX_PAGES, parseInt(body.targetPages)),
       );
+      const tier = getPageSizeTier(rawPages);
+      data.targetPages = tier.targetPages;
       data.priceUsdCents = calculatePrice(data.targetPages).priceUsdCents;
     }
 
@@ -266,16 +280,25 @@ export async function projectRoutes(app: FastifyInstance) {
     if (!project)
       return reply.status(404).send({ success: false, error: "Not found" });
     if (project.structureRedoUsed) {
-      return reply.status(403).send({
-        success: false,
-        error: "Redo already used. Edit manually instead.",
-      });
+      return reply
+        .status(403)
+        .send({
+          success: false,
+          error: "Redo already used. Edit manually instead.",
+        });
     }
     await prisma.project.update({
       where: { id },
       data: { structureRedoUsed: true, currentStage: "STRUCTURE" },
     });
-    // TODO: queue regeneration with feedback
+
+    // Fire and forget — runs in background
+    const { generateStructure } =
+      await import("../services/structureGenerator");
+    generateStructure(id).catch((err) => {
+      console.error(`❌ Structure redo failed for ${id}:`, err);
+    });
+
     return reply.send({ success: true, message: "Regeneration started" });
   });
 
@@ -296,15 +319,26 @@ export async function projectRoutes(app: FastifyInstance) {
       return reply
         .status(400)
         .send({ success: false, error: "Approve structure first" });
-    if (project.generationStatus === "GENERATING_CONTENT")
-      return reply
-        .status(400)
-        .send({ success: false, error: "Already generating" });
 
-    // Start generation in background
+    await prisma.project.update({
+      where: { id },
+      data: {
+        generationStatus: "GENERATING_CONTENT",
+        currentStage: "GENERATING",
+        generationProgress: 0,
+      },
+    });
+
+    // Fire and forget — runs in background
     const { generateContent } = await import("../services/contentGenerator");
     generateContent(id).catch((err) => {
-      console.error("Content generation failed:", err);
+      console.error(`❌ Content generation failed for ${id}:`, err);
+      prisma.project
+        .update({
+          where: { id },
+          data: { currentStage: "ERROR", generationStatus: "ERROR" },
+        })
+        .catch(console.error);
     });
 
     return reply.send({ success: true, message: "Generation started" });
@@ -350,24 +384,6 @@ export async function projectRoutes(app: FastifyInstance) {
     }
     await prisma.project.delete({ where: { id } });
     return reply.send({ success: true, message: "Deleted" });
-  });
-
-  // ━━━ POST /api/projects/:id/retry-structure ━━━
-  app.post("/api/projects/:id/retry-structure", async (request, reply) => {
-    const { id } = request.params as any;
-    const project = await prisma.project.findFirst({
-      where: { id, userId: request.user.userId },
-    });
-    if (!project)
-      return reply.status(404).send({ success: false, error: "Not found" });
-
-    const { generateStructure } =
-      await import("../services/structureGenerator");
-    generateStructure(id).catch(console.error);
-    return reply.send({
-      success: true,
-      message: "Structure generation started",
-    });
   });
 }
 

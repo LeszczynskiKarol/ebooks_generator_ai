@@ -1,0 +1,13 @@
+\babel@toc {polish}{}\relax 
+\contentsline {chapter}{\numberline {1}Ekonomia skalowania treści AI: Dlaczego 92\% firm wciąż tylko eksperymentuje}{5}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Trzy poziomy dojrzałości AI: od chaosu do przewagi konkurencyjnej}{5}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Prawdziwe koszty: 300 zł vs 50 zł za tekst — ale to nie jest cała historia}{7}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Efekt ROPO i paradoks contentu e-commerce: dlaczego opisy kategorii są niedoceniane}{10}{section.1.3}%
+\contentsline {chapter}{\numberline {2}Architektura systemów content AI: Jak zbudować pipeline, który produkuje 300 tekstów miesięcznie}{13}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Od ChatGPT do production pipeline: dlaczego proste rozwiązania zawodzą w skali}{13}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Case study: Dekonstrukcja systemu OBI --- 16 promptów, 120 000 tokenów, 3 modele językowe}{15}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Workflow batching i 3D content generation: lekcje z Jasper, NVIDIA Omniverse i globalnych brandów}{18}{section.2.3}%
+\contentsline {chapter}{\numberline {3}Pięć imperatywów wdrożenia: Jak przejść od 300 tekstów do enterprise-level transformation}{23}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Lead with value i reinvent talent: CEO sponsorship 2.4x ważniejszy niż technologia}{24}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Build secure AI core i close responsible AI gap: 18\% wzrost revenue przez mature responsible AI}{27}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Continuous reinvention i ekspansja: Od 300 tekstów w Polsce do 4M+ PLN savings globalnie}{30}{section.3.3}%

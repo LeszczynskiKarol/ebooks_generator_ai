@@ -57,6 +57,8 @@ model Project {
   outputPdfKey  String?
   outputEpubKey String?
 
+  researchData String? @db.Text // JSON: scraped web sources from research pipeline
+
   totalTokensUsed Int   @default(0)
   totalCostUsd    Float @default(0)
 

@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "../lib/prisma";
-import { WORDS_PER_PAGE } from "../lib/types";
+import { getWordsPerPage } from "../lib/types";
+import { createPipelineLogger } from "../lib/logger";
+import { loadResearch, formatSourcesForPrompt } from "./researchService";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -39,6 +41,8 @@ interface ResponseLog {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export async function generateContent(projectId: string) {
+  const log = createPipelineLogger("CONTENT", projectId);
+
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     include: { structure: true },
@@ -50,10 +54,46 @@ export async function generateContent(projectId: string) {
   const chapters: ChapterStructure[] = structureData.chapters;
   const bookTitle =
     structureData.suggestedTitle || project.title || project.topic;
+  const wpp = getWordsPerPage(project.bookFormat);
 
-  console.log(`\n📚 Starting LaTeX generation for "${bookTitle}"`);
-  console.log(`   ${chapters.length} chapters, ${project.targetPages} pages\n`);
+  log.header("Content Generation Pipeline", {
+    Book: bookTitle,
+    Topic: project.topic,
+    Chapters: chapters.length,
+    Pages: `${project.targetPages} (${project.bookFormat.toUpperCase()})`,
+    "Words/page": wpp,
+    Language: project.language,
+    Style: project.stylePreset,
+  });
 
+  // ── Load research sources ──
+  log.phase(1, "Load Research Data");
+  const research = await loadResearch(projectId);
+  const sourcesText = formatSourcesForPrompt(research, 15000);
+  const hasResearch = !!research && research.selectedSources.length > 0;
+
+  if (hasResearch) {
+    log.ok(
+      `Research loaded: ${research!.selectedSources.length} sources, ${research!.totalSourcesLength.toLocaleString()} chars`,
+    );
+    log.data("Google query was", `"${research!.googleQuery}"`);
+    for (const [i, s] of research!.selectedSources.entries()) {
+      log.step(
+        `  Source ${i + 1}: ${s.url.substring(0, 70)} (${s.length.toLocaleString()} chars)`,
+      );
+    }
+    log.data(
+      "Formatted sources for prompt",
+      `${sourcesText.length.toLocaleString()} chars`,
+    );
+  } else {
+    log.warn(
+      "No research data — chapters will be generated from Claude's knowledge only",
+    );
+  }
+
+  // ── Create chapter records ──
+  log.phase(2, "Initialize Chapter Records");
   for (const ch of chapters) {
     await prisma.chapter.upsert({
       where: {
@@ -64,19 +104,22 @@ export async function generateContent(projectId: string) {
         chapterNumber: ch.number,
         title: ch.title,
         targetPages: ch.targetPages,
-        targetWords: ch.targetPages * WORDS_PER_PAGE,
+        targetWords: ch.targetPages * wpp,
         status: "PENDING",
       },
       update: {
         title: ch.title,
         targetPages: ch.targetPages,
-        targetWords: ch.targetPages * WORDS_PER_PAGE,
+        targetWords: ch.targetPages * wpp,
         status: "PENDING",
         latexContent: null,
         writerPrompts: null,
         writerResponses: null,
       },
     });
+    log.step(
+      `  Ch.${ch.number}: "${ch.title}" — ${ch.targetPages}p, ~${ch.targetPages * wpp}w, ${ch.sections.length} sections`,
+    );
   }
 
   await prisma.project.update({
@@ -87,7 +130,12 @@ export async function generateContent(projectId: string) {
       generationProgress: 0,
     },
   });
+  log.ok(
+    `${chapters.length} chapters initialized, status → GENERATING_CONTENT`,
+  );
 
+  // ── Generate chapters ──
+  log.phase(3, "Generate Chapter Content");
   const previousSummaries: string[] = [];
   let lastChapterEnding = "";
   let totalTokens = 0;
@@ -101,27 +149,40 @@ export async function generateContent(projectId: string) {
     });
     if (!rec) continue;
 
-    console.log(
-      `  ✍️  Ch ${chapter.number}/${chapters.length}: "${chapter.title}" (${chapter.targetPages}p)...`,
+    const targetWords = chapter.targetPages * wpp;
+    log.step(
+      `\n  ✍️  Ch ${chapter.number}/${chapters.length}: "${chapter.title}"`,
     );
+    log.data(
+      "Target",
+      `${chapter.targetPages} pages × ${wpp} wpp = ${targetWords} words`,
+    );
+    log.data("Sections", chapter.sections.map((s) => s.title).join(" | "));
+
     await prisma.chapter.update({
       where: { id: rec.id },
       data: { status: "GENERATING" },
     });
 
     try {
+      const chTimer = log.timer();
       const result = await generateChapterLatex({
         bookTitle,
         bookTopic: project.topic,
         language: project.language,
         stylePreset: project.stylePreset,
         guidelines: project.guidelines || "",
+        bookFormat: project.bookFormat,
         chapter,
         chapterIndex: i,
         totalChapters: chapters.length,
         previousSummaries,
         lastChapterEnding,
         allChapters: chapters,
+        sourcesText,
+        hasResearch,
+        wpp,
+        log,
       });
 
       totalTokens += result.tokensUsed;
@@ -133,13 +194,14 @@ export async function generateContent(projectId: string) {
       const wordCount = result.latexContent
         .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")
         .split(/\s+/).length;
+      const pageEstimate = Math.round(wordCount / wpp);
 
       await prisma.chapter.update({
         where: { id: rec.id },
         data: {
           latexContent: result.latexContent,
           actualWords: wordCount,
-          actualPages: wordCount / WORDS_PER_PAGE,
+          actualPages: wordCount / wpp,
           status: "LATEX_READY",
           writerPrompts: JSON.stringify(result.prompts),
           writerResponses: JSON.stringify(result.responses),
@@ -151,11 +213,16 @@ export async function generateContent(projectId: string) {
         data: { generationProgress: (i + 1) / chapters.length },
       });
 
-      console.log(
-        `  ✅ Ch ${chapter.number} — ~${wordCount} words, ${result.tokensUsed} tokens`,
+      const accuracy = Math.round((wordCount / targetWords) * 100);
+      log.ok(
+        `Ch ${chapter.number} DONE — ${wordCount}w (~${pageEstimate}p) [${accuracy}% of target] ${result.tokensUsed} tokens (${chTimer()})`,
       );
-    } catch (error) {
-      console.error(`  ❌ Ch ${chapter.number} failed:`, error);
+      if (accuracy < 80)
+        log.warn(`  ⚠️  Chapter significantly SHORT: ${accuracy}% of target`);
+      if (accuracy > 120)
+        log.warn(`  ⚠️  Chapter significantly LONG: ${accuracy}% of target`);
+    } catch (error: any) {
+      log.err(`Ch ${chapter.number} FAILED`, error);
       await prisma.chapter.update({
         where: { id: rec.id },
         data: { status: "ERROR" },
@@ -164,6 +231,8 @@ export async function generateContent(projectId: string) {
     }
   }
 
+  // ── Finalize ──
+  log.phase(4, "Compilation");
   const estimatedCost = (totalTokens / 1_000_000) * 3;
   await prisma.project.update({
     where: { id: projectId },
@@ -176,18 +245,22 @@ export async function generateContent(projectId: string) {
     },
   });
 
-  console.log(
-    `\n📚 LaTeX done. Tokens: ${totalTokens}, ~$${estimatedCost.toFixed(2)}\n📖 Compiling...\n`,
-  );
+  log.data("Total tokens", totalTokens.toLocaleString());
+  log.data("Estimated cost", `$${estimatedCost.toFixed(4)}`);
+  log.step("Starting PDF compilation...");
 
   const { compileBook } = await import("./bookCompiler");
   await compileBook(projectId);
 
+  log.footer(
+    "SUCCESS",
+    `${chapters.length} chapters, ${totalTokens.toLocaleString()} tokens, ~$${estimatedCost.toFixed(4)}`,
+  );
   return { totalTokens, estimatedCost };
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Generate single chapter — logs all prompts/responses
+// Generate single chapter
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 interface GenParams {
@@ -196,12 +269,17 @@ interface GenParams {
   language: string;
   stylePreset: string;
   guidelines: string;
+  bookFormat: string;
   chapter: ChapterStructure;
   chapterIndex: number;
   totalChapters: number;
   previousSummaries: string[];
   lastChapterEnding: string;
   allChapters: ChapterStructure[];
+  sourcesText: string;
+  hasResearch: boolean;
+  wpp: number;
+  log: any;
 }
 
 async function generateChapterLatex(p: GenParams): Promise<{
@@ -211,16 +289,16 @@ async function generateChapterLatex(p: GenParams): Promise<{
   prompts: PromptLog[];
   responses: ResponseLog[];
 }> {
-  const targetWords = p.chapter.targetPages * WORDS_PER_PAGE;
+  const targetWords = p.chapter.targetPages * p.wpp;
   const lang = getLangName(p.language);
   const prompts: PromptLog[] = [];
   const responses: ResponseLog[] = [];
-  const model = "claude-sonnet-4-5";
+  const model = "claude-sonnet-4-5-20250929";
 
   const sectionsOutline = p.chapter.sections
     .map(
       (s, i) =>
-        `  ${i + 1}. "${s.title}" — ${s.description} (~${s.targetPages * WORDS_PER_PAGE} words)`,
+        `  ${i + 1}. "${s.title}" — ${s.description} (~${s.targetPages * p.wpp} words)`,
     )
     .join("\n");
 
@@ -231,49 +309,126 @@ async function generateChapterLatex(p: GenParams): Promise<{
     )
     .join("\n");
 
-  const systemPrompt = `You are a professional book author outputting LaTeX code.
+  const systemPrompt = `You are a seasoned subject-matter expert and published author writing a professional book chapter. You write like a human expert — not like an AI.
 
+BOOK CONTEXT:
 Book: "${p.bookTitle}" | Topic: ${p.bookTopic} | Language: ${lang} | Style: ${p.stylePreset}
-${p.guidelines ? `Guidelines: ${p.guidelines}` : ""}
+Format: ${p.bookFormat.toUpperCase()} (~${p.wpp} words/page with onehalfspacing)
+${p.guidelines ? `Author guidelines: ${p.guidelines}` : ""}
+
+${
+  p.hasResearch
+    ? `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESEARCH SOURCES — YOUR PRIMARY KNOWLEDGE BASE FOR THIS CHAPTER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${p.sourcesText}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HOW TO USE SOURCES:
+- Extract SPECIFIC facts: names, numbers, dates, percentages, tool names, pricing
+- Build arguments AROUND source data — don't just mention it, ANALYZE it
+- Contrast different sources when they disagree
+- Cite companies, products, regulations BY NAME with specifics
+- DO NOT copy verbatim — synthesize, compare, and add your expert interpretation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`
+    : ""
+}
+
+═══════════════════════════════════════════════════════════════
+WRITING QUALITY RULES — READ CAREFULLY
+═══════════════════════════════════════════════════════════════
+
+VOICE & TONE:
+- Write as a confident practitioner sharing hard-won knowledge, NOT as a lecturer
+- Use direct, concise sentences. Prefer "X does Y" over "It is worth noting that X has the capability to do Y"
+- Vary sentence length: mix short punchy statements with longer analytical ones
+- Address the reader directly with "you" when giving advice
+- Show opinions and take positions — experts have viewpoints, not just summaries
+
+BANNED PATTERNS — NEVER use these AI-typical phrases:
+- "In today's rapidly evolving..." / "In the dynamic world of..."
+- "It's worth noting that..." / "It's important to understand..."
+- "Let's dive into..." / "Let's explore..."
+- "In conclusion..." / "To summarize..."
+- "Whether you're a... or a..." / "From X to Y..."
+- "Game-changer" / "revolutionary" / "transformative" / "cutting-edge"
+- "Powerful tool" / "robust solution" / "comprehensive approach"
+- "Navigate the complexities" / "unlock the potential" / "harness the power"
+- "Fascinating" / "remarkable" / "dramatic" / "crucial" / "essential" (overuse)
+- "Landscape" (when describing an industry) / "paradigm shift" / "at the forefront"
+- "Delve into" / "realm of" / "tapestry of"
+- Starting paragraphs with "Furthermore" / "Moreover" / "Additionally" — vary transitions
+
+CONTENT DEPTH — what separates expert content from filler:
+- Every claim must have a SPECIFIC example, number, or case study backing it
+- BAD: "AI can significantly improve productivity" → GOOD: "Teams using Cursor report 40% faster code reviews, with junior developers seeing the biggest gains"
+- BAD: "Many companies are adopting AI" → GOOD: "Shopify cut its workforce by 20% in 2023, with CEO Tobi Lütke stating AI would replace roles, not just assist them"
+- When listing tools/methods: include PRICING, LIMITATIONS, and WHEN NOT to use them
+- Don't pad with obvious statements. If a section says "email marketing is important" — skip that, go straight to the HOW and WITH WHAT
+- Minimum 3 concrete data points per section (numbers, percentages, company names, dates)
+- When describing a process, include a realistic scenario: "A 5-person marketing team at a B2B SaaS company generating 12 blog posts/month would..."
+
+STRUCTURE WITHIN SECTIONS:
+- Open each section with a specific insight, stat, or contrarian take — NOT a definition
+- BAD opening: "Content marketing is a strategic approach..." → GOOD: "The average B2B company wastes 60-70% of its content budget on assets that never get used (SiriusDecisions)"
+- Close each section with a practical takeaway or decision framework
+- Use \\begin{itemize} sparingly — prefer flowing prose with embedded specifics
+- Tables and comparisons are welcome when they ADD information (not just format existing text)
+- NEVER pad content with long lists of example prompts, templates, or filler content that the reader could generate themselves
+
+ANTI-FILLER RULES:
+- Every paragraph must contain at least one SPECIFIC fact, number, or named example
+- If you catch yourself writing a paragraph of pure generalization — delete it and replace with analysis
+- Do NOT write "There are many tools available" and then list them — instead, compare their trade-offs
+- Do NOT repeat the same point in different words across paragraphs
+- Aim for INFORMATION DENSITY: a reader should learn something new in every paragraph
+
+═══════════════════════════════════════════════════════════════
 
 LATEX OUTPUT RULES:
 - Output ONLY the chapter body — NO preamble, NO \\documentclass, NO \\begin{document}
 - Start with \\chapter{${p.chapter.title}}
 - Use \\section{} for main sections, \\subsection{} for subsections
-- Use \\textbf{}, \\textit{}, \\emph{} for formatting
-- Use \\begin{itemize}/\\begin{enumerate} for lists
-- Use \\begin{quote} for blockquotes, \\footnote{} for footnotes
+- Use \\textbf{}, \\textit{}, \\emph{} for emphasis (sparingly — not every other sentence)
+- Use \\begin{itemize}/\\begin{enumerate} for lists (max 1-2 per section, keep them short)
+- Use \\begin{quote} for notable quotes, \\footnote{} for asides
 - Escape special chars: \\%, \\&, \\#, \\$, \\_, \\{, \\}
 - Use --- for em-dash, -- for en-dash
 - NO undefined custom commands, NO \\usepackage
 - ALL text in ${lang}
-
-CONTENT RULES:
-- Write ${targetWords}+ words. Critical — do not write less.
-- Professional, engaging prose with examples and case studies
-- Smooth transitions between sections
-- Start with compelling intro paragraph before first \\section{}`;
+- NEVER leave a section or sentence unfinished — complete every thought`;
 
   let userPrompt = `Write Chapter ${p.chapter.number}/${p.totalChapters}: "${p.chapter.title}"
 Description: ${p.chapter.description}
 
-Sections:
+SECTIONS TO WRITE:
 ${sectionsOutline}
 
-TOC:
+FULL BOOK TABLE OF CONTENTS (for context — maintain coherent narrative):
 ${toc}
 
-Target: ${targetWords} words, ${p.chapter.targetPages} pages.`;
+WORD COUNT TARGET: ${targetWords} words (±10%) = ${p.chapter.targetPages} pages in ${p.bookFormat.toUpperCase()} @ ${p.wpp} words/page.
+⚠️ Hard limits: minimum ${Math.round(targetWords * 0.85)} words, maximum ${Math.round(targetWords * 1.15)} words.
+⚠️ COMPLETE every section and sentence. NEVER stop mid-sentence or leave a section unfinished.
+
+QUALITY CHECKLIST — verify before finishing:
+□ Does every section open with a specific fact/insight (not a definition)?
+□ Are there 3+ concrete data points per section?
+□ Did you avoid ALL banned AI phrases from the system prompt?
+□ Is there at least one real company/product name per section?
+□ Did you avoid long lists of examples/templates that pad word count?
+□ Does the chapter read like it was written by a human expert with opinions?`;
 
   if (p.previousSummaries.length > 0) {
-    userPrompt += `\n\nPrevious chapters:\n${p.previousSummaries.map((s) => `- ${s}`).join("\n")}`;
+    userPrompt += `\n\nPREVIOUS CHAPTERS (avoid repeating these points):\n${p.previousSummaries.map((s) => `- ${s}`).join("\n")}`;
   }
   if (p.lastChapterEnding && p.chapterIndex > 0) {
-    userPrompt += `\n\nLast chapter ended:\n"""\n${p.lastChapterEnding.slice(-800)}\n"""\nContinue naturally.`;
+    userPrompt += `\n\nLAST CHAPTER ENDED WITH:\n"""\n${p.lastChapterEnding.slice(-800)}\n"""\nContinue with a natural transition — don't repeat the ending.`;
   }
-  userPrompt += `\n\nOutput LaTeX now. Start: \\chapter{${p.chapter.title}}. Min ${targetWords} words, all ${lang}.`;
+  userPrompt += `\n\nBegin LaTeX output now. Start with \\chapter{${p.chapter.title}}. Write exactly ${targetWords} words (±10%), entirely in ${lang}. Remember: expert voice, concrete data, no AI filler.`;
 
-  // ── Log prompts ──
+  // ── Log ──
   const ts = () => new Date().toISOString();
   prompts.push({
     step: "main",
@@ -288,9 +443,15 @@ Target: ${targetWords} words, ${p.chapter.targetPages} pages.`;
     timestamp: ts(),
   });
 
+  p.log.data("System prompt", `${systemPrompt.length.toLocaleString()} chars`);
+  p.log.data("User prompt", `${userPrompt.length.toLocaleString()} chars`);
+  p.log.data("Research in prompt", p.hasResearch ? "YES" : "NO");
+
   const maxTok = Math.max(4096, Math.min(16000, targetWords * 2));
+  p.log.step(`Calling Claude API (max_tokens: ${maxTok})...`);
 
   // ── Main API call ──
+  const apiTimer = p.log.timer();
   const res = await anthropic.messages.create({
     model,
     max_tokens: maxTok,
@@ -305,6 +466,11 @@ Target: ${targetWords} words, ${p.chapter.targetPages} pages.`;
   }
   latex = cleanLatex(latex);
 
+  p.log.api(model, res.usage?.input_tokens || 0, res.usage?.output_tokens || 0);
+  p.log.ok(
+    `Main response: ${latex.length.toLocaleString()} chars (${apiTimer()})`,
+  );
+
   responses.push({
     step: "main",
     content: latex,
@@ -316,10 +482,27 @@ Target: ${targetWords} words, ${p.chapter.targetPages} pages.`;
 
   // ── Continuation if too short ──
   const wc = latex.replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "").split(/\s+/).length;
-  if (wc < targetWords * 0.7 && p.chapter.targetPages > 2) {
-    console.log(`    ↻ ${wc}/${targetWords} words — continuing...`);
+  p.log.data(
+    "Word count (main)",
+    `${wc}/${targetWords} (${Math.round((wc / targetWords) * 100)}%)`,
+  );
 
-    const contPrompt = `Continue. ${wc}/${targetWords} words written. Write ${targetWords - wc}+ more words. Don't repeat content. Only LaTeX body. ${lang}.`;
+  if (wc < targetWords * 0.7 && p.chapter.targetPages > 2) {
+    p.log.warn(
+      `Too short! ${wc}/${targetWords} words — requesting continuation...`,
+    );
+
+    const contPrompt = `You wrote ${wc} of ${targetWords} target words. Continue writing the remaining ${targetWords - wc}+ words.
+
+RULES FOR CONTINUATION:
+- Pick up EXACTLY where you left off — do NOT repeat any content
+- Maintain the same expert voice and quality level
+- Add NEW data points, examples, and analysis — don't pad with filler
+- Complete any unfinished sections from the outline
+- COMPLETE every sentence — never stop mid-thought
+- Output only LaTeX body (no preamble). All text in ${lang}.
+- Remember: banned AI phrases still apply. Write like a human expert.`;
+
     prompts.push({
       step: "continuation",
       role: "continuation",
@@ -327,6 +510,7 @@ Target: ${targetWords} words, ${p.chapter.targetPages} pages.`;
       timestamp: ts(),
     });
 
+    const contTimer = p.log.timer();
     const cont = await anthropic.messages.create({
       model,
       max_tokens: maxTok,
@@ -347,6 +531,17 @@ Target: ${targetWords} words, ${p.chapter.targetPages} pages.`;
     tokens +=
       (cont.usage?.input_tokens || 0) + (cont.usage?.output_tokens || 0);
 
+    const contWc = contLatex
+      .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")
+      .split(/\s+/).length;
+    p.log.api(
+      model,
+      cont.usage?.input_tokens || 0,
+      cont.usage?.output_tokens || 0,
+    );
+    p.log.ok(`Continuation: +${contWc} words (${contTimer()})`);
+    p.log.data("Total word count", `${wc + contWc}/${targetWords}`);
+
     responses.push({
       step: "continuation",
       content: contLatex,
@@ -357,8 +552,9 @@ Target: ${targetWords} words, ${p.chapter.targetPages} pages.`;
     });
   }
 
-  // ── Summary call ──
+  // ── Summary ──
   const summary = await chapterSummary(latex, p.language);
+  p.log.step(`Summary: ${summary.substring(0, 100)}...`);
 
   return {
     latexContent: latex,
@@ -388,7 +584,7 @@ async function chapterSummary(content: string, lang: string): Promise<string> {
       .replace(/[{}]/g, "")
       .slice(0, 3000);
     const r = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
+      model: "claude-sonnet-4-5-20250929",
       max_tokens: 200,
       messages: [
         {
