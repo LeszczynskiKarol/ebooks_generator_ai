@@ -22,13 +22,16 @@ import {
   Database,
   Zap,
   Trash2,
+  Download,
 } from "lucide-react";
 import apiClient from "@/lib/api";
+import { useAuthStore } from "@/stores/authStore";
 import toast from "react-hot-toast";
 
 export default function AdminProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const token = useAuthStore((s) => s.accessToken);
 
   const {
     data: project,
@@ -215,6 +218,24 @@ export default function AdminProjectDetail() {
           </div>
         </div>
       </div>
+
+      {/* Download bar (if completed) */}
+      {project.currentStage === "COMPLETED" && (
+        <div className="mb-6 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-green-600" />
+            <span className="text-sm font-medium text-green-800 dark:text-green-300">
+              Book completed — PDF ready
+            </span>
+          </div>
+          <a
+            href={`/api/admin/projects/${id}/download/pdf?token=${token}`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+          >
+            <Download className="w-4 h-4" /> Download PDF
+          </a>
+        </div>
+      )}
 
       {/* Project meta */}
       <div className="grid grid-cols-2 lg:grid-cols-7 gap-3 mb-6">

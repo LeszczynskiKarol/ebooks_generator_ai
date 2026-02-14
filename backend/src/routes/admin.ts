@@ -395,6 +395,75 @@ export async function adminRoutes(app: FastifyInstance) {
     return reply.send({ success: true, message: "Project deleted" });
   });
 
+  // ━━━ GET /api/admin/projects/:id/download/pdf ━━━ Admin download (any project)
+  app.get("/api/admin/projects/:id/download/pdf", async (request, reply) => {
+    const { id } = request.params as any;
+
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: { structure: true },
+    });
+
+    if (!project) return reply.status(404).send({ error: "Project not found" });
+
+    const structureData = project.structure
+      ? JSON.parse(project.structure.structureJson)
+      : null;
+    const bookTitle =
+      structureData?.suggestedTitle || project.title || project.topic;
+    const filename = sanitizeFilename(bookTitle) + ".pdf";
+
+    // Try S3
+    if (
+      project.outputPdfKey &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.S3_BUCKET
+    ) {
+      try {
+        const { S3Client, GetObjectCommand } =
+          await import("@aws-sdk/client-s3");
+        const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
+
+        const s3 = new S3Client({
+          region: process.env.AWS_REGION || "eu-north-1",
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+          },
+        });
+
+        const url = await getSignedUrl(
+          s3,
+          new GetObjectCommand({
+            Bucket: process.env.S3_BUCKET,
+            Key: project.outputPdfKey,
+            ResponseContentDisposition: `attachment; filename="${filename}"`,
+          }),
+          { expiresIn: 3600 },
+        );
+
+        return reply.redirect(url);
+      } catch (err: any) {
+        console.error("Admin S3 download failed:", err.message);
+      }
+    }
+
+    // Fallback: local
+    const path = await import("path");
+    const fs = await import("fs");
+    const localPdf = path.join(process.cwd(), "tmp", "builds", id, "book.pdf");
+    if (!fs.existsSync(localPdf)) {
+      return reply.status(404).send({ error: "PDF not found" });
+    }
+
+    const pdfBuffer = fs.readFileSync(localPdf);
+    return reply
+      .header("Content-Type", "application/pdf")
+      .header("Content-Disposition", `attachment; filename="${filename}"`)
+      .header("Content-Length", pdfBuffer.length)
+      .send(pdfBuffer);
+  });
+
   // ━━━ GET /api/admin/users ━━━
   app.get("/api/admin/users", async (request, reply) => {
     const users = await prisma.user.findMany({
@@ -409,4 +478,54 @@ export async function adminRoutes(app: FastifyInstance) {
     });
     return reply.send({ success: true, data: users });
   });
+}
+
+function sanitizeFilename(name: string): string {
+  const diacriticMap: Record<string, string> = {
+    ą: "a",
+    ć: "c",
+    ę: "e",
+    ł: "l",
+    ń: "n",
+    ó: "o",
+    ś: "s",
+    ź: "z",
+    ż: "z",
+    Ą: "A",
+    Ć: "C",
+    Ę: "E",
+    Ł: "L",
+    Ń: "N",
+    Ó: "O",
+    Ś: "S",
+    Ź: "Z",
+    Ż: "Z",
+    ä: "a",
+    ö: "o",
+    ü: "u",
+    ß: "ss",
+    Ä: "A",
+    Ö: "O",
+    Ü: "U",
+    é: "e",
+    è: "e",
+    ê: "e",
+    à: "a",
+    â: "a",
+    î: "i",
+    ô: "o",
+    û: "u",
+    ç: "c",
+    ñ: "n",
+    á: "a",
+    í: "i",
+    ú: "u",
+  };
+  return name
+    .split("")
+    .map((ch) => diacriticMap[ch] || ch)
+    .join("")
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .substring(0, 80);
 }

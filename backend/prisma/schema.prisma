@@ -135,6 +135,7 @@ model Chapter {
 
   writerPrompts   String? @db.Text
   writerResponses String? @db.Text
+  researchData    String? @db.Text  // ← NEW: JSON from conductChapterResearch()
 
   imagePlacements ImagePlacement[]
   status          ChapterStatus @default(PENDING)

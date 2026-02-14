@@ -27,6 +27,13 @@ function elapsed(start: number): string {
   return `${Math.floor(ms / 60000)}m${Math.round((ms % 60000) / 1000)}s`;
 }
 
+/** Truncate string to maxLen chars, add "…" if truncated */
+function trunc(s: string, maxLen: number): string {
+  const clean = s.replace(/\n/g, " ↵ ").replace(/\s+/g, " ").trim();
+  if (clean.length <= maxLen) return clean;
+  return clean.substring(0, maxLen) + "…";
+}
+
 export function createPipelineLogger(pipeline: string, projectId: string) {
   const pipelineStart = Date.now();
   const tag = `[${pipeline}][${projectId.substring(0, 8)}]`;
@@ -110,6 +117,20 @@ export function createPipelineLogger(pipeline: string, projectId: string) {
       const dur = durationMs ? ` (${elapsed(Date.now() - durationMs)})` : "";
       console.log(
         `${COLORS.gray}  ${ts()}${COLORS.reset} ${tag}   🤖 ${model} | in: ${inputTokens} | out: ${outputTokens}${dur}`,
+      );
+    },
+
+    /** Claude API request preview — shows truncated prompt (max 500 chars) */
+    claudeReq(label: string, prompt: string) {
+      console.log(
+        `${COLORS.gray}  ${ts()}${COLORS.reset} ${tag}   ${COLORS.magenta}📤 [${label}] REQ: ${trunc(prompt, 500)}${COLORS.reset}`,
+      );
+    },
+
+    /** Claude API response preview — shows truncated response (max 500 chars) */
+    claudeRes(label: string, response: string) {
+      console.log(
+        `${COLORS.gray}  ${ts()}${COLORS.reset} ${tag}   ${COLORS.cyan}📥 [${label}] RES: ${trunc(response, 500)}${COLORS.reset}`,
       );
     },
 

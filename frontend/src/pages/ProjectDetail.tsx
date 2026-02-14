@@ -318,6 +318,7 @@ export default function ProjectDetail() {
             )}
           </div>
         )}
+
         {/* COMPLETED */}
         {project.currentStage === "COMPLETED" && (
           <div className="text-center">
@@ -327,14 +328,13 @@ export default function ProjectDetail() {
             </h3>
             <div className="flex gap-4 justify-center mt-6">
               <a
-                href={`${import.meta.env.VITE_API_URL || ""}/api/projects/${id}/download/pdf?token=${token}`}
+                href={`/api/projects/${id}/download/pdf?token=${token}`}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium"
               >
                 <Download className="w-5 h-5" /> Download PDF
               </a>
-
               <a
-                href={`${import.meta.env.VITE_API_URL || ""}/api/projects/${id}/download/tex`}
+                href={`/api/projects/${id}/download/tex?token=${token}`}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
               >
                 <Download className="w-5 h-5" /> Download LaTeX

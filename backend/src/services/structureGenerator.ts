@@ -83,7 +83,7 @@ export async function generateStructure(projectId: string) {
   try {
     const apiTimer = log.timer();
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
+      model: "claude-haiku-4-5",
       max_tokens: 8000,
       messages: [{ role: "user", content: prompt }],
     });
@@ -92,7 +92,7 @@ export async function generateStructure(projectId: string) {
       response.content[0].type === "text" ? response.content[0].text : "";
     const stopReason = response.stop_reason;
     log.api(
-      "claude-sonnet-4-5",
+      "claude-haiku-4-5",
       response.usage?.input_tokens || 0,
       response.usage?.output_tokens || 0,
     );

@@ -9,7 +9,14 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 const BUILD_DIR = path.join(process.cwd(), "tmp", "builds");
 
 export async function downloadRoutes(app: FastifyInstance) {
-  app.addHook("preHandler", authenticate);
+  app.addHook("preHandler", async (request, reply) => {
+    // Support ?token= for direct browser links (no Authorization header)
+    const queryToken = (request.query as any)?.token;
+    if (queryToken && !request.headers.authorization) {
+      request.headers.authorization = `Bearer ${queryToken}`;
+    }
+    await authenticate(request, reply);
+  });
 
   // ━━━ GET /api/projects/:id/download/pdf ━━━
   app.get("/api/projects/:id/download/pdf", async (request, reply) => {
@@ -125,8 +132,55 @@ export async function downloadRoutes(app: FastifyInstance) {
 }
 
 function sanitize(name: string): string {
+  // Replace Polish diacritics with ASCII equivalents
+  const diacriticMap: Record<string, string> = {
+    ą: "a",
+    ć: "c",
+    ę: "e",
+    ł: "l",
+    ń: "n",
+    ó: "o",
+    ś: "s",
+    ź: "z",
+    ż: "z",
+    Ą: "A",
+    Ć: "C",
+    Ę: "E",
+    Ł: "L",
+    Ń: "N",
+    Ó: "O",
+    Ś: "S",
+    Ź: "Z",
+    Ż: "Z",
+    ä: "a",
+    ö: "o",
+    ü: "u",
+    ß: "ss",
+    Ä: "A",
+    Ö: "O",
+    Ü: "U",
+    é: "e",
+    è: "e",
+    ê: "e",
+    ë: "e",
+    à: "a",
+    â: "a",
+    î: "i",
+    ï: "i",
+    ô: "o",
+    û: "u",
+    ù: "u",
+    ç: "c",
+    ñ: "n",
+    á: "a",
+    í: "i",
+    ú: "u",
+  };
   return name
-    .replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s-]/g, "")
+    .split("")
+    .map((ch) => diacriticMap[ch] || ch)
+    .join("")
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .substring(0, 80);
 }

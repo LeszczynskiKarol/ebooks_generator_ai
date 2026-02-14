@@ -1,7 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — Research Service v2
-// Simple query → Scrape all → Claude selects best →
-// Optional English round if sources insufficient
+// BookForge — Research Service v3
+// Global research (book-level) + Per-chapter research
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -36,7 +35,7 @@ const LANGUAGE_CODES: Record<string, string> = {
   nl: "nl",
 };
 
-// ━━━ Public interface ━━━
+// ━━━ Public interfaces ━━━
 
 export interface ResearchResult {
   googleQuery: string;
@@ -64,17 +63,27 @@ export interface ResearchResult {
   researchedAt: string;
 }
 
+export interface ChapterResearchResult {
+  chapterNumber: number;
+  chapterTitle: string;
+  queries: string[];
+  selectedSources: Array<{
+    url: string;
+    text: string;
+    length: number;
+    lang: string;
+  }>;
+  totalSourcesLength: number;
+  researchedAt: string;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// GLOBAL RESEARCH (unchanged — runs during structure generation)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 /**
- * Main research pipeline v2.
- *
- * Flow:
- * 1. Generate SIMPLE query in target language (2-4 words)
- * 2. Google search → scrape ALL results
- * 3. Send 20k char previews to Claude → select 3-5 best
- * 4. Claude evaluates: are sources sufficient?
- *    YES → done
- *    NO  → generate English query → search+scrape → Claude picks 1-3 more
- * 5. Return only selected sources
+ * Main research pipeline v2 — book-level research.
+ * Called during structure generation. Unchanged from original.
  */
 export async function conductResearch(
   projectId: string,
@@ -83,43 +92,30 @@ export async function conductResearch(
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new Error("Project not found");
 
-  log.header("Research Pipeline v2", {
+  log.header("Research Pipeline v2 (Global)", {
     Topic: project.topic,
     Language: project.language,
     Guidelines: (project.guidelines || "none").substring(0, 100),
   });
 
-  // Check API keys
-  const missingKeys: string[] = [];
-  if (!GOOGLE_API_KEY) missingKeys.push("GOOGLE_API_KEY");
-  if (!GOOGLE_CX) missingKeys.push("GOOGLE_CX");
-  if (!SCRAPER_URL) missingKeys.push("SCRAPER_URL");
-
-  if (missingKeys.length > 0) {
-    log.warn(`Research SKIPPED — missing env vars: ${missingKeys.join(", ")}`);
+  if (!hasApiKeys()) {
+    log.warn(`Research SKIPPED — missing env vars`);
     log.footer("SUCCESS", "Skipped — no API keys");
     return emptyResearch();
   }
 
-  log.ok(
-    `API keys: GOOGLE_API_KEY=${GOOGLE_API_KEY.substring(0, 8)}..., CX=${GOOGLE_CX.substring(0, 8)}..., SCRAPER=${SCRAPER_URL.substring(0, 40)}...`,
-  );
-
   try {
-    // ════════════════════════════════════════════════════════
     // PHASE 1: Simple query in target language
-    // ════════════════════════════════════════════════════════
     log.phase(1, "Generate Simple Search Query");
     const queryTimer = log.timer();
     const googleQuery = await generateSimpleQuery(
       project.topic,
       project.language,
+      log,
     );
     log.ok(`Query: "${googleQuery}" (${queryTimer()})`);
 
-    // ════════════════════════════════════════════════════════
     // PHASE 2: Google search + scrape ALL
-    // ════════════════════════════════════════════════════════
     log.phase(2, "Search & Scrape (target language)");
     const searchTimer = log.timer();
     const searchResults = await searchGoogle(
@@ -153,9 +149,7 @@ export async function conductResearch(
       return emptyResearch();
     }
 
-    // ════════════════════════════════════════════════════════
     // PHASE 3: Claude selects 3-5 best + evaluates quality
-    // ════════════════════════════════════════════════════════
     log.phase(3, "Claude Selects Best Sources & Evaluates Quality");
     const selectTimer = log.timer();
     const selection = await claudeSelectAndEvaluate(
@@ -167,28 +161,13 @@ export async function conductResearch(
     log.ok(
       `Selected ${selection.selectedIndices.length} sources (${selectTimer()})`,
     );
-    log.data(
-      "Quality verdict",
-      selection.sufficient
-        ? "✅ SUFFICIENT"
-        : "❌ INSUFFICIENT — will search English",
-    );
-    log.data("Reasoning", selection.reasoning.substring(0, 200));
 
     let selectedSources = selection.selectedIndices.map((idx) => ({
       ...validScraped[idx],
       lang: project.language,
     }));
 
-    for (const [i, s] of selectedSources.entries()) {
-      log.step(
-        `  ${i + 1}. [${s.lang}] ${s.url.substring(0, 70)} (${s.length.toLocaleString()} chars)`,
-      );
-    }
-
-    // ════════════════════════════════════════════════════════
     // PHASE 4 (conditional): English supplement
-    // ════════════════════════════════════════════════════════
     let englishQuery: string | undefined;
     let englishSearchResults:
       | Array<{ title: string; link: string; snippet: string }>
@@ -196,83 +175,42 @@ export async function conductResearch(
 
     if (!selection.sufficient && project.language !== "en") {
       log.phase(4, "English Supplement Search");
+      englishQuery = await generateSimpleQuery(project.topic, "en", log);
+      const enSearchResults = await searchGoogle(englishQuery, "en", log);
 
-      const enQueryTimer = log.timer();
-      englishQuery = await generateSimpleQuery(project.topic, "en");
-      log.ok(`English query: "${englishQuery}" (${enQueryTimer()})`);
-
-      const enSearchTimer = log.timer();
-      englishSearchResults = await searchGoogle(englishQuery, "en", log);
-      log.ok(
-        `Google EN: ${englishSearchResults.length} results (${enSearchTimer()})`,
-      );
-
-      if (englishSearchResults.length > 0) {
-        // Filter out URLs we already scraped
+      if (enSearchResults.length > 0) {
+        englishSearchResults = enSearchResults;
         const existingUrls = new Set(allScraped.map((s) => s.url));
-        const newUrls = englishSearchResults
+        const newUrls = enSearchResults
           .map((r) => r.link)
           .filter((u) => !existingUrls.has(u));
-        log.step(
-          `New URLs to scrape: ${newUrls.length} (filtered ${englishSearchResults.length - newUrls.length} duplicates)`,
-        );
 
         if (newUrls.length > 0) {
-          const enScrapeTimer = log.timer();
           const enScraped = await scrapeUrls(newUrls, log);
           const enValid = enScraped.filter(
             (r) => r.status === "success" && r.length > 500,
           );
-          log.ok(
-            `EN Scraped: ${enValid.length}/${enScraped.length} valid (${enScrapeTimer()})`,
-          );
-
-          // Add to allScraped for reference
           allScraped.push(...enScraped);
 
           if (enValid.length > 0) {
-            const enSelectTimer = log.timer();
             const enSelection = await claudeSelectEnglishSupplement(
               project.topic,
               enValid,
               selectedSources,
               log,
             );
-            log.ok(
-              `EN supplement: +${enSelection.length} sources (${enSelectTimer()})`,
-            );
-
             const enSources = enSelection.map((idx) => ({
               ...enValid[idx],
               lang: "en",
             }));
-
-            for (const s of enSources) {
-              log.step(
-                `  + [en] ${s.url.substring(0, 70)} (${s.length.toLocaleString()} chars)`,
-              );
-            }
-
             selectedSources.push(...enSources);
           }
         }
       }
-    } else if (project.language === "en") {
-      log.step("Language is already English — skipping supplement");
-    } else {
-      log.step("Sources sufficient — skipping English supplement");
     }
 
-    // ════════════════════════════════════════════════════════
     // FINALIZE
-    // ════════════════════════════════════════════════════════
     const totalLength = selectedSources.reduce((sum, s) => sum + s.length, 0);
-    log.data(
-      "Final sources",
-      `${selectedSources.length} (${selectedSources.filter((s) => s.lang !== "en").length} native + ${selectedSources.filter((s) => s.lang === "en").length} English)`,
-    );
-    log.data("Total content", `${totalLength.toLocaleString()} chars`);
-
     const result: ResearchResult = {
       googleQuery,
       englishQuery,
@@ -295,12 +233,10 @@ export async function conductResearch(
       researchedAt: new Date().toISOString(),
     };
 
-    log.step("Saving research data to database...");
     await prisma.project.update({
       where: { id: projectId },
       data: { researchData: JSON.stringify(result) },
     });
-    log.ok("Saved to project.researchData");
 
     log.footer(
       "SUCCESS",
@@ -315,7 +251,347 @@ export async function conductResearch(
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Load & Format (unchanged public API)
+// PER-CHAPTER RESEARCH (NEW)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+interface ChapterInfo {
+  number: number;
+  title: string;
+  description: string;
+  sections: Array<{ title: string; description: string }>;
+}
+
+/**
+ * Conduct research for a specific chapter.
+ *
+ * Flow:
+ * 1. Generate 2 targeted queries from chapter title + section descriptions
+ * 2. Search & scrape (deduplicate against global URLs)
+ * 3. Claude selects 2-3 best sources for THIS chapter
+ * 4. Optional English supplement if needed
+ * 5. Cache result in chapter.researchData
+ */
+export async function conductChapterResearch(
+  projectId: string,
+  chapter: ChapterInfo,
+  globalUrls: Set<string>,
+  language: string,
+  bookTopic: string,
+  log: any,
+): Promise<ChapterResearchResult> {
+  const emptyResult: ChapterResearchResult = {
+    chapterNumber: chapter.number,
+    chapterTitle: chapter.title,
+    queries: [],
+    selectedSources: [],
+    totalSourcesLength: 0,
+    researchedAt: new Date().toISOString(),
+  };
+
+  if (!hasApiKeys()) {
+    log.step(`  Ch.${chapter.number} research SKIPPED — no API keys`);
+    return emptyResult;
+  }
+
+  const chLog = {
+    step: (msg: string) => log.step(`    [Ch${chapter.number}] ${msg}`),
+    ok: (msg: string) => log.ok(`    [Ch${chapter.number}] ${msg}`),
+    warn: (msg: string) => log.warn(`    [Ch${chapter.number}] ${msg}`),
+    err: (msg: string, e?: any) =>
+      log.err(`    [Ch${chapter.number}] ${msg}`, e),
+    timer: log.timer,
+    api: log.api,
+  };
+
+  try {
+    // ── Step 1: Generate chapter-specific queries ──
+    const queries = await generateChapterQueries(
+      bookTopic,
+      chapter,
+      language,
+      chLog,
+    );
+    chLog.ok(`Queries: ${queries.map((q) => `"${q}"`).join(", ")}`);
+
+    // ── Step 2: Search & scrape (deduplicated) ──
+    const allScraped: Array<{
+      url: string;
+      text: string;
+      length: number;
+      status: string;
+    }> = [];
+
+    for (const query of queries) {
+      const searchResults = await searchGoogle(query, language, chLog);
+      chLog.step(`"${query}" → ${searchResults.length} results`);
+
+      // Filter out URLs already used globally or in this chapter
+      const newUrls = searchResults
+        .map((r) => r.link)
+        .filter(
+          (u) => !globalUrls.has(u) && !allScraped.some((s) => s.url === u),
+        );
+
+      if (newUrls.length > 0) {
+        const scraped = await scrapeUrls(newUrls.slice(0, 5), chLog); // Max 5 per query
+        allScraped.push(...scraped);
+        // Add to global set so other chapters don't re-scrape
+        newUrls.forEach((u) => globalUrls.add(u));
+      }
+
+      // Small delay between queries
+      await new Promise((r) => setTimeout(r, 300));
+    }
+
+    const validScraped = allScraped.filter(
+      (r) => r.status === "success" && r.length > 500,
+    );
+    chLog.ok(
+      `Scraped: ${validScraped.length}/${allScraped.length} valid sources`,
+    );
+
+    if (validScraped.length === 0) {
+      chLog.warn(
+        "No valid sources — chapter will use global research + Claude knowledge",
+      );
+      return emptyResult;
+    }
+
+    // ── Step 3: Claude selects 2-3 best for THIS chapter ──
+    const selection = await claudeSelectForChapter(
+      bookTopic,
+      chapter,
+      language,
+      validScraped,
+      chLog,
+    );
+
+    let selectedSources = selection.map((idx) => ({
+      ...validScraped[idx],
+      lang: language,
+    }));
+
+    // ── Step 4: English supplement if language != en and sources thin ──
+    if (language !== "en" && selectedSources.length < 2) {
+      chLog.step("Thin sources — trying English supplement...");
+      const enQuery = await generateSimpleQuery(
+        `${chapter.title} ${bookTopic}`,
+        "en",
+        chLog,
+      );
+      const enResults = await searchGoogle(enQuery, "en", chLog);
+      const enNewUrls = enResults
+        .map((r) => r.link)
+        .filter((u) => !globalUrls.has(u));
+
+      if (enNewUrls.length > 0) {
+        const enScraped = await scrapeUrls(enNewUrls.slice(0, 4), chLog);
+        const enValid = enScraped.filter(
+          (r) => r.status === "success" && r.length > 500,
+        );
+
+        if (enValid.length > 0) {
+          const enSelection = await claudeSelectForChapter(
+            bookTopic,
+            chapter,
+            "en",
+            enValid,
+            chLog,
+          );
+          const enSources = enSelection.map((idx) => ({
+            ...enValid[idx],
+            lang: "en",
+          }));
+          selectedSources.push(...enSources);
+          enNewUrls.forEach((u) => globalUrls.add(u));
+          chLog.ok(`+${enSources.length} English sources added`);
+        }
+      }
+    }
+
+    // ── Finalize ──
+    const totalLength = selectedSources.reduce((sum, s) => sum + s.length, 0);
+    chLog.ok(
+      `Final: ${selectedSources.length} sources, ${totalLength.toLocaleString()} chars`,
+    );
+
+    const result: ChapterResearchResult = {
+      chapterNumber: chapter.number,
+      chapterTitle: chapter.title,
+      queries,
+      selectedSources: selectedSources.map((s) => ({
+        url: s.url,
+        text: sanitizeText(s.text),
+        length: s.length,
+        lang: s.lang,
+      })),
+      totalSourcesLength: totalLength,
+      researchedAt: new Date().toISOString(),
+    };
+
+    // Cache in DB
+    await prisma.chapter.updateMany({
+      where: { projectId, chapterNumber: chapter.number },
+      data: { researchData: JSON.stringify(result) },
+    });
+
+    return result;
+  } catch (error: any) {
+    chLog.err("Chapter research failed", error);
+    return emptyResult;
+  }
+}
+
+/**
+ * Generate 2 targeted search queries for a specific chapter.
+ * Uses chapter title + section descriptions to create focused queries.
+ */
+async function generateChapterQueries(
+  bookTopic: string,
+  chapter: ChapterInfo,
+  language: string,
+  log?: any,
+): Promise<string[]> {
+  const langName = LANGUAGE_NAMES[language] || "English";
+  const sectionsList = chapter.sections
+    .map((s) => `- ${s.title}: ${s.description.substring(0, 100)}`)
+    .join("\n");
+
+  const prompt = `Generate exactly 2 Google search queries to find SPECIFIC DATA for this book chapter.
+
+BOOK TOPIC: ${bookTopic}
+CHAPTER: "${chapter.title}"
+CHAPTER DESCRIPTION: ${chapter.description}
+SECTIONS:
+${sectionsList}
+
+RULES:
+- Queries MUST be in ${langName}
+- 2-5 words each — simple, direct
+- Query 1: focus on the MAIN topic of the chapter
+- Query 2: focus on a SPECIFIC subtopic, case study, or data angle
+- DO NOT repeat the book topic verbatim — get specific to THIS chapter
+- Think: what data/stats/case studies would make this chapter excellent?
+- Examples of GOOD queries: "ROI content marketing 2024", "OBI ecommerce SEO case study", "AI copywriting tools pricing"
+- Examples of BAD queries: "AI copywriting comprehensive guide best practices overview"
+
+Output ONLY 2 queries, one per line, nothing else:`;
+
+  log?.claudeReq?.("ch-queries", prompt);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 100,
+    temperature: 0.3,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const text =
+    message.content[0].type === "text" ? message.content[0].text.trim() : "";
+  log?.claudeRes?.("ch-queries", text);
+
+  const queries = text
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/^\d+[\.\)]\s*/, "")
+        .replace(/^[-•]\s*/, "")
+        .replace(/^["'"]|["'"]$/g, "")
+        .replace(/^(Query|Zapytanie)\s*\d*[:：]\s*/i, "")
+        .trim(),
+    )
+    .filter((q) => q.length > 2 && q.length < 80)
+    .slice(0, 2);
+
+  // Fallback: generate from chapter title
+  if (queries.length === 0) {
+    const words = chapter.title.split(/\s+/).slice(0, 4).join(" ");
+    return [words];
+  }
+
+  return queries;
+}
+
+/**
+ * Claude selects 2-3 best sources specifically for a chapter.
+ */
+async function claudeSelectForChapter(
+  bookTopic: string,
+  chapter: ChapterInfo,
+  language: string,
+  scraped: Array<{ url: string; text: string; length: number }>,
+  log: any,
+): Promise<number[]> {
+  const PREVIEW_CHARS = 15000;
+
+  const sourcePreviews = scraped
+    .map((result, index) => {
+      const preview = result.text.substring(0, PREVIEW_CHARS);
+      return `── SOURCE ${index} ── ${result.url} (${result.length.toLocaleString()} chars)\n${preview}\n── END ${index} ──`;
+    })
+    .join("\n\n");
+
+  const sectionsList = chapter.sections.map((s) => s.title).join(", ");
+
+  const prompt = `Select 2-3 BEST sources for this specific book chapter.
+
+BOOK: "${bookTopic}"
+CHAPTER: "${chapter.title}" — ${chapter.description}
+SECTIONS: ${sectionsList}
+
+Pick sources with the most CONCRETE, USABLE content for THIS chapter:
+- Specific numbers, stats, case studies relevant to "${chapter.title}"
+- Named companies, tools, or examples that fit the chapter's angle
+- Data that the chapter's sections can directly reference
+
+STRICT RELEVANCE FILTER — REJECT sources that:
+- Cover a different subject than this chapter (e.g. medical recruitment for a chapter about Polish exam criteria)
+- Are only tangentially related (e.g. university admissions when chapter is about exam structure)
+- Contain generic/boilerplate content with no specific data for this chapter's topic
+- Are advertisements, course listings, or product pages without substantive content
+
+Quality over quantity: return [] if NO source directly addresses this chapter's topic.
+It is BETTER to return 0 sources than to include off-topic ones — the chapter has global research as fallback.
+
+AVAILABLE (${scraped.length}):
+${sourcePreviews}
+
+Respond with ONLY a JSON array of source numbers (0-indexed), e.g.: [0, 2, 4]
+Pick 2-3 sources. Return [] if none are directly relevant.`;
+
+  log?.claudeReq?.("ch-select", prompt);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 100,
+    temperature: 0.2,
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  const responseText =
+    message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
+  log?.claudeRes?.("ch-select", responseText);
+  log.api?.(
+    "claude-sonnet-4-5",
+    message.usage?.input_tokens || 0,
+    message.usage?.output_tokens || 0,
+  );
+
+  try {
+    const jsonMatch = responseText.match(/\[[\s\S]*?\]/);
+    if (!jsonMatch) return fallbackSelection(scraped);
+    const parsed = JSON.parse(jsonMatch[0]);
+    // Claude explicitly returned [] — respect it, no fallback
+    if (Array.isArray(parsed) && parsed.length === 0) return [];
+    const indices = parsed
+      .map((n: any) => parseInt(n))
+      .filter((n: number) => !isNaN(n) && n >= 0 && n < scraped.length);
+    return indices.length > 0 ? indices.slice(0, 3) : [];
+  } catch {
+    return fallbackSelection(scraped);
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Load & Format (updated for chapter-level research)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export async function loadResearch(
@@ -325,26 +601,37 @@ export async function loadResearch(
     where: { id: projectId },
     select: { researchData: true },
   });
-  if (!project?.researchData) {
-    console.log(
-      `  📚 [RESEARCH] No researchData in DB for project ${projectId.substring(0, 8)}`,
-    );
-    return null;
-  }
+  if (!project?.researchData) return null;
   try {
-    const data = JSON.parse(project.researchData) as ResearchResult;
-    console.log(
-      `  📚 [RESEARCH] Loaded: ${data.selectedSources.length} sources, ${data.totalSourcesLength.toLocaleString()} chars, query: "${data.googleQuery}"${data.englishQuery ? ` + EN: "${data.englishQuery}"` : ""}`,
-    );
-    return data;
-  } catch (err) {
-    console.log(`  📚 [RESEARCH] Failed to parse researchData: ${err}`);
+    return JSON.parse(project.researchData) as ResearchResult;
+  } catch {
     return null;
   }
 }
 
+export async function loadChapterResearch(
+  projectId: string,
+  chapterNumber: number,
+): Promise<ChapterResearchResult | null> {
+  const chapter = await prisma.chapter.findUnique({
+    where: {
+      projectId_chapterNumber: { projectId, chapterNumber },
+    },
+    select: { researchData: true },
+  });
+  if (!chapter?.researchData) return null;
+  try {
+    return JSON.parse(chapter.researchData) as ChapterResearchResult;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Format sources for prompt — works for both global and chapter research.
+ */
 export function formatSourcesForPrompt(
-  research: ResearchResult | null,
+  research: ResearchResult | ChapterResearchResult | null,
   maxCharsPerSource: number = 25000,
 ): string {
   if (!research || research.selectedSources.length === 0) return "";
@@ -363,7 +650,6 @@ export function formatSourcesForPrompt(
   return `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 RESEARCH SOURCES (${research.selectedSources.length} sources, ${research.totalSourcesLength.toLocaleString()} total chars)
-Query: "${research.googleQuery}"${research.englishQuery ? ` | EN: "${research.englishQuery}"` : ""}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ${sources}
@@ -381,6 +667,74 @@ HOW TO USE THESE SOURCES — THIS IS YOUR COMPETITIVE ADVANTAGE:
 `;
 }
 
+/**
+ * Merge global + chapter research into a single formatted block.
+ * Chapter-specific sources come first (higher priority).
+ */
+export function mergeResearchForPrompt(
+  globalResearch: ResearchResult | null,
+  chapterResearch: ChapterResearchResult | null,
+  maxCharsPerSource: number = 20000,
+): { text: string; hasResearch: boolean } {
+  const chapterSources = chapterResearch?.selectedSources || [];
+  const globalSources = globalResearch?.selectedSources || [];
+
+  if (chapterSources.length === 0 && globalSources.length === 0) {
+    return { text: "", hasResearch: false };
+  }
+
+  // Deduplicate: chapter sources take priority, remove global dupes by URL
+  const chapterUrls = new Set(chapterSources.map((s) => s.url));
+  const dedupedGlobal = globalSources.filter((s) => !chapterUrls.has(s.url));
+
+  // Build combined list: chapter-specific first, then relevant global
+  const allSources = [
+    ...chapterSources.map((s) => ({ ...s, priority: "CHAPTER-SPECIFIC" })),
+    ...dedupedGlobal.map((s) => ({ ...s, priority: "BOOK-LEVEL" })),
+  ];
+
+  const sources = allSources
+    .map((s, i) => {
+      const text =
+        s.text.length > maxCharsPerSource
+          ? s.text.substring(0, maxCharsPerSource) + "\n[... TRUNCATED ...]"
+          : s.text;
+      const langTag = s.lang ? ` [${s.lang.toUpperCase()}]` : "";
+      const priorityTag =
+        s.priority === "CHAPTER-SPECIFIC" ? " ★ CHAPTER-SPECIFIC" : "";
+      return `\n═══ SOURCE ${i + 1}${langTag}${priorityTag}: ${s.url} (${s.length.toLocaleString()} chars) ═══\n\n${text}\n\n═══ END SOURCE ${i + 1} ═══`;
+    })
+    .join("\n\n");
+
+  const totalLength = allSources.reduce(
+    (sum, s) => sum + Math.min(s.text.length, maxCharsPerSource),
+    0,
+  );
+
+  const text = `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RESEARCH SOURCES (${allSources.length} total: ${chapterSources.length} chapter-specific + ${dedupedGlobal.length} book-level)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRIORITY: Sources marked ★ CHAPTER-SPECIFIC are the most relevant for this chapter.
+Use them FIRST. Book-level sources provide broader context.
+
+${sources}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HOW TO USE THESE SOURCES:
+- PRIORITIZE ★ CHAPTER-SPECIFIC sources — they were found specifically for this chapter
+- EXTRACT every specific number, percentage, company name, tool name, date, and price
+- BUILD your arguments around source data — a claim without a data point is filler
+- COMPARE sources when they discuss the same topic
+- SYNTHESIZE insights across sources — don't just summarize each one separately
+- NEVER copy text verbatim — rewrite everything in your own voice
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+  return { text, hasResearch: true };
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Internal: Query generation
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -388,6 +742,7 @@ HOW TO USE THESE SOURCES — THIS IS YOUR COMPETITIVE ADVANTAGE:
 async function generateSimpleQuery(
   topic: string,
   language: string,
+  log?: any,
 ): Promise<string> {
   const langName = LANGUAGE_NAMES[language] || "English";
 
@@ -402,12 +757,11 @@ RULES:
 - Use the most basic, common terms for this topic
 - Do NOT add qualifiers like "case study", "ROI", "data", "best practices"
 - Think: what would a normal person type into Google?
-- Examples of GOOD queries: "storytelling copywriting", "AI marketing tools", "SEO optimization 2025"
-- Examples of BAD queries: "storytelling copywriting case study ROI conversion data analysis"
 - Output ONLY the query, nothing else
 
 Query:`;
 
+  log?.claudeReq?.("simple-query", prompt);
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
     max_tokens: 50,
@@ -417,13 +771,13 @@ Query:`;
 
   let query =
     message.content[0].type === "text" ? message.content[0].text.trim() : topic;
+  log?.claudeRes?.("simple-query", query);
   query = query
     .replace(/^(Query|Zapytanie|Recherche|Búsqueda)[:：]\s*/i, "")
     .replace(/^["'"]|["'"]$/g, "")
     .replace(/\n/g, " ")
     .trim();
 
-  // Hard limit: max 5 words
   const words = query.split(/\s+/);
   if (words.length > 5) query = words.slice(0, 4).join(" ");
 
@@ -445,7 +799,7 @@ async function searchGoogle(
   for (let start = 1; start <= 11; start += 10) {
     if (allItems.length >= 10) break;
     try {
-      log.step(`  Google API: start=${start}, hl=${langCode}, q="${query}"`);
+      log.step?.(`  Google API: start=${start}, hl=${langCode}, q="${query}"`);
       const response = await axios.get(
         "https://www.googleapis.com/customsearch/v1",
         {
@@ -461,16 +815,12 @@ async function searchGoogle(
         },
       );
       const items = response.data.items || [];
-      log.step(`  → ${items.length} results (page ${Math.ceil(start / 10)})`);
+      log.step?.(`  → ${items.length} results (page ${Math.ceil(start / 10)})`);
       allItems.push(...items);
       if (items.length < 10) break;
       await new Promise((r) => setTimeout(r, 500));
     } catch (error: any) {
-      log.err(`Google API error: ${error.message}`);
-      if (error.response)
-        log.err(
-          `  HTTP ${error.response.status}: ${error.response.data?.error?.message || ""}`,
-        );
+      log.err?.(`Google API error: ${error.message}`);
       break;
     }
   }
@@ -503,10 +853,10 @@ async function scrapeUrls(
 
   for (let i = 0; i < urls.length; i++) {
     const url = urls[i];
-    const timer = log.timer();
+    const timer = log.timer?.();
 
     try {
-      log.step(`  🕷️ [${i + 1}/${urls.length}] ${url.substring(0, 70)}...`);
+      log.step?.(`  🕷️ [${i + 1}/${urls.length}] ${url.substring(0, 70)}...`);
       const response = await axios.post(
         `${SCRAPER_URL}/scrape`,
         { url },
@@ -526,18 +876,20 @@ async function scrapeUrls(
 
         currentTotal += text.length;
         results.push({ url, text, length: text.length, status: "success" });
-        log.ok(
-          `  ${text.length.toLocaleString()} chars (total: ${currentTotal.toLocaleString()}) ${timer()}`,
+        log.ok?.(
+          `  ${text.length.toLocaleString()} chars (total: ${currentTotal.toLocaleString()}) ${timer?.() || ""}`,
         );
       } else {
         results.push({ url, text: "", length: 0, status: "failed" });
-        log.warn(`  Empty response (HTTP ${response.status}) ${timer()}`);
+        log.warn?.(
+          `  Empty response (HTTP ${response.status}) ${timer?.() || ""}`,
+        );
       }
 
       await new Promise((r) => setTimeout(r, 1500));
     } catch (error: any) {
       results.push({ url, text: "", length: 0, status: "failed" });
-      log.err(`  Scrape failed: ${error.message} ${timer()}`);
+      log.err?.(`  Scrape failed: ${error.message} ${timer?.() || ""}`);
     }
   }
 
@@ -545,7 +897,7 @@ async function scrapeUrls(
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Internal: Claude source selection + quality evaluation
+// Internal: Claude source selection
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 interface SelectionResult {
@@ -569,10 +921,6 @@ async function claudeSelectAndEvaluate(
     })
     .join("\n\n");
 
-  log.step(
-    `Sending ${scrapedResults.length} sources to Claude (${sourcePreviews.length.toLocaleString()} chars preview)...`,
-  );
-
   const prompt = `You are a research librarian selecting the BEST sources for writing an expert-level book.
 
 BOOK TOPIC: "${topic}"
@@ -586,18 +934,8 @@ From the sources below, pick the ones with the most CONCRETE, USABLE content:
 - Named case studies with measurable results
 - Tool/product comparisons with pricing and features
 - Industry data, research findings
-- Expert analysis (not generic overviews)
-
-REJECT sources that are:
-- Generic "what is X" intro articles
-- Mostly ads or navigation text
-- Thin content (<500 useful words)
-- Paywalled / 403 / error pages
-- Duplicate of another source
 
 PART 2 — EVALUATE QUALITY
-After selecting, evaluate: Do these 3-5 sources provide ENOUGH depth to write an expert-level book chapter?
-
 Sufficient means:
 - At least 2 sources with concrete data/numbers
 - At least 1 source with a case study or real-world example
@@ -610,12 +948,10 @@ RESPOND IN THIS EXACT JSON FORMAT (no other text):
 {
   "selected": [0, 3, 5],
   "sufficient": true,
-  "reasoning": "Brief explanation: why these sources, and whether they provide enough depth. If insufficient, explain what's missing."
-}
+  "reasoning": "Brief explanation"
+}`;
 
-Remember: "selected" values are the SOURCE NUMBERS (0-indexed) from above.`;
-
-  const timer = log.timer();
+  log.claudeReq?.("global-select", prompt);
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
     max_tokens: 500,
@@ -625,12 +961,12 @@ Remember: "selected" values are the SOURCE NUMBERS (0-indexed) from above.`;
 
   const responseText =
     message.content[0].type === "text" ? message.content[0].text.trim() : "";
+  log.claudeRes?.("global-select", responseText);
   log.api(
     "claude-sonnet-4-5",
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
-  log.step(`Claude response (${timer()}): ${responseText.substring(0, 300)}`);
 
   try {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -644,16 +980,14 @@ Remember: "selected" values are the SOURCE NUMBERS (0-indexed) from above.`;
     return {
       selectedIndices:
         indices.length > 0 ? indices : fallbackSelection(scrapedResults),
-      sufficient: parsed.sufficient !== false, // default true if missing
+      sufficient: parsed.sufficient !== false,
       reasoning: parsed.reasoning || "No reasoning provided",
     };
-  } catch (err: any) {
-    log.warn(`Failed to parse Claude response: ${err.message}`);
+  } catch {
     return {
       selectedIndices: fallbackSelection(scrapedResults),
       sufficient: false,
-      reasoning:
-        "Parse error — defaulting to longest sources, marking as insufficient",
+      reasoning: "Parse error — defaulting to longest sources",
     };
   }
 }
@@ -680,10 +1014,6 @@ async function claudeSelectEnglishSupplement(
     })
     .join("\n\n");
 
-  log.step(
-    `Sending ${enScraped.length} EN sources to Claude for supplement selection...`,
-  );
-
   const prompt = `You are supplementing book research with English-language sources.
 
 BOOK TOPIC: "${topic}"
@@ -691,12 +1021,7 @@ BOOK TOPIC: "${topic}"
 ALREADY SELECTED SOURCES (in target language):
 ${existingPreview}
 
-YOUR TASK: Pick 1-3 English sources that ADD NEW INFORMATION not covered by existing sources.
-Prioritize:
-- Data/stats not found in existing sources
-- Different perspective or angle
-- More recent or authoritative information
-- Case studies from international markets
+Pick 1-3 English sources that ADD NEW INFORMATION not covered by existing sources.
 
 AVAILABLE ENGLISH SOURCES (${enScraped.length}):
 ${newPreviews}
@@ -704,7 +1029,7 @@ ${newPreviews}
 RESPOND with ONLY a JSON array of source numbers (0-indexed), e.g.: [0, 2]
 Pick 1-3 sources. If none add value, respond with: []`;
 
-  const timer = log.timer();
+  log.claudeReq?.("en-supplement", prompt);
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
     max_tokens: 100,
@@ -714,12 +1039,12 @@ Pick 1-3 sources. If none add value, respond with: []`;
 
   const responseText =
     message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
+  log.claudeRes?.("en-supplement", responseText);
   log.api(
     "claude-sonnet-4-5",
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
-  log.step(`EN supplement response (${timer()}): ${responseText}`);
 
   try {
     const jsonMatch = responseText.match(/\[[\s\S]*?\]/);
@@ -729,12 +1054,15 @@ Pick 1-3 sources. If none add value, respond with: []`;
       .filter((n: number) => !isNaN(n) && n >= 0 && n < enScraped.length);
     return indices.slice(0, 3);
   } catch {
-    log.warn("Failed to parse EN supplement response — skipping");
     return [];
   }
 }
 
 // ━━━ Helpers ━━━
+
+function hasApiKeys(): boolean {
+  return !!GOOGLE_API_KEY && !!GOOGLE_CX && !!SCRAPER_URL;
+}
 
 function fallbackSelection(scraped: Array<{ length: number }>): number[] {
   return scraped
