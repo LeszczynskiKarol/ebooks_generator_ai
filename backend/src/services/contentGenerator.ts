@@ -1,6 +1,8 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — Content Generator v3
+// BookForge — Content Generator v4.1
+// Rich typography: tcolorbox environments, booktabs tables
 // Full previous chapters context for style consistency
+// + LaTeX sanitization to prevent compilation failures
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -66,7 +68,7 @@ export async function generateContent(projectId: string) {
     structureData.suggestedTitle || project.title || project.topic;
   const wpp = getWordsPerPage(project.bookFormat);
 
-  log.header("Content Generation Pipeline", {
+  log.header("Content Generation Pipeline v4.1", {
     Book: bookTitle,
     Topic: project.topic,
     Chapters: chapters.length,
@@ -206,7 +208,6 @@ export async function generateContent(projectId: string) {
     );
     log.data("Sections", chapter.sections.map((s) => s.title).join(" | "));
 
-    // Merge global + chapter-specific research for THIS chapter
     const chapterResearch = chapterResearchMap.get(chapter.number) || null;
     const { text: mergedSourcesText, hasResearch } = mergeResearchForPrompt(
       globalResearch,
@@ -218,7 +219,6 @@ export async function generateContent(projectId: string) {
       `${chapterResearch?.selectedSources.length || 0} chapter-specific + ${globalResearch?.selectedSources.length || 0} global → ${mergedSourcesText.length.toLocaleString()} chars in prompt`,
     );
 
-    // Log previous chapters context
     const prevContentChars = previousChaptersContent.reduce(
       (sum, c) => sum + c.latex.length,
       0,
@@ -261,7 +261,6 @@ export async function generateContent(projectId: string) {
         `Ch${chapter.number} "${chapter.title}": ${result.summary}`,
       );
 
-      // ★ Store FULL content for subsequent chapters
       previousChaptersContent.push({
         number: chapter.number,
         title: chapter.title,
@@ -305,7 +304,6 @@ export async function generateContent(projectId: string) {
         data: { status: "ERROR" },
       });
       previousSummaries.push(`Ch${chapter.number}: [generation failed]`);
-      // Push placeholder so subsequent chapters know this one exists but failed
       previousChaptersContent.push({
         number: chapter.number,
         title: chapter.title,
@@ -346,25 +344,10 @@ export async function generateContent(projectId: string) {
 // Token budget: previous chapters context
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-/**
- * Build the previous chapters context block with smart budget management.
- *
- * Token math (Sonnet 4.5 = 200k context):
- *   System prompt + research:  ~50-60k tokens (~200-240k chars)
- *   User prompt:               ~2-3k tokens  (~8-12k chars)
- *   Output (max_tokens):       ~6-32k tokens
- *   Available for prev chapters: ~100-140k tokens (~400-560k chars)
- *
- * One chapter ≈ 1500 words ≈ 2500 tokens ≈ 10k chars (LaTeX).
- * Even 10 chapters (Complete tier) = ~25k tokens = fits easily.
- *
- * Safety fallback: if total chars exceed maxChars, keep recent chapters
- * in full and summarize older ones (most relevant for style matching).
- */
 function buildPreviousChaptersContext(
   previousChapters: { number: number; title: string; latex: string }[],
   previousSummaries: string[],
-  maxChars: number = 400000, // ~100k tokens — safe limit
+  maxChars: number = 400000,
 ): string {
   if (previousChapters.length === 0) return "";
 
@@ -373,7 +356,6 @@ function buildPreviousChaptersContext(
     0,
   );
 
-  // ── Case 1: Everything fits (vast majority of books) ──
   if (totalChars <= maxChars) {
     const chaptersBlock = previousChapters
       .map(
@@ -402,13 +384,14 @@ CRITICAL — use the full text below to:
 3. BUILD on concepts you introduced — reference them naturally ("As we saw in Chapter X...")
 4. MAINTAIN terminology consistency — use the same terms for the same concepts
 5. ENSURE narrative flow — the reader will read these chapters in sequence
+6. MATCH visual element usage — same frequency/style of tables, colored boxes, key insights
 
 ${chaptersBlock}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
   }
 
-  // ── Case 2: Doesn't fit — keep recent in full, summarize older ──
+  // Case 2: Doesn't fit — keep recent in full, summarize older
   let usedChars = 0;
   const fullChapters: typeof previousChapters = [];
   const summarizedChapters: {
@@ -419,7 +402,6 @@ ${chaptersBlock}
 
   const fullBudget = Math.floor(maxChars * 0.85);
 
-  // Add from most recent backwards (most important for style matching)
   for (let i = previousChapters.length - 1; i >= 0; i--) {
     const ch = previousChapters[i];
     if (usedChars + ch.latex.length <= fullBudget) {
@@ -506,7 +488,7 @@ async function generateChapterLatex(p: GenParams): Promise<{
   const lang = getLangName(p.language);
   const prompts: PromptLog[] = [];
   const responses: ResponseLog[] = [];
-  const model = "claude-sonnet-4-5-20250929";
+  const model = "claude-haiku-4-5";
   const isLastChapter = p.chapterIndex === p.totalChapters - 1;
   const hasPreviousChapters = p.previousChaptersContent.length > 0;
 
@@ -524,14 +506,15 @@ async function generateChapterLatex(p: GenParams): Promise<{
     )
     .join("\n");
 
-  // ── Build previous chapters context (full text) ──
   const previousChaptersBlock = buildPreviousChaptersContext(
     p.previousChaptersContent,
     p.previousSummaries,
   );
 
-  // ━━━ System prompt ━━━
-  const systemPrompt = `You are a seasoned subject-matter expert and published author writing a professional book chapter. You write like a human expert — not like an AI.
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // SYSTEM PROMPT
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const systemPrompt = `You are a seasoned subject-matter expert and published author writing a professional book chapter. You write like a human expert — not like an AI. You produce richly formatted, typographically professional LaTeX output.
 
 BOOK CONTEXT:
 Book: "${p.bookTitle}" | Topic: ${p.bookTopic} | Language: ${lang} | Style: ${p.stylePreset}
@@ -596,21 +579,25 @@ BANNED PATTERNS — NEVER use these AI-typical phrases:
 
 CONTENT DEPTH — what separates expert content from filler:
 - Every claim must have a SPECIFIC example, number, or case study backing it
-- BAD: "AI can significantly improve productivity" → GOOD: "Teams using Cursor report 40% faster code reviews, with junior developers seeing the biggest gains"
-- BAD: "Many companies are adopting AI" → GOOD: "Shopify cut its workforce by 20% in 2023, with CEO Tobi Lütke stating AI would replace roles, not just assist them"
+- BAD: "AI can significantly improve productivity" → GOOD: "Teams using Cursor report 40\\% faster code reviews, with junior developers seeing the biggest gains"
+- BAD: "Many companies are adopting AI" → GOOD: "Shopify cut its workforce by 20\\% in 2023, with CEO Tobi Lütke stating AI would replace roles, not just assist them"
 - When listing tools/methods: include PRICING, LIMITATIONS, and WHEN NOT to use them
 - Minimum 3 concrete data points per section (numbers, percentages, company names, dates)
 - When describing a process, include a realistic scenario with specific numbers
 
 STRUCTURE WITHIN SECTIONS:
 - Open each section with a specific insight, stat, or contrarian take — NOT a definition
-- Close each section with a practical takeaway or decision framework
+- Close each major section with a \\begin{keyinsight} box summarizing the actionable takeaway
+- Use \\begin{tipbox} for practical "how-to" advice within sections
+- Use \\begin{warningbox} when discussing common mistakes or counterintuitive pitfalls
+- Use \\begin{examplebox} for detailed case studies with company names and numbers
+- Use tables (booktabs) when comparing 3+ items, tools, approaches, or data points
 - Use \\begin{itemize} sparingly — prefer flowing prose with embedded specifics
 - NEVER pad content with long lists of example prompts, templates, or filler
 
 ANTI-FILLER RULES:
 - Every paragraph must contain at least one SPECIFIC fact, number, or named example
-- Do NOT write "There are many tools available" — instead, compare their trade-offs
+- Do NOT write "There are many tools available" — instead, compare their trade-offs in a TABLE
 - Do NOT repeat the same point in different words across paragraphs
 - Information density: a reader should learn something new in every paragraph${
     hasPreviousChapters
@@ -622,19 +609,100 @@ ANTI-FILLER RULES:
   }
 
 ═══════════════════════════════════════════════════════════════
+LATEX OUTPUT & VISUAL ELEMENTS
+═══════════════════════════════════════════════════════════════
 
-LATEX OUTPUT RULES:
+BASE RULES:
 - Output ONLY the chapter body — NO preamble, NO \\documentclass, NO \\begin{document}
 - Start with \\chapter{${p.chapter.title}}
 - Use \\section{} for main sections, \\subsection{} for subsections
 - Use \\textbf{}, \\textit{}, \\emph{} for emphasis (sparingly)
-- Use \\begin{itemize}/\\begin{enumerate} for lists (max 1-2 per section)
-- Use \\begin{quote} for notable quotes, \\footnote{} for asides
+- Use \\footnote{} for asides and source attributions
 - Escape special chars: \\%, \\&, \\#, \\$, \\_, \\{, \\}
 - Use --- for em-dash, -- for en-dash
-- NO undefined custom commands, NO \\usepackage
+- NO \\usepackage, NO custom command definitions
 - ALL text in ${lang}
-- NEVER leave a section or sentence unfinished — complete every thought`;
+- NEVER leave a section or sentence unfinished
+
+⚠️ CRITICAL LATEX RULES — ENVIRONMENT MATCHING:
+- EVERY \\begin{tipbox} MUST have a matching \\end{tipbox}
+- EVERY \\begin{keyinsight} MUST have a matching \\end{keyinsight}
+- EVERY \\begin{warningbox} MUST have a matching \\end{warningbox}
+- EVERY \\begin{examplebox} MUST have a matching \\end{examplebox}
+- EVERY \\begin{table} MUST have a matching \\end{table}
+- EVERY \\begin{tabularx} MUST have a matching \\end{tabularx}
+- EVERY \\begin{itemize} MUST have a matching \\end{itemize}
+- EVERY \\begin{enumerate} MUST have a matching \\end{enumerate}
+- NEVER leave an environment unclosed — this causes fatal compilation errors
+- Double-check ALL environments are properly closed before finishing output
+
+═══ COLORED BOXES — use 3-5 per chapter, mixing types ═══
+
+Practical tip or actionable advice (green left-border):
+\\begin{tipbox}{Title of Practical Tip}
+Actionable advice for the reader. Concrete steps, not vague suggestions. 2-4 sentences.
+\\end{tipbox}
+
+Key takeaway — place at end of each major section (blue frame):
+\\begin{keyinsight}{Title of Key Insight}
+The ONE thing the reader must remember from this section. Specific, data-backed.
+\\end{keyinsight}
+
+Warning about common mistake or pitfall (amber left-border):
+\\begin{warningbox}{Title of Warning}
+Common mistake and its consequence. Include what to do instead. 2-3 sentences.
+\\end{warningbox}
+
+Case study or real-world example (purple frame):
+\\begin{examplebox}{Case Study: Company or Person Name}
+Real-world example with specific numbers, timeline, and measurable outcomes.
+What they did, what happened, what the reader can learn from it.
+\\end{examplebox}
+
+═══ TABLES — use 1-2 per chapter for data comparisons ═══
+
+Use booktabs tables for comparing tools, approaches, statistics, or any structured data.
+Tables make data easier to scan than prose and look professional.
+
+EXACT SYNTAX — follow precisely:
+\\begin{table}[ht]
+\\centering
+\\caption{Descriptive caption explaining what this table shows}
+\\begin{tabularx}{\\textwidth}{lXr}
+\\toprule
+\\rowcolor{tableheadbg} \\textcolor{tableheadfg}{\\textbf{Column 1}} & \\textcolor{tableheadfg}{\\textbf{Column 2}} & \\textcolor{tableheadfg}{\\textbf{Column 3}} \\\\
+\\midrule
+Row 1 data & Description text & 95\\% \\\\
+Row 2 data & Description text & 72\\% \\\\
+Row 3 data & Description text & 48\\% \\\\
+\\bottomrule
+\\end{tabularx}
+\\end{table}
+
+CRITICAL TABLE RULES:
+- Column spec must use X (flexible) for text-heavy columns: {lXr}, {lXXr}, {Xlr}
+- ALWAYS include \\caption{} — it appears with styled formatting
+- Fill tables with REAL data from sources or expert knowledge — NEVER placeholder text
+- Use tables when comparing 3+ items instead of writing them as prose
+- Keep tables focused: 3-6 rows, 3-4 columns maximum
+- In \\rowcolor and \\textcolor lines: every column MUST have \\textcolor{tableheadfg}{\\textbf{...}}
+
+═══ QUOTES ═══
+
+Use \\begin{quote} for notable expert quotes — max 1-2 per chapter, only when impactful.
+
+═══ VISUAL ELEMENT MINIMUMS PER CHAPTER ═══
+
+MANDATORY — every chapter MUST include:
+□ At least 1 booktabs table with real comparative data
+□ At least 1 keyinsight box (ideally one per \\section{})
+□ At least 1 tipbox OR warningbox with actionable advice
+□ At least 1 examplebox with a named case study
+□ Total: 3-5 colored boxes + 1-2 tables per chapter
+
+These visual elements should feel NATURAL — placed where the content demands them,
+not forced. A comparison section NEEDS a table. A practical advice section NEEDS a tipbox.
+A section about mistakes NEEDS a warningbox.`;
 
   // ━━━ User prompt ━━━
   let userPrompt = `Write Chapter ${p.chapter.number}/${p.totalChapters}: "${p.chapter.title}"
@@ -648,6 +716,7 @@ ${toc}
 
 WORD COUNT TARGET: ${targetWords} words (±10%) = ${p.chapter.targetPages} pages in ${p.bookFormat.toUpperCase()} @ ${p.wpp} words/page.
 ⚠️ Hard limits: minimum ${Math.round(targetWords * 0.85)} words, maximum ${Math.round(targetWords * 1.15)} words.
+⚠️ STRICT MAXIMUM: Do NOT exceed ${Math.round(targetWords * 1.15)} words under any circumstances. If you reach the limit, wrap up the current section and move on.
 ⚠️ COMPLETE every section and sentence. NEVER stop mid-sentence or leave a section unfinished.
 
 QUALITY CHECKLIST — verify before finishing:
@@ -655,8 +724,12 @@ QUALITY CHECKLIST — verify before finishing:
 □ Are there 3+ concrete data points per section?
 □ Did you avoid ALL banned AI phrases from the system prompt?
 □ Is there at least one real company/product name per section?
+□ Did you include at least 1 booktabs table with real comparative data?
+□ Did you include 3-5 colored boxes (keyinsight, tipbox, warningbox, examplebox)?
+□ Does every major \\section{} end with a keyinsight box?
 □ Did you avoid long lists of examples/templates that pad word count?
-□ Does the chapter read like it was written by a human expert with opinions?`;
+□ Does the chapter read like a professionally typeset book — not a text dump?
+□ Is EVERY opened environment properly closed (no missing end-tags)?`;
 
   // ── Continuity instruction for chapters 2+ ──
   if (hasPreviousChapters) {
@@ -669,7 +742,8 @@ QUALITY CHECKLIST — verify before finishing:
 - Transition naturally from Chapter ${lastChNum} — don't repeat its closing points
 - Reference earlier chapters when building on concepts: "As we discussed in Chapter ${lastChNum}..."
 - Do NOT reuse any examples, statistics, or case studies from previous chapters
-- Maintain the same terminology — if you called something "X" before, call it "X" again`;
+- Maintain the same terminology — if you called something "X" before, call it "X" again
+- Use the same ratio of visual elements (tables, boxes) as your previous chapters`;
   }
 
   // ── Last chapter closing instruction ──
@@ -680,11 +754,12 @@ QUALITY CHECKLIST — verify before finishing:
 - Write a proper conclusion section at the end (\\section{...})
 - Summarize key takeaways from the ENTIRE book (reference earlier chapters by name)
 - End with a concrete call-to-action or forward-looking statement for the reader
+- Include a final \\begin{keyinsight} box with the single most important message of the book
 - The last paragraph should feel like a deliberate, satisfying ending — NOT a cutoff
 - Do NOT end with a generic "the future is bright" statement — end with something actionable and specific`;
   }
 
-  userPrompt += `\n\nBegin LaTeX output now. Start with \\chapter{${p.chapter.title}}. Write exactly ${targetWords} words (±10%), entirely in ${lang}. Remember: expert voice, concrete data, no AI filler.`;
+  userPrompt += `\n\nBegin LaTeX output now. Start with \\chapter{${p.chapter.title}}. Write exactly ${targetWords} words (±10%), entirely in ${lang}. Remember: expert voice, concrete data, no AI filler, RICH visual formatting (tables + colored boxes). Close every opened environment properly.`;
 
   // ── Logging ──
   const ts = () => new Date().toISOString();
@@ -715,9 +790,12 @@ QUALITY CHECKLIST — verify before finishing:
     isLastChapter ? "YES — closing instructions added" : "NO",
   );
 
-  // Increased from original: min 6000 (was 4096), multiplier 3.0 (was 2.5)
-  const maxTok = Math.max(6000, Math.min(32000, Math.ceil(targetWords * 3.0)));
-  p.log.step(`Calling Claude API (max_tokens: ${maxTok})...`);
+  // ── max_tokens: tighter cap to prevent overshoot ──
+  // LaTeX averages ~1.8 tokens/word; use 2.2x safety margin but cap at 20K
+  const maxTok = Math.max(4000, Math.min(20000, Math.ceil(targetWords * 2.2)));
+  p.log.step(
+    `Calling Claude API (max_tokens: ${maxTok}, target: ${targetWords}w)...`,
+  );
 
   // ── Main API call ──
   const apiTimer = p.log.timer();
@@ -739,6 +817,7 @@ QUALITY CHECKLIST — verify before finishing:
   }
   latex = cleanLatex(latex);
   latex = deAIfy(latex, p.language);
+  latex = sanitizeGeneratedLatex(latex);
 
   p.log.claudeRes?.("chapter-main", latex);
   p.log.api(model, res.usage?.input_tokens || 0, res.usage?.output_tokens || 0);
@@ -756,7 +835,7 @@ QUALITY CHECKLIST — verify before finishing:
   });
 
   // ── Continuation if too short or incomplete ──
-  const wc = latex.replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "").split(/\s+/).length;
+  const wc = countWords(latex);
   const endsCleanly = /[.!?…"]\s*$/.test(
     latex.replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "").trim(),
   );
@@ -783,11 +862,13 @@ RULES FOR CONTINUATION:
 - Add NEW data points, examples, and analysis — don't pad with filler
 - Complete any unfinished sections from the outline
 - COMPLETE every sentence — never stop mid-thought
+- Continue using visual elements: if you haven't used enough tables or colored boxes yet, add them now
 - Output only LaTeX body (no preamble). All text in ${lang}.
 - Remember: banned AI phrases still apply. Write like a human expert.
-- ⚠️ STOP writing at approximately ${remainingWords} additional words. Do NOT exceed ${maxTotalWords} total words for the chapter.${
+- ⚠️ STOP writing at approximately ${remainingWords} additional words. Do NOT exceed ${maxTotalWords} total words for the chapter.
+- ⚠️ Close every opened environment properly — unclosed environments crash compilation.${
       isLastChapter
-        ? "\n- THIS IS THE FINAL CHAPTER — make sure it ends with a proper conclusion for the whole book."
+        ? "\n- THIS IS THE FINAL CHAPTER — make sure it ends with a proper conclusion for the whole book, including a final keyinsight box."
         : ""
     }`;
 
@@ -798,11 +879,15 @@ RULES FOR CONTINUATION:
       timestamp: ts(),
     });
 
+    const contMaxTok = Math.max(
+      3000,
+      Math.min(16000, Math.ceil(remainingWords * 2.2)),
+    );
     const contTimer = p.log.timer();
     p.log.claudeReq?.("chapter-cont", contPrompt);
     const cont = await anthropic.messages.create({
       model,
-      max_tokens: maxTok,
+      max_tokens: contMaxTok,
       system: systemPrompt,
       messages: [
         { role: "user", content: userPrompt },
@@ -817,14 +902,13 @@ RULES FOR CONTINUATION:
     }
     contLatex = cleanLatex(contLatex);
     contLatex = deAIfy(contLatex, p.language);
+    contLatex = sanitizeGeneratedLatex(contLatex);
     p.log.claudeRes?.("chapter-cont", contLatex);
     latex += "\n\n" + contLatex;
     tokens +=
       (cont.usage?.input_tokens || 0) + (cont.usage?.output_tokens || 0);
 
-    const contWc = contLatex
-      .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")
-      .split(/\s+/).length;
+    const contWc = countWords(contLatex);
     p.log.api(
       model,
       cont.usage?.input_tokens || 0,
@@ -843,7 +927,10 @@ RULES FOR CONTINUATION:
     });
   }
 
-  // ── Summary (for logging + fallback if budget exceeded in future chapters) ──
+  // ── Final sanitization pass on combined content ──
+  latex = sanitizeGeneratedLatex(latex);
+
+  // ── Summary ──
   const summary = await chapterSummary(latex, p.language, p.log);
   p.log.step(`Summary: ${summary.substring(0, 100)}...`);
 
@@ -854,6 +941,102 @@ RULES FOR CONTINUATION:
     prompts,
     responses,
   };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LaTeX sanitization — fix AI-generated environment errors
+// Runs BEFORE saving to DB (first line of defense)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+const KNOWN_ENVS = [
+  "tipbox",
+  "keyinsight",
+  "warningbox",
+  "examplebox",
+  "itemize",
+  "enumerate",
+  "quote",
+  "table",
+  "tabularx",
+  "tabular",
+  "center",
+  "figure",
+  "minipage",
+  "description",
+];
+
+/**
+ * Fix unclosed/orphaned LaTeX environments and brace imbalance.
+ * Applied immediately after receiving API response, before DB storage.
+ */
+function sanitizeGeneratedLatex(latex: string): string {
+  let result = latex;
+
+  // 1. Fix unclosed/unmatched environments
+  for (const env of KNOWN_ENVS) {
+    const beginRe = new RegExp("\\\\begin\\{" + env + "\\}", "g");
+    const endRe = new RegExp("\\\\end\\{" + env + "\\}", "g");
+    const begins = (result.match(beginRe) || []).length;
+    const ends = (result.match(endRe) || []).length;
+
+    if (begins > ends) {
+      // Missing \end{env} — append at the end
+      const missing = begins - ends;
+      for (let i = 0; i < missing; i++) {
+        result += "\n\\end{" + env + "}";
+      }
+    } else if (ends > begins) {
+      // Orphan \end{env} — remove extras from the beginning
+      let toRemove = ends - begins;
+      result = result.replace(
+        new RegExp("\\\\end\\{" + env + "\\}", "g"),
+        (match) => {
+          if (toRemove > 0) {
+            toRemove--;
+            return "";
+          }
+          return match;
+        },
+      );
+    }
+  }
+
+  // 2. Fix brace imbalance (non-escaped braces only)
+  let depth = 0;
+  for (let i = 0; i < result.length; i++) {
+    if (result[i] === "{" && (i === 0 || result[i - 1] !== "\\")) depth++;
+    if (result[i] === "}" && (i === 0 || result[i - 1] !== "\\")) depth--;
+  }
+  if (depth > 0) {
+    result += "}".repeat(depth);
+  }
+
+  // 3. Remove preamble/postamble that model might have included
+  result = result.replace(/\\documentclass[^]*?\\begin\{document\}/g, "");
+  result = result.replace(/\\end\{document\}/g, "");
+  result = result.replace(/\\usepackage(\[[^\]]*\])?\{[^}]*\}/g, "");
+
+  // 4. Strip prompt echoes — model sometimes copies instructions into output
+  // Remove \begin{} or \end{} with empty or ... arguments (not valid LaTeX)
+  result = result.replace(/\\begin\{\.{0,3}\}/g, "");
+  result = result.replace(/\\end\{\.{0,3}\}/g, "");
+  // Remove checklist lines (□ ...) that got echoed from the prompt
+  result = result.replace(/^□\s+.*$/gm, "");
+  // Remove lines that look like prompt instructions
+  result = result.replace(
+    /^(QUALITY CHECKLIST|WORD COUNT TARGET|SECTIONS TO WRITE|RULES FOR CONTINUATION|Begin LaTeX output now).*$/gm,
+    "",
+  );
+  // Remove lines with ⚠️ that are clearly prompt echoes (not inside boxes)
+  result = result.replace(
+    /^⚠️\s+(Hard limits|STRICT MAXIMUM|COMPLETE every|CONTINUITY|THIS IS THE FINAL|ENSURE every|STOP writing|Close every opened).*$/gm,
+    "",
+  );
+
+  // 5. Clean up excessive blank lines
+  result = result.replace(/\n{4,}/g, "\n\n\n");
+
+  return result;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -916,6 +1099,14 @@ function cleanLatex(text: string): string {
   return text.trim();
 }
 
+/** Count words in LaTeX content (stripping commands) */
+function countWords(latex: string): number {
+  return latex
+    .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")
+    .split(/\s+/)
+    .filter((w) => w.length > 0).length;
+}
+
 async function chapterSummary(
   content: string,
   lang: string,
@@ -929,7 +1120,7 @@ async function chapterSummary(
     const prompt = `2-sentence summary in ${getLangName(lang)}:\n\n${plain}`;
     log?.claudeReq?.("summary", prompt);
     const r = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
+      model: "claude-haiku-4-5",
       max_tokens: 200,
       messages: [
         {

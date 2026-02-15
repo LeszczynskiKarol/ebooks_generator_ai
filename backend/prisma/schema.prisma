@@ -36,6 +36,7 @@ model Project {
   targetPages Int
   stylePreset String  @default("modern")
   bookFormat  String  @default("a5")
+  customColors  String?  @db.Text
 
   priceUsdCents   Int?
   currency        String        @default("usd")
@@ -57,7 +58,11 @@ model Project {
   outputPdfKey  String?
   outputEpubKey String?
 
-  researchData String? @db.Text // JSON: scraped web sources from research pipeline
+  // ── Versioning ──
+  currentVersion Int @default(0)
+  versions       BookVersion[]
+
+  researchData String? @db.Text
 
   totalTokensUsed Int   @default(0)
   totalCostUsd    Float @default(0)
@@ -67,6 +72,32 @@ model Project {
 
   @@index([userId])
   @@index([currentStage])
+}
+
+model BookVersion {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  version   Int
+  s3Key     String?
+  localPath String?
+  fileSize  Int?
+  pageCount Int?
+
+  epubS3Key     String?
+  epubLocalPath String?
+  epubFileSize  Int?
+
+  texS3Key     String?
+  texLocalPath String?
+  texFileSize  Int?
+
+  note      String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, version])
+  @@index([projectId])
 }
 
 enum ProjectStage {
@@ -135,7 +166,7 @@ model Chapter {
 
   writerPrompts   String? @db.Text
   writerResponses String? @db.Text
-  researchData    String? @db.Text  // ← NEW: JSON from conductChapterResearch()
+  researchData    String? @db.Text
 
   imagePlacements ImagePlacement[]
   status          ChapterStatus @default(PENDING)

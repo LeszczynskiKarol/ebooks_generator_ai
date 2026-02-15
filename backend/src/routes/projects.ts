@@ -23,6 +23,7 @@ export async function projectRoutes(app: FastifyInstance) {
       guidelines,
       stylePreset,
       bookFormat,
+      customColors,
     } = request.body as any;
 
     if (!topic || topic.length < 5) {
@@ -40,6 +41,19 @@ export async function projectRoutes(app: FastifyInstance) {
     const pages = tier.targetPages;
     const pricing = calculatePrice(pages);
 
+    // Validate & serialize custom colors (max 3 hex)
+    let serializedColors: string | null = null;
+    if (Array.isArray(customColors) && customColors.length > 0) {
+      const validColors = customColors
+        .slice(0, 3)
+        .filter(
+          (c: any) => typeof c === "string" && /^#[0-9A-Fa-f]{6}$/.test(c),
+        );
+      if (validColors.length > 0) {
+        serializedColors = JSON.stringify(validColors);
+      }
+    }
+
     const project = await prisma.project.create({
       data: {
         userId: request.user.userId,
@@ -52,6 +66,7 @@ export async function projectRoutes(app: FastifyInstance) {
         bookFormat: bookFormat || "a5",
         priceUsdCents: pricing.priceUsdCents,
         currentStage: "PRICING",
+        customColors: serializedColors,
       },
     });
 
@@ -146,6 +161,20 @@ export async function projectRoutes(app: FastifyInstance) {
       const tier = getPageSizeTier(rawPages);
       data.targetPages = tier.targetPages;
       data.priceUsdCents = calculatePrice(data.targetPages).priceUsdCents;
+    }
+    // Custom colors update
+    if (body.customColors !== undefined) {
+      if (Array.isArray(body.customColors) && body.customColors.length > 0) {
+        const validColors = body.customColors
+          .slice(0, 3)
+          .filter(
+            (c: any) => typeof c === "string" && /^#[0-9A-Fa-f]{6}$/.test(c),
+          );
+        data.customColors =
+          validColors.length > 0 ? JSON.stringify(validColors) : null;
+      } else {
+        data.customColors = null;
+      }
     }
 
     const updated = await prisma.project.update({ where: { id }, data });
@@ -280,19 +309,16 @@ export async function projectRoutes(app: FastifyInstance) {
     if (!project)
       return reply.status(404).send({ success: false, error: "Not found" });
     if (project.structureRedoUsed) {
-      return reply
-        .status(403)
-        .send({
-          success: false,
-          error: "Redo already used. Edit manually instead.",
-        });
+      return reply.status(403).send({
+        success: false,
+        error: "Redo already used. Edit manually instead.",
+      });
     }
     await prisma.project.update({
       where: { id },
       data: { structureRedoUsed: true, currentStage: "STRUCTURE" },
     });
 
-    // Fire and forget — runs in background
     const { generateStructure } =
       await import("../services/structureGenerator");
     generateStructure(id).catch((err) => {
@@ -329,7 +355,6 @@ export async function projectRoutes(app: FastifyInstance) {
       },
     });
 
-    // Fire and forget — runs in background
     const { generateContent } = await import("../services/contentGenerator");
     generateContent(id).catch((err) => {
       console.error(`❌ Content generation failed for ${id}:`, err);
@@ -393,5 +418,7 @@ function formatProject(p: any) {
     priceUsdFormatted: p.priceUsdCents
       ? `$${(p.priceUsdCents / 100).toFixed(2)}`
       : null,
+    // Parse customColors back to array for frontend
+    customColors: p.customColors ? JSON.parse(p.customColors) : null,
   };
 }

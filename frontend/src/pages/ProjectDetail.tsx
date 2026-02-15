@@ -8,13 +8,16 @@ import {
   Sparkles,
   Download,
   CheckCircle,
+  Pencil,
 } from "lucide-react";
+import DownloadPanel from "@/components/DownloadPanel";
 import apiClient from "@/lib/api";
 import { STAGE_LABELS, type ProjectStage } from "@/lib/types";
 import { useAuthStore } from "@/stores/authStore";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import StructureEditor from "@/components/StructureEditor";
+import BookEditor from "@/components/BookEditor";
 
 const STAGE_STEPS: ProjectStage[] = [
   "BRIEF",
@@ -24,12 +27,14 @@ const STAGE_STEPS: ProjectStage[] = [
   "STRUCTURE_REVIEW",
   "IMAGES",
   "GENERATING",
+  "COMPILING",
   "COMPLETED",
 ];
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
   const token = useAuthStore((s) => s.accessToken);
 
   const { data, isLoading, refetch } = useQuery({
@@ -40,9 +45,9 @@ export default function ProjectDetail() {
     },
     refetchInterval: (query) => {
       const stage = query.state.data?.currentStage;
-      // Auto-refresh while waiting for structure generation
       if (stage === "STRUCTURE" && !query.state.data?.structure) return 3000;
       if (stage === "GENERATING") return 5000;
+      if (stage === "COMPILING") return 3000; // ← NEW: poll during recompilation
       return false;
     },
   });
@@ -319,27 +324,53 @@ export default function ProjectDetail() {
           </div>
         )}
 
+        {/* COMPILING (also shown during recompilation) */}
+        {project.currentStage === "COMPILING" && (
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Compiling Your Book
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Assembling LaTeX and generating PDF... This takes 30-60 seconds.
+            </p>
+          </div>
+        )}
+
         {/* COMPLETED */}
         {project.currentStage === "COMPLETED" && (
-          <div className="text-center">
-            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Your Book is Ready!
-            </h3>
-            <div className="flex gap-4 justify-center mt-6">
-              <a
-                href={`/api/projects/${id}/download/pdf?token=${token}`}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium"
-              >
-                <Download className="w-5 h-5" /> Download PDF
-              </a>
-              <a
-                href={`/api/projects/${id}/download/tex?token=${token}`}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
-              >
-                <Download className="w-5 h-5" /> Download LaTeX
-              </a>
-            </div>
+          <div>
+            <DownloadPanel
+              projectId={id!}
+              projectTitle={project.title || project.topic}
+              currentStage={project.currentStage}
+              generationStatus={project.generationStatus}
+            />
+
+            <div className="border-t border-gray-200 dark:border-gray-700 my-6" />
+
+            {!showEditor ? (
+              <div className="text-center">
+                <button
+                  onClick={() => setShowEditor(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors font-medium"
+                >
+                  <Pencil className="w-5 h-5" /> Edit Book Content
+                </button>
+                <p className="text-xs text-gray-500 mt-2">
+                  Edit any chapter, then regenerate a new PDF
+                </p>
+              </div>
+            ) : (
+              <BookEditor
+                projectId={id!}
+                onRecompileStart={() => {}}
+                onRecompileDone={() => {
+                  refetch();
+                  toast.success("New PDF ready for download!");
+                }}
+              />
+            )}
           </div>
         )}
       </div>

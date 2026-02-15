@@ -14,6 +14,14 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
 const GOOGLE_CX = process.env.GOOGLE_CX || "";
 const SCRAPER_URL = process.env.SCRAPER_URL || "";
 
+/** Domains to skip during scraping — known to block bots, return PDFs, or have no useful text */
+const BLOCKED_DOMAINS = [
+  "bip.cke.gov.pl", // WAF blocks bots, always 502
+  "youtube.com", // Video — no useful text content
+  "www.youtube.com",
+  "youtu.be",
+];
+
 const LANGUAGE_NAMES: Record<string, string> = {
   pl: "polski",
   en: "English",
@@ -301,6 +309,8 @@ export async function conductChapterResearch(
       log.err(`    [Ch${chapter.number}] ${msg}`, e),
     timer: log.timer,
     api: log.api,
+    claudeReq: log.claudeReq,
+    claudeRes: log.claudeRes,
   };
 
   try {
@@ -479,7 +489,7 @@ Output ONLY 2 queries, one per line, nothing else:`;
 
   log?.claudeReq?.("ch-queries", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5",
     max_tokens: 100,
     temperature: 0.3,
     messages: [{ role: "user", content: prompt }],
@@ -560,7 +570,7 @@ Pick 2-3 sources. Return [] if none are directly relevant.`;
 
   log?.claudeReq?.("ch-select", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5",
     max_tokens: 100,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -570,7 +580,7 @@ Pick 2-3 sources. Return [] if none are directly relevant.`;
     message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
   log?.claudeRes?.("ch-select", responseText);
   log.api?.(
-    "claude-sonnet-4-5",
+    "claude-haiku-4-5",
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
@@ -674,7 +684,8 @@ HOW TO USE THESE SOURCES — THIS IS YOUR COMPETITIVE ADVANTAGE:
 export function mergeResearchForPrompt(
   globalResearch: ResearchResult | null,
   chapterResearch: ChapterResearchResult | null,
-  maxCharsPerSource: number = 20000,
+  maxCharsPerSource: number = 30000,
+  maxTotalChars: number = 120000, // ~30k tokens — safe limit for research block
 ): { text: string; hasResearch: boolean } {
   const chapterSources = chapterResearch?.selectedSources || [];
   const globalSources = globalResearch?.selectedSources || [];
@@ -693,23 +704,33 @@ export function mergeResearchForPrompt(
     ...dedupedGlobal.map((s) => ({ ...s, priority: "BOOK-LEVEL" })),
   ];
 
+  // Smart budget: distribute maxTotalChars across sources
+  // Chapter-specific sources get priority (more chars each)
+  const numSources = allSources.length;
+  const effectivePerSource = Math.min(
+    maxCharsPerSource,
+    Math.floor(maxTotalChars / Math.max(1, numSources)),
+  );
+
+  let usedChars = 0;
   const sources = allSources
     .map((s, i) => {
+      const budget = Math.min(effectivePerSource, maxTotalChars - usedChars);
+      if (budget <= 0) return null; // Budget exhausted
       const text =
-        s.text.length > maxCharsPerSource
-          ? s.text.substring(0, maxCharsPerSource) + "\n[... TRUNCATED ...]"
+        s.text.length > budget
+          ? s.text.substring(0, budget) + "\n[... TRUNCATED ...]"
           : s.text;
+      usedChars += text.length;
       const langTag = s.lang ? ` [${s.lang.toUpperCase()}]` : "";
       const priorityTag =
         s.priority === "CHAPTER-SPECIFIC" ? " ★ CHAPTER-SPECIFIC" : "";
       return `\n═══ SOURCE ${i + 1}${langTag}${priorityTag}: ${s.url} (${s.length.toLocaleString()} chars) ═══\n\n${text}\n\n═══ END SOURCE ${i + 1} ═══`;
     })
+    .filter(Boolean)
     .join("\n\n");
 
-  const totalLength = allSources.reduce(
-    (sum, s) => sum + Math.min(s.text.length, maxCharsPerSource),
-    0,
-  );
+  const totalLength = usedChars;
 
   const text = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -763,7 +784,7 @@ Query:`;
 
   log?.claudeReq?.("simple-query", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5",
     max_tokens: 50,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -853,6 +874,23 @@ async function scrapeUrls(
 
   for (let i = 0; i < urls.length; i++) {
     const url = urls[i];
+
+    // Skip blocked domains
+    try {
+      const hostname = new URL(url).hostname;
+      if (
+        BLOCKED_DOMAINS.some(
+          (d) => hostname === d || hostname.endsWith(`.${d}`),
+        )
+      ) {
+        log.warn?.(
+          `  ⛔ [${i + 1}/${urls.length}] BLOCKED: ${url.substring(0, 70)}...`,
+        );
+        results.push({ url, text: "", length: 0, status: "blocked" });
+        continue;
+      }
+    } catch {}
+
     const timer = log.timer?.();
 
     try {
@@ -860,7 +898,7 @@ async function scrapeUrls(
       const response = await axios.post(
         `${SCRAPER_URL}/scrape`,
         { url },
-        { headers: { "Content-Type": "application/json" }, timeout: 120000 },
+        { headers: { "Content-Type": "application/json" }, timeout: 10000 },
       );
 
       if (
@@ -953,7 +991,7 @@ RESPOND IN THIS EXACT JSON FORMAT (no other text):
 
   log.claudeReq?.("global-select", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5",
     max_tokens: 500,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -963,7 +1001,7 @@ RESPOND IN THIS EXACT JSON FORMAT (no other text):
     message.content[0].type === "text" ? message.content[0].text.trim() : "";
   log.claudeRes?.("global-select", responseText);
   log.api(
-    "claude-sonnet-4-5",
+    "claude-haiku-4-5",
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
@@ -1031,7 +1069,7 @@ Pick 1-3 sources. If none add value, respond with: []`;
 
   log.claudeReq?.("en-supplement", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5",
     max_tokens: 100,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -1041,7 +1079,7 @@ Pick 1-3 sources. If none add value, respond with: []`;
     message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
   log.claudeRes?.("en-supplement", responseText);
   log.api(
-    "claude-sonnet-4-5",
+    "claude-haiku-4-5",
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );

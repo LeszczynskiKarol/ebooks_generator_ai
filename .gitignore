@@ -55,6 +55,7 @@ backend/src/index.ts
 backend/node_modules/
 backend/package-lock.json
 backend/prisma/seed.ts
+backend/tmp/
 
 # Testing
 coverage/
