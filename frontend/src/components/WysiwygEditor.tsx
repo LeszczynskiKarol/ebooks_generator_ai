@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
+import { ImageBlock } from "./ImageBlockNode";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import { Table } from "@tiptap/extension-table";
@@ -36,6 +37,7 @@ import { Callout, CALLOUT_STYLES } from "./CalloutNode";
 interface WysiwygEditorProps {
   content: string; // HTML content
   onChange: (html: string) => void;
+  editorRef?: React.MutableRefObject<any>;
   readOnly?: boolean;
   minHeight?: string;
   maxHeight?: string;
@@ -45,6 +47,7 @@ interface WysiwygEditorProps {
 export default function WysiwygEditor({
   content,
   onChange,
+  editorRef,
   readOnly = false,
   minHeight = "300px",
   maxHeight = "600px",
@@ -60,6 +63,7 @@ export default function WysiwygEditor({
         bulletList: { keepMarks: true },
         orderedList: { keepMarks: true },
       }),
+      ImageBlock,
       Underline,
       Table.configure({
         resizable: false,
@@ -76,7 +80,9 @@ export default function WysiwygEditor({
     content,
     editable: !readOnly,
     onUpdate: ({ editor: ed }) => {
-      onChange(ed.getHTML());
+      const html = ed.getHTML();
+      prevContent.current = html;
+      onChange(html);
     },
     editorProps: {
       attributes: {
@@ -85,6 +91,11 @@ export default function WysiwygEditor({
       },
     },
   });
+
+  // Expose editor instance to parent
+  useEffect(() => {
+    if (editorRef) editorRef.current = editor;
+  }, [editor, editorRef]);
 
   // Update content when prop changes (e.g., mode switch)
   const prevContent = useRef(content);
@@ -350,7 +361,7 @@ export default function WysiwygEditor({
       {/* ── Editor content ── */}
       <EditorContent editor={editor} />
 
-      {/* ── Inline styles for callout rendering + tables ── */}
+      {/* ── Inline styles ── */}
       <style>{`
         .wysiwyg-content h2 {
           font-size: 1.5rem;
@@ -505,6 +516,12 @@ export default function WysiwygEditor({
           color: #9ca3af;
           pointer-events: none;
           height: 0;
+        }
+
+        /* ── ImageBlock NodeView — the controls are inline-styled,
+             but we handle the dark mode delete button here ── */
+        .image-block-nodeview {
+          line-height: 0;
         }
       `}</style>
     </div>

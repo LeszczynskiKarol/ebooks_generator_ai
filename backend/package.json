@@ -17,7 +17,7 @@
     "@aws-sdk/s3-request-presigner": "^3.989.0",
     "@fastify/cors": "^10.1.0",
     "@fastify/jwt": "^9.1.0",
-    "@fastify/multipart": "^9.2.1",
+    "@fastify/multipart": "^9.4.0",
     "@prisma/client": "^6.17.1",
     "@types/archiver": "^7.0.0",
     "archiver": "^7.0.1",

@@ -24,6 +24,8 @@ export async function projectRoutes(app: FastifyInstance) {
       stylePreset,
       bookFormat,
       customColors,
+      authorName,
+      subtitle,
     } = request.body as any;
 
     if (!topic || topic.length < 5) {
@@ -31,6 +33,14 @@ export async function projectRoutes(app: FastifyInstance) {
         .status(400)
         .send({ success: false, error: "Topic must be at least 5 characters" });
     }
+
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return reply
+        .status(500)
+        .send({ success: false, error: "Stripe not configured" });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     // Snap to nearest tier
     const rawPages = Math.max(
@@ -54,6 +64,7 @@ export async function projectRoutes(app: FastifyInstance) {
       }
     }
 
+    // ── Create project ──
     const project = await prisma.project.create({
       data: {
         userId: request.user.userId,
@@ -65,9 +76,57 @@ export async function projectRoutes(app: FastifyInstance) {
         stylePreset: stylePreset || "modern",
         bookFormat: bookFormat || "a5",
         priceUsdCents: pricing.priceUsdCents,
-        currentStage: "PRICING",
+        currentStage: "PAYMENT",
+        authorName: authorName || null,
+        subtitle: subtitle || null,
         customColors: serializedColors,
       },
+    });
+
+    // ── Create Stripe session immediately ──
+    const user = await prisma.user.findUnique({
+      where: { id: request.user.userId },
+    });
+    let customerId = user?.stripeCustomerId;
+
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user!.email,
+        name: user!.name || undefined,
+        metadata: { userId: user!.id },
+      });
+      customerId = customer.id;
+      await prisma.user.update({
+        where: { id: user!.id },
+        data: { stripeCustomerId: customerId },
+      });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            unit_amount: pricing.priceUsdCents,
+            product_data: {
+              name: `eBook: ${title || topic}`,
+              description: `${pages}-page professional eBook`,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: { projectId: project.id, userId: request.user.userId },
+      success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
+      cancel_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=cancelled`,
+    });
+
+    await prisma.project.update({
+      where: { id: project.id },
+      data: { stripeSessionId: session.id },
     });
 
     return reply.status(201).send({
@@ -75,6 +134,7 @@ export async function projectRoutes(app: FastifyInstance) {
       data: {
         project: formatProject(project),
         pricing: { ...pricing, tierLabel: pricing.tier.label },
+        sessionUrl: session.url, // ← frontend uses this to redirect
       },
     });
   });
@@ -151,6 +211,9 @@ export async function projectRoutes(app: FastifyInstance) {
     if (body.title !== undefined) data.title = body.title;
     if (body.language) data.language = body.language;
     if (body.guidelines !== undefined) data.guidelines = body.guidelines;
+    if (body.authorName !== undefined)
+      data.authorName = body.authorName || null;
+    if (body.subtitle !== undefined) data.subtitle = body.subtitle || null;
     if (body.stylePreset) data.stylePreset = body.stylePreset;
     if (body.bookFormat) data.bookFormat = body.bookFormat;
     if (body.targetPages) {
@@ -299,6 +362,40 @@ export async function projectRoutes(app: FastifyInstance) {
     return reply.send({ success: true, message: "Structure approved" });
   });
 
+  app.patch("/api/projects/:id/title-page", async (request, reply) => {
+    const { id } = request.params as any;
+    const project = await prisma.project.findFirst({
+      where: { id, userId: request.user.userId },
+    });
+    if (!project)
+      return reply.status(404).send({ success: false, error: "Not found" });
+
+    const body = request.body as any;
+    const data: any = {};
+
+    if (body.title !== undefined) data.title = body.title || null;
+    if (body.authorName !== undefined)
+      data.authorName = body.authorName || null;
+    if (body.subtitle !== undefined) data.subtitle = body.subtitle || null;
+    // Colophon fields
+    if (body.colophonText !== undefined)
+      data.colophonText = body.colophonText || null;
+    if (body.colophonFontSize !== undefined) {
+      const size = parseInt(body.colophonFontSize);
+      if ([8, 9, 10, 11, 12, 14].includes(size)) data.colophonFontSize = size;
+    }
+    if (body.colophonEnabled !== undefined)
+      data.colophonEnabled = !!body.colophonEnabled;
+    const updated = await prisma.project.update({ where: { id }, data });
+    console.log("[TITLE-PAGE PATCH] Updated fields:", {
+      title: updated.title,
+      authorName: updated.authorName,
+      subtitle: updated.subtitle,
+    });
+
+    return reply.send({ success: true, data: formatProject(updated) });
+  });
+
   // ━━━ POST /api/projects/:id/structure/redo ━━━
   app.post("/api/projects/:id/structure/redo", async (request, reply) => {
     const { id } = request.params as any;
@@ -314,6 +411,7 @@ export async function projectRoutes(app: FastifyInstance) {
         error: "Redo already used. Edit manually instead.",
       });
     }
+
     await prisma.project.update({
       where: { id },
       data: { structureRedoUsed: true, currentStage: "STRUCTURE" },

@@ -1325,14 +1325,14 @@ export default function Landing() {
               {[
                 {
                   tier: "Compact",
-                  price: "6.99",
+                  price: "9.99",
                   pages: "30–40",
                   chapters: 3,
                   featured: false,
                 },
                 {
                   tier: "Standard",
-                  price: "9.99",
+                  price: "12.99",
                   pages: "50–70",
                   chapters: 4,
                   featured: false,
@@ -1346,14 +1346,14 @@ export default function Landing() {
                 },
                 {
                   tier: "Comprehensive",
-                  price: "19.99",
+                  price: "17.99",
                   pages: "130–150",
                   chapters: 8,
                   featured: false,
                 },
                 {
                   tier: "Complete",
-                  price: "24.99",
+                  price: "19.99",
                   pages: "170–200",
                   chapters: 10,
                   featured: false,
@@ -1486,7 +1486,7 @@ export default function Landing() {
                 to="/auth/register"
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-lg shadow-xl shadow-primary-600/30 hover:shadow-primary-500/40 transition-all hover:-translate-y-0.5"
               >
-                Start Creating — From $6.99
+                Start Creating — From $9.99
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>

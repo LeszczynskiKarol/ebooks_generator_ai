@@ -9,7 +9,12 @@ import { promisify } from "util";
 import { compileEpub } from "./epubCompiler";
 import * as fs from "fs";
 import * as path from "path";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 
 const execAsync = promisify(exec);
 
@@ -37,6 +42,91 @@ const PAPER_SIZE: Record<string, string> = {
   letter: "letterpaper",
 };
 
+async function downloadProjectImages(
+  projectId: string,
+  buildDir: string,
+): Promise<Map<string, string>> {
+  const imageMap = new Map<string, string>();
+
+  const images = await prisma.projectImage.findMany({
+    where: { projectId, source: "USER_UPLOAD" },
+    select: {
+      id: true,
+      s3Key: true,
+      s3Url: true,
+      originalName: true,
+      format: true,
+    },
+  });
+
+  if (images.length === 0) return imageMap;
+
+  const imagesDir = path.join(buildDir, "images");
+  if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+
+  for (const img of images) {
+    const ext = img.format
+      ? `.${img.format}`
+      : path.extname(img.originalName || ".jpg");
+    const localName = `img-${img.id.substring(0, 12)}${ext}`;
+    const localPath = path.join(imagesDir, localName);
+
+    try {
+      if (process.env.AWS_ACCESS_KEY_ID && process.env.S3_BUCKET) {
+        const s3 = new S3Client({
+          region: process.env.AWS_REGION || "eu-north-1",
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+          },
+        });
+        const response = await s3.send(
+          new GetObjectCommand({
+            Bucket: process.env.S3_BUCKET!,
+            Key: img.s3Key,
+          }),
+        );
+        const chunks: Buffer[] = [];
+        for await (const chunk of response.Body as any) {
+          chunks.push(Buffer.from(chunk));
+        }
+        fs.writeFileSync(localPath, Buffer.concat(chunks));
+      } else {
+        const localUploadPath = path.join(
+          process.cwd(),
+          "tmp",
+          "uploads",
+          projectId,
+          path.basename(img.s3Key),
+        );
+        if (fs.existsSync(localUploadPath)) {
+          fs.copyFileSync(localUploadPath, localPath);
+        } else {
+          console.warn(`  ⚠️ Image not found locally: ${localUploadPath}`);
+          continue;
+        }
+      }
+      if (img.s3Url) imageMap.set(img.s3Url, `images/${localName}`);
+      console.log(`  🖼️  Downloaded: ${img.originalName} → ${localName}`);
+    } catch (err) {
+      console.error(`  ⚠️ Failed to download image ${img.originalName}:`, err);
+    }
+  }
+  return imageMap;
+}
+
+function rewriteImageUrls(
+  latex: string,
+  imageMap: Map<string, string>,
+): string {
+  let result = latex;
+  for (const [url, localPath] of imageMap) {
+    result = result.split(url).join(localPath);
+    console.log(`  🖼️  Map: ${url.substring(0, 80)}... → ${localPath}`);
+  }
+  return result;
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Compile: assemble .tex → pdflatex → version → upload S3
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -57,16 +147,14 @@ export async function compileBook(projectId: string) {
   );
   if (readyChapters.length === 0) throw new Error("No LaTeX chapters ready");
 
-  const structureData = project.structure
-    ? JSON.parse(project.structure.structureJson)
-    : null;
-  const bookTitle =
-    structureData?.suggestedTitle || project.title || project.topic;
+  const bookTitle = project.title || project.topic;
 
   console.log(
     `\n📖 Compiling "${bookTitle}" — ${readyChapters.length} chapters`,
   );
-
+  console.log("[COMPILE] project.title:", project.title);
+  console.log("[COMPILE] project.topic:", project.topic);
+  console.log("[COMPILE] bookTitle used:", bookTitle);
   await prisma.project.update({
     where: { id: projectId },
     data: { generationStatus: "COMPILING_LATEX", currentStage: "COMPILING" },
@@ -75,7 +163,9 @@ export async function compileBook(projectId: string) {
   // Build directory
   const buildDir = path.join(BUILD_DIR, projectId);
   if (!fs.existsSync(buildDir)) fs.mkdirSync(buildDir, { recursive: true });
-
+  console.log("  🖼️  Downloading project images...");
+  const imageMap = await downloadProjectImages(projectId, buildDir);
+  console.log(`  🖼️  ${imageMap.size} images downloaded`);
   try {
     // ── 1. Assemble full .tex document ──
     const customColors = project.customColors
@@ -85,9 +175,15 @@ export async function compileBook(projectId: string) {
     const texContent = assembleLatexDocument({
       title: bookTitle,
       language: project.language,
+      authorName: project.authorName,
+      subtitle: project.subtitle,
       format: project.bookFormat,
+      imageMap,
       stylePreset: project.stylePreset,
       customColors,
+      colophonText: project.colophonText,
+      colophonFontSize: project.colophonFontSize,
+      colophonEnabled: project.colophonEnabled ?? false,
       chapters: readyChapters,
     });
 
@@ -220,6 +316,42 @@ export async function compileBook(projectId: string) {
     });
     console.log(`  📋 Version ${newVersion} recorded in database`);
 
+    // ── 4b. Save LaTeX source to version ──
+    try {
+      const texVersionDir = path.join(BUILD_DIR, projectId, `v${newVersion}`);
+      if (!fs.existsSync(texVersionDir))
+        fs.mkdirSync(texVersionDir, { recursive: true });
+      const texVersionPath = path.join(texVersionDir, "book.tex");
+      fs.copyFileSync(texPath, texVersionPath);
+
+      const texSize = fs.statSync(texPath).size;
+
+      if (process.env.AWS_ACCESS_KEY_ID && process.env.S3_BUCKET) {
+        const texS3Key = `books/${projectId}/v${newVersion}/${sanitizedTitle}.tex`;
+        await uploadToS3(texPath, texS3Key);
+
+        await prisma.bookVersion.update({
+          where: { projectId_version: { projectId, version: newVersion } },
+          data: {
+            texS3Key: texS3Key,
+            texLocalPath: texVersionPath,
+            texFileSize: texSize,
+          },
+        });
+        console.log(`  📄 LaTeX source saved: ${texS3Key}`);
+      } else {
+        await prisma.bookVersion.update({
+          where: { projectId_version: { projectId, version: newVersion } },
+          data: {
+            texLocalPath: texVersionPath,
+            texFileSize: texSize,
+          },
+        });
+      }
+    } catch (texErr) {
+      console.error(`  ⚠️ LaTeX version save failed (non-fatal):`, texErr);
+    }
+
     // ── 5. Update project ──
     await prisma.project.update({
       where: { id: projectId },
@@ -232,8 +364,7 @@ export async function compileBook(projectId: string) {
     });
 
     console.log(`\n📖 Book compiled and ready! v${newVersion} 🎉\n`);
-    // ── 6. EPUB compilation (non-blocking) ──
-    // EPUB failure should NOT fail the whole pipeline
+    // ── 6// ── 6. EPUB compilation (non-blocking) ──
     try {
       console.log(`  📱 Starting EPUB compilation...`);
       await prisma.project.update({
@@ -245,9 +376,19 @@ export async function compileBook(projectId: string) {
       console.log(
         `  📱 EPUB ready: ${epubResult.s3Key || epubResult.epubPath}`,
       );
+
+      // Update BookVersion with EPUB info
+      await prisma.bookVersion.update({
+        where: { projectId_version: { projectId, version: newVersion } },
+        data: {
+          epubS3Key: epubResult.s3Key || null,
+          epubLocalPath: epubResult.epubPath || null,
+          epubFileSize: epubResult.fileSize || null,
+        },
+      });
+      console.log(`  📱 Version ${newVersion} updated with EPUB info`);
     } catch (epubError) {
       console.error(`  ⚠️ EPUB compilation failed (non-fatal):`, epubError);
-      // Don't throw — PDF is already done, project stays COMPLETED
     }
 
     // Reset status to COMPLETED (might have been set to COMPILING_EPUB)
@@ -279,8 +420,14 @@ interface AssembleParams {
   title: string;
   language: string;
   format: string;
+  imageMap?: Map<string, string>;
   stylePreset: string;
   customColors?: string[];
+  authorName?: string | null;
+  subtitle?: string | null;
+  colophonText?: string | null;
+  colophonFontSize?: number | null;
+  colophonEnabled?: boolean;
   chapters: {
     chapterNumber: number;
     title: string;
@@ -296,9 +443,10 @@ function assembleLatexDocument(p: AssembleParams): string {
   const styleConfig = getStyleConfig(p.stylePreset);
   const year = new Date().getFullYear();
   const title = escapeLatex(p.title);
-  const subtitle = isPolish
-    ? "Wygenerowano przez BookForge.ai"
-    : "Generated by BookForge.ai";
+
+  // ── NEW: Author & subtitle with fallbacks ──
+  const authorName = p.authorName ? escapeLatex(p.authorName) : "";
+  const subtitle = p.subtitle ? escapeLatex(p.subtitle) : isPolish ? "" : "";
 
   const colorsBlock =
     p.customColors && p.customColors.length > 0
@@ -307,6 +455,10 @@ function assembleLatexDocument(p: AssembleParams): string {
 
   const L: string[] = [];
   const add = (...lines: string[]) => L.push(...lines);
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // PREAMBLE (unchanged except noted)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   add(
     "\\documentclass[" +
@@ -342,6 +494,7 @@ function assembleLatexDocument(p: AssembleParams): string {
   add(colorsBlock);
   add("");
 
+  // ── Headers/footers (unchanged) ──
   add(
     "\\usepackage{fancyhdr}",
     "\\pagestyle{fancy}",
@@ -359,11 +512,13 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  // ── titlesec — NOTE: chapter style is defined LATER, after TOC ──
   add("\\usepackage{titlesec}");
-  add(styleConfig.chapterStyle);
+  // Section/subsection styles go here (they don't affect TOC heading)
   add(styleConfig.sectionStyle);
   add("");
 
+  // ── Typography (unchanged) ──
   add(
     "\\usepackage{microtype}",
     "\\usepackage{setspace}",
@@ -372,6 +527,7 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  // ── Lists (unchanged) ──
   add(
     "\\usepackage{enumitem}",
     "\\setlist[itemize]{",
@@ -387,6 +543,7 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  // ── Tables (unchanged) ──
   add(
     "\\usepackage{booktabs}",
     "\\usepackage{tabularx}",
@@ -401,9 +558,13 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  add("\\usepackage{graphicx}");
+  add("\\usepackage{wrapfig}");
+
+  // ── TikZ + tcolorbox (unchanged) ──
   add("\\usepackage{tikz}", "\\usepackage[skins,breakable]{tcolorbox}", "");
 
-  // Tip Box
+  // ── Colored boxes: tipbox, keyinsight, warningbox, examplebox (unchanged) ──
   add(
     "\\newtcolorbox{tipbox}[1][]{",
     "  enhanced, breakable,",
@@ -425,7 +586,6 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
-  // Key Insight Box
   add(
     "\\newtcolorbox{keyinsight}[1][]{",
     "  enhanced, breakable,",
@@ -446,7 +606,6 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
-  // Warning Box
   add(
     "\\newtcolorbox{warningbox}[1][]{",
     "  enhanced, breakable,",
@@ -468,7 +627,6 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
-  // Example Box
   add(
     "\\newtcolorbox{examplebox}[1][]{",
     "  enhanced, breakable,",
@@ -489,6 +647,7 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  // ── Quote (unchanged) ──
   add(
     "\\usepackage{csquotes}",
     "\\renewenvironment{quote}{%",
@@ -506,6 +665,7 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  // ── Hyperref (unchanged) ──
   add(
     "\\usepackage[hidelinks,unicode,",
     "  colorlinks=true,",
@@ -515,6 +675,7 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  // ── Captions (unchanged) ──
   add(
     "\\usepackage[",
     "  font={small},",
@@ -525,83 +686,211 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  // ── TOC styling — entries colored, heading will be set separately ──
   add(
     "\\usepackage{tocloft}",
-    "\\renewcommand{\\cftchapfont}{\\bfseries\\color{chaptercolor}}",
-    "\\renewcommand{\\cftchappagefont}{\\bfseries\\color{chaptercolor}}",
-    "\\renewcommand{\\cftsecfont}{\\color{sectioncolor}}",
-    "\\renewcommand{\\cftsecpagefont}{\\color{sectioncolor}}",
+    "\\renewcommand{\\cftchapfont}{\\bfseries\\color{black}}",
+    "\\renewcommand{\\cftchappagefont}{\\bfseries\\color{black}}",
+    "\\renewcommand{\\cftsecfont}{\\color{black}}",
+    "\\renewcommand{\\cftsecpagefont}{\\color{black}}",
     "\\renewcommand{\\cftchapleader}{\\cftdotfill{\\cftchapdotsep}}",
     "\\renewcommand{\\cftchapdotsep}{2.5}",
     "\\setlength{\\cftbeforechapskip}{6pt}",
     "",
   );
 
-  add(
-    "\\title{\\Huge\\bfseries " + title + "}",
-    "\\author{}",
-    "\\date{}",
-    "",
-    "\\begin{document}",
-    "",
-  );
+  add("\\graphicspath{{./images/}{./}}");
+  add("");
 
+  add("\\begin{document}", "");
+
+  // ━━━ TITLE PAGE — all elements absolutely positioned ━━━
   add(
     "\\begin{titlepage}",
     "\\thispagestyle{empty}",
+    "",
     "\\begin{tikzpicture}[remember picture, overlay]",
-    "  \\fill[chaptercolor] (current page.north west) rectangle",
-    "    ([yshift=-4cm]current page.north east);",
-    "  \\fill[chaptercolor!15] (current page.south west) rectangle",
-    "    ([yshift=2.5cm]current page.south east);",
-    "\\end{tikzpicture}",
     "",
-    "\\vspace*{5cm}",
+    "  % ── Top accent bar ──",
+    "  \\fill[accent] (current page.north west) rectangle",
+    "    ([yshift=-5mm]current page.north east);",
     "",
-    "\\begin{center}",
-    "  {\\fontsize{28}{34}\\selectfont\\bfseries\\color{titletextcolor} " +
+    "  % ── Bottom accent bar ──",
+    "  \\fill[accent] (current page.south west) rectangle",
+    "    ([yshift=5mm]current page.south east);",
+    "",
+    "  % ── Title block (centered, upper area) ──",
+    "  \\node[anchor=center, text width=0.82\\paperwidth, align=center]",
+    "    at ([yshift=-0.33\\paperheight]current page.north) {",
+    "      {\\fontsize{28}{34}\\selectfont\\bfseries\\color{black}" +
       title +
       "\\par}",
-    "  \\vspace{0.8cm}",
-    "  {\\color{accent}\\rule{4cm}{1.5pt}\\par}",
-    "  \\vspace{0.6cm}",
-    "  {\\large\\color{subtitlegray}" + subtitle + "\\par}",
-    "\\end{center}",
+    "      \\vspace{0.7cm}",
+    "      {\\color{accent}\\rule{5cm}{1.2pt}\\par}",
+    "      \\vspace{0.5cm}",
+    "      {\\large\\color{subtitlegray}" + subtitle + "\\par}",
+    "    };",
     "",
-    "\\vfill",
+  );
+
+  // Author — absolutely positioned in lower-center area
+  if (authorName) {
+    add(
+      "  % ── Author name ──",
+      "  \\node[anchor=center] at ([yshift=0.18\\paperheight]current page.south) {",
+      "    {\\Large\\color{black}" + authorName + "}",
+      "  };",
+    );
+  }
+
+  // Year — always at bottom
+  add(
+    "  % ── Year ──",
+    "  \\node[anchor=center] at ([yshift=14mm]current page.south) {",
+    "    {\\small\\color{subtitlegray}" + year + "}",
+    "  };",
     "",
-    "\\begin{center}",
-    "  {\\small\\color{subtitlegray} " + year + "\\par}",
-    "\\end{center}",
+    "\\end{tikzpicture}",
+    "",
     "\\end{titlepage}",
     "",
   );
 
+  // ━━━ COLOPHON / COPYRIGHT PAGE ━━━
+  if (p.colophonEnabled && p.colophonText) {
+    const colFontSize = p.colophonFontSize || 10;
+    const latexSizeCmd: Record<number, string> = {
+      8: "\\scriptsize",
+      9: "\\footnotesize",
+      10: "\\small",
+      11: "\\normalsize",
+      12: "\\large",
+      14: "\\Large",
+    };
+    const sizeCmd = latexSizeCmd[colFontSize] || "\\small";
+    const colophonLines = p.colophonText
+      .split("\n")
+      .map((line: string) =>
+        line.trim() === ""
+          ? "\\par\\vspace{0.5\\baselineskip}"
+          : escapeLatex(line) + "\\par",
+      )
+      .join("\n    ");
+
+    add(
+      "% ── Colophon / Copyright page ──",
+      "\\newpage",
+      "\\thispagestyle{empty}",
+      "~\\vfill",
+      "\\begin{flushleft}",
+      sizeCmd,
+      "\\color{black}",
+      "\\setlength{\\parskip}{0pt}",
+      "\\setlength{\\parindent}{0pt}",
+      "\\linespread{1.15}\\selectfont",
+      "    " + colophonLines,
+      "\\end{flushleft}",
+      "\\vspace{20mm}",
+      "\\clearpage",
+      "",
+    );
+    console.log(
+      "[COMPILE] Colophon page added (" + p.colophonText.length + " chars)",
+    );
+  } else {
+    console.log(
+      "[COMPILE] Colophon SKIPPED — enabled:",
+      p.colophonEnabled,
+      "textLen:",
+      p.colophonText?.length || 0,
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ★★★ TABLE OF CONTENTS — heading BLACK ★★★
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Use temporary chapter format (black) for the TOC heading,
+  // then set the real colored chapter format for book content.
   add(
+    "% ── TOC with BLACK heading ──",
+    "\\titleformat{\\chapter}[display]",
+    "  {\\normalfont\\huge\\bfseries}{}{0pt}{\\Huge\\color{black}}",
+    "\\titlespacing*{\\chapter}{0pt}{50pt}{30pt}",
+    "",
     "{",
-    "  \\hypersetup{linkcolor=chaptercolor}",
+    "  \\hypersetup{linkcolor=black}",
     "  \\tableofcontents",
     "}",
     "\\clearpage",
     "",
   );
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ★★★ CHAPTER STYLE — defined AFTER TOC ★★★
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // This ensures the TOC heading is black, but all book
+  // chapters use the colored style from the preset.
+  add(
+    "% ── Restore chapter style for book content ──",
+    styleConfig.chapterStyle,
+    "",
+  );
+
+  // ── Chapter content ──
   for (const ch of p.chapters) {
     if (ch.latexContent) {
-      add(
-        "% ════════════════════════════════════════════",
-        "% Chapter " + ch.chapterNumber + ": " + ch.title,
-        "% ════════════════════════════════════════════",
-        "",
+      let content = sanitizeChapterLatex(ch.latexContent);
+
+      // ── DEBUG: Check for image commands before rewriting ──
+      const imgCmds = content.match(/\\includegraphics[^{]*\{[^}]+\}/g) || [];
+      console.log(
+        `  📷 Chapter ${ch.chapterNumber}: ${imgCmds.length} \\includegraphics found`,
       );
-      add(sanitizeChapterLatex(ch.latexContent));
+      imgCmds.forEach((cmd, i) =>
+        console.log(`    [${i}] ${cmd.substring(0, 120)}`),
+      );
+
+      if (p.imageMap && p.imageMap.size > 0) {
+        content = rewriteImageUrls(content, p.imageMap);
+
+        // ── DEBUG: Verify rewriting worked ──
+        const afterImgs =
+          content.match(/\\includegraphics[^{]*\{[^}]+\}/g) || [];
+        afterImgs.forEach((cmd, i) =>
+          console.log(`    [${i}] AFTER rewrite: ${cmd.substring(0, 120)}`),
+        );
+
+        // Check if any S3 URLs survived (meaning rewrite missed them)
+        for (const [url] of p.imageMap) {
+          if (content.includes(url)) {
+            console.error(`    ❌ URL NOT REWRITTEN: ${url.substring(0, 80)}`);
+          }
+        }
+      }
+
+      add(content);
       add("\\clearpage", "");
     }
   }
 
   add("\\end{document}");
 
-  return L.join("\n");
+  let assembled = L.join("\n");
+
+  // ── Nuclear fix: strip \par from ALL sectioning/caption arguments in final output ──
+  assembled = fixSectionArguments(assembled);
+
+  // Also strip any remaining literal \par inside braced arguments of sectioning commands
+  // This catches cases the brace-counting function might miss
+  assembled = assembled.replace(
+    /\\(section|subsection|chapter|caption)\*?(\{[^{}]*?)\\par\b/g,
+    (match, cmd, before) => {
+      console.log(`  🔧 Nuclear fix: stripped \\par from \\${cmd}{} argument`);
+      return `\\${cmd}${before.endsWith("{") ? "{" : ""}${before.replace(/^\{/, "")} `;
+    },
+  );
+
+  return assembled;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -623,11 +912,228 @@ const KNOWN_ENVS = [
   "figure",
   "minipage",
   "description",
+  "wrapfigure",
 ];
+
+/**
+ * Fix environment nesting order in LaTeX output.
+ *
+ * AI sometimes generates:
+ *   \begin{table}
+ *     \begin{tabularx}...
+ *   \end{table}        ← WRONG: outer closed before inner
+ *   \end{tabularx}     ← this causes "Missing \cr" fatal error
+ *
+ * This function detects and fixes reversed closings using:
+ * 1. Direct pattern matching for known nesting pairs
+ * 2. Stack-based analysis for complex/nested cases
+ */
+function fixEnvironmentNesting(latex: string): string {
+  let result = latex;
+
+  // ── Pass 1: Direct swap of known reversed pairs ──
+  const nestingPairs: [string, string][] = [
+    ["table", "tabularx"],
+    ["table", "tabular"],
+    ["figure", "center"],
+    ["table", "center"],
+  ];
+
+  for (const [outer, inner] of nestingPairs) {
+    const swappedRe = new RegExp(
+      `(\\\\end\\{${outer}\\})(\\s*)(\\\\end\\{${inner}\\})`,
+      "g",
+    );
+    result = result.replace(swappedRe, (_m, endOuter, ws, endInner) => {
+      console.log(
+        `  🔧 Nesting fix: swapped \\end{${outer}} / \\end{${inner}}`,
+      );
+      return `${endInner}${ws}${endOuter}`;
+    });
+  }
+
+  // ── Pass 2: Stack-based nesting validation ──
+  // Catches cases where inner \end{} is completely missing
+  // e.g. \begin{table}\begin{tabularx}...\end{table} (no \end{tabularx} at all)
+  const envRegex = /\\(begin|end)\{(tabularx?|table|figure|center)\}/g;
+  const stack: string[] = [];
+  const insertions: { pos: number; text: string }[] = [];
+  let match;
+
+  while ((match = envRegex.exec(result)) !== null) {
+    const [, action, env] = match;
+    if (action === "begin") {
+      stack.push(env);
+    } else {
+      if (stack.length > 0 && stack[stack.length - 1] === env) {
+        stack.pop();
+      } else if (stack.length >= 2) {
+        const topEnv = stack[stack.length - 1];
+        const secondEnv = stack[stack.length - 2];
+        if (secondEnv === env) {
+          // Missing \end for inner env — insert it before this \end
+          insertions.push({
+            pos: match.index,
+            text: `\\end{${topEnv}}\n`,
+          });
+          console.log(
+            `  🔧 Nesting fix: inserting missing \\end{${topEnv}} before \\end{${env}}`,
+          );
+          stack.pop();
+          stack.pop();
+        }
+      }
+    }
+  }
+
+  // Apply in reverse to preserve positions
+  for (const ins of insertions.reverse()) {
+    result =
+      result.substring(0, ins.pos) + ins.text + result.substring(ins.pos);
+  }
+
+  return result;
+}
+
+/**
+ * Remove \par and collapse newlines inside \chapter{}, \section{}, \subsection{} arguments.
+ * Handles nested braces properly (e.g. \section{\textbf{Title} with \par breaks}).
+ */
+function fixSectionArguments(latex: string): string {
+  const cmds = ["chapter", "section", "subsection", "caption"];
+  let result = latex;
+
+  for (const cmd of cmds) {
+    // Match \cmd or \cmd* followed by {
+    const pattern = `\\\\${cmd}\\*?\\{`;
+    const re = new RegExp(pattern, "g");
+
+    let match;
+    const replacements: { start: number; end: number; fixed: string }[] = [];
+
+    while ((match = re.exec(result)) !== null) {
+      const openBrace = match.index + match[0].length - 1; // position of {
+      let depth = 1;
+      let i = openBrace + 1;
+
+      // Find matching closing brace
+      while (i < result.length && depth > 0) {
+        if (result[i] === "{" && result[i - 1] !== "\\") depth++;
+        if (result[i] === "}" && result[i - 1] !== "\\") depth--;
+        i++;
+      }
+
+      if (depth === 0) {
+        const argContent = result.substring(openBrace + 1, i - 1);
+        // Check if argument contains \par or multi-line content
+        if (argContent.includes("\\par") || argContent.includes("\n")) {
+          const cleaned = argContent
+            .replace(/\\par\b/g, " ") // strip \par
+            .replace(/\n+/g, " ") // collapse newlines
+            .replace(/\s{2,}/g, " ") // collapse whitespace
+            .trim();
+
+          const prefix = result.substring(match.index, openBrace + 1); // e.g. \section{
+          replacements.push({
+            start: match.index,
+            end: i,
+            fixed: `${prefix}${cleaned}}`,
+          });
+          console.log(
+            `  🔧 Section fix: cleaned \\${cmd}{} argument (${argContent.length} → ${cleaned.length} chars)`,
+          );
+        }
+      }
+    }
+
+    // Apply replacements in reverse order to preserve positions
+    for (const rep of replacements.reverse()) {
+      result =
+        result.substring(0, rep.start) + rep.fixed + result.substring(rep.end);
+    }
+  }
+
+  return result;
+}
 
 function sanitizeChapterLatex(latex: string): string {
   let result = latex;
+  // ── Escape unescaped % signs — in LaTeX % starts a comment ──
+  // Chapter content should never have intentional % comments.
+  // Unescaped % in \section{} titles is FATAL (hides closing brace).
+  result = result.replace(/(?<!\\)%/g, "\\%");
+  // ── NUCLEAR: strip \par globally from chapter content ──
+  // \par in body text = blank line (no visual change). But inside \section{} it's FATAL.
+  // AI never intentionally generates \par — it uses blank lines instead.
+  result = result.replace(/\\par\b/g, "\n");
+  // ── Fix \par and newlines inside \section{} / \chapter{} / \subsection{} ──
+  // LaTeX doesn't allow \par inside section arguments — causes "Runaway argument" fatal error
+  result = fixSectionArguments(result);
+  // ── FIX: Strip exponential escaping corruption from round-trip bug ──
+  // Pattern: \textbackslash\{\}textbackslash... repeated garbage
+  // This happens when escapeLatexChars runs on already-escaped text multiple times
 
+  // Strip massive \textbackslash\{\} chains (corruption artifacts)
+  // Match sequences of \textbackslash, \{\}, \\\{\}, textbackslash without leading \
+  result = result.replace(
+    /(?:\\textbackslash\\?\{\}|textbackslash\\?\{\}|\\textbackslash\\\\\\?\{\}){2,}/g,
+    "",
+  );
+
+  // Also catch the pattern with mixed textbackslash and \{\} \\\{\}
+  result = result.replace(
+    /(?:\\?textbackslash)?(?:\\{1,2}\{\\{0,2}\}){2,}(?:textbackslash)?(?:\\{1,2}\{\\{0,2}\})*/g,
+    "",
+  );
+
+  // Nuclear option: any line that is >80% \textbackslash/\{\}/textbackslash gibberish → strip it
+  result = result.replace(
+    /^.*?(\\textbackslash|textbackslash\\?\{\}){5,}.*$/gm,
+    (line) => {
+      // Extract any readable text buried in the garbage
+      const readable = line
+        .replace(/\\textbackslash\\\{\}/g, "")
+        .replace(/\\textbackslash\{\}/g, "")
+        .replace(/textbackslash\\\{\}\{/g, "")
+        .replace(/textbackslash\\\{\}/g, "")
+        .replace(/textbackslash/g, "")
+        .replace(/\\\{[^}]*\\\}/g, "")
+        .replace(/\\\{/g, "")
+        .replace(/\\\}/g, "")
+        .replace(/\{/g, "")
+        .replace(/\}/g, "")
+        .trim();
+
+      if (readable.length > 5) {
+        console.log(
+          `  🔧 Escape fix: recovered "${readable.substring(0, 60)}" from corrupted line`,
+        );
+        return readable;
+      }
+      console.log(
+        `  🔧 Escape fix: stripped corrupted line (${line.length} chars)`,
+      );
+      return "";
+    },
+  );
+
+  // Strip standalone column-spec lines leaked into table body
+  // e.g. lines that are just "p{3cm}Xp{3cm}}" or "{lXXr}"
+  result = result.replace(/^\s*\{?[lcrXp{}\d.cm\s|]+\}?\s*$/gm, (line) => {
+    const t = line.trim();
+    if (
+      t.length > 1 &&
+      t.length < 40 &&
+      /[lcrXp]/.test(t) &&
+      !/[a-zA-Z]{4,}/.test(t)
+    ) {
+      console.log(`  🔧 Table fix: removed leaked column spec: "${t}"`);
+      return "";
+    }
+    return line;
+  });
+
+  // ── Balance known environments ──
   for (const env of KNOWN_ENVS) {
     const beginRe = new RegExp("\\\\begin\\{" + env + "\\}", "g");
     const endRe = new RegExp("\\\\end\\{" + env + "\\}", "g");
@@ -658,6 +1164,10 @@ function sanitizeChapterLatex(latex: string): string {
     }
   }
 
+  //   // ── Fix environment nesting order ──
+  result = fixEnvironmentNesting(result);
+
+  // ── Balance braces ──
   let depth = 0;
   for (let i = 0; i < result.length; i++) {
     if (result[i] === "{" && (i === 0 || result[i - 1] !== "\\")) depth++;
@@ -668,10 +1178,12 @@ function sanitizeChapterLatex(latex: string): string {
     console.log(`  🔧 LaTeX fix: closed ${depth} unclosed braces`);
   }
 
+  // ── Strip preamble artifacts ──
   result = result.replace(/\\documentclass[^]*?\\begin\{document\}/g, "");
   result = result.replace(/\\end\{document\}/g, "");
   result = result.replace(/\\usepackage(\[[^\]]*\])?\{[^}]*\}/g, "");
 
+  // ── Balance tabularx specifically ──
   const tabxBegins = (result.match(/\\begin\{tabularx\}/g) || []).length;
   const tabxEnds = (result.match(/\\end\{tabularx\}/g) || []).length;
   if (tabxBegins > tabxEnds) {
@@ -685,6 +1197,7 @@ function sanitizeChapterLatex(latex: string): string {
     }
   }
 
+  // ── Strip prompt echo artifacts ──
   result = result.replace(/\\begin\{\.{0,3}\}/g, "");
   result = result.replace(/\\end\{\.{0,3}\}/g, "");
   result = result.replace(/^□\s+.*$/gm, "");
@@ -696,6 +1209,91 @@ function sanitizeChapterLatex(latex: string): string {
     /^⚠️\s+(Hard limits|STRICT MAXIMUM|COMPLETE every|CONTINUITY|THIS IS THE FINAL|ENSURE every|STOP writing|Close every opened).*$/gm,
     "",
   );
+
+  // ── TABLE SANITIZATION (safety net for converter bugs) ──
+
+  // Replace |||MIDRULE||| markers leaked from HTML↔LaTeX converter
+  result = result.replace(/\|\|\|MIDRULE\|\|\|/g, "\\midrule");
+
+  // Clean escaped column-spec artifacts from table bodies
+  // e.g. \{lXr\}, \{X X X\}, \{p{3cm} l r\}
+  result = result.replace(/\\\{[lcrXp|.\s{}0-9cm]+\\\}/g, "");
+
+  // Validate tabularx: fix column count mismatches
+  result = result.replace(
+    /\\begin\{tabularx\}\{[^}]*\}\{([^}]*)\}([\s\S]*?)\\end\{tabularx\}/g,
+    (_match, colSpec, body) => {
+      const expectedCols = (colSpec.match(/[lcrXp]/g) || []).length;
+      if (expectedCols === 0) return _match;
+
+      const lines = body.split("\n");
+      const fixedLines = lines.map((line: string) => {
+        const trimmed = line.trim();
+        // Skip non-data lines
+        if (!trimmed || /^\\(toprule|midrule|bottomrule|hline)/.test(trimmed)) {
+          return line;
+        }
+
+        // If line has content but no & and no \\ — it's a broken row, add \\
+        if (!trimmed.includes("&") && !trimmed.endsWith("\\\\")) {
+          // Only fix if it looks like data (not a LaTeX command on its own)
+          if (!/^\\[a-zA-Z]+/.test(trimmed)) {
+            console.log(
+              `  🔧 Table fix: added missing \\\\ to line: "${trimmed.substring(0, 50)}"`,
+            );
+            return line + " \\\\";
+          }
+          return line;
+        }
+
+        // Skip lines without & (pure commands etc.)
+        if (!trimmed.includes("&")) return line;
+
+        // Extract row content (before \\)
+        const rowMatch = trimmed.match(/^(.+?)(\s*\\\\)?\s*$/);
+        if (!rowMatch) return line;
+
+        const rowContent = rowMatch[1];
+        const rowEnd = rowMatch[2] || " \\\\";
+        const cells = rowContent.split("&");
+
+        if (cells.length === expectedCols) return line;
+
+        if (cells.length > expectedCols) {
+          // Too many & — merge excess into last cell
+          const fixed = [
+            ...cells.slice(0, expectedCols - 1),
+            cells.slice(expectedCols - 1).join(", "),
+          ];
+          console.log(
+            `  🔧 Table fix: merged ${cells.length} cols → ${expectedCols}`,
+          );
+          return fixed.join(" & ") + rowEnd;
+        }
+
+        // Too few & — pad with empty cells
+        const padded = [...cells];
+        while (padded.length < expectedCols) padded.push(" ");
+        console.log(
+          `  🔧 Table fix: padded ${cells.length} cols → ${expectedCols}`,
+        );
+        return padded.join(" & ") + rowEnd;
+      });
+
+      return `\\begin{tabularx}{\\textwidth}{${colSpec}}${fixedLines.join("\n")}\\end{tabularx}`;
+    },
+  );
+
+  // Ensure last data row before \bottomrule ends with \\
+  // Ensure last data row before \bottomrule ends with \\
+  result = result.replace(/([^\\])\n(\s*\\bottomrule)/g, "$1 \\\\\n$2");
+
+  // Ensure last data row before \end{tabularx} ends with \\
+  result = result.replace(/([^\\])\n(\s*\\end\{tabularx\})/g, "$1 \\\\\n$2");
+  // Also handle case where \end{tabularx} is preceded by \end{table}
+  result = result.replace(/([^\\])\n(\s*\\end\{tabular\})/g, "$1 \\\\\n$2");
+
+  // ── Final cleanup ──
   result = result.replace(/\n{4,}/g, "\n\n\n");
 
   return result;
@@ -707,7 +1305,32 @@ function attemptLatexAutoFix(texPath: string, logPath: string): boolean {
   const log = fs.readFileSync(logPath, "utf-8");
   let tex = fs.readFileSync(texPath, "utf-8");
   let fixed = false;
+  // ── Fix: Runaway argument — \par inside section/chapter/caption arguments ──
+  if (log.includes("Runaway argument") || log.includes("@xdblarg")) {
+    const before = tex;
+    tex = fixSectionArguments(tex);
 
+    // Also brute-force: find \par inside any \section{...}, \chapter{...}, \caption{...}
+    // by scanning line-by-line
+    const lines = tex.split("\n");
+    for (let j = 0; j < lines.length; j++) {
+      // If line has \section{...\par or \chapter{...\par, strip the \par
+      if (/\\(section|subsection|chapter|caption)\*?\{.*\\par/.test(lines[j])) {
+        lines[j] = lines[j].replace(/\\par\b/g, " ");
+        console.log(
+          `  🔧 Auto-fix: stripped \\par from sectioning command at line ${j + 1}`,
+        );
+      }
+    }
+    tex = lines.join("\n");
+
+    if (tex !== before) {
+      console.log(
+        "  🔧 Auto-fix: removed \\par from section/chapter/caption arguments",
+      );
+      fixed = true;
+    }
+  }
   const unclosedMatch = log.match(
     /\\begin\{([^}]+)\} on input line (\d+) ended by \\end\{document\}/,
   );
@@ -774,6 +1397,78 @@ function attemptLatexAutoFix(texPath: string, logPath: string): boolean {
     );
     if (tex !== before) {
       console.log("  🔧 Auto-fix: stripped lines with empty \\begin{}/\\end{}");
+      fixed = true;
+    }
+  }
+
+  // ── Fix: Missing \cr at \end{tabularx} — table rows without \\ ──
+  if (
+    log.includes("Missing \\cr inserted") &&
+    log.includes("\\end{tabularx}")
+  ) {
+    const lineMatch = log.match(/l\.(\d+)\s*\\end\{tabularx\}/);
+    if (lineMatch) {
+      const endLine = parseInt(lineMatch[1]);
+      console.log(
+        `  🔧 Auto-fix: Missing \\cr before \\end{tabularx} at line ${endLine}`,
+      );
+      const lines = tex.split("\n");
+
+      // Find all tabularx environments and ensure every data row ends with \\
+      let inTable = false;
+      for (let j = 0; j < lines.length; j++) {
+        if (lines[j].includes("\\begin{tabularx}")) {
+          inTable = true;
+          continue;
+        }
+        if (lines[j].includes("\\end{tabularx}")) {
+          // Ensure previous non-empty line ends with \\
+          for (let k = j - 1; k >= 0; k--) {
+            const prev = lines[k].trim();
+            if (!prev) continue;
+            if (/^\\(toprule|midrule|bottomrule|hline)/.test(prev)) break;
+            if (!prev.endsWith("\\\\")) {
+              lines[k] = lines[k] + " \\\\";
+              console.log(
+                `  🔧 Auto-fix: added \\\\ to line ${k + 1}: "${prev.substring(0, 50)}"`,
+              );
+              fixed = true;
+            }
+            break;
+          }
+          inTable = false;
+          continue;
+        }
+        if (inTable) {
+          const trimmed = lines[j].trim();
+          // Data row with & but no \\ at end
+          if (
+            trimmed &&
+            trimmed.includes("&") &&
+            !trimmed.endsWith("\\\\") &&
+            !/^\\(toprule|midrule|bottomrule|hline)/.test(trimmed)
+          ) {
+            lines[j] = lines[j] + " \\\\";
+            console.log(
+              `  🔧 Auto-fix: added \\\\ to table row at line ${j + 1}`,
+            );
+            fixed = true;
+          }
+        }
+      }
+      if (fixed) tex = lines.join("\n");
+    }
+  }
+
+  //   // Fix: reversed \end{table}/\end{tabularx} nesting
+  if (log.includes("Missing \\cr inserted") || log.includes("Misplaced \\cr")) {
+    const beforeSwap = tex;
+    tex = tex.replace(/(\\end\{table\})(\s*)(\\end\{tabularx\})/g, "$3$2$1");
+    tex = tex.replace(/(\\end\{table\})(\s*)(\\end\{tabular\})/g, "$3$2$1");
+    if (tex !== beforeSwap) {
+      console.log(
+        "  🔧 Auto-fix: swapped reversed \\end{table}/\\end{tabularx}",
+      );
       fixed = true;
     }
   }
@@ -971,12 +1666,19 @@ async function uploadToS3(filePath: string, key: string): Promise<string> {
   });
   const fileContent = fs.readFileSync(filePath);
   const bucket = process.env.S3_BUCKET!;
+
+  const contentType = key.endsWith(".epub")
+    ? "application/epub+zip"
+    : key.endsWith(".tex")
+      ? "application/x-tex"
+      : "application/pdf";
+
   await s3.send(
     new PutObjectCommand({
       Bucket: bucket,
       Key: key,
       Body: fileContent,
-      ContentType: "application/pdf",
+      ContentType: contentType,
     }),
   );
   return `https://${bucket}.s3.${process.env.AWS_REGION || "eu-north-1"}.amazonaws.com/${key}`;

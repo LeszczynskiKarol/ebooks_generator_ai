@@ -6,6 +6,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import Anthropic from "@anthropic-ai/sdk";
+import { reviewAndReviseBook } from "./reviewService";
 import { prisma } from "../lib/prisma";
 import { getWordsPerPage } from "../lib/types";
 import { createPipelineLogger } from "../lib/logger";
@@ -17,6 +18,7 @@ import {
 } from "./researchService";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const UTILITY_MODEL = "claude-haiku-4-5";
 
 interface ChapterStructure {
   id: string;
@@ -30,6 +32,193 @@ interface ChapterStructure {
     description: string;
     targetPages: number;
   }[];
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Content Registry — extracted once per chapter, cached
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+export interface ChapterRegistry {
+  chapterNumber: number;
+  chapterTitle: string;
+  /** 2-3 sentence summary */
+  summary: string;
+  /** Specific examples, case studies, company names used */
+  usedExamples: string[];
+  /** Statistics and numbers cited (e.g. "47% studentów myli przedmiot z celem") */
+  usedStats: string[];
+  /** Key terms defined or introduced with their meaning */
+  keyTerms: string[];
+  /** How the chapter ends — last topic/argument */
+  closingTopic: string;
+}
+
+/**
+ * Extract a content registry from a completed chapter.
+ * Called once after each chapter is generated.
+ * Cost: ~$0.002 per call (Haiku, ~2K input + ~300 output tokens)
+ */
+export async function extractChapterRegistry(
+  chapterNumber: number,
+  chapterTitle: string,
+  latex: string,
+  language: string,
+  log?: any,
+): Promise<ChapterRegistry> {
+  // Strip heavy LaTeX for cheaper processing
+  const cleanText = latex
+    .replace(
+      /\\begin\{(table|tabularx|tabular)\}[^]*?\\end\{(table|tabularx|tabular)\}/g,
+      "[TABLE]",
+    )
+    .replace(
+      /\\begin\{(tipbox|keyinsight|warningbox|examplebox)\}\{([^}]*)\}/g,
+      "\n[$2]: ",
+    )
+    .replace(/\\end\{(tipbox|keyinsight|warningbox|examplebox)\}/g, "\n")
+    .replace(/\\(chapter|section|subsection)\{([^}]*)\}/g, "\n## $2\n")
+    .replace(/\\textbf\{([^}]*)\}/g, "$1")
+    .replace(/\\textit\{([^}]*)\}/g, "$1")
+    .replace(/\\footnote\{[^}]*\}/g, "")
+    .replace(/\\[a-zA-Z]+/g, " ")
+    .replace(/[{}]/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  const langName =
+    { pl: "Polish", en: "English", de: "German", es: "Spanish", fr: "French" }[
+      language
+    ] || "English";
+
+  const prompt = `Extract a content registry from this book chapter. Respond ONLY with valid JSON.
+
+CHAPTER ${chapterNumber}: "${chapterTitle}"
+LANGUAGE: ${langName}
+
+TEXT:
+${cleanText.substring(0, 6000)}
+
+RESPOND with this exact JSON structure:
+{
+  "summary": "2-3 sentence summary of what this chapter covers and its main argument",
+  "usedExamples": ["Company X did Y", "Case study: Z showed..."],
+  "usedStats": ["47% of students confuse X with Y", "N=120 respondents"],
+  "keyTerms": ["przedmiot badań = what you study", "cel badań = why you study it"],
+  "closingTopic": "The chapter ends by discussing X"
+}
+
+RULES:
+- summary: 2-3 sentences in ${langName}, capturing the MAIN argument
+- usedExamples: List every named case study, company, person, or specific scenario (max 10)
+- usedStats: List every specific number, percentage, or quantified claim (max 10)
+- keyTerms: List terms that were DEFINED or given a specific meaning (max 8)
+- closingTopic: 1 sentence about what the last section discusses
+- All values in ${langName}`;
+
+  try {
+    log?.claudeReq?.(
+      "registry",
+      `[Ch${chapterNumber}] ${prompt.substring(0, 100)}...`,
+    );
+
+    const response = await anthropic.messages.create({
+      model: UTILITY_MODEL,
+      max_tokens: 600,
+      temperature: 0.1,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text =
+      response.content[0].type === "text"
+        ? response.content[0].text.trim()
+        : "{}";
+    log?.claudeRes?.("registry", text);
+    log?.api?.(
+      UTILITY_MODEL,
+      response.usage?.input_tokens || 0,
+      response.usage?.output_tokens || 0,
+    );
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON in registry response");
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    return {
+      chapterNumber,
+      chapterTitle,
+      summary: parsed.summary || "",
+      usedExamples: (parsed.usedExamples || []).slice(0, 10),
+      usedStats: (parsed.usedStats || []).slice(0, 10),
+      keyTerms: (parsed.keyTerms || []).slice(0, 8),
+      closingTopic: parsed.closingTopic || "",
+    };
+  } catch (err: any) {
+    log?.warn?.(
+      `Registry extraction failed for Ch${chapterNumber}: ${err.message}`,
+    );
+    // Fallback: extract basics programmatically
+    return {
+      chapterNumber,
+      chapterTitle,
+      summary: `Chapter ${chapterNumber}: ${chapterTitle}`,
+      usedExamples: [],
+      usedStats: extractStatsFromLatex(latex),
+      keyTerms: [],
+      closingTopic: "",
+    };
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Style Sample — extracted once from Chapter 1
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/**
+ * Extract a representative style sample from Chapter 1.
+ * Takes the opening ~800 chars + a mid-section ~700 chars.
+ * Pure string operation — no API call needed.
+ */
+export function extractStyleSample(firstChapterLatex: string): string {
+  // Get the opening (after \chapter{} and first \section{})
+  const afterChapter = firstChapterLatex.replace(/^\\chapter\{[^}]*\}\s*/, "");
+  const afterFirstSection = afterChapter.replace(/^\\section\{[^}]*\}\s*/, "");
+
+  // Opening: first ~800 chars of actual prose
+  const opening = afterFirstSection.substring(0, 800);
+
+  // Mid-section: find the second \section and take ~700 chars after it
+  const sections = [...firstChapterLatex.matchAll(/\\section\{[^}]*\}/g)];
+  let midSection = "";
+  if (sections.length >= 2) {
+    const secondSectionIdx = sections[1].index!;
+    const afterSecond = firstChapterLatex.substring(secondSectionIdx);
+    const afterHeader = afterSecond.replace(/^\\section\{[^}]*\}\s*/, "");
+    midSection = afterHeader.substring(0, 700);
+  }
+
+  return `${opening}${midSection ? "\n[...]\n" + midSection : ""}`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Fallback: programmatic stat extraction (no API needed)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+function extractStatsFromLatex(latex: string): string[] {
+  const stats: string[] = [];
+
+  // Match patterns like "47\% studentów", "N=120", "72\% prac"
+  const percentPattern = /(\d+)\\?%\s+[a-zA-ZąćęłńóśżźĄĆĘŁŃÓŚŻŹ]+/g;
+  const nPattern = /[Nn]\s*[=:]\s*\d+/g;
+
+  let match;
+  while ((match = percentPattern.exec(latex)) !== null) {
+    stats.push(match[0].replace(/\\/g, "").trim());
+  }
+  while ((match = nPattern.exec(latex)) !== null) {
+    stats.push(match[0].trim());
+  }
+
+  return [...new Set(stats)].slice(0, 10);
 }
 
 interface PromptLog {
@@ -182,6 +371,7 @@ export async function generateContent(projectId: string) {
   // ── Phase 4: Generate chapters ──
   log.phase(4, "Generate Chapter Content");
   const previousSummaries: string[] = [];
+  const chapterRegistries: ChapterRegistry[] = []; // ← ADD
   const previousChaptersContent: {
     number: number;
     title: string;
@@ -249,6 +439,7 @@ export async function generateContent(projectId: string) {
         totalChapters: chapters.length,
         previousSummaries,
         previousChaptersContent,
+        chapterRegistries,
         allChapters: chapters,
         sourcesText: mergedSourcesText,
         hasResearch,
@@ -266,6 +457,16 @@ export async function generateContent(projectId: string) {
         title: chapter.title,
         latex: result.latexContent,
       });
+
+      // Extract registry for lightweight context
+      const registry = await extractChapterRegistry(
+        chapter.number,
+        chapter.title,
+        result.latexContent,
+        project.language,
+        log,
+      );
+      chapterRegistries.push(registry);
 
       const wordCount = result.latexContent
         .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")
@@ -312,8 +513,72 @@ export async function generateContent(projectId: string) {
     }
   }
 
+  // ── Phase 4.5: Review & Revise ──
+  log.phase(4.5, "Book Review & Targeted Revision");
+  const reviewTimer = log.timer();
+  await prisma.project.update({
+    where: { id: projectId },
+    data: { generationStatus: "REVIEWING_CONTENT" },
+  });
+  try {
+    const chaptersForReview = previousChaptersContent.map((c) => ({
+      number: c.number,
+      title: c.title,
+      latex: c.latex,
+    }));
+
+    const { chapters: revisedChapters, stats: reviewStats } =
+      await reviewAndReviseBook(
+        chaptersForReview,
+        project.topic,
+        bookTitle,
+        project.guidelines || "",
+        project.language,
+        log,
+      );
+
+    // Apply revised LaTeX back to DB
+    if (reviewStats.editsApplied > 0) {
+      log.step(`Saving ${reviewStats.editsApplied} revision(s) to database...`);
+      for (const revised of revisedChapters) {
+        const wordCount = revised.latex
+          .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")
+          .split(/\s+/).length;
+
+        await prisma.chapter.updateMany({
+          where: { projectId, chapterNumber: revised.number },
+          data: {
+            latexContent: revised.latex,
+            actualWords: wordCount,
+            actualPages: wordCount / wpp,
+          },
+        });
+
+        // Also update the in-memory content for compilation
+        const pcIdx = previousChaptersContent.findIndex(
+          (c) => c.number === revised.number,
+        );
+        if (pcIdx !== -1) {
+          previousChaptersContent[pcIdx].latex = revised.latex;
+        }
+      }
+    }
+
+    totalTokens += reviewStats.reviewTokens + reviewStats.revisionTokens;
+
+    log.ok(
+      `Review complete: ${reviewStats.originalScore}→${reviewStats.finalScore}/10, ` +
+        `${reviewStats.editsApplied} edits, ` +
+        `+${reviewStats.reviewTokens + reviewStats.revisionTokens} tokens (${reviewTimer()})`,
+    );
+  } catch (reviewError: any) {
+    // Review is non-critical — if it fails, continue to compilation
+    log.warn(`Review failed (non-critical): ${reviewError.message}`);
+  }
+
   // ── Phase 5: Finalize ──
   log.phase(5, "Compilation");
+
   const estimatedCost = (totalTokens / 1_000_000) * 3;
   await prisma.project.update({
     where: { id: projectId },
@@ -341,113 +606,101 @@ export async function generateContent(projectId: string) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Token budget: previous chapters context
+// Main: Build lightweight context block
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function buildPreviousChaptersContext(
+/**
+ * Build the previous chapters context for the system prompt.
+ * REPLACES the old buildPreviousChaptersContext() function.
+ *
+ * Components:
+ * 1. Style sample from Chapter 1 (~1500 chars)
+ * 2. Content registry per chapter (~300-500 chars each)
+ * 3. Tail of last chapter (~2000 chars) for smooth transition
+ *
+ * Total: ~4-6K chars regardless of book size (vs 30-150K+ before)
+ */
+export function buildPreviousChaptersContext(
   previousChapters: { number: number; title: string; latex: string }[],
-  previousSummaries: string[],
-  maxChars: number = 400000,
+  _previousSummaries: string[], // prefix _ suppresses the warning
+  registries: ChapterRegistry[],
+  _maxChars?: number,
 ): string {
   if (previousChapters.length === 0) return "";
 
-  const totalChars = previousChapters.reduce(
-    (sum, c) => sum + c.latex.length,
-    0,
-  );
+  const parts: string[] = [];
 
-  if (totalChars <= maxChars) {
-    const chaptersBlock = previousChapters
-      .map(
-        (c) => `
-╔══════════════════════════════════════════════════════════════╗
-║  CHAPTER ${c.number}: "${c.title}" (ALREADY WRITTEN)
-╚══════════════════════════════════════════════════════════════╝
+  // ── 1. Style sample from Chapter 1 ──
+  const ch1 = previousChapters[0];
+  if (ch1) {
+    const sample = extractStyleSample(ch1.latex);
+    parts.push(`
+═══ YOUR WRITING STYLE (from Chapter 1 — match this EXACTLY) ═══
 
-${c.latex}
+${sample}
 
-═══ END OF CHAPTER ${c.number} ═══`,
-      )
-      .join("\n\n");
+═══ END STYLE SAMPLE ═══
 
-    return `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-YOUR PREVIOUSLY WRITTEN CHAPTERS (${previousChapters.length} chapters — FULL TEXT)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-YOU wrote these chapters earlier in this same book. This is YOUR voice, YOUR style.
-
-CRITICAL — use the full text below to:
-1. MATCH your writing style EXACTLY — same sentence rhythm, same level of directness,
-   same way you open sections, same way you use data and examples
-2. NEVER repeat examples, statistics, case studies, or arguments already covered
-3. BUILD on concepts you introduced — reference them naturally ("As we saw in Chapter X...")
-4. MAINTAIN terminology consistency — use the same terms for the same concepts
-5. ENSURE narrative flow — the reader will read these chapters in sequence
-6. MATCH visual element usage — same frequency/style of tables, colored boxes, key insights
-
-${chaptersBlock}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+CRITICAL: Match this voice precisely. Same sentence rhythm, same level of directness,
+same way you use data and examples. The reader must feel ONE consistent author.`);
   }
 
-  // Case 2: Doesn't fit — keep recent in full, summarize older
-  let usedChars = 0;
-  const fullChapters: typeof previousChapters = [];
-  const summarizedChapters: {
-    number: number;
-    title: string;
-    summary: string;
-  }[] = [];
-
-  const fullBudget = Math.floor(maxChars * 0.85);
-
-  for (let i = previousChapters.length - 1; i >= 0; i--) {
-    const ch = previousChapters[i];
-    if (usedChars + ch.latex.length <= fullBudget) {
-      fullChapters.unshift(ch);
-      usedChars += ch.latex.length;
-    } else {
-      summarizedChapters.unshift({
-        number: ch.number,
-        title: ch.title,
-        summary: previousSummaries[i] || `Chapter ${ch.number}: ${ch.title}`,
-      });
-    }
-  }
-
-  let block = `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-YOUR PREVIOUSLY WRITTEN CHAPTERS (${previousChapters.length} total: ${summarizedChapters.length} summarized + ${fullChapters.length} full text)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-MATCH your writing style exactly. NEVER repeat covered material.
-
+  // ── 2. Content registry (what's been covered) ──
+  if (registries.length > 0) {
+    let registryBlock = `
+═══ CONTENT ALREADY COVERED (do NOT repeat) ═══
 `;
 
-  if (summarizedChapters.length > 0) {
-    block += `── EARLIER CHAPTERS (summaries only — avoid repeating their content) ──\n\n`;
-    for (const ch of summarizedChapters) {
-      block += `  Ch.${ch.number} "${ch.title}": ${ch.summary}\n`;
+    for (const reg of registries) {
+      registryBlock += `\n── Ch.${reg.chapterNumber}: "${reg.chapterTitle}" ──\n`;
+      registryBlock += `Summary: ${reg.summary}\n`;
+
+      if (reg.usedExamples.length > 0) {
+        registryBlock += `Examples used: ${reg.usedExamples.join("; ")}\n`;
+      }
+      if (reg.usedStats.length > 0) {
+        registryBlock += `Stats cited: ${reg.usedStats.join("; ")}\n`;
+      }
+      if (reg.keyTerms.length > 0) {
+        registryBlock += `Terms defined: ${reg.keyTerms.join("; ")}\n`;
+      }
     }
-    block += `\n── RECENT CHAPTERS (full text — match this style precisely) ──\n`;
+
+    registryBlock += `
+═══ END CONTENT REGISTRY ═══
+
+RULES:
+- NEVER reuse any example, statistic, or case study listed above
+- Use the SAME terms for the SAME concepts (check "Terms defined")
+- You can REFERENCE earlier chapters: "As we discussed in Chapter X..."
+- Build on established concepts, don't re-explain them`;
+
+    parts.push(registryBlock);
   }
 
-  for (const c of fullChapters) {
-    block += `
-╔══════════════════════════════════════════════════════════════╗
-║  CHAPTER ${c.number}: "${c.title}" (ALREADY WRITTEN)
-╚══════════════════════════════════════════════════════════════╝
+  // ── 3. Tail of last chapter (for smooth transition) ──
+  const lastCh = previousChapters[previousChapters.length - 1];
+  if (lastCh) {
+    const tailChars = 2000;
+    const tail = lastCh.latex.substring(
+      Math.max(0, lastCh.latex.length - tailChars),
+    );
 
-${c.latex}
+    // Find a clean starting point (beginning of a paragraph or section)
+    const cleanStart = tail.indexOf("\n\n");
+    const cleanTail = cleanStart > 0 ? tail.substring(cleanStart) : tail;
 
-═══ END OF CHAPTER ${c.number} ═══
-`;
+    parts.push(`
+═══ END OF CHAPTER ${lastCh.number} (transition point — continue naturally) ═══
+
+${cleanTail.trim()}
+
+═══ END ═══
+
+Your chapter starts where this left off. Transition naturally — don't repeat the closing points above.`);
   }
 
-  block += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-
-  return block;
+  return parts.join("\n\n");
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -470,6 +723,7 @@ interface GenParams {
     title: string;
     latex: string;
   }[];
+  chapterRegistries: ChapterRegistry[];
   allChapters: ChapterStructure[];
   sourcesText: string;
   hasResearch: boolean;
@@ -488,7 +742,7 @@ async function generateChapterLatex(p: GenParams): Promise<{
   const lang = getLangName(p.language);
   const prompts: PromptLog[] = [];
   const responses: ResponseLog[] = [];
-  const model = "claude-haiku-4-5";
+  const model = "claude-sonnet-4-5";
   const isLastChapter = p.chapterIndex === p.totalChapters - 1;
   const hasPreviousChapters = p.previousChaptersContent.length > 0;
 
@@ -509,6 +763,7 @@ async function generateChapterLatex(p: GenParams): Promise<{
   const previousChaptersBlock = buildPreviousChaptersContext(
     p.previousChaptersContent,
     p.previousSummaries,
+    p.chapterRegistries,
   );
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -963,7 +1218,88 @@ const KNOWN_ENVS = [
   "figure",
   "minipage",
   "description",
+  "wrapfigure",
 ];
+
+/**
+ * Fix environment nesting order in LaTeX output.
+ *
+ * AI sometimes generates:
+ *   \begin{table}
+ *     \begin{tabularx}...
+ *   \end{table}        ← WRONG: outer closed before inner
+ *   \end{tabularx}     ← this causes "Missing \cr" fatal error
+ *
+ * This function detects and fixes reversed closings using:
+ * 1. Direct pattern matching for known nesting pairs
+ * 2. Stack-based analysis for complex/nested cases
+ */
+function fixEnvironmentNesting(latex: string): string {
+  let result = latex;
+
+  // ── Pass 1: Direct swap of known reversed pairs ──
+  const nestingPairs: [string, string][] = [
+    ["table", "tabularx"],
+    ["table", "tabular"],
+    ["figure", "center"],
+    ["table", "center"],
+  ];
+
+  for (const [outer, inner] of nestingPairs) {
+    const swappedRe = new RegExp(
+      `(\\\\end\\{${outer}\\})(\\s*)(\\\\end\\{${inner}\\})`,
+      "g",
+    );
+    result = result.replace(swappedRe, (_m, endOuter, ws, endInner) => {
+      console.log(
+        `  🔧 Nesting fix: swapped \\end{${outer}} / \\end{${inner}}`,
+      );
+      return `${endInner}${ws}${endOuter}`;
+    });
+  }
+
+  // ── Pass 2: Stack-based nesting validation ──
+  // Catches cases where inner \end{} is completely missing
+  // e.g. \begin{table}\begin{tabularx}...\end{table} (no \end{tabularx} at all)
+  const envRegex = /\\(begin|end)\{(tabularx?|table|figure|center)\}/g;
+  const stack: string[] = [];
+  const insertions: { pos: number; text: string }[] = [];
+  let match;
+
+  while ((match = envRegex.exec(result)) !== null) {
+    const [, action, env] = match;
+    if (action === "begin") {
+      stack.push(env);
+    } else {
+      if (stack.length > 0 && stack[stack.length - 1] === env) {
+        stack.pop();
+      } else if (stack.length >= 2) {
+        const topEnv = stack[stack.length - 1];
+        const secondEnv = stack[stack.length - 2];
+        if (secondEnv === env) {
+          // Missing \end for inner env — insert it before this \end
+          insertions.push({
+            pos: match.index,
+            text: `\\end{${topEnv}}\n`,
+          });
+          console.log(
+            `  🔧 Nesting fix: inserting missing \\end{${topEnv}} before \\end{${env}}`,
+          );
+          stack.pop();
+          stack.pop();
+        }
+      }
+    }
+  }
+
+  // Apply in reverse to preserve positions
+  for (const ins of insertions.reverse()) {
+    result =
+      result.substring(0, ins.pos) + ins.text + result.substring(ins.pos);
+  }
+
+  return result;
+}
 
 /**
  * Fix unclosed/orphaned LaTeX environments and brace imbalance.
@@ -1000,6 +1336,9 @@ function sanitizeGeneratedLatex(latex: string): string {
       );
     }
   }
+
+  //   // 1.5. Fix environment nesting order (e.g. \end{table} before \end{tabularx})
+  result = fixEnvironmentNesting(result);
 
   // 2. Fix brace imbalance (non-escaped braces only)
   let depth = 0;

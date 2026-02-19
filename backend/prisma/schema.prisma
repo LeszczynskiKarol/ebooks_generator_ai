@@ -32,6 +32,8 @@ model Project {
   title       String?
   topic       String
   language    String  @default("en")
+  authorName    String?   // Display name on title page
+  subtitle      String?   // Custom subtitle (replaces default)
   guidelines  String? @db.Text
   targetPages Int
   stylePreset String  @default("modern")
@@ -54,6 +56,10 @@ model Project {
   chapters           Chapter[]
   generationStatus   GenerationStatus @default(NOT_STARTED)
   generationProgress Float            @default(0)
+
+  colophonText     String?  @db.Text  
+  colophonFontSize Int?     @default(10)
+  colophonEnabled  Boolean  @default(false)
 
   outputPdfKey  String?
   outputEpubKey String?
@@ -125,6 +131,7 @@ enum GenerationStatus {
   GENERATING_STRUCTURE
   STRUCTURE_READY
   GENERATING_CONTENT
+  REVIEWING_CONTENT
   CONTENT_READY
   COMPILING_LATEX
   COMPILING_EPUB

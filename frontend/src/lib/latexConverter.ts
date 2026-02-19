@@ -1,34 +1,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — LaTeX ↔ HTML Bidirectional Converter
-// Converts between BookForge LaTeX and TipTap-compatible HTML
+// BookForge — LaTeX ↔ HTML Bidirectional Converter v3
+// Image blocks with data-alignment, data-width, data-caption
+// Compatible with TipTap ImageBlock custom node
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ────────────────────────────────────────────────────
 // HELPERS
 // ────────────────────────────────────────────────────
-
-/** Find the matching closing brace for an opening brace at `start` */
-function findMatchingBrace(text: string, start: number): number {
-  let depth = 0;
-  for (let i = start; i < text.length; i++) {
-    if (text[i] === "{" && (i === 0 || text[i - 1] !== "\\")) depth++;
-    if (text[i] === "}" && (i === 0 || text[i - 1] !== "\\")) depth--;
-    if (depth === 0) return i;
-  }
-  return text.length - 1;
-}
-
-/** Extract content between \begin{env} and \end{env}, returning [content, endIndex] */
-function extractEnvironment(
-  text: string,
-  envName: string,
-  startIdx: number,
-): [string, number] {
-  const endTag = `\\end{${envName}}`;
-  const endIdx = text.indexOf(endTag, startIdx);
-  if (endIdx === -1) return [text.substring(startIdx), text.length];
-  return [text.substring(startIdx, endIdx), endIdx + endTag.length];
-}
 
 /** Escape HTML entities */
 function escHtml(s: string): string {
@@ -42,7 +20,7 @@ function escHtml(s: string): string {
 export function latexToHtml(latex: string): string {
   let html = latex;
 
-  // ── Strip LaTeX preamble artifacts (shouldn't be in chapter content, but safety) ──
+  // ── Strip LaTeX preamble artifacts ──
   html = html.replace(/\\documentclass[^]*?\\begin\{document\}/g, "");
   html = html.replace(/\\end\{document\}/g, "");
   html = html.replace(/\\usepackage(\[[^\]]*\])?\{[^}]*\}/g, "");
@@ -74,15 +52,58 @@ export function latexToHtml(latex: string): string {
     });
   }
 
-  // ── Tables (tabularx/tabular inside table environment) ──
+  // ── Tables ──
   html = html.replace(
     /\\begin\{table\}[\s\S]*?\\begin\{tabular[x]?\}[^}]*\{[^}]*\}([\s\S]*?)\\end\{tabular[x]?\}[\s\S]*?\\end\{table\}/g,
     (_match, tableContent) => convertTable(tableContent),
   );
-  // Standalone tabularx
   html = html.replace(
     /\\begin\{tabular[x]?\}[^}]*\{[^}]*\}([\s\S]*?)\\end\{tabular[x]?\}/g,
     (_match, tableContent) => convertTable(tableContent),
+  );
+
+  // ━━━ IMAGES → plain <img> with data attributes ━━━
+  // TipTap ImageBlock parseHTML expects: <img src="..." data-alignment="..." data-width="..." data-caption="...">
+
+  // ── wrapfigure (text-wrapping) ──
+  html = html.replace(
+    /\\begin\{wrapfigure\}\{([lr])\}\{([^}]*)\}[\s\S]*?\\includegraphics(?:\[([^\]]*)\])?\{([^}]*)\}(?:[\s\S]*?\\caption\{([^}]*)\})?[\s\S]*?\\end\{wrapfigure\}/g,
+    (_match, side, _wrapWidth, opts, src, caption) => {
+      const alignment = side === "l" ? "wrap-left" : "wrap-right";
+      const widthMatch = opts?.match(
+        /width=([0-9.]+)\\(?:textwidth|linewidth)/,
+      );
+      const widthPercent = widthMatch
+        ? Math.round(parseFloat(widthMatch[1]) * 100)
+        : 50;
+      const captionAttr = caption ? ` data-caption="${escHtml(caption)}"` : "";
+      return `<img src="${escHtml(src)}" alt="${escHtml(caption || "")}" data-alignment="${alignment}" data-width="${widthPercent}"${captionAttr} class="wysiwyg-image" />`;
+    },
+  );
+
+  // ── figure environment (centered) ──
+  html = html.replace(
+    /\\begin\{figure\}(?:\[[^\]]*\])?[\s\S]*?\\includegraphics(?:\[([^\]]*)\])?\{([^}]*)\}(?:[\s\S]*?\\caption\{([^}]*)\})?[\s\S]*?\\end\{figure\}/g,
+    (_match, opts, src, caption) => {
+      const widthMatch = opts?.match(/width=([0-9.]+)\\textwidth/);
+      const widthPercent = widthMatch
+        ? Math.round(parseFloat(widthMatch[1]) * 100)
+        : 80;
+      const captionAttr = caption ? ` data-caption="${escHtml(caption)}"` : "";
+      return `<img src="${escHtml(src)}" alt="${escHtml(caption || "")}" data-alignment="center" data-width="${widthPercent}"${captionAttr} class="wysiwyg-image" />`;
+    },
+  );
+
+  // ── Standalone includegraphics ──
+  html = html.replace(
+    /\\includegraphics(?:\[([^\]]*)\])?\{([^}]*)\}/g,
+    (_match, opts, src) => {
+      const widthMatch = opts?.match(/width=([0-9.]+)\\textwidth/);
+      const widthPercent = widthMatch
+        ? Math.round(parseFloat(widthMatch[1]) * 100)
+        : 80;
+      return `<img src="${escHtml(src)}" alt="" data-alignment="center" data-width="${widthPercent}" class="wysiwyg-image" />`;
+    },
   );
 
   // ── Headings ──
@@ -106,12 +127,9 @@ export function latexToHtml(latex: string): string {
   html = html.replace(/\\end\{enumerate\}/g, "</ol>");
   html = html.replace(/\\begin\{description\}/g, "<ul>");
   html = html.replace(/\\end\{description\}/g, "</ul>");
-  // Convert \item to <li>
   html = html.replace(/\\item\s*/g, "</li><li>");
-  // Clean up first empty </li> after <ul>/<ol>
   html = html.replace(/<ul>\s*<\/li>/g, "<ul>");
   html = html.replace(/<ol>\s*<\/li>/g, "<ol>");
-  // Close last <li> before </ul>/<ol>
   html = html.replace(/<li>([\s\S]*?)(?=<\/ul>)/g, "<li>$1</li>");
   html = html.replace(/<li>([\s\S]*?)(?=<\/ol>)/g, "<li>$1</li>");
 
@@ -130,7 +148,7 @@ export function latexToHtml(latex: string): string {
   // ── Inline formatting ──
   html = convertInlineLatex(html);
 
-  // ── Footnotes → superscript with data attribute ──
+  // ── Footnotes ──
   html = html.replace(
     /\\footnote\{([^}]*)\}/g,
     '<sup data-footnote="$1" class="footnote">[*]</sup>',
@@ -147,10 +165,10 @@ export function latexToHtml(latex: string): string {
   html = html.replace(/\\textasciitilde\{\}/g, "~");
   html = html.replace(/\\textasciicircum\{\}/g, "^");
   html = html.replace(/\\textbackslash\{\}/g, "\\");
-  html = html.replace(/``/g, "\u201C"); // opening double quote
-  html = html.replace(/''/g, "\u201D"); // closing double quote
-  html = html.replace(/`/g, "\u2018"); // opening single quote
-  html = html.replace(/'/g, "\u2019"); // closing single quote
+  html = html.replace(/``/g, "\u201C");
+  html = html.replace(/''/g, "\u201D");
+  html = html.replace(/`/g, "\u2018");
+  html = html.replace(/'/g, "\u2019");
 
   // ── Horizontal rules ──
   html = html.replace(/\\rule\{[^}]*\}\{[^}]*\}/g, "<hr>");
@@ -172,98 +190,96 @@ export function latexToHtml(latex: string): string {
 /** Convert inline LaTeX commands to HTML */
 function convertInlineLatex(text: string): string {
   let result = text;
-
-  // Bold
   result = result.replace(/\\textbf\{([^}]*)\}/g, "<strong>$1</strong>");
-  // Italic
   result = result.replace(/\\textit\{([^}]*)\}/g, "<em>$1</em>");
   result = result.replace(/\\emph\{([^}]*)\}/g, "<em>$1</em>");
-  // Underline
   result = result.replace(/\\underline\{([^}]*)\}/g, "<u>$1</u>");
-  // Code/monospace
   result = result.replace(/\\texttt\{([^}]*)\}/g, "<code>$1</code>");
-  // Small caps (just render as normal + attribute for roundtrip)
   result = result.replace(
     /\\textsc\{([^}]*)\}/g,
     '<span data-latex="textsc" style="font-variant: small-caps">$1</span>',
   );
-  // Colored text (strip the color command, keep text)
   result = result.replace(/\\textcolor\{[^}]*\}\{([^}]*)\}/g, "$1");
-  // URLs
   result = result.replace(
     /\\href\{([^}]*)\}\{([^}]*)\}/g,
     '<a href="$1">$2</a>',
   );
   result = result.replace(/\\url\{([^}]*)\}/g, '<a href="$1">$1</a>');
-
-  // Strip remaining simple commands that don't affect content
   result = result.replace(/\\ref\{[^}]*\}/g, "[ref]");
   result = result.replace(/\\cite\{[^}]*\}/g, "[cite]");
   result = result.replace(/\\index\{[^}]*\}/g, "");
-
   return result;
 }
 
 /** Convert LaTeX table content to HTML table */
 function convertTable(content: string): string {
-  // Strip caption, label, centering
   let clean = content;
   clean = clean.replace(/\\caption\{[^}]*\}/g, "");
   clean = clean.replace(/\\label\{[^}]*\}/g, "");
   clean = clean.replace(/\\centering/g, "");
   clean = clean.replace(/\\toprule/g, "");
-  clean = clean.replace(/\\midrule/g, "|||MIDRULE|||");
   clean = clean.replace(/\\bottomrule/g, "");
-  clean = clean.replace(/\\hline/g, "|||MIDRULE|||");
   clean = clean.replace(/\\rowcolor\{[^}]*\}/g, "");
+  clean = clean.replace(/\\\{[lcrXp|.\s{}0-9cm]+\\\}/g, "");
+  clean = clean.replace(/\\midrule/g, "\\\\ |||MIDRULE||| \\\\");
+  clean = clean.replace(/\\hline/g, "\\\\ |||MIDRULE||| \\\\");
 
   const rows = clean
     .split("\\\\")
     .map((r) => r.trim())
-    .filter((r) => r && r !== "|||MIDRULE|||");
+    .filter((r) => {
+      if (!r) return false;
+      if (/^\|\|\|MIDRULE\|\|\|$/.test(r.trim())) return false;
+      return true;
+    });
 
   if (rows.length === 0) return "";
 
+  const hasMidrule =
+    content.includes("\\midrule") || content.includes("\\hline");
+
   let html = "<table><tbody>";
-  let isHeader = true;
+  let isHeader = hasMidrule;
+  let midRuleHit = false;
 
   for (const row of rows) {
-    if (row === "|||MIDRULE|||") {
-      isHeader = false;
-      continue;
-    }
+    const cleanRow = row.replace(/\|\|\|MIDRULE\|\|\|/g, "").trim();
+    if (!cleanRow) continue;
 
-    const cells = row.split("&").map((c) => {
+    const cells = cleanRow.split("&").map((c) => {
       let cell = c.trim();
-      // Strip multicolumn
       cell = cell.replace(/\\multicolumn\{\d+\}\{[^}]*\}\{([^}]*)\}/g, "$1");
       cell = convertInlineLatex(cell);
       return cell;
     });
 
-    if (cells.every((c) => !c || c === "|||MIDRULE|||")) continue;
+    if (cells.every((c) => !c)) continue;
 
-    const tag = isHeader ? "th" : "td";
-    html += "<tr>";
-    for (const cell of cells) {
-      if (cell === "|||MIDRULE|||") continue;
-      html += `<${tag}>${cell}</${tag}>`;
-    }
-    html += "</tr>";
-
-    // After first row without midrule, assume it's header
-    if (isHeader && !clean.includes("|||MIDRULE|||")) {
+    if (isHeader && !midRuleHit) {
+      html += "<tr>";
+      for (const cell of cells) {
+        html += `<th>${cell}</th>`;
+      }
+      html += "</tr>";
+      midRuleHit = true;
       isHeader = false;
+    } else {
+      html += "<tr>";
+      for (const cell of cells) {
+        html += `<td>${cell}</td>`;
+      }
+      html += "</tr>";
     }
   }
 
-  // Move first row to thead if we detected header
   html += "</tbody></table>";
-  html = html.replace(/<tbody><tr><th>/, "<thead><tr><th>");
-  html = html.replace(
-    /<\/th><\/tr><tr><td>/,
-    "</th></tr></thead><tbody><tr><td>",
-  );
+  if (hasMidrule) {
+    html = html.replace(/<tbody><tr><th>/, "<thead><tr><th>");
+    html = html.replace(
+      /<\/th><\/tr><tr><td>/,
+      "</th></tr></thead><tbody><tr><td>",
+    );
+  }
 
   return html;
 }
@@ -271,7 +287,7 @@ function convertTable(content: string): string {
 /** Wrap loose text in <p> tags, respecting existing block elements */
 function wrapParagraphs(html: string): string {
   const blockTags =
-    /^<(h[1-6]|p|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|div|hr|pre)/;
+    /^<(h[1-6]|p|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|div|hr|pre|img)/;
   const lines = html.split(/\n\n+/);
   const result: string[] = [];
 
@@ -295,7 +311,6 @@ function wrapParagraphs(html: string): string {
 // ────────────────────────────────────────────────────
 
 export function htmlToLatex(html: string): string {
-  // Parse HTML using DOMParser
   const parser = new DOMParser();
   const doc = parser.parseFromString(
     `<div id="root">${html}</div>`,
@@ -325,7 +340,6 @@ function nodeToLatex(node: Node): string {
     // ── Headings ──
     case "h2": {
       const latexCmd = el.dataset.latex === "chapter" ? "chapter" : "section";
-      // If in chapter context (h2 = section in most BookForge chapters)
       return `\n\\${latexCmd}{${stripLatexEsc(children())}}\n\n`;
     }
     case "h3":
@@ -348,7 +362,7 @@ function nodeToLatex(node: Node): string {
       return `\\texttt{${children()}}`;
     case "s":
     case "del":
-      return children(); // LaTeX doesn't have native strikethrough in our setup
+      return children();
 
     // ── Links ──
     case "a": {
@@ -380,7 +394,7 @@ function nodeToLatex(node: Node): string {
     case "blockquote":
       return `\n\\begin{quote}\n${children().trim()}\n\\end{quote}\n\n`;
 
-    // ── Callout boxes ──
+    // ── Divs: callout boxes ──
     case "div": {
       const calloutType = el.dataset.callout;
       if (calloutType) {
@@ -389,7 +403,22 @@ function nodeToLatex(node: Node): string {
         const titlePart = title ? `[${title}]` : "";
         return `\n\\begin{${calloutType}}${titlePart}\n${content}\n\\end{${calloutType}}\n\n`;
       }
+
+      // Legacy: div with data-image-block (from older converter v2 output)
+      const isImageBlock = el.dataset.imageBlock === "true";
+      if (isImageBlock) {
+        const img = el.querySelector("img");
+        if (img) {
+          return imageToLatex(img, el.dataset);
+        }
+      }
+
       return children();
+    }
+
+    // ── Images (standalone <img> — primary path for TipTap ImageBlock) ──
+    case "img": {
+      return imageToLatex(el, el.dataset);
     }
 
     // ── Tables ──
@@ -411,7 +440,7 @@ function nodeToLatex(node: Node): string {
       return children();
     }
 
-    // ── Span (smallcaps etc.) ──
+    // ── Span ──
     case "span": {
       if (el.dataset.latex === "textsc") return `\\textsc{${children()}}`;
       return children();
@@ -430,33 +459,73 @@ function nodeToLatex(node: Node): string {
   }
 }
 
+/** Convert an <img> element (or wrapper dataset) to LaTeX figure/wrapfigure */
+function imageToLatex(img: Element, dataset: DOMStringMap): string {
+  const src = img.getAttribute("src") || "";
+  if (!src) return "";
+
+  const alignment =
+    dataset.alignment || img.getAttribute("data-alignment") || "center";
+  const widthPercent = parseInt(
+    dataset.width || img.getAttribute("data-width") || "80",
+    10,
+  );
+  const caption = dataset.caption || img.getAttribute("data-caption") || "";
+
+  // Clamp width to valid range
+  const safeWidth = Math.max(20, Math.min(100, widthPercent));
+  const widthFraction = (safeWidth / 100).toFixed(2);
+
+  if (alignment === "wrap-left" || alignment === "wrap-right") {
+    const side = alignment === "wrap-left" ? "l" : "r";
+    const wrapWidth = `${widthFraction}\\textwidth`;
+    let latex = `\n\\begin{wrapfigure}{${side}}{${wrapWidth}}\n`;
+    latex += `  \\centering\n`;
+    latex += `  \\includegraphics[width=\\linewidth]{${src}}\n`;
+    if (caption) latex += `  \\caption{${caption}}\n`;
+    latex += `\\end{wrapfigure}\n\n`;
+    return latex;
+  }
+
+  let latex = `\n\\begin{figure}[H]\n`;
+  latex += `  \\centering\n`;
+  latex += `  \\includegraphics[width=${widthFraction}\\textwidth]{${src}}\n`;
+  if (caption) latex += `  \\caption{${caption}}\n`;
+  latex += `\\end{figure}\n\n`;
+  return latex;
+}
+
 /** Convert HTML table element to LaTeX tabularx */
 function convertHtmlTableToLatex(table: HTMLElement): string {
   const rows: string[][] = [];
   let headerRows = 0;
 
-  // Extract thead
   const thead = table.querySelector("thead");
   if (thead) {
     thead.querySelectorAll("tr").forEach((tr) => {
       const cells: string[] = [];
       tr.querySelectorAll("th, td").forEach((cell) => {
-        cells.push(nodeToLatex(cell).trim());
+        let cellText = nodeToLatex(cell).trim();
+        cellText = cellText.replace(/\|\|\|MIDRULE\|\|\|/g, "").trim();
+        cells.push(cellText);
       });
-      rows.push(cells);
-      headerRows++;
+      if (cells.some((c) => c)) {
+        rows.push(cells);
+        headerRows++;
+      }
     });
   }
 
-  // Extract tbody
   const tbody = table.querySelector("tbody") || table;
   const bodyRows = tbody.querySelectorAll(thead ? "tbody tr" : "tr");
   bodyRows.forEach((tr) => {
     const cells: string[] = [];
     tr.querySelectorAll("th, td").forEach((cell) => {
-      cells.push(nodeToLatex(cell).trim());
+      let cellText = nodeToLatex(cell).trim();
+      cellText = cellText.replace(/\|\|\|MIDRULE\|\|\|/g, "").trim();
+      cells.push(cellText);
     });
-    if (cells.length > 0) rows.push(cells);
+    if (cells.length > 0 && cells.some((c) => c)) rows.push(cells);
   });
 
   if (rows.length === 0) return "";
@@ -470,7 +539,6 @@ function convertHtmlTableToLatex(table: HTMLElement): string {
     const paddedRow = [...row];
     while (paddedRow.length < colCount) paddedRow.push("");
 
-    // Header rows get bold
     if (i < headerRows) {
       latex += paddedRow.map((c) => `\\textbf{${c}}`).join(" & ") + " \\\\\n";
       if (i === headerRows - 1) latex += "\\midrule\n";
@@ -485,6 +553,19 @@ function convertHtmlTableToLatex(table: HTMLElement): string {
 
 /** Escape special LaTeX characters in plain text */
 function escapeLatexChars(text: string): string {
+  if (
+    /\\text(backslash|asciitilde|asciicircum|bf|it|tt|sc|color)\{/.test(text)
+  ) {
+    return text;
+  }
+  if (
+    /\\(begin|end|section|subsection|chapter|item|midrule|toprule|bottomrule|href|url|includegraphics)\b/.test(
+      text,
+    )
+  ) {
+    return text;
+  }
+
   return text
     .replace(/\\/g, "\\textbackslash{}")
     .replace(/&/g, "\\&")
@@ -496,19 +577,14 @@ function escapeLatexChars(text: string): string {
     .replace(/\}/g, "\\}")
     .replace(/~/g, "\\textasciitilde{}")
     .replace(/\^/g, "\\textasciicircum{}")
-    .replace(/\u201C/g, "``") // opening double quote
-    .replace(/\u201D/g, "''") // closing double quote
-    .replace(/\u2018/g, "`") // opening single quote
-    .replace(/\u2019/g, "'") // closing single quote
-    .replace(/\u2014/g, "---") // em dash
-    .replace(/\u2013/g, "--"); // en dash
+    .replace(/\u201C/g, "``")
+    .replace(/\u201D/g, "''")
+    .replace(/\u2018/g, "`")
+    .replace(/\u2019/g, "'")
+    .replace(/\u2014/g, "---")
+    .replace(/\u2013/g, "--");
 }
 
-/**
- * Strip LaTeX escaping from text that's going into a LaTeX command argument.
- * This prevents double-escaping when text was already escaped by escapeLatexChars
- * but is being placed inside \section{}, \textbf{}, etc.
- */
 function stripLatexEsc(text: string): string {
   return text
     .replace(/\\textbackslash\{\}/g, "\\")

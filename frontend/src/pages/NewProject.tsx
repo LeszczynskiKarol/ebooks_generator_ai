@@ -55,6 +55,8 @@ interface PresetColor {
 }
 
 const COLOR_PALETTE: PresetColor[] = [
+  { hex: "#FFFFFF", name: "White" },
+  { hex: "#000000", name: "Black" },
   { hex: "#1E40AF", name: "Royal Blue" },
   { hex: "#2563EB", name: "Blue" },
   { hex: "#0EA5E9", name: "Sky Blue" },
@@ -163,7 +165,6 @@ export default function NewProject() {
     setShowCustomInput(false);
   };
 
-  // ── Submit ──
   const onSubmit = async (form: FormData) => {
     setLoading(true);
     try {
@@ -172,8 +173,15 @@ export default function NewProject() {
         payload.customColors = selectedColors;
       }
       const { data } = await apiClient.post("/projects", payload);
-      toast.success("Project created!");
-      navigate(`/projects/${data.data.project.id}`);
+
+      // Redirect to Stripe checkout immediately
+      if (data.data.sessionUrl) {
+        window.location.href = data.data.sessionUrl;
+      } else {
+        // Fallback if Stripe session wasn't created (shouldn't happen)
+        toast.success("Project created!");
+        navigate(`/projects/${data.data.project.id}`);
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed");
     } finally {
@@ -364,7 +372,7 @@ export default function NewProject() {
                 ? "Choose colors"
                 : `${selectedColors.length}/3 selected`}
             </p>
-            <div className="grid grid-cols-10 gap-2">
+            <div className="grid grid-cols-11 gap-2">
               {COLOR_PALETTE.map((color) => {
                 const isActive = selectedColors.includes(color.hex);
                 const orderIdx = selectedColors.indexOf(color.hex);
@@ -379,7 +387,13 @@ export default function NewProject() {
                         ? "border-gray-900 dark:border-white shadow-lg scale-110 ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 dark:ring-offset-gray-900"
                         : "border-transparent hover:border-gray-300 dark:hover:border-gray-600"
                     }`}
-                    style={{ backgroundColor: color.hex }}
+                    style={{
+                      backgroundColor: color.hex,
+                      boxShadow:
+                        color.hex === "#FFFFFF"
+                          ? "inset 0 0 0 1px #D1D5DB"
+                          : undefined,
+                    }}
                   >
                     {isActive && (
                       <span className="absolute inset-0 flex items-center justify-center">

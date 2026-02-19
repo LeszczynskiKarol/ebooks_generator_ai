@@ -18,8 +18,12 @@ api.interceptors.response.use(
       const refreshToken = useAuthStore.getState().refreshToken;
       if (refreshToken) {
         try {
-          const { data } = await axios.post("/api/auth/refresh", { refreshToken });
-          useAuthStore.getState().setTokens(data.data.accessToken, data.data.refreshToken);
+          const { data } = await axios.post("/api/auth/refresh", {
+            refreshToken,
+          });
+          useAuthStore
+            .getState()
+            .setTokens(data.data.accessToken, data.data.refreshToken);
           original.headers.Authorization = `Bearer ${data.data.accessToken}`;
           return api(original);
         } catch {
@@ -32,7 +36,7 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

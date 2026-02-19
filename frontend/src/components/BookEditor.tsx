@@ -1,26 +1,27 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — Book Editor v3 (Visual + Code + Preview)
-// Three editing modes with bidirectional LaTeX ↔ HTML
+// BookForge — Book Editor v4 (Visual + Code)
+// Editing-only — regeneration handled by DownloadPanel
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  BookOpen,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
+import {
   ChevronDown,
   ChevronRight,
   Save,
-  RefreshCw,
   Loader2,
   Check,
   AlertTriangle,
   FileText,
-  Eye,
   Code2,
   Type,
   Undo2,
-  History,
-  Download,
-  Clock,
   Info,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -28,11 +29,14 @@ import apiClient from "@/lib/api";
 import LaTeXEditor from "@/components/LaTeXEditor";
 import WysiwygEditor from "@/components/WysiwygEditor";
 import { latexToHtml, htmlToLatex } from "@/lib/latexConverter";
-import { useAuthStore } from "@/stores/authStore";
+import { Image as ImageIcon } from "lucide-react";
+import ImageLibrary, {
+  type ImageInsertPayload,
+} from "@/components/ImageLibrary";
 
 // ── Types ──
 
-type EditorMode = "visual" | "code"; // | "preview";
+type EditorMode = "visual" | "code";
 
 interface ChapterData {
   id: string;
@@ -44,19 +48,18 @@ interface ChapterData {
   actualPages: number | null;
 }
 
-interface BookVersion {
-  id: string;
-  version: number;
-  fileSize: number | null;
-  pageCount: number | null;
-  note: string | null;
-  createdAt: string;
+/** Handle exposed to parent via ref */
+export interface BookEditorHandle {
+  /** Save all dirty chapters. Returns true if all succeeded. */
+  saveAllDirty: () => Promise<boolean>;
+  /** Current number of unsaved chapters */
+  dirtyCount: number;
 }
 
 interface Props {
   projectId: string;
-  onRecompileStart: () => void;
-  onRecompileDone: () => void;
+  /** Called whenever the dirty count changes (0 = all saved) */
+  onDirtyChange?: (count: number) => void;
 }
 
 // ── Mode config ──
@@ -75,44 +78,53 @@ const MODE_CONFIG: Record<
     icon: Code2,
     description: "LaTeX source with syntax highlighting",
   },
-  //preview: {
-  //label: "Preview",
-  //icon: Eye,
-  //description: "Read-only formatted preview",
-  //},
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-export default function BookEditor({
-  projectId,
-  onRecompileStart,
-  onRecompileDone,
-}: Props) {
+const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
+  { projectId, onDirtyChange },
+  ref,
+) {
   const [chapters, setChapters] = useState<ChapterData[]>([]);
+  const [editorKey, setEditorKey] = useState(0);
+  const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
+  const [imageLibraryChapter, setImageLibraryChapter] = useState<number | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [expandedChapter, setExpandedChapter] = useState<number | null>(null);
   const [dirtyChapters, setDirtyChapters] = useState<Set<number>>(new Set());
   const [savingChapter, setSavingChapter] = useState<number | null>(null);
-  const [recompiling, setRecompiling] = useState(false);
 
-  // Per-chapter editor mode (defaults to visual for new users)
   const [chapterModes, setChapterModes] = useState<Record<number, EditorMode>>(
     {},
   );
-
-  // HTML cache for visual mode (avoids re-converting on every render)
   const htmlCache = useRef<Record<number, string>>({});
-
-  // Version history
-  const [versions, setVersions] = useState<BookVersion[]>([]);
-  const [showVersions, setShowVersions] = useState(false);
-  const [loadingVersions, setLoadingVersions] = useState(false);
-
-  const token = useAuthStore((s) => s.accessToken);
-
-  // Store original LaTeX content for undo
   const originalContent = useRef<Record<number, string>>({});
+  const wysiwygRef = useRef<any>(null);
+
+  // ── Notify parent of dirty count changes ──
+
+  useEffect(() => {
+    onDirtyChange?.(dirtyChapters.size);
+  }, [dirtyChapters.size, onDirtyChange]);
+
+  // ── Expose handle to parent (DownloadPanel uses this) ──
+
+  useImperativeHandle(ref, () => ({
+    saveAllDirty: async () => {
+      const nums = Array.from(dirtyChapters);
+      for (const num of nums) {
+        const ok = await saveChapterInternal(num);
+        if (!ok) return false;
+      }
+      return true;
+    },
+    get dirtyCount() {
+      return dirtyChapters.size;
+    },
+  }));
 
   // ── Helpers ──
 
@@ -124,7 +136,7 @@ export default function BookEditor({
     const chapter = chapters.find((c) => c.chapterNumber === chapterNumber);
     if (!chapter) return;
 
-    // ── Leaving Visual → flush HTML back to LaTeX ──
+    // Leaving Visual → flush HTML → LaTeX
     if (currentMode === "visual" && mode !== "visual") {
       const cachedHtml = htmlCache.current[chapterNumber];
       if (cachedHtml !== undefined) {
@@ -140,14 +152,9 @@ export default function BookEditor({
       }
     }
 
-    // ── Entering Visual → convert LaTeX to HTML ──
+    // Entering Visual → convert LaTeX → HTML
     if (mode === "visual") {
-      const latexSource =
-        currentMode === "visual"
-          ? chapter.latexContent
-          : chapters.find((c) => c.chapterNumber === chapterNumber)
-              ?.latexContent || "";
-      htmlCache.current[chapterNumber] = latexToHtml(latexSource);
+      htmlCache.current[chapterNumber] = latexToHtml(chapter.latexContent);
     }
 
     setChapterModes((prev) => ({ ...prev, [chapterNumber]: mode }));
@@ -169,7 +176,6 @@ export default function BookEditor({
       const originals: Record<number, string> = {};
       data.forEach((ch) => {
         originals[ch.chapterNumber] = ch.latexContent;
-        // Pre-convert to HTML for visual mode
         htmlCache.current[ch.chapterNumber] = latexToHtml(ch.latexContent);
       });
       originalContent.current = originals;
@@ -184,28 +190,8 @@ export default function BookEditor({
     }
   };
 
-  // ── Load versions ──
-
-  const loadVersions = async () => {
-    setLoadingVersions(true);
-    try {
-      const res = await apiClient.get(`/projects/${projectId}/versions`);
-      setVersions(res.data.data || []);
-    } catch {
-      setVersions([]);
-    } finally {
-      setLoadingVersions(false);
-    }
-  };
-
-  const toggleVersions = () => {
-    if (!showVersions && versions.length === 0) loadVersions();
-    setShowVersions(!showVersions);
-  };
-
   // ── Content updates ──
 
-  /** Called by CodeMirror (code mode) — updates LaTeX directly */
   const updateLatexContent = useCallback(
     (chapterNumber: number, latex: string) => {
       setChapters((prev) =>
@@ -220,13 +206,88 @@ export default function BookEditor({
     [],
   );
 
-  /** Called by TipTap (visual mode) — updates HTML cache, marks dirty */
   const updateHtmlContent = useCallback(
     (chapterNumber: number, html: string) => {
       htmlCache.current[chapterNumber] = html;
       setDirtyChapters((prev) => new Set(prev).add(chapterNumber));
     },
     [],
+  );
+
+  const handleInsertImage = useCallback(
+    (chapterNumber: number, payload: ImageInsertPayload) => {
+      const mode = getMode(chapterNumber);
+      console.log("🖼️ [IMG] handleInsertImage called", {
+        chapterNumber,
+        mode,
+        alignment: payload.alignment,
+        widthPercent: payload.widthPercent,
+        src: payload.src,
+      });
+
+      if (mode === "visual") {
+        const editor = wysiwygRef.current;
+        if (editor) {
+          // Use custom setImageBlock command with full params
+          (editor as any)
+            .chain()
+            .focus()
+            .setImageBlock({
+              src: payload.src,
+              alt: payload.caption || payload.originalName,
+              alignment: payload.alignment,
+              widthPercent: Math.min(100, Math.max(20, payload.widthPercent)),
+              caption: payload.caption || "",
+            })
+            .run();
+
+          // Sync htmlCache from editor's actual HTML
+          const updatedHtml = editor.getHTML();
+          htmlCache.current[chapterNumber] = updatedHtml;
+          setDirtyChapters((prev) => new Set(prev).add(chapterNumber));
+
+          setChapters((prev) =>
+            prev.map((ch) =>
+              ch.chapterNumber === chapterNumber
+                ? { ...ch, latexContent: htmlToLatex(updatedHtml) }
+                : ch,
+            ),
+          );
+
+          console.log("🖼️ [IMG] Visual insert via setImageBlock", {
+            alignment: payload.alignment,
+            widthPercent: payload.widthPercent,
+            htmlLength: updatedHtml.length,
+            hasImg: updatedHtml.includes("<img"),
+          });
+        } else {
+          console.error("🖼️ [IMG] No editor ref available!");
+        }
+      } else {
+        // Code mode: insert LaTeX directly
+        const chapter = chapters.find((c) => c.chapterNumber === chapterNumber);
+        if (!chapter) return;
+
+        const wf = (payload.widthPercent / 100).toFixed(2);
+        let latex: string;
+
+        if (
+          payload.alignment === "wrap-left" ||
+          payload.alignment === "wrap-right"
+        ) {
+          const side = payload.alignment === "wrap-left" ? "l" : "r";
+          latex = `\n\\begin{wrapfigure}{${side}}{${wf}\\textwidth}\n  \\centering\n  \\includegraphics[width=\\linewidth]{${payload.src}}\n${payload.caption ? `  \\caption{${payload.caption}}\n` : ""}\\end{wrapfigure}\n`;
+        } else {
+          latex = `\n\\begin{figure}[H]\n  \\centering\n  \\includegraphics[width=${wf}\\textwidth]{${payload.src}}\n${payload.caption ? `  \\caption{${payload.caption}}\n` : ""}\\end{figure}\n`;
+        }
+
+        updateLatexContent(chapterNumber, chapter.latexContent + latex);
+        console.log("🖼️ [IMG] Code insert done", {
+          latexSnippet: latex.substring(0, 150),
+        });
+      }
+    },
+    [chapters, getMode, updateLatexContent],
   );
 
   // ── Undo ──
@@ -247,13 +308,16 @@ export default function BookEditor({
         next.delete(chapterNumber);
         return next;
       });
+      // Force re-mount editor with original content
+      setEditorKey((k) => k + 1);
     }
   }, []);
 
-  // ── Save (always sends LaTeX to backend) ──
+  // ── Save (internal — returns boolean, no toast) ──
 
-  const saveChapter = async (chapterNumber: number) => {
-    // If in visual mode, flush HTML → LaTeX first
+  const saveChapterInternal = async (
+    chapterNumber: number,
+  ): Promise<boolean> => {
     const mode = getMode(chapterNumber);
     let latexToSave: string;
 
@@ -261,7 +325,12 @@ export default function BookEditor({
       const cachedHtml = htmlCache.current[chapterNumber];
       if (cachedHtml !== undefined) {
         latexToSave = htmlToLatex(cachedHtml);
-        // Sync back to state
+
+        console.group(`📝 [SAVE] Chapter ${chapterNumber} — Visual mode`);
+        console.log("HTML cache length:", cachedHtml.length);
+        console.log("Converted LaTeX length:", latexToSave.length);
+        console.groupEnd();
+
         setChapters((prev) =>
           prev.map((ch) =>
             ch.chapterNumber === chapterNumber
@@ -282,17 +351,19 @@ export default function BookEditor({
 
     setSavingChapter(chapterNumber);
     try {
+      const payload = { latexContent: latexToSave };
       const res = await apiClient.put(
         `/projects/${projectId}/chapters/${chapterNumber}`,
-        { latexContent: latexToSave },
+        payload,
       );
+
       setChapters((prev) =>
         prev.map((ch) =>
           ch.chapterNumber === chapterNumber
             ? {
                 ...ch,
                 latexContent: latexToSave,
-                actualWords: res.data.data.actualWords,
+                actualWords: res.data.data?.actualWords,
               }
             : ch,
         ),
@@ -304,77 +375,22 @@ export default function BookEditor({
         next.delete(chapterNumber);
         return next;
       });
-      toast.success(`Chapter ${chapterNumber} saved`);
+      return true;
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Save failed");
+      console.error(`❌ [SAVE] Failed:`, err.response?.data || err.message);
+      toast.error(
+        err.response?.data?.error || `Save chapter ${chapterNumber} failed`,
+      );
+      return false;
     } finally {
       setSavingChapter(null);
     }
   };
 
-  const saveAllDirty = async () => {
-    for (const num of Array.from(dirtyChapters)) {
-      await saveChapter(num);
-    }
-  };
-
-  // ── Recompile ──
-
-  const handleRecompile = async () => {
-    if (dirtyChapters.size > 0) {
-      toast("Saving changes first...", { icon: "💾" });
-      await saveAllDirty();
-    }
-
-    setRecompiling(true);
-    onRecompileStart();
-    try {
-      await apiClient.post(`/projects/${projectId}/recompile`);
-      toast.success("Recompilation started! This may take a minute...");
-      pollForCompletion();
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || "Recompile failed");
-      setRecompiling(false);
-    }
-  };
-
-  const pollForCompletion = () => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await apiClient.get(`/projects/${projectId}`);
-        const stage = res.data.data.currentStage;
-        if (stage === "COMPLETED") {
-          clearInterval(interval);
-          setRecompiling(false);
-          onRecompileDone();
-          loadVersions();
-          toast.success("eBook regenerated successfully!");
-        } else if (stage === "ERROR") {
-          clearInterval(interval);
-          setRecompiling(false);
-          toast.error("Recompilation failed. Please try again.");
-        }
-      } catch {
-        /* ignore polling errors */
-      }
-    }, 3000);
-
-    setTimeout(() => {
-      clearInterval(interval);
-      if (recompiling) {
-        setRecompiling(false);
-        toast.error(
-          "Recompilation timed out. Please refresh and check status.",
-        );
-      }
-    }, 180000);
-  };
-
-  // ── Render preview HTML ──
-
-  const renderPreview = (latex: string) => {
-    // Use the same latexToHtml converter for consistency
-    return latexToHtml(latex);
+  // Public save (with toast)
+  const saveChapter = async (chapterNumber: number) => {
+    const ok = await saveChapterInternal(chapterNumber);
+    if (ok) toast.success(`Chapter ${chapterNumber} saved`);
   };
 
   // ── Utils ──
@@ -384,23 +400,6 @@ export default function BookEditor({
       .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")
       .split(/\s+/)
       .filter(Boolean).length;
-
-  const formatSize = (bytes: number | null) => {
-    if (!bytes) return "—";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // RENDER
@@ -438,75 +437,13 @@ export default function BookEditor({
             {chapters.length} chapters
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          {totalDirty > 0 && (
-            <span className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              {totalDirty} unsaved {totalDirty === 1 ? "change" : "changes"}
-            </span>
-          )}
-          <button
-            onClick={toggleVersions}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors ${
-              showVersions
-                ? "bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300"
-                : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
-            }`}
-          >
-            <History className="w-3.5 h-3.5" />
-            Versions
-          </button>
-        </div>
+        {totalDirty > 0 && (
+          <span className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            {totalDirty} unsaved {totalDirty === 1 ? "change" : "changes"}
+          </span>
+        )}
       </div>
-
-      {/* ── Version History Panel ── */}
-      {showVersions && (
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4" /> PDF Version History
-          </h4>
-          {loadingVersions ? (
-            <div className="flex items-center gap-2 py-3 text-sm text-gray-500">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading...
-            </div>
-          ) : versions.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 py-2">
-              No previous versions yet. Each recompilation creates a version.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {versions.map((v) => (
-                <div
-                  key={v.id}
-                  className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50 px-2 py-0.5 rounded">
-                      v{v.version}
-                    </span>
-                    <div>
-                      <p className="text-sm text-gray-800 dark:text-gray-200">
-                        {formatDate(v.createdAt)}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatSize(v.fileSize)}
-                        {v.pageCount ? ` · ${v.pageCount} pages` : ""}
-                        {v.note ? ` · ${v.note}` : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <a
-                    href={`/api/projects/${projectId}/versions/${v.version}/download?token=${token}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <Download className="w-3.5 h-3.5" /> PDF
-                  </a>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* ── Chapters ── */}
       <div className="space-y-2">
@@ -526,7 +463,7 @@ export default function BookEditor({
                   : "border-gray-200 dark:border-gray-700"
               }`}
             >
-              {/* ── Chapter header (collapsible) ── */}
+              {/* Chapter header */}
               <button
                 onClick={() =>
                   setExpandedChapter(isExpanded ? null : chapter.chapterNumber)
@@ -554,10 +491,10 @@ export default function BookEditor({
                 </div>
               </button>
 
-              {/* ── Expanded: toolbar + editor ── */}
+              {/* Expanded editor */}
               {isExpanded && (
                 <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-                  {/* ── Chapter toolbar ── */}
+                  {/* Toolbar */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {/* Mode switcher */}
@@ -592,7 +529,6 @@ export default function BookEditor({
                         })}
                       </div>
 
-                      {/* Undo */}
                       {isDirty && (
                         <button
                           onClick={() => undoChanges(chapter.chapterNumber)}
@@ -601,8 +537,16 @@ export default function BookEditor({
                           <Undo2 className="w-3.5 h-3.5" /> Undo All
                         </button>
                       )}
-
-                      {/* Hint */}
+                      <button
+                        onClick={() => {
+                          setImageLibraryChapter(chapter.chapterNumber);
+                          setImageLibraryOpen(true);
+                        }}
+                        title="Insert image"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5" /> Image
+                      </button>
                       {mode === "code" && (
                         <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-2 hidden lg:inline">
                           Ctrl+F to search · Ctrl+Z to undo
@@ -631,21 +575,23 @@ export default function BookEditor({
                     </button>
                   </div>
 
-                  {/* ── Visual mode info banner (first time) ── */}
+                  {/* Visual mode hint */}
                   {mode === "visual" && (
                     <div className="mb-3 flex items-start gap-2 px-3 py-2 bg-primary-50 dark:bg-primary-950/20 rounded-lg border border-primary-100 dark:border-primary-900/50">
                       <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
                       <p className="text-xs text-primary-700 dark:text-primary-400 leading-relaxed">
-                        Visual editor — edit like in Word. Formatting is
-                        automatically converted to LaTeX when you save or switch
-                        modes. For advanced LaTeX features, switch to Code mode.
+                        Visual editor — edit like in Word. Click an image to
+                        resize, reposition, or delete. Switch to Code mode for
+                        raw LaTeX.
                       </p>
                     </div>
                   )}
 
-                  {/* ── Editor area ── */}
+                  {/* Editor */}
                   {mode === "visual" && (
                     <WysiwygEditor
+                      key={`wysiwyg-${chapter.chapterNumber}-${editorKey}`}
+                      editorRef={wysiwygRef}
                       content={
                         htmlCache.current[chapter.chapterNumber] ||
                         latexToHtml(chapter.latexContent)
@@ -669,17 +615,7 @@ export default function BookEditor({
                     />
                   )}
 
-                  {/* ── Preview mode 
-                  {mode === "preview" && (
-                    <div
-                      className="prose prose-sm dark:prose-invert max-w-none p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 min-h-[300px] max-h-[600px] overflow-y-auto"
-                      dangerouslySetInnerHTML={{
-                        __html: renderPreview(chapter.latexContent),
-                      }}
-                    />
-                  )}── */}
-
-                  {/* ── Chapter stats ── */}
+                  {/* Stats */}
                   <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>{currentWords.toLocaleString()} words</span>
                     <span>~{Math.round(currentWords / 300)} pages</span>
@@ -687,11 +623,7 @@ export default function BookEditor({
                       {chapter.latexContent.length.toLocaleString()} chars
                     </span>
                     <span className="ml-auto text-gray-400 dark:text-gray-500">
-                      Editing in{" "}
-                      <span className="font-medium">
-                        {MODE_CONFIG[mode].label}
-                      </span>{" "}
-                      mode
+                      {MODE_CONFIG[mode].label} mode
                     </span>
                   </div>
                 </div>
@@ -700,59 +632,25 @@ export default function BookEditor({
           );
         })}
       </div>
-
-      {/* ── Recompile action ── */}
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-4">
-          {totalDirty > 0 && (
-            <button
-              onClick={saveAllDirty}
-              className="px-5 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
-            >
-              Save All Changes
-            </button>
-          )}
-          <button
-            onClick={handleRecompile}
-            disabled={recompiling}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg shadow-lg shadow-primary-600/25 disabled:opacity-50"
-          >
-            {recompiling ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Recompiling...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-5 h-5" />
-                Regenerate eBook
-              </>
-            )}
-          </button>
-        </div>
-
-        {recompiling && (
-          <div className="mt-4 p-4 bg-primary-50 dark:bg-primary-950/30 rounded-xl border border-primary-200 dark:border-primary-800">
-            <div className="flex items-center gap-3">
-              <Loader2 className="w-5 h-5 text-primary-500 animate-spin flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-primary-800 dark:text-primary-300">
-                  Recompiling your eBook...
-                </p>
-                <p className="text-xs text-primary-600 dark:text-primary-400 mt-0.5">
-                  Assembling LaTeX → PDF + EPUB. This usually takes 30-60
-                  seconds.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
-          Changes are saved per chapter. "Regenerate eBook" recompiles all
-          chapters into a new PDF &amp; EPUB. Previous versions are preserved.
-        </p>
-      </div>
+      <ImageLibrary
+        projectId={projectId}
+        open={imageLibraryOpen}
+        onClose={() => {
+          setImageLibraryOpen(false);
+          setImageLibraryChapter(null);
+        }}
+        onInsert={(payload) => {
+          console.log("🖼️ [IMG] onInsert fired", {
+            imageLibraryChapter,
+            payload,
+          });
+          if (imageLibraryChapter !== null) {
+            handleInsertImage(imageLibraryChapter, payload);
+          }
+        }}
+      />
     </div>
   );
-}
+});
+
+export default BookEditor;

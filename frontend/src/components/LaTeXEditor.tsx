@@ -4,7 +4,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { useCallback, useMemo, useEffect, useState } from "react";
-import CodeMirror, { ReactCodeMirrorProps } from "@uiw/react-codemirror";
+import CodeMirror from "@uiw/react-codemirror";
 import { StreamLanguage } from "@codemirror/language";
 import { stex } from "@codemirror/legacy-modes/mode/stex";
 import { search, highlightSelectionMatches } from "@codemirror/search";
