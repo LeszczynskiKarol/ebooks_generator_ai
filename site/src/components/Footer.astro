@@ -1,0 +1,87 @@
+---
+import { siteConfig } from "../config/site";
+import { useTranslations, langPrefix, type Lang } from "../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const p = langPrefix(lang);
+const year = new Date().getFullYear();
+
+const legalLinks =
+  lang === "pl"
+    ? [
+        { href: "/pl/polityka-prywatnosci/", label: t.footer.privacy },
+        { href: "/pl/regulamin/", label: t.footer.terms },
+      ]
+    : [
+        { href: "/privacy/", label: t.footer.privacy },
+        { href: "/terms/", label: t.footer.terms },
+      ];
+---
+
+<footer class="border-t border-ink-800 bg-ink-950 text-ink-300">
+  <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="grid gap-10 md:grid-cols-4">
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600">
+            <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5 text-white" aria-hidden="true">
+              <path
+                d="M12 3c3.5 4.2 5.5 7.2 5.5 9.8a5.5 5.5 0 1 1-11 0C6.5 10.2 8.5 7.2 12 3Z"
+                fill="currentColor"
+              />
+            </svg>
+          </span>
+          <span class="font-display text-lg font-bold tracking-tight text-white">InkMagnet</span>
+        </div>
+        <p class="mt-4 max-w-sm text-sm leading-relaxed text-ink-400">{t.footer.tagline}</p>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold text-white">{t.footer.product}</h3>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          <li><a href={`${p}/#how`} class="transition-colors hover:text-white">{t.nav.how}</a></li>
+          <li>
+            <a href={`${p}/#features`} class="transition-colors hover:text-white">{t.nav.features}</a>
+          </li>
+          <li>
+            <a href={`${p}/#pricing`} class="transition-colors hover:text-white">{t.nav.pricing}</a>
+          </li>
+          <li>
+            <a
+              href={`${siteConfig.appUrl}/auth/login`}
+              class="transition-colors hover:text-white">{t.nav.signIn}</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold text-white">{t.footer.legal}</h3>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          {
+            legalLinks.map((l) => (
+              <li>
+                <a href={l.href} class="transition-colors hover:text-white">
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a href={`mailto:${siteConfig.email}`} class="transition-colors hover:text-white">
+              {t.footer.contact}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-12 border-t border-ink-800 pt-6 text-sm text-ink-500">
+      © {year} InkMagnet. {t.footer.rights}
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /_assets/
+
+Sitemap: https://inkmagnet.com/sitemap-index.xml

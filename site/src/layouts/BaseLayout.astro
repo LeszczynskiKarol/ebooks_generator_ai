@@ -1,0 +1,109 @@
+---
+import "../styles/global.css";
+import { siteConfig } from "../config/site";
+import { getLangFromUrl, type Lang } from "../i18n/ui";
+import Analytics from "../components/Analytics.astro";
+import CookieConsent from "../components/CookieConsent.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** Set when the page exists in both languages — enables hreflang alternates. */
+  translated?: boolean;
+}
+
+const {
+  title,
+  description,
+  ogImage = "/og-image.png",
+  canonicalUrl,
+  noindex = false,
+  jsonLd,
+  translated = true,
+} = Astro.props;
+
+const lang: Lang = getLangFromUrl(Astro.url);
+const canonical = canonicalUrl ?? new URL(Astro.url.pathname, siteConfig.url).href;
+const ogImageAbs = new URL(ogImage, siteConfig.url).href;
+const pageTitle = title.includes(siteConfig.name) ? title : `${title} | ${siteConfig.name}`;
+
+// hreflang pair: en path has no prefix, pl path is /pl<enPath>
+const enPath = Astro.url.pathname.replace(/^\/pl(\/|$)/, "/");
+const plPath = enPath === "/" ? "/pl/" : `/pl${enPath}`;
+const altEn = new URL(enPath, siteConfig.url).href;
+const altPl = new URL(plPath, siteConfig.url).href;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    {
+      translated && !noindex && (
+        <>
+          <link rel="alternate" hreflang="en" href={altEn} />
+          <link rel="alternate" hreflang="pl" href={altPl} />
+          <link rel="alternate" hreflang="x-default" href={altEn} />
+        </>
+      )
+    }
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageAbs} />
+    <meta property="og:locale" content={lang === "pl" ? "pl_PL" : "en_US"} />
+    <meta property="og:site_name" content={siteConfig.name} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbs} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <link
+      rel="preload"
+      href="/fonts/inter-latin-wght-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    {
+      lang === "pl" && (
+        <link
+          rel="preload"
+          href="/fonts/inter-latin-ext-wght-normal.woff2"
+          as="font"
+          type="font/woff2"
+          crossorigin
+        />
+      )
+    }
+
+    {
+      jsonLd && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(Array.isArray(jsonLd) ? jsonLd : [jsonLd])}
+        />
+      )
+    }
+
+    <Analytics />
+  </head>
+  <body class="bg-white font-sans text-ink-900 antialiased">
+    <slot />
+    <CookieConsent />
+  </body>
+</html>

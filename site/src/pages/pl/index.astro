@@ -1,0 +1,45 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Landing from "../../components/Landing.astro";
+import { siteConfig } from "../../config/site";
+import { useTranslations } from "../../i18n/ui";
+
+const t = useTranslations("pl");
+
+const title = "InkMagnet — ebooki AI z profesjonalnym składem";
+const description =
+  "Zamień swoją wiedzę w profesjonalnego ebooka w około godzinę. Research AI, pisanie, ilustracje, projekt okładki i PDF + EPUB w jakości drukarskiej. Od $9.99 za książkę.";
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: siteConfig.name,
+    applicationCategory: "DesignApplication",
+    operatingSystem: "Web",
+    url: `${siteConfig.url}/pl/`,
+    inLanguage: "pl",
+    description,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "USD",
+      lowPrice: "9.99",
+      highPrice: "19.99",
+      offerCount: 5,
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: t.faq.items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <Landing lang="pl" />
+</BaseLayout>

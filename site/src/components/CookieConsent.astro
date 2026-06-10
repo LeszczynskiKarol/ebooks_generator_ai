@@ -1,0 +1,96 @@
+---
+// GDPR cookie banner driving Consent Mode v2. Equal-prominence accept/decline.
+// Storage: localStorage['cookie-consent'] = { analytics_storage, ad_storage,
+// ad_user_data, ad_personalization, ts } — restored by Analytics.astro on load.
+import { siteConfig } from "../config/site";
+import { getLangFromUrl } from "../i18n/ui";
+
+const lang = getLangFromUrl(Astro.url);
+const needsBanner = !!siteConfig.ga4;
+
+const texts =
+  lang === "pl"
+    ? {
+        aria: "Zgoda na pliki cookie",
+        body: "Używamy plików cookie do anonimowej analityki ruchu. Bez Twojej zgody nie zbieramy żadnych danych.",
+        link: "Polityka prywatności",
+        href: "/pl/polityka-prywatnosci/",
+        decline: "Tylko niezbędne",
+        accept: "Akceptuję",
+      }
+    : {
+        aria: "Cookie consent",
+        body: "We use cookies for anonymous traffic analytics. Nothing is collected without your consent.",
+        link: "Privacy policy",
+        href: "/privacy/",
+        decline: "Necessary only",
+        accept: "Accept",
+      };
+---
+
+{
+  needsBanner && (
+    <div
+      id="cookie-banner"
+      class="fixed inset-x-0 bottom-0 z-50 hidden border-t border-ink-200 bg-white px-4 py-4 shadow-[0_-4px_20px_rgba(15,23,42,0.08)] sm:px-6"
+      role="dialog"
+      aria-label={texts.aria}
+      aria-live="polite"
+    >
+      <div class="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm text-ink-600">
+          {texts.body}{" "}
+          <a href={texts.href} class="underline hover:text-ink-900">
+            {texts.link}
+          </a>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            id="cookie-decline"
+            class="cursor-pointer rounded-lg border border-ink-200 px-4 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-50"
+          >
+            {texts.decline}
+          </button>
+          <button
+            type="button"
+            id="cookie-accept"
+            class="cursor-pointer rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+          >
+            {texts.accept}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+      (function () {
+        var KEY = "cookie-consent";
+        var banner = document.getElementById("cookie-banner");
+        if (!banner) return;
+
+        var prior = null;
+        try { prior = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+        if (!prior) banner.classList.remove("hidden");
+
+        function applyConsent(granted) {
+          var payload = {
+            analytics_storage: granted ? "granted" : "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+            ts: Date.now(),
+          };
+          localStorage.setItem(KEY, JSON.stringify(payload));
+          banner.classList.add("hidden");
+          if (typeof window.gtag === "function") {
+            window.gtag("consent", "update", payload);
+          }
+        }
+
+        document.getElementById("cookie-accept").addEventListener("click", function () { applyConsent(true); });
+        document.getElementById("cookie-decline").addEventListener("click", function () { applyConsent(false); });
+      })();
+    </script>
+  )
+}
