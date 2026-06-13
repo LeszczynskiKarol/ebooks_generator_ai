@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.." || exit 1   # → backend/
 
 if [ "${DEPS:-false}" = "true" ] || [ ! -d node_modules ]; then
   echo "== npm ci =="
-  npm ci || exit 1
+  npm install --no-audit --no-fund || exit 1
 else
   echo "== deps unchanged — skip npm ci =="
 fi

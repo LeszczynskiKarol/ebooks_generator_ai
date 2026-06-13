@@ -1,10 +1,9 @@
 name: Deploy InkMagnet
 
-# Minimal, change-aware deploy:
-#   • backend  → matury VPS (pm2 inkmagnet-api) via rsync + build on host
-#   • site     → S3 (inkmagnet-site-prod) + CloudFront invalidation + Google indexing
-# The app SPA (inkmagnet-app-prod) is intentionally NOT auto-deployed here — its
-# Vite build env is environment-specific; add a job once the build vars are pinned.
+# Minimal, change-aware deploy (per changed path):
+#   • backend (backend/)  → matury VPS (pm2 inkmagnet-api) via rsync + build on host
+#   • site    (site/)     → S3 inkmagnet-site-prod + CloudFront + Google indexing
+#   • app SPA (frontend/) → S3 inkmagnet-app-prod + CloudFront
 
 on:
   push:
@@ -86,7 +85,7 @@ jobs:
         if: needs.detect-changes.outputs.site == 'true'
         run: |
           cd site
-          npm ci
+          npm install --no-audit --no-fund
           npm run build
           [ -f dist/index.html ] || { echo "::error::astro build produced no dist/index.html"; exit 1; }
           aws s3 sync dist "s3://${SITE_BUCKET}" --delete
@@ -97,7 +96,7 @@ jobs:
         if: needs.detect-changes.outputs.app == 'true'
         run: |
           cd frontend
-          npm ci
+          npm install --no-audit --no-fund
           VITE_API_URL="${APP_API_URL}" \
             VITE_GOOGLE_CLIENT_ID="${APP_GOOGLE_CLIENT_ID}" \
             VITE_RECAPTCHA_SITE_KEY="${APP_RECAPTCHA_SITE_KEY}" \
