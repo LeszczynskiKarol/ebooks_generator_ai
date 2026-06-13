@@ -49,11 +49,11 @@ const ConceptSchema = z
     direction: z.string().min(10),
     background: z
       .object({
-        use: z.boolean(),
+        use: z.boolean().optional().default(true),
         prompt: z.string().optional().default(""),
         textZone: z.string().optional().default(""),
       })
-      .default({ use: false, prompt: "", textZone: "" }),
+      .default({ use: true, prompt: "", textZone: "" }),
   })
   .passthrough();
 
@@ -497,9 +497,8 @@ Respond ONLY with JSON:
   "rationale": "3-5 sentences: the idea, why it fits this book and audience, what makes it distinctive",
   "direction": "short label of the visual direction (e.g. 'typographic poster', 'photographic with panel', 'geometric abstraction')",
   "background": {
-    "use": true/false — do you want a generated photographic/illustrated background?,
-    "prompt": "if use: English image prompt for the background (concrete scene/texture, mood, lighting; remember type must sit on it)",
-    "textZone": "if use: where the calm zone for type should be (e.g. 'upper third clean sky')"
+    "prompt": "REQUIRED English image prompt for a professional PHOTOGRAPHIC cover background that fits this book — concrete scene/subject/texture, mood, lighting; evenly lit; NO text in the image; keep the lower area calm so the title sits cleanly on it",
+    "textZone": "where the calm zone for type should be (e.g. 'lower third, even tone')"
   }
 }`,
       },
@@ -512,9 +511,7 @@ Respond ONLY with JSON:
     log?.warn?.(`Cover concept invalid: ${concept.error}`);
     return null;
   }
-  log?.ok?.(
-    `  🎨 Concept: ${concept.data.direction} ${concept.data.background.use ? "(+FLUX background)" : "(pure vector)"}`,
-  );
+  log?.ok?.(`  🎨 Concept: ${concept.data.direction} (+FLUX background)`);
 
   // Layout frame: forced (tests) → model's pick → first as fallback.
   const frameId =
@@ -523,15 +520,14 @@ Respond ONLY with JSON:
     LAYOUT_FRAMES.find((f) => f.id === frameId) || LAYOUT_FRAMES[0];
   log?.step?.(`  🧭 Layout frame: ${selectedFrame.name}`);
 
-  // ━━━ Phase 2: optional background ━━━
+  // ━━━ Phase 2: background — ALWAYS use a photo (vector-only covers look worse) ━━━
   let hasBg = false;
-  if (
-    !opts.disableBackground &&
-    concept.data.background.use &&
-    concept.data.background.prompt
-  ) {
+  if (!opts.disableBackground) {
+    const bgPrompt =
+      concept.data.background.prompt ||
+      `professional photographic book cover background for a book about: ${book.topic}; evenly lit, calm lower area for a title, no text in the image`;
     hasBg = await generateBackground(
-      concept.data.background.prompt,
+      bgPrompt,
       path.join(coverDir, "bg.jpg"),
       log,
     );

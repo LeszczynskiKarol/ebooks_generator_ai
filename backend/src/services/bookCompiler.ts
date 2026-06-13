@@ -457,7 +457,7 @@ function assembleLatexDocument(p: AssembleParams): string {
       fontSize +
       "," +
       paperSize +
-      ",twoside,openright]{book}",
+      ",twoside,openany]{book}",
     "",
   );
 

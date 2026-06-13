@@ -11,6 +11,7 @@ import NewProject from "@/pages/NewProject";
 import ProjectDetail from "@/pages/ProjectDetail";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminProjectDetail from "@/pages/AdminProjectDetail";
+import AdminUsers from "@/pages/AdminUsers";
 
 function Protected({ children }: { children: React.ReactNode }) {
   return useAuthStore((s) => s.isAuthenticated) ? <>{children}</> : <Navigate to="/auth/login" replace />;
@@ -44,6 +45,7 @@ export default function App() {
       <Route path="/projects/:id" element={<Protected><Layout><ProjectDetail /></Layout></Protected>} />
       {/* Admin */}
       <Route path="/admin" element={<Protected><Layout><AdminDashboard /></Layout></Protected>} />
+      <Route path="/admin/users" element={<Protected><Layout><AdminUsers /></Layout></Protected>} />
       <Route path="/admin/projects/:id" element={<Protected><Layout><AdminProjectDetail /></Layout></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

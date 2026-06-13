@@ -508,18 +508,124 @@ export async function adminRoutes(app: FastifyInstance) {
   });
 
   // ━━━ GET /api/admin/users ━━━
+  // ━━━ GET /api/admin/users  (list + search) ━━━
   app.get("/api/admin/users", async (request, reply) => {
+    const q = String((request.query as any)?.q || "").trim();
+    const where = q
+      ? {
+          OR: [
+            { email: { contains: q, mode: "insensitive" as const } },
+            { name: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : {};
     const users = await prisma.user.findMany({
+      where,
       orderBy: { createdAt: "desc" },
+      take: 500,
       select: {
         id: true,
         email: true,
         name: true,
         createdAt: true,
+        emailVerified: true,
+        googleId: true,
+        stripeCustomerId: true,
         _count: { select: { projects: true } },
       },
     });
-    return reply.send({ success: true, data: users });
+    return reply.send({
+      success: true,
+      data: users.map((u) => ({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        createdAt: u.createdAt,
+        verified: !!u.emailVerified,
+        google: !!u.googleId,
+        hasStripe: !!u.stripeCustomerId,
+        projectCount: u._count.projects,
+      })),
+    });
+  });
+
+  // ━━━ GET /api/admin/users/:id  (detail + their books) ━━━
+  app.get("/api/admin/users/:id", async (request, reply) => {
+    const { id } = request.params as any;
+    const u = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        emailVerified: true,
+        googleId: true,
+        stripeCustomerId: true,
+        projects: {
+          orderBy: { createdAt: "desc" },
+          take: 200,
+          select: {
+            id: true,
+            title: true,
+            topic: true,
+            currentStage: true,
+            paymentStatus: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+    if (!u)
+      return reply.status(404).send({ success: false, error: "User not found" });
+    return reply.send({
+      success: true,
+      data: {
+        ...u,
+        verified: !!u.emailVerified,
+        google: !!u.googleId,
+        hasStripe: !!u.stripeCustomerId,
+      },
+    });
+  });
+
+  // ━━━ PATCH /api/admin/users/:id  (edit name / verify) ━━━
+  app.patch("/api/admin/users/:id", async (request, reply) => {
+    const { id } = request.params as any;
+    const body = (request.body || {}) as any;
+    const data: { name?: string | null; emailVerified?: Date | null } = {};
+    if (typeof body.name === "string") data.name = body.name.trim() || null;
+    if (typeof body.verified === "boolean")
+      data.emailVerified = body.verified ? new Date() : null;
+    if (Object.keys(data).length === 0)
+      return reply.status(400).send({ success: false, error: "Nothing to update" });
+    try {
+      const u = await prisma.user.update({ where: { id }, data });
+      return reply.send({ success: true, data: { id: u.id } });
+    } catch {
+      return reply.status(404).send({ success: false, error: "User not found" });
+    }
+  });
+
+  // ━━━ DELETE /api/admin/users/:id  (cascades projects + tokens) ━━━
+  app.delete("/api/admin/users/:id", async (request, reply) => {
+    const { id } = request.params as any;
+    const target = await prisma.user.findUnique({
+      where: { id },
+      select: { email: true },
+    });
+    if (!target)
+      return reply.status(404).send({ success: false, error: "User not found" });
+    if (
+      process.env.ADMIN_EMAIL &&
+      target.email === process.env.ADMIN_EMAIL
+    )
+      return reply
+        .status(400)
+        .send({ success: false, error: "Refusing to delete the admin account" });
+    await prisma.user.delete({ where: { id } });
+    return reply.send({ success: true });
   });
 }
 

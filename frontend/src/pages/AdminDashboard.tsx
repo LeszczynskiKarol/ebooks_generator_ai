@@ -69,12 +69,20 @@ export default function AdminDashboard() {
             InkMagnet — full visibility
           </p>
         </div>
-        <button
-          onClick={() => refetch()}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        >
-          <RefreshCw className="w-5 h-5 text-gray-500" />
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/admin/users"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors"
+          >
+            <Users className="w-4 h-4" /> Manage users
+          </Link>
+          <button
+            onClick={() => refetch()}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <RefreshCw className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
       </div>
 
       {/* Stats cards */}
