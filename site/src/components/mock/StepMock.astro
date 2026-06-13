@@ -1,0 +1,160 @@
+---
+// Code/UI mockup for a "how it works" step. Language-neutral (bars, not text)
+// so it renders identically on every locale. i = 0..3.
+interface Props {
+  i: number;
+}
+const { i } = Astro.props;
+---
+
+<div class="overflow-hidden rounded-xl border border-ink-200 bg-white">
+  <!-- window chrome -->
+  <div class="flex items-center gap-1.5 border-b border-ink-100 bg-ink-50 px-3 py-2.5">
+    <span class="h-2 w-2 rounded-full bg-ink-200"></span>
+    <span class="h-2 w-2 rounded-full bg-ink-200"></span>
+    <span class="h-2 w-2 rounded-full bg-ink-200"></span>
+    <span class="ml-2 h-2.5 w-32 rounded bg-ink-100"></span>
+  </div>
+
+  <div class="min-h-[230px] p-5">
+    {/* 1 — Describe your book (a brief form) */}
+    {
+      i === 0 && (
+        <div class="space-y-4">
+          <div>
+            <div class="mb-1.5 h-2 w-16 rounded bg-ink-200" />
+            <div class="flex h-10 items-center rounded-lg border border-ink-200 px-3">
+              <div class="h-2.5 w-3/5 rounded bg-ink-100" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="mb-1.5 h-2 w-12 rounded bg-ink-200" />
+              <div class="relative h-1.5 rounded-full bg-ink-100">
+                <div class="absolute inset-y-0 left-0 w-2/3 rounded-full bg-brand-500" />
+                <div class="absolute -top-1 left-2/3 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-white bg-brand-600 shadow" />
+              </div>
+            </div>
+            <div>
+              <div class="mb-1.5 h-2 w-12 rounded bg-ink-200" />
+              <div class="flex h-9 items-center rounded-lg border border-ink-200 px-3">
+                <div class="h-2.5 w-10 rounded bg-ink-100" />
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 h-2 w-14 rounded bg-ink-200" />
+            <div class="flex flex-wrap gap-2">
+              <span class="h-7 w-16 rounded-full bg-brand-100 ring-1 ring-brand-300" />
+              <span class="h-7 w-20 rounded-full border border-ink-200" />
+              <span class="h-7 w-14 rounded-full border border-ink-200" />
+              <span class="h-7 w-20 rounded-full border border-ink-200" />
+            </div>
+          </div>
+          <div class="flex justify-end pt-1">
+            <span class="h-9 w-28 rounded-lg bg-brand-600" />
+          </div>
+        </div>
+      )
+    }
+
+    {/* 2 — Approve the structure (chapter outline) */}
+    {
+      i === 1 && (
+        <div class="space-y-2.5">
+          <div class="mb-3 flex items-center justify-between">
+            <div class="h-2.5 w-24 rounded bg-ink-200" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4 text-ink-300">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m16.9 4.5 2.7 2.6M3.7 20.3l3.8-.8 11.1-11.1a1.9 1.9 0 0 0 0-2.7l-.6-.6a1.9 1.9 0 0 0-2.7 0L4.5 16.2l-.8 4.1Z" />
+            </svg>
+          </div>
+          {[1, 2, 3].map((n, idx) => (
+            <div>
+              <div class="flex items-center gap-2.5 rounded-lg border border-ink-100 bg-ink-50/60 px-3 py-2">
+                <span class="flex h-5 w-5 items-center justify-center rounded bg-brand-600 text-[10px] font-bold text-white">{n}</span>
+                <span class="h-2.5 flex-1 rounded bg-ink-200" style={`max-width:${[80, 60, 70][idx]}%`} />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-ink-300"><path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" /></svg>
+              </div>
+              {idx < 2 && (
+                <div class="ml-7 mt-1.5 space-y-1.5">
+                  <div class="h-2 w-2/5 rounded bg-ink-100" />
+                  <div class="h-2 w-1/2 rounded bg-ink-100" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    {/* 3 — AI writes & designs (generation progress) */}
+    {
+      i === 2 && (
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="h-2.5 w-28 rounded bg-ink-200" />
+            <div class="h-2 w-8 rounded bg-brand-200" />
+          </div>
+          <div class="h-2 rounded-full bg-ink-100">
+            <div class="h-2 w-[72%] rounded-full bg-brand-600" />
+          </div>
+          <div class="space-y-2 pt-1">
+            {[0, 1, 2].map(() => (
+              <div class="flex items-center gap-2.5">
+                <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 flex-shrink-0 text-green-500"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
+                <span class="h-2 flex-1 rounded bg-ink-100" />
+              </div>
+            ))}
+            <div class="flex items-center gap-2.5">
+              <span class="h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600" />
+              <span class="h-2 flex-1 rounded bg-brand-100" />
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            {[14, 18, 12, 16].map((w) => (
+              <span class="inline-flex items-center gap-1 rounded-full bg-ink-50 px-2 py-1 ring-1 ring-ink-100">
+                <span class="h-1.5 w-1.5 rounded-full bg-green-500" />
+                <span class="h-1.5 rounded bg-ink-200" style={`width:${w}px`} />
+              </span>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {/* 4 — Download & publish (deliverables) */}
+    {
+      i === 3 && (
+        <div class="space-y-4">
+          <div class="flex items-center gap-4">
+            <div class="flex h-24 w-[72px] flex-col justify-between rounded-md bg-gradient-to-br from-brand-500 to-brand-700 p-2 shadow-md">
+              <div class="space-y-1">
+                <div class="h-1.5 w-10 rounded bg-white/80" />
+                <div class="h-1.5 w-8 rounded bg-white/60" />
+              </div>
+              <div class="h-1 w-6 rounded bg-white/40" />
+            </div>
+            <div class="flex-1 space-y-2">
+              <div class="h-2.5 w-4/5 rounded bg-ink-200" />
+              <div class="h-2 w-3/5 rounded bg-ink-100" />
+              <div class="inline-flex items-center gap-1.5 pt-1">
+                <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 text-green-500"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
+                <span class="h-2 w-16 rounded bg-ink-100" />
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <span class="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 text-xs font-bold text-white">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+              PDF
+            </span>
+            <span class="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-ink-200 text-xs font-bold text-ink-700">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+              EPUB
+            </span>
+          </div>
+        </div>
+      )
+    }
+  </div>
+</div>
