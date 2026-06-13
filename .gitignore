@@ -51,7 +51,6 @@ backend/dist/
 backend/uploads/
 backend/temp/
 backend/src/server.ts
-backend/src/index.ts
 backend/node_modules/
 backend/package-lock.json
 backend/prisma/seed.ts
