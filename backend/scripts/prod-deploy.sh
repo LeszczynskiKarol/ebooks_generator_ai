@@ -10,12 +10,12 @@ nvm use --lts >/dev/null 2>&1 || true
 
 cd "$(dirname "$0")/.." || exit 1   # → backend/
 
-if [ "${DEPS:-false}" = "true" ] || [ ! -d node_modules ]; then
-  echo "== npm ci =="
-  npm install --no-audit --no-fund || exit 1
-else
-  echo "== deps unchanged — skip npm ci =="
-fi
+# Always install: rsync ships the latest package.json and the repo commits no
+# lockfile, so node_modules must be reconciled every deploy (a stale tree breaks
+# type augmentations like @fastify/jwt's request.user). npm install is a near
+# no-op when already current.
+echo "== npm install =="
+npm install --no-audit --no-fund || exit 1
 
 npx prisma generate || exit 1
 npm run build || exit 1
