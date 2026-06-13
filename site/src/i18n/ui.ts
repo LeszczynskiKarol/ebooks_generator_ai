@@ -87,6 +87,41 @@ export const ui = {
         },
       ],
     },
+    deepDive: {
+      title: "More than a chatbot in a wrapper",
+      sub: "A frontier model can write paragraphs. Turning those paragraphs into a book people actually finish takes a pipeline. Here is what runs behind every project.",
+      items: [
+        {
+          title: "It researches before it writes a word",
+          desc: "Most AI text is written from memory, which is exactly why it invents statistics and citations that fall apart on a fact-check. InkMagnet first searches the live web for your topic, reads real sources, and grounds every chapter in them — so the numbers, names and references point to things that actually exist.",
+        },
+        {
+          title: "It writes the whole book, not one long answer",
+          desc: "A 120-page book does not fit in a single chat answer — ask a chatbot and it truncates, repeats itself and forgets chapter 2 by chapter 9. InkMagnet plans a structure first, then writes and reviews each chapter against the others, keeping terminology, arguments and tone consistent from cover to conclusion.",
+        },
+        {
+          title: "It typesets, illustrates and packages it",
+          desc: "Real books are not markdown. Every project is compiled with LaTeX — the system behind academic publishing — with a clickable table of contents, proper hyphenation, drop caps, styled tables and AI illustrations placed per chapter. You get a press-ready PDF and a store-ready EPUB with a designed cover, not a wall of text to format yourself.",
+        },
+      ],
+    },
+    compare: {
+      title: "“Can’t I just use ChatGPT or Claude?”",
+      sub: "You can write text in a chat window. But a chat window does not hand you a finished, sellable book — you do. Same class of models; completely different output.",
+      colA: "Raw ChatGPT / Claude",
+      colB: "InkMagnet",
+      rows: [
+        { label: "What you actually get", a: "Chat messages you copy-paste and assemble yourself", b: "A finished PDF + EPUB with a designed cover" },
+        { label: "Facts & sources", a: "Written from memory — citations are frequently invented", b: "Live web research, grounded in verifiable, cited sources" },
+        { label: "Full-length books", a: "Context limits truncate, repeat and drift across chapters", b: "Whole book, chapter-by-chapter, kept consistent throughout" },
+        { label: "Typesetting", a: "Plain text or markdown — formatting is on you", b: "Professional LaTeX: contents, margins, hyphenation, drop caps" },
+        { label: "Cover & images", a: "None — at best a description to recreate elsewhere", b: "Designed cover + AI illustrations placed per chapter" },
+        { label: "Assembly time", a: "Hours of copy-paste, formatting and exporting", b: "Automatic — finished book in about an hour" },
+        { label: "Editing later", a: "Re-prompt and re-paste, losing your manual changes", b: "Built-in editor; your edits are kept, recompile anytime" },
+        { label: "Cost", a: "Monthly subscription + your time", b: "One fixed price per book, full commercial rights" },
+      ],
+      note: "InkMagnet runs on the same class of frontier models you already trust — it just wraps them in the entire publishing pipeline, so you walk away with a book instead of a transcript.",
+    },
     gallery: {
       title: "What your finished pages look like",
       sub: "Clickable contents, drop-cap chapter openings, styled tables and matched illustrations — the typesetting every InkMagnet book ships with.",
@@ -121,6 +156,14 @@ export const ui = {
         {
           title: "Agencies",
           desc: "Deliver client ebooks in days instead of weeks, at a fraction of a ghostwriter's fee.",
+        },
+        {
+          title: "Authors & subject experts",
+          desc: "Turn the knowledge in your head into a credible book with your name on the cover — without spending six months ghostwriting it yourself.",
+        },
+        {
+          title: "Marketing & content teams",
+          desc: "Spin up gated ebooks, whitepapers and resource guides on demand — each grounded in real research and on-brand from cover to last page.",
         },
       ],
     },
@@ -165,6 +208,18 @@ export const ui = {
         {
           q: "What exactly do I download?",
           a: "A print-quality PDF (with a designed cover, clickable table of contents and professional typesetting) plus an EPUB that works on Kindle, Apple Books, Kobo and in ebook stores.",
+        },
+        {
+          q: "Why not just use ChatGPT or Claude?",
+          a: "Those tools write text in a chat window — you still research, fact-check, structure, format, design a cover and export everything yourself. InkMagnet runs the same class of models but adds live web research, full-book consistency, professional typesetting, a designed cover and PDF/EPUB export. You get a finished book instead of a transcript to assemble.",
+        },
+        {
+          q: "How is this different from other AI book tools?",
+          a: "Most 'AI book' tools wrap a chatbot and hand you a long blog post inside a PDF. InkMagnet researches your topic on the live web, compiles real book typesetting with LaTeX, generates a designed cover and matched illustrations, and preserves your manual edits across recompiles.",
+        },
+        {
+          q: "Do I need writing, design or formatting skills?",
+          a: "No. You describe the book in a short form and the pipeline handles research, writing, layout, cover and export. If you want to change anything, the built-in editor is plain WYSIWYG — no LaTeX, no design software.",
         },
       ],
     },
@@ -256,6 +311,41 @@ export const ui = {
         },
       ],
     },
+    deepDive: {
+      title: "Więcej niż chatbot w opakowaniu",
+      sub: "Model potrafi napisać akapity. Zamienienie ich w książkę, którą ludzie doczytają do końca, wymaga całego procesu. Oto, co dzieje się pod maską każdego projektu.",
+      items: [
+        {
+          title: "Najpierw bada temat, dopiero potem pisze",
+          desc: "Większość tekstów AI powstaje z pamięci modelu — i właśnie dlatego pojawiają się statystyki i cytowania, które rozpadają się przy weryfikacji. InkMagnet najpierw przeszukuje aktualny internet, czyta realne źródła i osadza w nich każdy rozdział, więc liczby, nazwiska i odwołania wskazują na rzeczy, które faktycznie istnieją.",
+        },
+        {
+          title: "Pisze całą książkę, nie jedną długą odpowiedź",
+          desc: "Stustronicowa książka nie zmieści się w jednej odpowiedzi czatu — zapytaj chatbota, a urwie wątek, zacznie się powtarzać i zapomni rozdział 2 przy rozdziale 9. InkMagnet najpierw planuje strukturę, a potem pisze i recenzuje każdy rozdział względem pozostałych, trzymając spójną terminologię, argumentację i ton od okładki po zakończenie.",
+        },
+        {
+          title: "Składa, ilustruje i pakuje",
+          desc: "Prawdziwe książki to nie markdown. Każdy projekt jest kompilowany LaTeX-em — systemem znanym z wydawnictw akademickich — z klikalnym spisem treści, poprawnym dzieleniem wyrazów, inicjałami, tabelami i ilustracjami AI wstawianymi pod konkretne rozdziały. Dostajesz PDF gotowy do druku i EPUB gotowy do sklepu z zaprojektowaną okładką, a nie ścianę tekstu do formatowania.",
+        },
+      ],
+    },
+    compare: {
+      title: "„Przecież mogę użyć ChatGPT albo Claude'a”",
+      sub: "Tekst napiszesz w oknie czatu. Ale okno czatu nie odda Ci gotowej, sprzedawalnej książki — robisz to sam. Ta sama klasa modeli, zupełnie inny efekt.",
+      colA: "Goły ChatGPT / Claude",
+      colB: "InkMagnet",
+      rows: [
+        { label: "Co realnie dostajesz", a: "Wiadomości z czatu, które sam kopiujesz i składasz", b: "Gotowy PDF + EPUB z zaprojektowaną okładką" },
+        { label: "Fakty i źródła", a: "Pisane z pamięci — cytowania często zmyślone", b: "Research w sieci, oparty na weryfikowalnych, cytowanych źródłach" },
+        { label: "Pełne książki", a: "Limity kontekstu urywają, powtarzają i gubią wątek", b: "Cała książka, rozdział po rozdziale, spójna do końca" },
+        { label: "Skład", a: "Czysty tekst lub markdown — formatujesz sam", b: "Profesjonalny LaTeX: spis treści, marginesy, dzielenie, inicjały" },
+        { label: "Okładka i grafiki", a: "Brak — najwyżej opis do odtworzenia gdzie indziej", b: "Zaprojektowana okładka + ilustracje AI pod rozdziały" },
+        { label: "Czas składania", a: "Godziny kopiowania, formatowania i eksportu", b: "Automatycznie — gotowa książka w około godzinę" },
+        { label: "Późniejsze edycje", a: "Ponowne prompty i wklejanie, tracisz swoje zmiany", b: "Wbudowany edytor; Twoje poprawki zostają, kompilujesz na nowo" },
+        { label: "Koszt", a: "Miesięczny abonament + Twój czas", b: "Jedna stała cena za książkę, pełne prawa komercyjne" },
+      ],
+      note: "InkMagnet działa na tej samej klasie czołowych modeli, którym już ufasz — tyle że opakowuje je w cały proces wydawniczy, więc wychodzisz z książką, a nie z transkryptem.",
+    },
     gallery: {
       title: "Tak wyglądają Twoje gotowe strony",
       sub: "Klikalny spis treści, otwarcia rozdziałów z inicjałem, tabele i dopasowane ilustracje — skład, z którym wychodzi każda książka z InkMagnet.",
@@ -290,6 +380,14 @@ export const ui = {
         {
           title: "Agencje",
           desc: "Oddawaj klientom ebooki w dni zamiast tygodni, za ułamek stawki ghostwritera.",
+        },
+        {
+          title: "Autorzy i eksperci",
+          desc: "Zamień wiedzę z głowy w wiarygodną książkę z Twoim nazwiskiem na okładce — bez sześciu miesięcy pisania jej samemu.",
+        },
+        {
+          title: "Zespoły marketingu i treści",
+          desc: "Twórz na żądanie ebooki za zapis, whitepapery i poradniki — każdy oparty na realnym researchu i spójny z marką od okładki po ostatnią stronę.",
         },
       ],
     },
@@ -334,6 +432,18 @@ export const ui = {
         {
           q: "Co dokładnie pobieram?",
           a: "PDF w jakości drukarskiej (z okładką, klikalnym spisem treści i profesjonalnym składem) i EPUB działający na Kindle, w Apple Books, Kobo i w sklepach z ebookami.",
+        },
+        {
+          q: "Po co mi to, skoro jest ChatGPT albo Claude?",
+          a: "Te narzędzia piszą tekst w oknie czatu — research, weryfikację faktów, strukturę, formatowanie, okładkę i eksport robisz sam. InkMagnet działa na tej samej klasie modeli, ale dokłada research w sieci, spójność całej książki, profesjonalny skład, zaprojektowaną okładkę i eksport PDF/EPUB. Dostajesz gotową książkę, nie transkrypt do poskładania.",
+        },
+        {
+          q: "Czym to się różni od innych generatorów książek AI?",
+          a: "Większość narzędzi „AI book” opakowuje chatbota i oddaje długi wpis blogowy w PDF. InkMagnet bada temat w aktualnej sieci, składa prawdziwą typografię książkową w LaTeX-u, generuje zaprojektowaną okładkę i dopasowane ilustracje oraz zachowuje Twoje ręczne poprawki przy kolejnych kompilacjach.",
+        },
+        {
+          q: "Czy muszę umieć pisać, projektować albo składać?",
+          a: "Nie. Opisujesz książkę w krótkim formularzu, a proces ogarnia research, pisanie, układ, okładkę i eksport. Jeśli chcesz coś zmienić, wbudowany edytor jest zwykłym WYSIWYG — bez LaTeX-a i programów graficznych.",
         },
       ],
     },
