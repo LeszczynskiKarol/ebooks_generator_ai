@@ -24,6 +24,26 @@ export type GenerationStatus =
   | "COMPLETED"
   | "ERROR";
 
+export interface ProjectSummary {
+  id: string;
+  title: string | null;
+  topic: string;
+  targetPages: number;
+  language?: string;
+  bookFormat?: string;
+  currentStage: ProjectStage;
+  generationStatus?: GenerationStatus;
+  generationProgress: number;
+  paymentStatus: PaymentStatus;
+  priceUsdCents: number | null;
+  priceUsdFormatted: string | null;
+  coverType?: "NONE" | "GENERATED" | "CUSTOM_UPLOAD";
+  coverUpdatedAt?: string | null;
+  currentVersion?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const STAGE_LABELS: Record<ProjectStage, string> = {
   BRIEF: "Project Brief",
   PRICING: "Review Pricing",

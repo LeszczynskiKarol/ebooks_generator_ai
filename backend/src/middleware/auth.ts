@@ -1,3 +1,4 @@
+// backend/src/middleware/auth.ts
 import { FastifyRequest, FastifyReply } from "fastify";
 
 export interface JwtPayload {
@@ -6,7 +7,10 @@ export interface JwtPayload {
   type: string;
 }
 
-export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
+export async function authenticate(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
   try {
     await request.jwtVerify();
   } catch (err) {

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — Colophon Editor (Copyright/Info Page)
+// InkMagnet — Colophon Editor (Copyright/Info Page)
 // Visual editor with live book-page preview
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -36,7 +36,7 @@ przechowywana w systemie wyszukiwania ani przesyłana
 w żadnej formie ani za pomocą żadnych środków bez
 uprzedniej pisemnej zgody autora.
 
-Projekt i skład: BookForge.ai
+Projekt i skład: InkMagnet
 Wydanie pierwsze
 
 {{YEAR}}`,
@@ -51,7 +51,7 @@ stored in a retrieval system, or transmitted in any
 form or by any means without the prior written
 permission of the author.
 
-Design and typesetting: BookForge.ai
+Design and typesetting: InkMagnet
 First edition
 
 {{YEAR}}`,
@@ -66,7 +66,7 @@ vorherige schriftliche Genehmigung des Autors
 vervielfältigt, in einem Abrufsystem gespeichert
 oder in irgendeiner Form übertragen werden.
 
-Gestaltung und Satz: BookForge.ai
+Gestaltung und Satz: InkMagnet
 Erste Ausgabe
 
 {{YEAR}}`,

@@ -1,0 +1,54 @@
+---
+import { getCollection, render } from "astro:content";
+import { getImage } from "astro:assets";
+import ArticleLayout from "../../layouts/ArticleLayout.astro";
+import { siteConfig } from "../../config/site";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", (p) => p.data.lang === "en" && !p.data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const ogImage = post.data.heroImage
+  ? (await getImage({ src: post.data.heroImage, width: 1200, format: "jpg" })).src
+  : undefined;
+
+const articleLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.pubDate.toISOString(),
+  ...(post.data.updatedDate ? { dateModified: post.data.updatedDate.toISOString() } : {}),
+  author: { "@type": "Organization", name: "InkMagnet", url: siteConfig.url },
+  publisher: { "@type": "Organization", name: "InkMagnet", url: siteConfig.url },
+  mainEntityOfPage: `${siteConfig.url}/blog/${post.id}/`,
+  inLanguage: "en",
+};
+---
+
+<ArticleLayout
+  title={post.data.title}
+  description={post.data.description}
+  heading={post.data.title}
+  subheading={post.data.description}
+  crumbs={[
+    { name: "InkMagnet", href: "/" },
+    { name: "Blog", href: "/blog/" },
+    { name: post.data.title, href: `/blog/${post.id}/` },
+  ]}
+  translated={!!post.data.translationOf}
+  hreflangEnPath={`/blog/${post.id}/`}
+  hreflangPlPath={post.data.translationOf ? `/pl/blog/${post.data.translationOf}/` : undefined}
+  jsonLd={articleLd}
+  datePublished={post.data.pubDate}
+  dateModified={post.data.updatedDate}
+  heroImage={post.data.heroImage}
+  heroAlt={post.data.heroAlt}
+  ogImage={ogImage}
+>
+  <Content />
+</ArticleLayout>

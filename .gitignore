@@ -56,7 +56,13 @@ backend/node_modules/
 backend/package-lock.json
 backend/prisma/seed.ts
 backend/tmp/
+backend/.dev-llm.json
 
 # Testing
 coverage/
 .nyc_output/
+
+# frp tunnel (binarka + config z tokenem; commitujemy tylko frpc.toml.example)
+tunnel/frpc.exe
+tunnel/frpc.toml
+tunnel/_setup.log

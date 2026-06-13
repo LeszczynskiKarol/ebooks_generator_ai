@@ -77,19 +77,14 @@ export async function webhookRoutes(app: FastifyInstance) {
       console.log(`  ✅ Project marked PAID, stage → STRUCTURE`);
 
       // Launch pipeline: research → structure → (user approves) → content → compile
-      console.log(`  🚀 Launching generation pipeline...`);
-      const { generateStructure } =
-        await import("../services/structureGenerator");
-      generateStructure(projectId).catch((err) => {
-        console.error(`  ❌ Pipeline failed for ${projectId}:`, err);
-        prisma.project
-          .update({
-            where: { id: projectId },
-            data: { currentStage: "ERROR", generationStatus: "ERROR" },
-          })
-          .catch(console.error);
-      });
-      console.log(`  ✅ Pipeline launched (background)\n`);
+      console.log(`  🚀 Enqueueing structure generation...`);
+      const { enqueueGeneration } = await import("../lib/jobQueue");
+      const result = await enqueueGeneration("structure", projectId);
+      console.log(
+        result.enqueued
+          ? `  ✅ Structure job enqueued\n`
+          : `  ℹ️  Structure job already ${result.existingState} (duplicate webhook?)\n`,
+      );
     } else {
       console.log(`  ℹ️  Ignoring event: ${event.type}`);
     }

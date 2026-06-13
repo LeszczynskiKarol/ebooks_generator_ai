@@ -1,0 +1,161 @@
+---
+import ArticleLayout from "../../layouts/ArticleLayout.astro";
+
+const title = "InkMagnet vs Beacon.by (2026) — an honest comparison";
+const description =
+  "Beacon builds lead magnets from templates and your blog posts. InkMagnet writes the whole ebook for you, with research, images and EPUB. Compared on facts.";
+
+const faq = [
+  {
+    q: "Is Beacon really free?",
+    a: "There is a genuine free plan: one lead magnet per month, 100 captured leads, Beacon branding on the output and 1,000 page views of hosting. Removing the logo and raising the limits starts at $19 per month, with unlimited lead magnets at $49 per month.",
+  },
+  {
+    q: "Does Beacon write the content of a lead magnet?",
+    a: "Only fragments. Its AI assistant generates text card by card from prompts you type and can draft a table of contents from a keyword. The flagship workflow is recycling your existing blog posts into a templated PDF. There is no research layer and no full-book generation.",
+  },
+  {
+    q: "What is a Smart PDF and what's the catch?",
+    a: "Smart PDF is Beacon's hosted, web-based document format with analytics and embedded media. The catch is in their own help center: readers cannot download it and always need an internet connection — and the hosting sits on your plan's page-view limits.",
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+---
+
+<ArticleLayout
+  title={title}
+  description={description}
+  heading="InkMagnet vs Beacon: the closest competitor, and the clearest difference"
+  subheading="Beacon is the best-known lead magnet tool on the market and our most direct rival. The comparison is simple to state: Beacon helps you assemble a lead magnet from content you bring. InkMagnet writes the book."
+  crumbs={[
+    { name: "InkMagnet", href: "/" },
+    { name: "Compare", href: "/vs/beacon-by/" },
+    { name: "vs Beacon", href: "/vs/beacon-by/" },
+  ]}
+  jsonLd={jsonLd}
+>
+  <h2>The short version</h2>
+  <p>
+    <a href="https://beacon.by" rel="nofollow">Beacon</a> (acquired by
+    OptinMonster in February 2024) is a drag-and-drop builder for marketing
+    PDFs: ebooks, checklists, workbooks, resource guides. Around 60 templates,
+    a card-based editor, opt-in forms, and its signature "Blog Post Recycle"
+    feature that converts published posts into a lead magnet. For a marketer
+    with a content archive and time to design, it is a sensible product with a
+    real free tier.
+  </p>
+  <p>
+    InkMagnet occupies the step Beacon leaves to you: producing the actual
+    book. Research, writing, review, photographs, cover and typesetting happen
+    in one automated run, and you collect a press-ready PDF plus EPUB roughly
+    an hour after describing the topic.
+  </p>
+
+  <h2>Side by side</h2>
+  <table>
+    <thead>
+      <tr><th>Capability</th><th>Beacon</th><th>InkMagnet</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Who writes the content</td>
+        <td>You — with an AI card assistant for fragments and a TOC outliner</td>
+        <td>The engine — full chapters, researched and reviewed</td>
+      </tr>
+      <tr>
+        <td>Web research with sources</td>
+        <td>No</td>
+        <td>Yes, per book</td>
+      </tr>
+      <tr>
+        <td>Images</td>
+        <td>Your uploads + stock; no AI image generation</td>
+        <td>AI photographs generated for your chapters, included</td>
+      </tr>
+      <tr>
+        <td>Output formats</td>
+        <td>PDF and hosted "Smart PDF" (online-only, not downloadable)</td>
+        <td>Print-quality PDF + EPUB, both downloadable and yours forever</td>
+      </tr>
+      <tr>
+        <td>Design</td>
+        <td>~60 templates, brand-style theming</td>
+        <td>Book typesetting engine + cover designed for each book</td>
+      </tr>
+      <tr>
+        <td>Lead capture forms</td>
+        <td>Built in (forms, popups, link lock) — its real strength</td>
+        <td>Not included — pair the book with your email tool of choice</td>
+      </tr>
+      <tr>
+        <td>Pricing</td>
+        <td>Free (1/mo, branded) → $19 → $49 → $99 per month</td>
+        <td>$9.99–19.99 one-time per book</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    Sources: <a href="https://beacon.by/pricing" rel="nofollow">beacon.by/pricing</a>,
+    <a href="https://beacon.by/features/smart-pdf" rel="nofollow">Smart PDF feature page</a>,
+    Beacon's help center and the
+    <a href="https://optinmonster.com/optinmonster-acquires-beacon-lead-magnet-creator/" rel="nofollow">OptinMonster acquisition announcement</a>,
+    checked June 2026.
+  </p>
+
+  <h2>The content question, honestly</h2>
+  <p>
+    Beacon's AI started in March 2023 as a "writing assistant" and the company
+    itself called it a first step. In 2026 it remains an in-editor helper: you
+    prompt a card, it fills the card. The heavy lifting — knowing the subject,
+    structuring an argument, producing forty pages a reader respects — stays
+    with you or your blog archive. Recycling posts works when the posts exist
+    and are good. Coaches, consultants and small agencies often have neither
+    the archive nor the week it takes to write one.
+  </p>
+  <p>
+    That week is the product gap InkMagnet fills. A book on your topic is
+    researched against current web sources, written chapter by chapter with a
+    consistent voice, illustrated with photographs generated for those exact
+    passages, and typeset by the same engine academic publishers use. Hiring
+    this out traditionally costs real money: ghostwriting alone runs $1,000 to
+    $10,000 for a 5,000–10,000-word piece on
+    <a href="https://reedsy.com/blog/cost-to-hire-a-ghostwriter/" rel="nofollow">Reedsy's marketplace rates</a>,
+    before design.
+  </p>
+
+  <h2>Where Beacon genuinely wins</h2>
+  <p>
+    Lead capture. Beacon ships opt-in forms, popups, gated link locks and a
+    resource-library builder with integrations to every mainstream email tool.
+    InkMagnet deliberately does not — we make the asset, you distribute it
+    through the stack you already run. If you want one subscription that both
+    assembles simple PDFs and hosts the opt-in form, and the writing is not
+    your bottleneck, Beacon earns its keep. Its users' recurring complaints —
+    editor bugs, no undo, rigid templates, support decline after the
+    acquisition (<a href="https://www.capterra.com/p/143783/Beacon/reviews/" rel="nofollow">Capterra</a>,
+    <a href="https://appsumo.com/products/beacon/reviews/" rel="nofollow">AppSumo</a>) —
+    are worth reading, but its 4.2–4.5 averages are respectable.
+  </p>
+  <p>
+    If the bottleneck is the book itself, the comparison stops being close.
+    <a href="/examples/">Look at the raw pages</a> and decide whether a
+    template PDF and a typeset, illustrated book belong in the same inbox.
+  </p>
+
+  <h2>Frequently asked questions</h2>
+  {faq.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+</ArticleLayout>

@@ -45,11 +45,38 @@ const legalLinks =
         <ul class="mt-4 space-y-2.5 text-sm">
           <li><a href={`${p}/#how`} class="transition-colors hover:text-white">{t.nav.how}</a></li>
           <li>
-            <a href={`${p}/#features`} class="transition-colors hover:text-white">{t.nav.features}</a>
+            <a
+              href={lang === "pl" ? "/pl/przyklady/" : "/examples/"}
+              class="transition-colors hover:text-white">{t.nav.examples}</a
+            >
           </li>
           <li>
             <a href={`${p}/#pricing`} class="transition-colors hover:text-white">{t.nav.pricing}</a>
           </li>
+          <li>
+            <a
+              href={lang === "pl" ? "/pl/blog/" : "/blog/"}
+              class="transition-colors hover:text-white">{t.nav.blog}</a
+            >
+          </li>
+          {
+            lang === "en" && (
+              <li>
+                <a href="/lead-magnet-generator/" class="transition-colors hover:text-white">
+                  Lead magnet generator
+                </a>
+              </li>
+            )
+          }
+          {
+            lang === "pl" && (
+              <li>
+                <a href="/pl/generator-ebookow/" class="transition-colors hover:text-white">
+                  Generator ebooków
+                </a>
+              </li>
+            )
+          }
           <li>
             <a
               href={`${siteConfig.appUrl}/auth/login`}

@@ -64,6 +64,101 @@
   --font-display: "Inter Variable", "Inter-fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* Article typography for marketing subpages and blog posts. */
+.prose-ink {
+  color: var(--color-ink-700);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.prose-ink > * + * {
+  margin-top: 1.1em;
+}
+.prose-ink h2 {
+  margin-top: 2.2em;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--color-ink-900);
+}
+.prose-ink h3 {
+  margin-top: 1.8em;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-ink-900);
+}
+.prose-ink a {
+  color: var(--color-brand-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-ink a:hover {
+  color: var(--color-brand-700);
+}
+.prose-ink strong {
+  color: var(--color-ink-900);
+}
+.prose-ink ul,
+.prose-ink ol {
+  padding-left: 1.4em;
+}
+.prose-ink ul {
+  list-style: disc;
+}
+.prose-ink ol {
+  list-style: decimal;
+}
+.prose-ink li + li {
+  margin-top: 0.4em;
+}
+.prose-ink blockquote {
+  border-left: 3px solid var(--color-brand-300);
+  padding-left: 1em;
+  font-style: italic;
+  color: var(--color-ink-600);
+}
+.prose-ink table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  display: block;
+  overflow-x: auto;
+}
+.prose-ink th {
+  background: var(--color-ink-50);
+  text-align: left;
+  font-weight: 700;
+  color: var(--color-ink-900);
+}
+.prose-ink th,
+.prose-ink td {
+  border: 1px solid var(--color-ink-200);
+  padding: 0.55em 0.8em;
+  vertical-align: top;
+}
+.prose-ink img {
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-ink-200);
+}
+.prose-ink figcaption {
+  margin-top: 0.5em;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-ink-500);
+}
+.prose-ink hr {
+  border: 0;
+  border-top: 1px solid var(--color-ink-200);
+  margin: 2.5em 0;
+}
+.prose-ink code {
+  background: var(--color-ink-100);
+  border-radius: 0.3rem;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
 html {
   scroll-behavior: smooth;
 }

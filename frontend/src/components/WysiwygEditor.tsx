@@ -1,6 +1,6 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — WYSIWYG Editor (TipTap)
-// Word-like editing for non-LaTeX users
+// InkMagnet — WYSIWYG Editor (TipTap) v2
+// Word-like editing — images with float/wrap support
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { useEffect, useRef, useState } from "react";
@@ -368,18 +368,21 @@ export default function WysiwygEditor({
           font-weight: 700;
           margin-top: 1.5rem;
           margin-bottom: 0.75rem;
+          clear: both;
         }
         .wysiwyg-content h3 {
           font-size: 1.25rem;
           font-weight: 600;
           margin-top: 1.25rem;
           margin-bottom: 0.5rem;
+          clear: both;
         }
         .wysiwyg-content h4 {
           font-size: 1.1rem;
           font-weight: 600;
           margin-top: 1rem;
           margin-bottom: 0.5rem;
+          clear: both;
         }
         .wysiwyg-content p {
           margin-bottom: 0.75rem;
@@ -388,6 +391,7 @@ export default function WysiwygEditor({
         .wysiwyg-content ul, .wysiwyg-content ol {
           padding-left: 1.5rem;
           margin-bottom: 0.75rem;
+          clear: both;
         }
         .wysiwyg-content ul { list-style-type: disc; }
         .wysiwyg-content ol { list-style-type: decimal; }
@@ -398,6 +402,7 @@ export default function WysiwygEditor({
           margin: 1rem 0;
           font-style: italic;
           color: #6b7280;
+          clear: both;
         }
         .dark .wysiwyg-content blockquote {
           border-left-color: #7c3aed;
@@ -406,6 +411,7 @@ export default function WysiwygEditor({
         .wysiwyg-content hr {
           margin: 1.5rem 0;
           border-color: #e5e7eb;
+          clear: both;
         }
         .dark .wysiwyg-content hr {
           border-color: #374151;
@@ -418,6 +424,24 @@ export default function WysiwygEditor({
           text-decoration: underline;
         }
 
+        /* ── Float support for image blocks ── */
+        /* NodeViewWrapper gets float from inline style; text wraps naturally */
+        .wysiwyg-content .image-block-nodeview[data-alignment="wrap-left"],
+        .wysiwyg-content .image-block-nodeview[data-alignment="wrap-right"] {
+          /* Ensure ProseMirror doesn't break float with its own styles */
+          display: block !important;
+        }
+        /* Clearfix — prevent floats from leaking out of content area */
+        .wysiwyg-content::after {
+          content: '';
+          display: table;
+          clear: both;
+        }
+        /* Center-aligned images clear previous floats */
+        .wysiwyg-content .image-block-nodeview[data-alignment="center"] {
+          clear: both;
+        }
+
         /* ── Callout boxes ── */
         .wysiwyg-content div[data-callout] {
           border-left: 4px solid;
@@ -425,6 +449,7 @@ export default function WysiwygEditor({
           padding: 0.75rem 1rem;
           margin: 1rem 0;
           position: relative;
+          clear: both;
         }
         .wysiwyg-content div[data-callout]::before {
           content: attr(data-title);
@@ -482,6 +507,7 @@ export default function WysiwygEditor({
           width: 100%;
           border-collapse: collapse;
           margin: 1rem 0;
+          clear: both;
         }
         .wysiwyg-table th, .wysiwyg-table td {
           border: 1px solid #e5e7eb;
@@ -516,12 +542,6 @@ export default function WysiwygEditor({
           color: #9ca3af;
           pointer-events: none;
           height: 0;
-        }
-
-        /* ── ImageBlock NodeView — the controls are inline-styled,
-             but we handle the dark mode delete button here ── */
-        .image-block-nodeview {
-          line-height: 0;
         }
       `}</style>
     </div>

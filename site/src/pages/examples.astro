@@ -1,0 +1,55 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import ExamplesGallery from "../components/ExamplesGallery.astro";
+import { siteConfig } from "../config/site";
+
+const title = "Ebook examples — real pages from AI-generated books";
+const description =
+  "Unretouched pages from books generated with InkMagnet: AI-designed covers, dish photography, tables, footnotes and a full 38-page sample PDF to download.";
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "InkMagnet", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Examples", item: `${siteConfig.url}/examples/` },
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: title,
+    description,
+    url: `${siteConfig.url}/examples/`,
+  },
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  jsonLd={jsonLd}
+  hreflangEnPath="/examples/"
+  hreflangPlPath="/pl/przyklady/"
+>
+  <Header lang="en" />
+  <main class="pt-16">
+    <div class="mx-auto max-w-7xl px-4 pb-4 pt-14 text-center sm:px-6 lg:px-8">
+      <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-5xl">
+        Real books. Raw pages. No mockups.
+      </h1>
+      <p class="mx-auto mt-5 max-w-2xl text-lg text-ink-600">
+        Every tool promises "professional ebooks". Below you can judge ours the only
+        way that matters: actual pages rendered straight from the PDFs our customers
+        download, plus one complete book as a free sample.
+      </p>
+    </div>
+    <div class="py-10">
+      <ExamplesGallery lang="en" />
+    </div>
+  </main>
+  <Footer lang="en" />
+</BaseLayout>

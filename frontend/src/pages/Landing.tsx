@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge.ai — Landing Page
+// InkMagnet — Landing Page
 // React + Tailwind + useThemeStore
 // Route: / (no Layout wrapper)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -39,7 +39,7 @@ import {
 function useSEO() {
   useEffect(() => {
     document.title =
-      "BookForge.ai — AI Ebook Generator | Create Professional Ebooks with Artificial Intelligence";
+      "InkMagnet — AI Ebook Generator | Create Professional Ebooks with Artificial Intelligence";
     const set = (name: string, content: string) => {
       let el = document.querySelector(
         `meta[name="${name}"]`,
@@ -53,7 +53,7 @@ function useSEO() {
     };
     set(
       "description",
-      "BookForge.ai is the most advanced AI ebook generator. Create research-backed, publication-quality ebooks with LaTeX typography, real web sources, and professional styling in PDF & EPUB. The AI ebook creator for consultants, educators, and entrepreneurs.",
+      "InkMagnet is the most advanced AI ebook generator. Create research-backed, publication-quality ebooks with LaTeX typography, real web sources, and professional styling in PDF & EPUB. The AI ebook creator for consultants, educators, and entrepreneurs.",
     );
     set(
       "keywords",
@@ -164,7 +164,7 @@ export default function Landing() {
             className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white"
           >
             <BookOpen className="w-6 h-6 text-primary-600 dark:text-primary-400" />
-            BookForge
+            InkMagnet
             <span className="text-primary-600 dark:text-primary-400">.ai</span>
           </Link>
 
@@ -311,7 +311,7 @@ export default function Landing() {
             {/* Subhead */}
             <Reveal delay={200}>
               <p className="mt-6 text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                BookForge.ai is the AI ebook maker that scrapes real sources,
+                InkMagnet is the AI ebook maker that scrapes real sources,
                 generates LaTeX-typeset content, and delivers publication-ready
                 PDF&nbsp;&amp;&nbsp;EPUB — in&nbsp;8&nbsp;languages.
               </p>
@@ -375,7 +375,7 @@ export default function Landing() {
                 <div>
                   <span className="text-gray-600 select-none mr-3">1</span>
                   <span className="text-gray-600 italic">
-                    {"// BookForge pipeline — your topic becomes a book"}
+                    {"// InkMagnet pipeline — your topic becomes a book"}
                   </span>
                 </div>
                 <div>
@@ -489,7 +489,7 @@ export default function Landing() {
               <br className="hidden md:block" /> in five steps.
             </h2>
             <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-              No templates. No copy-paste. BookForge runs a complete AI
+              No templates. No copy-paste. InkMagnet runs a complete AI
               publishing pipeline — research, structure, write, design, compile.
             </p>
           </Reveal>
@@ -573,7 +573,7 @@ export default function Landing() {
                   </h2>
                   <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                     Most AI ebook generators rely on the model's training data
-                    alone — producing vague, generic content. BookForge runs a
+                    alone — producing vague, generic content. InkMagnet runs a
                     two-level research pipeline before a single word is written.
                   </p>
                   <ul className="mt-6 space-y-3">
@@ -762,7 +762,7 @@ export default function Landing() {
                   </h2>
                   <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                     While other AI ebook makers convert markdown to a plain PDF,
-                    BookForge generates real LaTeX — the same typesetting system
+                    InkMagnet generates real LaTeX — the same typesetting system
                     used by academic publishers, technical authors, and research
                     institutions worldwide.
                   </p>
@@ -826,7 +826,7 @@ export default function Landing() {
                   </h2>
                   <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                     The #1 problem with AI-generated long-form content? Chapter
-                    5 sounds nothing like Chapter 1. BookForge solves this by
+                    5 sounds nothing like Chapter 1. InkMagnet solves this by
                     passing the complete text of all previous chapters as
                     context — up to 400,000 characters — when generating each
                     new chapter.
@@ -1047,7 +1047,7 @@ export default function Landing() {
                   </h2>
                   <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                     AI-generated content is a starting point, not a final
-                    product. BookForge gives you a full CodeMirror editor with
+                    product. InkMagnet gives you a full CodeMirror editor with
                     LaTeX syntax highlighting, live preview, and instant
                     recompilation — with every version preserved.
                   </p>
@@ -1121,7 +1121,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-5">
           <Reveal className="text-center mb-10">
             <p className="text-xs font-bold tracking-widest uppercase text-primary-600 dark:text-primary-400 mb-2">
-              BookForge vs. Alternatives
+              InkMagnet vs. Alternatives
             </p>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               Not all AI ebook creators are built the same.
@@ -1136,7 +1136,7 @@ export default function Landing() {
                       Feature
                     </th>
                     <th className="text-left px-5 py-4 font-semibold text-primary-600 dark:text-primary-400 text-xs uppercase tracking-wider bg-primary-50/50 dark:bg-primary-950/30">
-                      BookForge.ai
+                      InkMagnet
                     </th>
                     <th className="text-left px-5 py-4 font-semibold text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider">
                       ChatGPT / Claude
@@ -1275,7 +1275,7 @@ export default function Landing() {
               {
                 icon: PenTool,
                 title: "Non-Fiction Authors",
-                desc: "Use BookForge as a powerful first draft engine. Generate the structure and content, then refine it in the built-in editor or export the LaTeX source for full control.",
+                desc: "Use InkMagnet as a powerful first draft engine. Generate the structure and content, then refine it in the built-in editor or export the LaTeX source for full control.",
               },
               {
                 icon: Languages,
@@ -1427,11 +1427,11 @@ export default function Landing() {
             <div>
               <FAQItem
                 q="How is this different from just asking ChatGPT to write a book?"
-                a="ChatGPT generates text from its training data in a single session with limited context. BookForge runs a full pipeline: live web research to find current data, structured chapter planning you can edit, content generation with up to 400K characters of context for style consistency, professional LaTeX typesetting, and output in PDF + EPUB. The result is a researched, professionally designed book — not a long chat response."
+                a="ChatGPT generates text from its training data in a single session with limited context. InkMagnet runs a full pipeline: live web research to find current data, structured chapter planning you can edit, content generation with up to 400K characters of context for style consistency, professional LaTeX typesetting, and output in PDF + EPUB. The result is a researched, professionally designed book — not a long chat response."
               />
               <FAQItem
                 q="Are the sources real? Can I verify them?"
-                a="Yes. BookForge uses Google Custom Search API to find live web pages, then scrapes their content through a dedicated microservice. The AI selects sources based on data density — prioritizing statistics, case studies, and named examples. Every claim in the output comes from real, publicly accessible web content."
+                a="Yes. InkMagnet uses Google Custom Search API to find live web pages, then scrapes their content through a dedicated microservice. The AI selects sources based on data density — prioritizing statistics, case studies, and named examples. Every claim in the output comes from real, publicly accessible web content."
               />
               <FAQItem
                 q="Can I edit the content after generation?"
@@ -1439,11 +1439,11 @@ export default function Landing() {
               />
               <FAQItem
                 q="What if I don't know LaTeX?"
-                a="You don't need to. BookForge generates all the LaTeX automatically. The editor is there for power users who want fine control. Most users simply review the book structure before generation, download the PDF, and are done. If you want to make text changes, the preview mode shows formatted output without any LaTeX knowledge required."
+                a="You don't need to. InkMagnet generates all the LaTeX automatically. The editor is there for power users who want fine control. Most users simply review the book structure before generation, download the PDF, and are done. If you want to make text changes, the preview mode shows formatted output without any LaTeX knowledge required."
               />
               <FAQItem
                 q='Will the output look "AI-generated"?'
-                a='BookForge actively fights against it. The deAIfy post-processing removes dozens of known AI patterns ("In todays rapidly evolving…", "Its worth noting…", "game-changer") in multiple languages. Combined with real research data, specific examples with company names and statistics, and professional typography — the output reads like expert-authored content, not AI filler.'
+                a='InkMagnet actively fights against it. The deAIfy post-processing removes dozens of known AI patterns ("In todays rapidly evolving…", "Its worth noting…", "game-changer") in multiple languages. Combined with real research data, specific examples with company names and statistics, and professional typography — the output reads like expert-authored content, not AI filler.'
               />
               <FAQItem
                 q="Can I use the generated book commercially?"
@@ -1505,7 +1505,7 @@ export default function Landing() {
             <div>
               <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
                 <BookOpen className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-                BookForge
+                InkMagnet
                 <span className="text-primary-600 dark:text-primary-400">
                   .ai
                 </span>
@@ -1537,7 +1537,7 @@ export default function Landing() {
           </div>
           <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800 text-center">
             <p className="text-xs text-gray-400">
-              &copy; 2025 BookForge.ai — AI-powered ebook generation. All rights
+              &copy; 2025 InkMagnet — AI-powered ebook generation. All rights
               reserved.
             </p>
           </div>

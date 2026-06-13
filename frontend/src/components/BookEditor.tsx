@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — Book Editor v4 (Visual + Code)
+// InkMagnet — Book Editor v4 (Visual + Code)
 // Editing-only — regeneration handled by DownloadPanel
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

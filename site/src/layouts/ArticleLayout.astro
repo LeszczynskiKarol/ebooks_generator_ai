@@ -1,0 +1,161 @@
+---
+// Shared shell for marketing subpages and blog posts: header, breadcrumbs
+// (visual + BreadcrumbList JSON-LD), optional hero image, prose body,
+// CTA band, footer.
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import BaseLayout from "./BaseLayout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { siteConfig } from "../config/site";
+import { getLangFromUrl, useTranslations, type Lang } from "../i18n/ui";
+
+interface Crumb {
+  name: string;
+  href: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  /** the H1 — may differ from the SEO title */
+  heading: string;
+  subheading?: string;
+  crumbs: Crumb[];
+  /** page exists in both languages (enables hreflang in BaseLayout) */
+  translated?: boolean;
+  hreflangEnPath?: string;
+  hreflangPlPath?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** hide the bottom CTA band (e.g. on legal-ish pages) */
+  noCta?: boolean;
+  datePublished?: Date;
+  dateModified?: Date;
+  heroImage?: ImageMetadata;
+  heroAlt?: string;
+  /** absolute or site-relative og:image override (forwarded to BaseLayout) */
+  ogImage?: string;
+}
+
+const {
+  title,
+  description,
+  heading,
+  subheading,
+  crumbs,
+  translated = false,
+  hreflangEnPath,
+  hreflangPlPath,
+  jsonLd,
+  noCta = false,
+  datePublished,
+  dateModified,
+  heroImage,
+  heroAlt,
+  ogImage,
+} = Astro.props;
+
+const lang: Lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const registerUrl = `${siteConfig.appUrl}/auth/register`;
+
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: crumbs.map((c, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: c.name,
+    item: new URL(c.href, siteConfig.url).href,
+  })),
+};
+
+const allJsonLd = [
+  breadcrumbLd,
+  ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : []),
+];
+
+const dateFmt = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  translated={translated}
+  hreflangEnPath={hreflangEnPath}
+  hreflangPlPath={hreflangPlPath}
+  jsonLd={allJsonLd}
+  ogImage={ogImage}
+>
+  <Header lang={lang} />
+  <main class="pt-16">
+    <div class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <nav aria-label="Breadcrumb" class="text-sm text-ink-500">
+        <ol class="flex flex-wrap items-center gap-1.5">
+          {
+            crumbs.map((c, i) => (
+              <li class="flex items-center gap-1.5">
+                {i > 0 && <span aria-hidden="true">/</span>}
+                {i === crumbs.length - 1 ? (
+                  <span class="text-ink-700">{c.name}</span>
+                ) : (
+                  <a href={c.href} class="hover:text-ink-900 hover:underline">
+                    {c.name}
+                  </a>
+                )}
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+
+      <h1 class="mt-6 font-display text-3xl font-extrabold leading-tight tracking-tight text-ink-900 sm:text-4xl">
+        {heading}
+      </h1>
+      {subheading && <p class="mt-4 text-lg leading-relaxed text-ink-600">{subheading}</p>}
+      {
+        datePublished && (
+          <p class="mt-4 text-sm text-ink-400">
+            {dateFmt.format(dateModified || datePublished)}
+          </p>
+        )
+      }
+
+      {
+        heroImage && (
+          <div class="mt-8 overflow-hidden rounded-2xl border border-ink-200 shadow-md shadow-ink-900/5">
+            <Image src={heroImage} alt={heroAlt || heading} width={1440} loading="eager" class="w-full" />
+          </div>
+        )
+      }
+
+      <div class="prose-ink mt-10">
+        <slot />
+      </div>
+    </div>
+
+    {
+      !noCta && (
+        <section class="border-t border-ink-100 bg-brand-700">
+          <div class="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6">
+            <h2 class="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+              {t.finalCta.title}
+            </h2>
+            <p class="mt-3 text-brand-100">{t.finalCta.sub}</p>
+            <a
+              href={registerUrl}
+              class="mt-7 inline-block rounded-xl bg-white px-7 py-3 text-base font-semibold text-brand-700 shadow-lg transition-colors hover:bg-brand-50"
+            >
+              {t.finalCta.cta}
+            </a>
+          </div>
+        </section>
+      )
+    }
+  </main>
+  <Footer lang={lang} />
+</BaseLayout>

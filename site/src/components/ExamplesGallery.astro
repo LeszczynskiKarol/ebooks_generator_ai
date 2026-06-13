@@ -1,0 +1,146 @@
+---
+// Shared EN/PL examples gallery — unretouched pages from two real books
+// generated with InkMagnet, plus a downloadable sample PDF.
+import { Image } from "astro:assets";
+import { siteConfig } from "../config/site";
+import type { Lang } from "../i18n/ui";
+
+import exCover from "../assets/ex-cover-kuchnia.png";
+import exChapter from "../assets/ex-kuchnia-chapter.png";
+import exTable from "../assets/ex-kuchnia-table.png";
+import exPhoto1 from "../assets/ex-kuchnia-photo1.png";
+import exPhoto2 from "../assets/ex-kuchnia-photo2.png";
+import exPhoto3 from "../assets/ex-kuchnia-photo3.png";
+import psyToc from "../assets/page-toc.png";
+import psyChapter from "../assets/page-chapter.png";
+import psyTable from "../assets/page-table.png";
+import psyIllu from "../assets/page-illustration2.png";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const pl = lang === "pl";
+const registerUrl = `${siteConfig.appUrl}/auth/register`;
+
+const t = pl
+  ? {
+      book1Title: "Książka kucharska — styl Creative, 38 stron, 12 fotografii AI",
+      book1Desc:
+        "Poradnik kulinarny wygenerowany w całości w InkMagnet: research w polskich źródłach, autorska okładka, fotografie potraw dopasowane do konkretnych rozdziałów i pełny skład typograficzny. Paleta kolorów pochodzi z formularza zamówienia.",
+      book1Caps: [
+        "Okładka zaprojektowana przez AI dla tej konkretnej książki",
+        "Otwarcie rozdziału: inicjał, cytat, kolory z palety zamówienia",
+        "Tabele z danymi i kolorowe ramki na wskazówki",
+        "Fotografia AI osadzona przy konkretnym przepisie",
+        "Strona z ramką-spiżarnią i zdjęciem składników",
+        "Fotografia potrawy przy technice gotowania",
+      ],
+      book2Title: "Kompendium akademickie — styl Academic, przypisy i źródła",
+      book2Desc:
+        "Poradnik pisania pracy licencjackiej: tryb akademicki z pełnym aparatem przypisów, klikalnym spisem treści i stonowaną typografią. Ta sama maszyneria, inny charakter — bo styl wybiera się przy zamówieniu.",
+      book2Caps: [
+        "Klikalny spis treści z numeracją",
+        "Otwarcie rozdziału z inicjałem i wyróżnionym cytatem",
+        "Tabela z nagłówkiem i ramka z definicją",
+        "Ilustracja AI z podpisem w języku książki",
+      ],
+      downloadTitle: "Pobierz pełny przykładowy PDF",
+      downloadDesc:
+        "Cała książka kucharska z tej galerii — 38 stron, dokładnie ten plik, który dostaje klient. Bez znaków wodnych i bez retuszu.",
+      downloadBtn: "Pobierz przykładową książkę (PDF, 13 MB)",
+      note: "Wszystkie strony na tej podstronie to surowe rendery z finalnych PDF-ów. Niczego nie poprawialiśmy w Photoshopie.",
+      cta: "Wygeneruj własną książkę",
+    }
+  : {
+      book1Title: "Cookbook — Creative style, 38 pages, 12 AI photographs",
+      book1Desc:
+        "A cooking guide generated end-to-end in InkMagnet: web research, a one-of-a-kind AI-designed cover, dish photographs matched to specific chapters and full book typesetting. The color palette comes straight from the order form.",
+      book1Caps: [
+        "Cover designed by AI for this specific book",
+        "Chapter opening: drop cap, pull quote, palette from the order",
+        "Data tables and colored tip boxes",
+        "AI photograph placed next to a specific recipe",
+        "Pantry-box page with an ingredients photo",
+        "Dish photograph beside a cooking technique",
+      ],
+      book2Title: "Academic compendium — Academic style, footnotes and sources",
+      book2Desc:
+        "A thesis-writing guide: academic mode with a full footnote apparatus, clickable table of contents and restrained typography. Same engine, different character — you pick the style when ordering.",
+      book2Caps: [
+        "Clickable, numbered table of contents",
+        "Chapter opening with drop cap and pull quote",
+        "Table with styled header and a definition box",
+        "AI illustration captioned in the book's language",
+      ],
+      downloadTitle: "Download a full sample PDF",
+      downloadDesc:
+        "The entire cookbook from this gallery — 38 pages, the exact file a customer receives. No watermarks, no retouching.",
+      downloadBtn: "Download the sample book (PDF, 13 MB)",
+      note: "Every page on this page is a raw render from the final PDFs. Nothing was touched up in Photoshop.",
+      cta: "Generate your own book",
+    };
+
+const book1Images = [exCover, exChapter, exTable, exPhoto1, exPhoto2, exPhoto3];
+const book2Images = [psyToc, psyChapter, psyTable, psyIllu];
+---
+
+<section class="mx-auto max-w-7xl px-4 pb-4 sm:px-6 lg:px-8">
+  <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
+    {t.book1Title}
+  </h2>
+  <p class="mt-3 max-w-3xl text-ink-600">{t.book1Desc}</p>
+  <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      book1Images.map((img, i) => (
+        <figure>
+          <div class="overflow-hidden rounded-xl border border-ink-200 shadow-md shadow-ink-900/5">
+            <Image src={img} alt={t.book1Caps[i]} width={640} class="w-full" loading={i < 3 ? "eager" : "lazy"} />
+          </div>
+          <figcaption class="mt-2.5 text-center text-sm text-ink-600">{t.book1Caps[i]}</figcaption>
+        </figure>
+      ))
+    }
+  </div>
+
+  <div class="mt-10 flex flex-col items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h3 class="font-display text-lg font-bold text-ink-900">{t.downloadTitle}</h3>
+      <p class="mt-1 text-sm text-ink-600">{t.downloadDesc}</p>
+    </div>
+    <a
+      href="/samples/inkmagnet-sample-book-pl.pdf"
+      class="shrink-0 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-brand-700"
+      download
+    >
+      {t.downloadBtn}
+    </a>
+  </div>
+
+  <h2 class="mt-16 font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
+    {t.book2Title}
+  </h2>
+  <p class="mt-3 max-w-3xl text-ink-600">{t.book2Desc}</p>
+  <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    {
+      book2Images.map((img, i) => (
+        <figure>
+          <div class="overflow-hidden rounded-xl border border-ink-200 shadow-md shadow-ink-900/5">
+            <Image src={img} alt={t.book2Caps[i]} width={520} class="w-full" loading="lazy" />
+          </div>
+          <figcaption class="mt-2.5 text-center text-sm text-ink-600">{t.book2Caps[i]}</figcaption>
+        </figure>
+      ))
+    }
+  </div>
+
+  <p class="mt-10 text-center text-sm text-ink-400">{t.note}</p>
+  <div class="mt-8 pb-16 text-center">
+    <a
+      href={registerUrl}
+      class="inline-block rounded-xl bg-brand-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700"
+    >
+      {t.cta}
+    </a>
+  </div>
+</section>

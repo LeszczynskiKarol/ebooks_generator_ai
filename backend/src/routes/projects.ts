@@ -9,6 +9,37 @@ import {
   MAX_PAGES,
 } from "../lib/types";
 
+/**
+ * Return a Stripe customer id valid for the CURRENT Stripe mode. If the stored
+ * id is missing or stale (e.g. a test-mode id used under a live key after
+ * switching to production), recreate the customer and persist the new id.
+ */
+async function ensureStripeCustomer(
+  stripe: Stripe,
+  userId: string,
+): Promise<string> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error("User not found");
+  if (user.stripeCustomerId) {
+    try {
+      const c = await stripe.customers.retrieve(user.stripeCustomerId);
+      if (!(c as any).deleted) return user.stripeCustomerId;
+    } catch {
+      // stale id (wrong Stripe mode / deleted) — fall through and recreate
+    }
+  }
+  const customer = await stripe.customers.create({
+    email: user.email,
+    name: user.name || undefined,
+    metadata: { userId: user.id },
+  });
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { stripeCustomerId: customer.id },
+  });
+  return customer.id;
+}
+
 export async function projectRoutes(app: FastifyInstance) {
   // All routes need auth
   app.addHook("preHandler", authenticate);
@@ -26,6 +57,7 @@ export async function projectRoutes(app: FastifyInstance) {
       customColors,
       authorName,
       subtitle,
+      coverOption,
     } = request.body as any;
 
     if (!topic || topic.length < 5) {
@@ -80,27 +112,27 @@ export async function projectRoutes(app: FastifyInstance) {
         authorName: authorName || null,
         subtitle: subtitle || null,
         customColors: serializedColors,
+        autoCoverRequested: coverOption === "generate",
+        useAiImages: (request.body as any).useAiImages === true,
+        imageGuidelines:
+          typeof (request.body as any).imageGuidelines === "string"
+            ? (request.body as any).imageGuidelines.slice(0, 1000) || null
+            : null,
+        imageDensity: ["standard", "rich"].includes(
+          (request.body as any).imageDensity,
+        )
+          ? (request.body as any).imageDensity
+          : "standard",
+        footnoteMode: ["auto", "always", "never"].includes(
+          (request.body as any).footnoteMode,
+        )
+          ? (request.body as any).footnoteMode
+          : "auto",
       },
     });
 
     // ── Create Stripe session immediately ──
-    const user = await prisma.user.findUnique({
-      where: { id: request.user.userId },
-    });
-    let customerId = user?.stripeCustomerId;
-
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user!.email,
-        name: user!.name || undefined,
-        metadata: { userId: user!.id },
-      });
-      customerId = customer.id;
-      await prisma.user.update({
-        where: { id: user!.id },
-        data: { stripeCustomerId: customerId },
-      });
-    }
+    const customerId = await ensureStripeCustomer(stripe, request.user.userId);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -182,13 +214,41 @@ export async function projectRoutes(app: FastifyInstance) {
             description: true,
           },
         },
+        versions: {
+          select: { createdAt: true },
+          orderBy: { version: "desc" },
+          take: 1,
+        },
       },
     });
     if (!project)
       return reply
         .status(404)
         .send({ success: false, error: "Project not found" });
-    return reply.send({ success: true, data: formatProject(project) });
+
+    // Cover changed after the newest compiled version → downloads need a
+    // recompile. A cover baked in during generation does NOT set this.
+    const newestBuildAt = project.versions[0]?.createdAt ?? null;
+    const coverPendingRecompile =
+      project.coverType !== "NONE" &&
+      !!project.coverUpdatedAt &&
+      (!newestBuildAt || project.coverUpdatedAt > newestBuildAt);
+
+    // researchData is a multi-hundred-KB blob polled every 3s during
+    // generation — replace it with a light phase flag for the UI.
+    const {
+      versions: _versions,
+      researchData,
+      ...projectData
+    } = project as any;
+    return reply.send({
+      success: true,
+      data: {
+        ...formatProject(projectData),
+        coverPendingRecompile,
+        researchDone: !!researchData,
+      },
+    });
   });
 
   // ━━━ PATCH /api/projects/:id/brief ━━━
@@ -265,23 +325,7 @@ export async function projectRoutes(app: FastifyInstance) {
     if (!project.priceUsdCents)
       return reply.status(400).send({ success: false, error: "Price not set" });
 
-    const user = await prisma.user.findUnique({
-      where: { id: request.user.userId },
-    });
-    let customerId = user?.stripeCustomerId;
-
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user!.email,
-        name: user!.name || undefined,
-        metadata: { userId: user!.id },
-      });
-      customerId = customer.id;
-      await prisma.user.update({
-        where: { id: user!.id },
-        data: { stripeCustomerId: customerId },
-      });
-    }
+    const customerId = await ensureStripeCustomer(stripe, request.user.userId);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -328,10 +372,22 @@ export async function projectRoutes(app: FastifyInstance) {
         .send({ success: false, error: "Structure not found" });
 
     const { chapters } = request.body as any;
+    const { z } = await import("zod");
+    const { StructureChapterSchema } = await import("../lib/llmJson");
+    const validation = z
+      .array(StructureChapterSchema)
+      .min(1)
+      .safeParse(chapters);
+    if (!validation.success) {
+      return reply.status(400).send({
+        success: false,
+        error: `Invalid structure: ${validation.error.issues[0]?.message || "bad chapters"}`,
+      });
+    }
     await prisma.projectStructure.update({
       where: { id: project.structure.id },
       data: {
-        structureJson: JSON.stringify({ chapters }),
+        structureJson: JSON.stringify({ chapters: validation.data }),
         isUserEdited: true,
         version: { increment: 1 },
       },
@@ -355,11 +411,25 @@ export async function projectRoutes(app: FastifyInstance) {
       where: { id: project.structure.id },
       data: { approvedAt: new Date() },
     });
+
+    // The old flow parked the project in an unused IMAGES stage and waited
+    // for another click — approval now starts content generation directly.
+    const { enqueueGeneration } = await import("../lib/jobQueue");
+    const result = await enqueueGeneration("content", id);
     await prisma.project.update({
       where: { id },
-      data: { currentStage: "IMAGES" },
+      data: {
+        currentStage: "GENERATING",
+        generationStatus: "GENERATING_CONTENT",
+      },
     });
-    return reply.send({ success: true, message: "Structure approved" });
+
+    return reply.send({
+      success: true,
+      message: result.enqueued
+        ? "Structure approved — generation started"
+        : "Structure approved — generation already running",
+    });
   });
 
   app.patch("/api/projects/:id/title-page", async (request, reply) => {
@@ -412,15 +482,18 @@ export async function projectRoutes(app: FastifyInstance) {
       });
     }
 
+    const { enqueueGeneration } = await import("../lib/jobQueue");
+    const result = await enqueueGeneration("structure", id);
+    if (!result.enqueued) {
+      return reply.status(409).send({
+        success: false,
+        error: "Structure generation already in progress",
+      });
+    }
+
     await prisma.project.update({
       where: { id },
       data: { structureRedoUsed: true, currentStage: "STRUCTURE" },
-    });
-
-    const { generateStructure } =
-      await import("../services/structureGenerator");
-    generateStructure(id).catch((err) => {
-      console.error(`❌ Structure redo failed for ${id}:`, err);
     });
 
     return reply.send({ success: true, message: "Regeneration started" });
@@ -444,24 +517,31 @@ export async function projectRoutes(app: FastifyInstance) {
         .status(400)
         .send({ success: false, error: "Approve structure first" });
 
+    // Allowed: first run (IMAGES), retry/resume after crash (GENERATING/ERROR).
+    // A finished book is edited + recompiled instead of regenerated.
+    const allowedStages = ["IMAGES", "GENERATING", "ERROR"];
+    if (!allowedStages.includes(project.currentStage)) {
+      return reply.status(400).send({
+        success: false,
+        error: `Cannot start generation from stage ${project.currentStage}`,
+      });
+    }
+
+    const { enqueueGeneration } = await import("../lib/jobQueue");
+    const result = await enqueueGeneration("content", id);
+    if (!result.enqueued) {
+      return reply.status(409).send({
+        success: false,
+        error: "Generation already in progress",
+      });
+    }
+
     await prisma.project.update({
       where: { id },
       data: {
         generationStatus: "GENERATING_CONTENT",
         currentStage: "GENERATING",
-        generationProgress: 0,
       },
-    });
-
-    const { generateContent } = await import("../services/contentGenerator");
-    generateContent(id).catch((err) => {
-      console.error(`❌ Content generation failed for ${id}:`, err);
-      prisma.project
-        .update({
-          where: { id },
-          data: { currentStage: "ERROR", generationStatus: "ERROR" },
-        })
-        .catch(console.error);
     });
 
     return reply.send({ success: true, message: "Generation started" });

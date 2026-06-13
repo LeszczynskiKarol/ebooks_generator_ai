@@ -1,11 +1,18 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
+import { getSelection, setSelection } from "../lib/llm";
 
 export async function adminRoutes(app: FastifyInstance) {
   app.addHook("preHandler", async (request, reply) => {
+    // ?token= is accepted ONLY for the GET download link opened directly in
+    // the browser (no way to set a header there). All other admin endpoints
+    // (including every mutating one) are header-only — tokens in URLs leak
+    // into logs and browser history.
+    const isBrowserDownload =
+      request.method === "GET" && request.url.includes("/download/");
     const queryToken = (request.query as any)?.token;
-    if (queryToken && !request.headers.authorization) {
+    if (isBrowserDownload && queryToken && !request.headers.authorization) {
       request.headers.authorization = `Bearer ${queryToken}`;
     }
     await authenticate(request, reply);
@@ -13,6 +20,25 @@ export async function adminRoutes(app: FastifyInstance) {
     const adminEmail = process.env.ADMIN_EMAIL;
     if (adminEmail && request.user.email !== adminEmail) {
       return reply.status(403).send({ error: "Not admin" });
+    }
+  });
+
+  // ━━━ GET /api/admin/llm-model ━━━ DEV: bieżący wybór modelu + opcje
+  app.get("/api/admin/llm-model", async () => getSelection());
+
+  // ━━━ POST /api/admin/llm-model ━━━ DEV: ustaw model { key }
+  app.post("/api/admin/llm-model", async (request, reply) => {
+    const { key } = (request.body as any) ?? {};
+    try {
+      const res = setSelection(String(key));
+      if (!res.ok) {
+        return reply
+          .status(409)
+          .send({ error: "Przełącznik zablokowany w produkcji" });
+      }
+      return getSelection();
+    } catch (e: any) {
+      return reply.status(400).send({ error: e?.message || "Bad key" });
     }
   });
 
@@ -245,8 +271,12 @@ export async function adminRoutes(app: FastifyInstance) {
   // ━━━ POST /api/admin/projects/:id/re-research ━━━ Re-run research pipeline
   app.post("/api/admin/projects/:id/re-research", async (request, reply) => {
     const { id } = request.params as any;
-    const { conductResearch } = await import("../services/researchService");
-    conductResearch(id).catch(console.error);
+    const { enqueueGeneration } = await import("../lib/jobQueue");
+    const result = await enqueueGeneration("research", id);
+    if (!result.enqueued)
+      return reply
+        .status(409)
+        .send({ success: false, error: "Research already in progress" });
     return reply.send({ success: true, message: "Research pipeline started" });
   });
 
@@ -348,16 +378,25 @@ export async function adminRoutes(app: FastifyInstance) {
   // ━━━ POST /api/admin/projects/:id/recompile ━━━
   app.post("/api/admin/projects/:id/recompile", async (request, reply) => {
     const { id } = request.params as any;
-    const { compileBook } = await import("../services/bookCompiler");
-    compileBook(id).catch(console.error);
+    const { enqueueGeneration } = await import("../lib/jobQueue");
+    const result = await enqueueGeneration("compile", id);
+    if (!result.enqueued)
+      return reply
+        .status(409)
+        .send({ success: false, error: "Compilation already in progress" });
     return reply.send({ success: true, message: "Recompilation started" });
   });
 
   // ━━━ POST /api/admin/projects/:id/regenerate ━━━
+  // force: regenerates all chapters EXCEPT user-edited ones (those are kept)
   app.post("/api/admin/projects/:id/regenerate", async (request, reply) => {
     const { id } = request.params as any;
-    const { generateContent } = await import("../services/contentGenerator");
-    generateContent(id).catch(console.error);
+    const { enqueueGeneration } = await import("../lib/jobQueue");
+    const result = await enqueueGeneration("content", id, { force: true });
+    if (!result.enqueued)
+      return reply
+        .status(409)
+        .send({ success: false, error: "Generation already in progress" });
     return reply.send({ success: true, message: "Regeneration started" });
   });
 
@@ -366,9 +405,13 @@ export async function adminRoutes(app: FastifyInstance) {
     "/api/admin/projects/:id/regenerate-structure",
     async (request, reply) => {
       const { id } = request.params as any;
-      const { generateStructure } =
-        await import("../services/structureGenerator");
-      generateStructure(id).catch(console.error);
+      const { enqueueGeneration } = await import("../lib/jobQueue");
+      const result = await enqueueGeneration("structure", id);
+      if (!result.enqueued)
+        return reply.status(409).send({
+          success: false,
+          error: "Structure generation already in progress",
+        });
       return reply.send({
         success: true,
         message: "Structure regeneration started",

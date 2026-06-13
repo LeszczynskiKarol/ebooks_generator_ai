@@ -1,0 +1,171 @@
+---
+import ArticleLayout from "../../layouts/ArticleLayout.astro";
+import { siteConfig } from "../../config/site";
+
+const title = "InkMagnet vs Designrr (2026) — an honest comparison";
+const description =
+  "Designrr repurposes content you already have. InkMagnet researches and writes the book for you, then typesets it. Pricing, output quality and AI compared on facts.";
+
+const faq = [
+  {
+    q: "Is the Designrr $27 lifetime deal really lifetime?",
+    a: "The $27 offer exists and grants ongoing access, but it covers roughly the Standard tier: PDF export only, with EPUB/Kindle export, PDF import and watermark removal sold as upgrades. Reviewers on Trustpilot report spending $97–200 in total to unlock the features shown in the ads.",
+  },
+  {
+    q: "Does Designrr write ebooks with research and sources?",
+    a: "No. Its Wordgenie AI generates content from a niche and outline you provide, with no web research layer and no citations. Designrr's core strength is converting existing blog posts, documents and transcripts into formatted ebooks.",
+  },
+  {
+    q: "Which tool is cheaper for a single ebook?",
+    a: "For one finished book, InkMagnet costs $9.99–19.99 with everything included. Designrr's usable tiers run $39–49 per month, plus your own writing time — the software formats content, it does not produce a book on its own.",
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+---
+
+<ArticleLayout
+  title={title}
+  description={description}
+  heading="InkMagnet vs Designrr: formatting tool or book factory?"
+  subheading="Both products end with an ebook. They start from opposite ends: Designrr formats content you bring, InkMagnet researches and writes the content for you. Here is the difference on facts, with sources."
+  crumbs={[
+    { name: "InkMagnet", href: "/" },
+    { name: "Compare", href: "/vs/designrr/" },
+    { name: "vs Designrr", href: "/vs/designrr/" },
+  ]}
+  jsonLd={jsonLd}
+>
+  <h2>The short version</h2>
+  <p>
+    <a href="https://designrr.io" rel="nofollow">Designrr</a> is a content
+    repurposing tool. You feed it a blog post, a Word file or a podcast
+    transcript, pick one of 300+ templates, and it produces a formatted PDF.
+    That workflow has a real audience: marketers with years of published
+    content who want to package it.
+  </p>
+  <p>
+    InkMagnet starts earlier in the chain. You describe a topic; the engine
+    researches it on the live web, writes every chapter, reviews its own work,
+    generates photographs for the content, designs a cover and compiles a
+    print-quality PDF plus EPUB. You receive a finished book, not a formatting
+    canvas.
+  </p>
+
+  <h2>Side by side</h2>
+  <table>
+    <thead>
+      <tr><th>Capability</th><th>Designrr</th><th>InkMagnet</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Writes the book for you</td>
+        <td>Partly — Wordgenie generates text from your outline, no research, no sources</td>
+        <td>Yes — researches the topic online, writes, reviews and revises every chapter</td>
+      </tr>
+      <tr>
+        <td>Web research with sources</td>
+        <td>No</td>
+        <td>Yes — content grounded in scraped, current sources</td>
+      </tr>
+      <tr>
+        <td>EPUB / Kindle export</td>
+        <td>Pro plan and up ($39/mo); not in Standard or the $27 lifetime tier</td>
+        <td>Included with every book</td>
+      </tr>
+      <tr>
+        <td>AI images</td>
+        <td>Premium plan only ($49/mo)</td>
+        <td>Included — photographs matched to chapters, up to 15 per book</td>
+      </tr>
+      <tr>
+        <td>Cover</td>
+        <td>200+ templates to edit yourself</td>
+        <td>Designed by AI for your specific book, then quality-reviewed</td>
+      </tr>
+      <tr>
+        <td>Typesetting</td>
+        <td>Template rendering (drag-and-drop editor)</td>
+        <td>LaTeX engine — the system academic publishers use; hyphenation, running heads, real book layout</td>
+      </tr>
+      <tr>
+        <td>Pricing model</td>
+        <td>$29–249/month subscription; separate $27 lifetime funnel with paid upgrades</td>
+        <td>$9.99–19.99 one-time per book, no subscription</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    Sources: <a href="https://designrr.io/pricing/" rel="nofollow">designrr.io/pricing</a>,
+    Designrr's <a href="https://learn.designrr.io/en/articles/9121292-using-wordgenie-ai-to-create-content" rel="nofollow">Wordgenie documentation</a>,
+    and the <a href="https://go2.designrr.io/" rel="nofollow">$27 offer page</a>, all checked in June 2026.
+  </p>
+
+  <h2>What the $27 lifetime deal actually buys</h2>
+  <p>
+    Designrr's most visible offer is a $27 lifetime license. The fine print
+    matters: that tier exports PDF only. EPUB and Kindle output, PDF import and
+    watermark removal sit behind upgrade offers, and Trustpilot reviewers
+    describe the result bluntly: "basic and essential features like importing
+    PDF files are locked, and the system keeps asking me to upgrade again and
+    again." Several report total spending between $97 and $200 before the tool
+    matched the advertising. Recurring billing complaints appear in the same
+    reviews, including a user charged $97 monthly for a year after buying what
+    they believed was a one-time license
+    (<a href="https://www.trustpilot.com/review/designrr.io" rel="nofollow">Trustpilot</a>).
+  </p>
+  <p>
+    To be fair: Designrr's overall Trustpilot score is around 4.5 from several
+    hundred reviews, and people who use it for its core purpose — turning
+    existing posts into lead magnets — are often satisfied. The frustration
+    concentrates among buyers who expected the $27 banner to be the whole
+    price.
+  </p>
+
+  <h2>Writing quality: outline-filler vs researched chapters</h2>
+  <p>
+    Wordgenie, Designrr's AI writer, walks you through niche, audience and
+    title, then fills an outline with generated text. Nothing in Designrr's
+    documentation mentions research, citations or fact-checking, because the
+    feature does not gather information — it expands your prompts. For a quick
+    promotional PDF that may be acceptable. For a book a reader should trust,
+    it is the difference between content that references real, current data and
+    content that sounds plausible.
+  </p>
+  <p>
+    InkMagnet's pipeline begins with live web research on your topic. Chapters
+    are written against that material, an automatic review pass scores and
+    revises the draft, and in academic mode claims carry footnotes pointing to
+    actual sources. The whole book is then compiled with a typesetting engine
+    rather than rendered from an HTML template — which is why pages from
+    InkMagnet have proper hyphenation, drop caps and running heads.
+    <a href="/examples/">See raw pages here</a>; we publish them unretouched.
+  </p>
+
+  <h2>When Designrr is the better pick</h2>
+  <p>
+    Honesty cuts both ways. Choose Designrr if your content already exists —
+    a blog with a hundred posts, recorded webinars, podcast transcripts — and
+    the only missing step is packaging. Its transcription features and
+    flipbook output have no equivalent in InkMagnet, and an agency formatting
+    client material at volume will get value from the subscription. Choose
+    InkMagnet when the book does not exist yet and you want research, writing,
+    images, cover and typesetting handled in one run, for the price of lunch.
+  </p>
+
+  <h2>Frequently asked questions</h2>
+  {faq.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+</ArticleLayout>

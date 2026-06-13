@@ -12,9 +12,18 @@ import * as path from "path";
 import {
   S3Client,
   PutObjectCommand,
-  DeleteObjectCommand,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
+import { compileCover } from "./coverGenerator";
+import {
+  downloadProjectImages,
+  rewriteImageUrls,
+} from "../lib/projectImages";
+import {
+  repairControlCharLatex,
+  mergeSplitTableHeaders,
+} from "../lib/latexFixes";
+import { footnotesEnabled } from "../lib/types";
 
 const execAsync = promisify(exec);
 
@@ -41,91 +50,6 @@ const PAPER_SIZE: Record<string, string> = {
   a4: "a4paper",
   letter: "letterpaper",
 };
-
-async function downloadProjectImages(
-  projectId: string,
-  buildDir: string,
-): Promise<Map<string, string>> {
-  const imageMap = new Map<string, string>();
-
-  const images = await prisma.projectImage.findMany({
-    where: { projectId, source: "USER_UPLOAD" },
-    select: {
-      id: true,
-      s3Key: true,
-      s3Url: true,
-      originalName: true,
-      format: true,
-    },
-  });
-
-  if (images.length === 0) return imageMap;
-
-  const imagesDir = path.join(buildDir, "images");
-  if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
-
-  for (const img of images) {
-    const ext = img.format
-      ? `.${img.format}`
-      : path.extname(img.originalName || ".jpg");
-    const localName = `img-${img.id.substring(0, 12)}${ext}`;
-    const localPath = path.join(imagesDir, localName);
-
-    try {
-      if (process.env.AWS_ACCESS_KEY_ID && process.env.S3_BUCKET) {
-        const s3 = new S3Client({
-          region: process.env.AWS_REGION || "eu-north-1",
-          credentials: {
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-          },
-        });
-        const response = await s3.send(
-          new GetObjectCommand({
-            Bucket: process.env.S3_BUCKET!,
-            Key: img.s3Key,
-          }),
-        );
-        const chunks: Buffer[] = [];
-        for await (const chunk of response.Body as any) {
-          chunks.push(Buffer.from(chunk));
-        }
-        fs.writeFileSync(localPath, Buffer.concat(chunks));
-      } else {
-        const localUploadPath = path.join(
-          process.cwd(),
-          "tmp",
-          "uploads",
-          projectId,
-          path.basename(img.s3Key),
-        );
-        if (fs.existsSync(localUploadPath)) {
-          fs.copyFileSync(localUploadPath, localPath);
-        } else {
-          console.warn(`  ⚠️ Image not found locally: ${localUploadPath}`);
-          continue;
-        }
-      }
-      if (img.s3Url) imageMap.set(img.s3Url, `images/${localName}`);
-      console.log(`  🖼️  Downloaded: ${img.originalName} → ${localName}`);
-    } catch (err) {
-      console.error(`  ⚠️ Failed to download image ${img.originalName}:`, err);
-    }
-  }
-  return imageMap;
-}
-
-function rewriteImageUrls(
-  latex: string,
-  imageMap: Map<string, string>,
-): string {
-  let result = latex;
-  for (const [url, localPath] of imageMap) {
-    result = result.split(url).join(localPath);
-    console.log(`  🖼️  Map: ${url.substring(0, 80)}... → ${localPath}`);
-  }
-  return result;
-}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Compile: assemble .tex → pdflatex → version → upload S3
@@ -172,6 +96,49 @@ export async function compileBook(projectId: string) {
       ? JSON.parse(project.customColors)
       : undefined;
 
+    // ── 1.5 Compile the cover FIRST and include it in the main document.
+    // The old flow merged it afterwards with pdfunite/pdftk, which destroyed
+    // the internal TOC link destinations (links clicked but went nowhere).
+    let coverPdfFile: string | undefined;
+    if (project.coverType && project.coverType !== "NONE") {
+      try {
+        // AI-designed cover first (unique, designed+reviewed by the model);
+        // the classic parametric generator remains the safety net. Uploaded
+        // custom covers always go through the classic path untouched.
+        let coverResult: { pdfPath: string } | null = null;
+        if (
+          project.coverType === "GENERATED" &&
+          process.env.COVER_DESIGNER !== "off"
+        ) {
+          try {
+            const { designCover } = await import("./coverDesigner");
+            coverResult = await designCover(projectId, {
+              step: (m: string) => console.log(m),
+              ok: (m: string) => console.log(m),
+              warn: (m: string) => console.warn(m),
+            });
+          } catch (e: any) {
+            console.warn(`  🎨 Cover designer failed (${e.message}) — falling back`);
+          }
+        }
+        if (!coverResult) {
+          coverResult = await compileCover(projectId);
+        }
+        if (fs.existsSync(coverResult.pdfPath)) {
+          fs.copyFileSync(
+            coverResult.pdfPath,
+            path.join(buildDir, "cover.pdf"),
+          );
+          coverPdfFile = "cover.pdf";
+          console.log("  📕 Cover compiled — included via pdfpages");
+        }
+      } catch (coverErr: any) {
+        console.error(
+          `  ⚠️ Cover compile failed (non-fatal): ${coverErr.message}`,
+        );
+      }
+    }
+
     const texContent = assembleLatexDocument({
       title: bookTitle,
       language: project.language,
@@ -184,6 +151,9 @@ export async function compileBook(projectId: string) {
       colophonText: project.colophonText,
       colophonFontSize: project.colophonFontSize,
       colophonEnabled: project.colophonEnabled ?? false,
+      coverType: project.coverType,
+      stripFootnotes: !footnotesEnabled(project),
+      coverPdfFile,
       chapters: readyChapters,
     });
 
@@ -205,8 +175,11 @@ export async function compileBook(projectId: string) {
         );
         try {
           await execAsync(
-            `pdflatex -interaction=nonstopmode -output-directory="${buildDir}" "${texPath}"`,
-            { timeout: 120000, maxBuffer: 10 * 1024 * 1024 },
+            `lualatex -interaction=nonstopmode -output-directory="${buildDir}" "${texPath}"`,
+            // cwd matters: \includepdf{cover.pdf} and images/ are resolved
+            // relative to the process cwd, not -output-directory (TeX Live;
+            // MiKTeX on the dev box searches the output dir, hence it "worked")
+            { timeout: 180000, maxBuffer: 10 * 1024 * 1024, cwd: buildDir },
           );
         } catch (err: any) {
           if (pass === 2 && !fs.existsSync(pdfPath)) {
@@ -264,6 +237,19 @@ export async function compileBook(projectId: string) {
       // pdfinfo might not be available — no problem
     }
 
+    // (Cover is included via pdfpages during the main compile — no merge step.
+    // pageCount from pdfinfo already includes the cover and its blank verso.)
+
+    // A "successful" run can still produce a near-empty PDF when LaTeX aborts
+    // mid-document (e.g. a missing babel language file) — a 1-page stub must
+    // never reach the user as a finished book.
+    const MIN_BOOK_PAGES = 4;
+    if (pdfSize < 20 * 1024 || (pageCount !== null && pageCount < MIN_BOOK_PAGES)) {
+      throw new Error(
+        `Compiled PDF looks broken (${(pdfSize / 1024).toFixed(0)} KB, ${pageCount ?? "?"} pages) — check ${path.join(buildDir, "book.log")}`,
+      );
+    }
+
     // ── 3. Version management ──
     const newVersion = project.currentVersion + 1;
     const sanitizedTitle = sanitizeFilename(bookTitle);
@@ -310,6 +296,8 @@ export async function compileBook(projectId: string) {
         ),
         fileSize: pdfSize,
         pageCount,
+        coverPdfS3Key: project.coverPdfS3Key || null, // ← ADD
+        coverPdfLocalPath: project.coverPdfLocalPath || null, // ← ADD
         note:
           newVersion === 1 ? "Initial generation" : "Recompiled after editing",
       },
@@ -428,6 +416,10 @@ interface AssembleParams {
   colophonText?: string | null;
   colophonFontSize?: number | null;
   colophonEnabled?: boolean;
+  coverType?: string; // when a real cover is merged, skip the internal title page
+  /** popular books (footnoteMode off) — remove any \footnote the model emitted anyway */
+  stripFootnotes?: boolean;
+  coverPdfFile?: string; // pre-compiled cover PDF (relative to build dir) — included via pdfpages
   chapters: {
     chapterNumber: number;
     title: string;
@@ -469,15 +461,16 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
+  // LuaLaTeX + fontspec: real OTF fonts (no inputenc/fontenc needed).
+  // Font pairing is chosen per Visual Style preset (see getFontSetup).
   add(
-    "\\usepackage[utf8]{inputenc}",
-    "\\usepackage[T1]{fontenc}",
+    "\\usepackage{fontspec}",
+    "\\defaultfontfeatures{Ligatures=TeX}",
     "\\usepackage[" + babel + "]{babel}",
     "",
   );
 
-  add("\\usepackage{lmodern}");
-  if (styleConfig.fontPackages) add(styleConfig.fontPackages);
+  add(getFontSetup(p.stylePreset));
   add("");
 
   add(
@@ -494,29 +487,65 @@ function assembleLatexDocument(p: AssembleParams): string {
   add(colorsBlock);
   add("");
 
-  // ── Headers/footers (unchanged) ──
+  // ── Headers/footers: subtle, lowercase, truncated (no ugly ALL-CAPS overflow) ──
   add(
     "\\usepackage{fancyhdr}",
+    "\\usepackage{truncate}",
     "\\pagestyle{fancy}",
     "\\fancyhf{}",
-    "\\fancyhead[LE]{\\small\\textcolor{headergray}{\\textit{\\leftmark}}}",
-    "\\fancyhead[RO]{\\small\\textcolor{headergray}{\\textit{\\rightmark}}}",
-    "\\fancyfoot[C]{\\textcolor{headergray}{\\thepage}}",
+    // Strip the default ALL-CAPS + 'Chapter N.' prefix from running marks
+    "\\renewcommand{\\chaptermark}[1]{\\markboth{#1}{}}",
+    "\\renewcommand{\\sectionmark}[1]{\\markright{#1}}",
+    // Chapter title (outer), section title (inner) — small sans, gray, ellipsised if long
+    "\\fancyhead[LE]{\\footnotesize\\sffamily\\textcolor{headergray}{\\truncate{0.9\\headwidth}{\\leftmark}}}",
+    "\\fancyhead[RO]{\\footnotesize\\sffamily\\textcolor{headergray}{\\truncate{0.9\\headwidth}{\\rightmark}}}",
+    "\\fancyfoot[C]{\\small\\sffamily\\textcolor{headergray}{\\thepage}}",
     "\\renewcommand{\\headrulewidth}{0.4pt}",
     "\\renewcommand{\\headrule}{\\hbox to\\headwidth{\\color{rulecolor}\\leaders\\hrule height \\headrulewidth\\hfill}}",
     "\\fancypagestyle{plain}{",
     "  \\fancyhf{}",
-    "  \\fancyfoot[C]{\\textcolor{headergray}{\\thepage}}",
+    "  \\fancyfoot[C]{\\small\\sffamily\\textcolor{headergray}{\\thepage}}",
     "  \\renewcommand{\\headrulewidth}{0pt}",
     "}",
     "",
   );
 
-  // ── titlesec — NOTE: chapter style is defined LATER, after TOC ──
+  // ── titlesec: chapter + section styles in the PREAMBLE (declaring them in the
+  //    document body made titlesec dump a stray "0pt" on the first page) ──
   add("\\usepackage{titlesec}");
-  // Section/subsection styles go here (they don't affect TOC heading)
-  add(styleConfig.sectionStyle);
+  add(styleConfig.chapterStyle);
+  // Numberless chapters (TOC heading "Spis treści", etc.) — clean block format so
+  // titlesec does NOT leak the display 'sep' value (e.g. a stray "0pt") onto the page.
+  add(
+    "\\titleformat{name=\\chapter,numberless}{\\normalfont\\headingfont\\Huge\\bfseries\\color{chaptercolor}}{}{0pt}{}",
+    "\\titlespacing*{name=\\chapter,numberless}{0pt}{30pt}{30pt}",
+  );
+  // Polish convention: trailing dot after the number ("1.1. Tytuł", not "1.1 Tytuł")
+  add(
+    styleConfig.sectionStyle
+      .replace(/\\thesection(?=\})/g, "\\thesection.")
+      .replace(/\\thesubsection(?=\})/g, "\\thesubsection."),
+  );
+  add(
+    "\\titleformat{\\subsubsection}{\\normalfont\\normalsize\\bfseries\\color{sectioncolor}}{\\thesubsubsection.}{1em}{}",
+  );
   add("");
+
+  // ── Page-break hygiene ──
+  add(
+    "\\usepackage{needspace}",
+    // A section title's underline (titlerule) must not orphan onto the next page
+    "\\let\\bforigsection\\section",
+    "\\renewcommand{\\section}{\\needspace{4\\baselineskip}\\bforigsection}",
+    // Blank verso pages inserted before chapters must not carry running heads
+    "\\makeatletter",
+    "\\renewcommand{\\cleardoublepage}{\\clearpage\\if@twoside\\ifodd\\c@page\\else\\hbox{}\\thispagestyle{empty}\\newpage\\fi\\fi}",
+    "\\makeatother",
+    "\\widowpenalty=10000",
+    "\\clubpenalty=10000",
+    "\\displaywidowpenalty=10000",
+    "",
+  );
 
   // ── Typography (unchanged) ──
   add(
@@ -560,9 +589,23 @@ function assembleLatexDocument(p: AssembleParams): string {
 
   add("\\usepackage{graphicx}");
   add("\\usepackage{wrapfig}");
+  add("\\usepackage{pdfpages}");
+
+  // ── Drop caps (lettrine) for chapter openings ──
+  add(
+    "\\usepackage{lettrine}",
+    "\\setcounter{DefaultLines}{2}",
+    "\\renewcommand{\\LettrineFontHook}{\\color{chaptercolor}\\headingfont}",
+    "",
+  );
 
   // ── TikZ + tcolorbox (unchanged) ──
-  add("\\usepackage{tikz}", "\\usepackage[skins,breakable]{tcolorbox}", "");
+  add(
+    "\\usepackage{tikz}",
+    "\\usetikzlibrary{shadows.blur, chains, arrows.meta, positioning}",
+    "\\usepackage[skins,breakable]{tcolorbox}",
+    "",
+  );
 
   // ── Colored boxes: tipbox, keyinsight, warningbox, examplebox (unchanged) ──
   add(
@@ -570,17 +613,18 @@ function assembleLatexDocument(p: AssembleParams): string {
     "  enhanced, breakable,",
     "  colback=tipbg, colframe=tipframe,",
     "  boxrule=0pt, leftrule=3.5pt,",
-    "  arc=0pt, outer arc=0pt,",
-    "  left=10pt, right=10pt, top=8pt, bottom=8pt,",
+    "  arc=2pt, outer arc=2pt, drop fuzzy shadow={black!18},",
+    // top=14pt: the attached title dips ~2mm into the box — smaller padding
+    // made it overlap the first body line
+    "  left=10pt, right=10pt, top=14pt, bottom=8pt,",
     "  fonttitle=\\bfseries\\small\\color{tipframe},",
     "  title={#1},",
     "  before upper={\\parindent0pt\\small},",
-    "  top=4pt,",
     "  attach boxed title to top left={yshift=-2mm, xshift=4mm},",
     "  boxed title style={",
     "    colback=tipbg, colframe=tipbg,",
     "    boxrule=0pt, arc=0pt,",
-    "    left=2pt, right=2pt, top=1pt, bottom=1pt",
+    "    left=2pt, right=2pt, top=0.5pt, bottom=0.5pt",
     "  }",
     "}",
     "",
@@ -591,8 +635,8 @@ function assembleLatexDocument(p: AssembleParams): string {
     "  enhanced, breakable,",
     "  colback=keybg, colframe=keyframe,",
     "  boxrule=0.8pt,",
-    "  arc=4pt, outer arc=4pt,",
-    "  left=10pt, right=10pt, top=8pt, bottom=8pt,",
+    "  arc=4pt, outer arc=4pt, drop fuzzy shadow={black!18},",
+    "  left=10pt, right=10pt, top=12pt, bottom=8pt,",
     "  fonttitle=\\bfseries\\small\\color{white},",
     "  title={#1},",
     "  before upper={\\parindent0pt\\small},",
@@ -611,17 +655,16 @@ function assembleLatexDocument(p: AssembleParams): string {
     "  enhanced, breakable,",
     "  colback=warnbg, colframe=warnframe,",
     "  boxrule=0pt, leftrule=3.5pt,",
-    "  arc=0pt, outer arc=0pt,",
-    "  left=10pt, right=10pt, top=8pt, bottom=8pt,",
+    "  arc=2pt, outer arc=2pt, drop fuzzy shadow={black!18},",
+    "  left=10pt, right=10pt, top=14pt, bottom=8pt,",
     "  fonttitle=\\bfseries\\small\\color{warnframe},",
     "  title={#1},",
     "  before upper={\\parindent0pt\\small},",
-    "  top=4pt,",
     "  attach boxed title to top left={yshift=-2mm, xshift=4mm},",
     "  boxed title style={",
     "    colback=warnbg, colframe=warnbg,",
     "    boxrule=0pt, arc=0pt,",
-    "    left=2pt, right=2pt, top=1pt, bottom=1pt",
+    "    left=2pt, right=2pt, top=0.5pt, bottom=0.5pt",
     "  }",
     "}",
     "",
@@ -632,17 +675,65 @@ function assembleLatexDocument(p: AssembleParams): string {
     "  enhanced, breakable,",
     "  colback=exbg, colframe=exframe,",
     "  boxrule=0.6pt,",
-    "  arc=4pt, outer arc=4pt,",
-    "  left=10pt, right=10pt, top=8pt, bottom=8pt,",
-    "  fonttitle=\\bfseries\\small\\color{exframe},",
+    "  arc=4pt, outer arc=4pt, drop fuzzy shadow={black!18},",
+    "  left=10pt, right=10pt, top=14pt, bottom=8pt,",
+    // exframe is a light gray — 80% black keeps the title legible on exbg
+    "  fonttitle=\\bfseries\\small\\color{exframe!20!black},",
     "  title={#1},",
     "  before upper={\\parindent0pt\\small},",
     "  attach boxed title to top left={yshift=-2mm, xshift=4mm},",
     "  boxed title style={",
     "    colback=exbg, colframe=exbg,",
     "    boxrule=0pt, arc=0pt,",
-    "    left=2pt, right=2pt, top=1pt, bottom=1pt",
+    "    left=2pt, right=2pt, top=0.5pt, bottom=0.5pt",
     "  }",
+    "}",
+    "",
+  );
+
+  // ━━━ Rich visual MACROS — model supplies only data, never raw TikZ ━━━
+  // These live in the template (written once, always compile), giving rich
+  // graphics without exposing the model to fragile TikZ.
+  add(
+    "% \\pullquote{text} — large elegant pull quote",
+    "\\newcommand{\\pullquote}[1]{%",
+    "  \\par\\vspace{12pt}\\noindent",
+    "  \\begin{tcolorbox}[blanker, breakable, left=2.2em, right=1em, top=2pt, bottom=2pt,",
+    "    borderline west={2.5pt}{0pt}{accent}]",
+    "    {\\color{chaptercolor}\\Large\\itshape #1}",
+    "  \\end{tcolorbox}\\vspace{10pt}\\par",
+    "}",
+    "",
+    "% \\bignumber{value}{label} — big statistic callout",
+    "\\newcommand{\\bignumber}[2]{%",
+    "  \\par\\vspace{8pt}\\noindent\\begin{minipage}{\\linewidth}\\centering",
+    "  {\\headingfont\\bfseries\\color{accent}\\fontsize{40}{44}\\selectfont #1}\\\\[3pt]",
+    "  {\\sffamily\\small\\color{sectioncolor}#2}",
+    "  \\end{minipage}\\vspace{6pt}\\par",
+    "}",
+    "",
+    "% \\stepflow{A, B, C, ...} — horizontal process flow (any number of steps)",
+    "\\newcommand{\\stepflow}[1]{%",
+    "  \\par\\vspace{10pt}\\begin{center}",
+    "  \\resizebox{\\linewidth}{!}{%",
+    "  \\begin{tikzpicture}[start chain=going right, node distance=7mm,",
+    "    stepbox/.style={draw=accent, line width=0.6pt, fill=accent!8,",
+    "      rounded corners=3pt, text width=2.0cm, align=center, minimum height=1.05cm,",
+    "      inner sep=3pt, font=\\footnotesize\\sffamily, on chain,",
+    "      join=by {-{Latex[length=2.2mm]}, accent, line width=0.7pt}}]",
+    "    \\foreach \\stp in {#1} { \\node[stepbox] {\\stp}; }",
+    "  \\end{tikzpicture}}",
+    "  \\end{center}\\vspace{8pt}\\par",
+    "}",
+    "",
+    "% \\concept{title}{description} — definition / concept callout",
+    "\\newcommand{\\concept}[2]{%",
+    "  \\par\\vspace{6pt}",
+    "  \\begin{tcolorbox}[enhanced, breakable, colback=accent!6, colframe=accent,",
+    "    boxrule=0pt, leftrule=3.5pt, arc=2pt, drop fuzzy shadow={black!15},",
+    "    left=10pt, right=10pt, top=7pt, bottom=7pt, before upper={\\parindent0pt}]",
+    "    {\\sffamily\\bfseries\\color{accent}#1}\\par\\vspace{2pt}\\small #2",
+    "  \\end{tcolorbox}\\par",
     "}",
     "",
   );
@@ -697,6 +788,14 @@ function assembleLatexDocument(p: AssembleParams): string {
     "\\renewcommand{\\cftchapdotsep}{2.5}",
     "\\setlength{\\cftbeforechapskip}{6pt}",
     "",
+    "% ── Trailing dots after section numbers (e.g. 1.2. instead of 1.2) ──",
+    "\\renewcommand{\\cftchapaftersnum}{.}",
+    "\\renewcommand{\\cftsecaftersnum}{.}",
+    "\\renewcommand{\\cftsubsecaftersnum}{.}",
+    "\\makeatletter",
+    "\\renewcommand{\\@seccntformat}[1]{\\csname the#1\\endcsname.\\quad}",
+    "\\makeatother",
+    "",
   );
 
   add("\\graphicspath{{./images/}{./}}");
@@ -704,8 +803,20 @@ function assembleLatexDocument(p: AssembleParams): string {
 
   add("\\begin{document}", "");
 
-  // ━━━ TITLE PAGE — all elements absolutely positioned ━━━
-  add(
+  if (p.coverPdfFile) {
+    add(
+      "% ── Cover included natively (pdfunite/pdftk merging killed TOC links) ──",
+      `\\includepdf[pages=1]{${p.coverPdfFile}}`,
+      "\\null\\thispagestyle{empty}\\newpage",
+      "\\setcounter{page}{1}",
+      "",
+    );
+  }
+
+  // ━━━ TITLE PAGE (internal) — skipped when a real cover PDF is merged in ━━━
+  const includeInternalTitlePage = !p.coverType || p.coverType === "NONE";
+  if (includeInternalTitlePage) {
+    add(
     "\\begin{titlepage}",
     "\\thispagestyle{empty}",
     "",
@@ -754,7 +865,8 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
     "\\end{titlepage}",
     "",
-  );
+    );
+  }
 
   // ━━━ COLOPHON / COPYRIGHT PAGE ━━━
   if (p.colophonEnabled && p.colophonText) {
@@ -812,11 +924,6 @@ function assembleLatexDocument(p: AssembleParams): string {
   // Use temporary chapter format (black) for the TOC heading,
   // then set the real colored chapter format for book content.
   add(
-    "% ── TOC with BLACK heading ──",
-    "\\titleformat{\\chapter}[display]",
-    "  {\\normalfont\\huge\\bfseries}{}{0pt}{\\Huge\\color{black}}",
-    "\\titlespacing*{\\chapter}{0pt}{50pt}{30pt}",
-    "",
     "{",
     "  \\hypersetup{linkcolor=black}",
     "  \\tableofcontents",
@@ -825,21 +932,11 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ★★★ CHAPTER STYLE — defined AFTER TOC ★★★
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // This ensures the TOC heading is black, but all book
-  // chapters use the colored style from the preset.
-  add(
-    "% ── Restore chapter style for book content ──",
-    styleConfig.chapterStyle,
-    "",
-  );
-
   // ── Chapter content ──
   for (const ch of p.chapters) {
     if (ch.latexContent) {
-      let content = sanitizeChapterLatex(ch.latexContent);
+      let content = sanitizeChapterLatex(ch.latexContent, p.language);
+      if (p.stripFootnotes) content = removeFootnotes(content);
 
       // ── DEBUG: Check for image commands before rewriting ──
       const imgCmds = content.match(/\\includegraphics[^{]*\{[^}]+\}/g) || [];
@@ -1056,8 +1153,233 @@ function fixSectionArguments(latex: string): string {
   return result;
 }
 
-function sanitizeChapterLatex(latex: string): string {
-  let result = latex;
+/**
+ * Strip model self-commentary that leaked into book content.
+ * The continuation model sometimes explains itself in English
+ * ("The previous output ended mid-table... Here is the clean continuation...").
+ * Such a line is never valid book content — remove the whole paragraph.
+ */
+/**
+ * Wrap the first letter of a chapter's opening paragraph in a \lettrine drop cap.
+ * Only fires when that paragraph starts with a capital letter (never on a command
+ * or a quote), so it is always safe. One drop cap per chapter.
+ */
+function addDropCap(latex: string): string {
+  return latex.replace(
+    /(\\chapter\{[^\n]*\}[ \t]*\n\s*\n[ \t]*)([A-ZŁŚŻŹĆĄĘÓŃ])([A-Za-ząćęłńóśźżĄĆĘŁŃÓŚŹŻ]+)/u,
+    (_m, head, first, rest) => `${head}\\lettrine{${first}}{${rest}}`,
+  );
+}
+
+export function stripModelMeta(latex: string): string {
+  const META =
+    /^.*\b(the previous output|clean continuation|picking up (from|where)|rewriting the (table|remainder|rest)|here is the (clean|corrected|continuation)|ended mid-(table|sentence|environment)|continuing from where|as (requested|instructed)|i(?:'ll| will) (now |)continue)\b.*$/gim;
+  return latex.replace(META, "");
+}
+
+/**
+ * Drop tables whose braces are unbalanced — i.e. truncated or garbled tables
+ * (e.g. a cell cut off as `\textcolor{table`). A missing table is acceptable;
+ * a broken one is a fatal `Missing \cr` / runaway-argument compile error.
+ */
+export function dropBrokenTables(latex: string): string {
+  return latex.replace(
+    /\\begin\{table\}[\s\S]*?\\end\{table\}\}?/g,
+    (block: string) => {
+      if (tabularIsBroken(block)) {
+        console.log("  🔧 Dropped structurally-broken table");
+        return "";
+      }
+      return block;
+    },
+  );
+}
+
+/**
+ * A table is broken if a row terminator `\\` appears while a brace group is
+ * still open — i.e. a cell was cut off mid-command (e.g. `\textcolor{table \\`).
+ * This is robust against a stray balancing `}` elsewhere in the block.
+ */
+function tabularIsBroken(block: string): boolean {
+  let depth = 0;
+  for (let i = 0; i < block.length; i++) {
+    // A row/table ending while a brace group is still open = truncated cell.
+    if (block.startsWith("\\end{tabular", i)) {
+      if (depth > 0) return true;
+      i += "\\end{tabular".length - 1;
+      continue;
+    }
+    const c = block[i];
+    if (c === "\\") {
+      if (block[i + 1] === "\\") {
+        // row terminator "\\" while inside an open group → broken row
+        if (depth > 0) return true;
+        i++; // consume the second backslash
+        continue;
+      }
+      i++; // escaped char / command start — skip next char (handles \{ \} \& \%)
+      continue;
+    }
+    if (c === "{") depth++;
+    else if (c === "}") depth = Math.max(0, depth - 1);
+  }
+  return false;
+}
+
+/**
+ * Remove phantom row terminators that trigger
+ * "Missing \cr before \end{tabularx}". A `\\` directly after a booktabs rule
+ * or directly before `\end{tabular(x)}` creates an empty trailing row.
+ */
+export function fixTableRowTerminators(latex: string): string {
+  return latex
+    .replace(/(\\(?:top|mid|bottom)rule)\s*\\\\/g, "$1")
+    .replace(/\\\\\s*(?=\s*\\end\{tabularx?\})/g, "");
+}
+
+/** Remove \footnote{...} with balanced-brace matching (footnotes may nest braces). */
+function removeFootnotes(latex: string): string {
+  let out = "";
+  let i = 0;
+  while (i < latex.length) {
+    const idx = latex.indexOf("\\footnote{", i);
+    if (idx === -1) {
+      out += latex.slice(i);
+      break;
+    }
+    out += latex.slice(i, idx);
+    let depth = 0;
+    let j = idx + "\\footnote".length;
+    do {
+      const c = latex[j];
+      if (c === "{" && latex[j - 1] !== "\\") depth++;
+      else if (c === "}" && latex[j - 1] !== "\\") depth--;
+      j++;
+    } while (j < latex.length && depth > 0);
+    i = j;
+  }
+  return out;
+}
+
+function sanitizeChapterLatex(latex: string, language: string = "en"): string {
+  let result = repairControlCharLatex(latex);
+  result = mergeSplitTableHeaders(result);
+  // Roundtrip corruption: \begin{tipbox}\n\textbackslash{}\{Title\textbackslash{}\}
+  // Should be: \begin{tipbox}{Title}
+  for (const box of ["tipbox", "keyinsight", "warningbox", "examplebox"]) {
+    result = result.replace(
+      new RegExp(
+        `(\\\\begin\\{${box}\\})\\s*\\n\\s*(?:\\\\textbackslash\\{\\})*\\\\\\{(.+?)(?:\\\\textbackslash\\{\\})*\\\\\\}`,
+        "g",
+      ),
+      (_match: string, begin: string, title: string) => {
+        const cleanTitle = title.replace(/\\textbackslash\{\}/g, "").trim();
+        console.log(
+          `  🔧 Box title fix: \\begin{${box}}{${cleanTitle.substring(0, 50)}}`,
+        );
+        return `${begin}{${cleanTitle}}`;
+      },
+    );
+  }
+
+  // ━━━ FIX 1b: Box titles — brace syntax → optional-arg syntax ━━━
+  // The tcolorbox envs are defined as \newtcolorbox{tipbox}[1][]{...title={#1}...},
+  // i.e. the title is an OPTIONAL [arg]. The model (and the EPUB converter)
+  // use \begin{tipbox}{Title} — in PDF that brace group rendered as plain body
+  // text glued to the first sentence. Convert for LaTeX only.
+  for (const box of ["tipbox", "keyinsight", "warningbox", "examplebox"]) {
+    result = result.replace(
+      new RegExp(
+        `\\\\begin\\{${box}\\}\\{((?:[^{}]|\\{[^{}]*\\})*)\\}`,
+        "g",
+      ),
+      (_m: string, title: string) =>
+        `\\begin{${box}}[${title.replace(/\]/g, ")")}]`,
+    );
+  }
+
+  // ━━━ FIX 2: Strip orphan \section{} content before first \chapter{} ━━━
+  // Prevents sections being numbered as 0.1, 0.2, etc. in TOC
+  const firstChapterIdx = result.indexOf("\\chapter{");
+  if (firstChapterIdx > 0) {
+    const beforeChapter = result.substring(0, firstChapterIdx);
+    if (/\\section\{/.test(beforeChapter)) {
+      result = result.substring(firstChapterIdx);
+      console.log(
+        `  🔧 Stripped ${beforeChapter.length} chars of orphan sections before first \\chapter{}`,
+      );
+    }
+  }
+
+  // ━━━ FIX 3: Ensure spacing around em-dashes and en-dashes ━━━
+  // "word---word" → "word --- word", "word--word" → "word -- word"
+  // Digits are excluded: number ranges (5--15, s.~228--229) must stay tight.
+  result = result.replace(/([^\s\\{}\d-])---([^\s\\{}\d-])/g, "$1 --- $2");
+  result = result.replace(/([^\s\\{}\d-])--([^\s\\{}\d-])/g, "$1 -- $2");
+  // Collapse spaced number ranges the model produced itself: "228 -- 229" → "228--229"
+  result = result.replace(/(\d)\s*---?\s*(\d)/g, "$1--$2");
+  result = result.replace(/\b([IVX]{1,4})\s+---?\s+([IVX]{1,4})\b/g, "$1--$2");
+
+  // ━━━ FIX 3b: Quote normalization ━━━
+  // A straight `"` is an ACTIVE character under babel/polish (shorthand system):
+  // `" j` eats the following space, `" -` becomes an invisible optional hyphen.
+  // Normalize: closing straight quote → '' , opening straight quote → ,, (pl) / `` (else).
+  result = result.replace(/(?<![\s\\])"/g, "''");
+  result = result.replace(/(?<!\\)"(?=\S)/g, language === "pl" ? ",," : "``");
+  // Model sometimes CLOSES a quote with ,, (opening mark) — flip to ''
+  result = result.replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1''");
+  // Ensure a space after a closing quote glued to the next word: ''word → '' word
+  result = result.replace(/''(?=[\p{L}\d])/gu, "'' ");
+  // Polish typography: tie single-letter words (a/i/o/u/w/z) to the next
+  // word with ~ so they never hang at line ends ("sierotki")
+  result = result.replace(
+    /(^|[\s(~])([aiouwzAIOUWZ])[ \t]+(?=[^\s\\&%—–-])/gm,
+    "$1$2~",
+  );
+
+  // ━━━ FIX 4: Table header corruption — column spec leaking into \textbf{} ━━━
+  // Pattern: \textbf{\{X X X\}\n\textbf{\n\textbf{Real Header}}} → \textbf{Real Header}
+  result = result.replace(
+    /\\textbf\{\\?\{[lcrXp|\s.{}0-9cm]+\\?\}\s*\\textbf\{\s*\\textbf\{([^}]+)\}\}\}/g,
+    "\\textbf{$1}",
+  );
+  // Flatten remaining triple \textbf nesting: \textbf{\textbf{\textbf{X}}} → \textbf{X}
+  result = result.replace(
+    /\\textbf\{\\textbf\{\\textbf\{([^}]*)\}\}\}/g,
+    "\\textbf{$1}",
+  );
+
+  // ━━━ FIX 5: Corrupted LaTeX commands from roundtrip escaping ━━━
+  // \textbackslash{}textless\textbackslash{}\{...\} → \textless{}
+  result = result.replace(/\\textbackslash\{\}textless/g, "\\textless{}");
+  result = result.replace(
+    /\\textless\{\}(?:\\textbackslash\{\})*\\?\{(?:\\textbackslash\{\})*\\?\}/g,
+    "\\textless{}",
+  );
+  result = result.replace(/\\textbackslash\{\}textgreater/g, "\\textgreater{}");
+  // $\textbackslash{}rightarrow$ → $\rightarrow$
+  result = result.replace(
+    /\$\\textbackslash\{\}rightarrow\$/g,
+    "$\\rightarrow$",
+  );
+
+  // ━━━ FIX 6: Normalize quotation marks ━━━
+  // Unicode Polish quotes → LaTeX notation
+  result = result.replace(/\u201E/g, ",,"); // „ → ,,
+  result = result.replace(/\u201D/g, "''"); // " → ''
+  // ASCII straight quotes → Polish LaTeX quotes (short strings only)
+  result = result.replace(/(?<!,)"([^"\n]{1,300}?)"(?!')/g, ",,$1''");
+
+  // ━━━ FIX 6b: Table & meta-commentary hardening (compile-survival) ━━━
+  // The biggest source of fatal compile errors. Three robust passes:
+  //   1) strip model self-talk that leaked into the book (e.g. continuation prose)
+  //   2) drop tables with unbalanced braces (truncated/garbled — better gone than fatal)
+  //   3) remove phantom row terminators that cause "Missing \cr before \end{tabularx}"
+  result = stripModelMeta(result);
+  result = dropBrokenTables(result);
+  result = fixTableRowTerminators(result);
+  result = addDropCap(result);
+
   // ── Escape unescaped % signs — in LaTeX % starts a comment ──
   // Chapter content should never have intentional % comments.
   // Unescaped % in \section{} titles is FATAL (hides closing brace).
@@ -1249,6 +1571,12 @@ function sanitizeChapterLatex(latex: string): string {
         // Skip lines without & (pure commands etc.)
         if (!trimmed.includes("&")) return line;
 
+        // A line ENDING with "&" is a continuation of a multi-line row
+        // (e.g. a header written one cell per physical line — valid LaTeX).
+        // Padding it with empty cells + \\ would split one logical row
+        // into several broken ones (the invisible-header bug).
+        if (trimmed.endsWith("&")) return line;
+
         // Extract row content (before \\)
         const rowMatch = trimmed.match(/^(.+?)(\s*\\\\)?\s*$/);
         if (!rowMatch) return line;
@@ -1292,6 +1620,12 @@ function sanitizeChapterLatex(latex: string): string {
   result = result.replace(/([^\\])\n(\s*\\end\{tabularx\})/g, "$1 \\\\\n$2");
   // Also handle case where \end{tabularx} is preceded by \end{table}
   result = result.replace(/([^\\])\n(\s*\\end\{tabular\})/g, "$1 \\\\\n$2");
+
+  // ── Corrective: the three helpers above blindly add \\ before a rule/\end,
+  //    which wrongly produces "\bottomrule \\" or "\\ \end{tabularx}" — a phantom
+  //    empty row that triggers the fatal "Missing \cr". Strip those. ──
+  result = result.replace(/(\\(?:top|mid|bottom)rule)\s*\\\\/g, "$1");
+  result = result.replace(/\\\\(\s*\\end\{tabularx?\})/g, "$1");
 
   // ── Final cleanup ──
   result = result.replace(/\n{4,}/g, "\n\n\n");
@@ -1572,30 +1906,40 @@ function deriveColorsFromCustom(colors: string[]): string {
   const primary = colors[0];
   const secondary = colors.length >= 2 ? colors[1] : rotateHue(primary, 150);
   const tertiary = colors.length >= 3 ? colors[2] : rotateHue(primary, 210);
+  // Headings, links and box frames print on white paper. A near-white pick
+  // (users choose white for dark COVERS) made every heading invisible — the
+  // "kuchnia śródziemnomorska" book shipped with chaptercolor=FFFFFF. For
+  // "ink" roles use the darkest readable pick; fall back to a 55% shade.
+  const READABLE = 0.62;
+  const ink =
+    [primary, secondary, tertiary].find((c) => luminance(c) <= READABLE) ??
+    shade(primary, 0.55);
+  const sec = luminance(secondary) <= READABLE ? secondary : ink;
+  const ter = luminance(tertiary) <= READABLE ? tertiary : ink;
   const isDark = luminance(primary) < 0.4;
   return [
     "% ── Custom color palette ──",
-    "\\definecolor{chaptercolor}{HTML}{" + stripHash(primary) + "}",
-    "\\definecolor{sectioncolor}{HTML}{" + stripHash(shade(primary, 0.2)) + "}",
-    "\\definecolor{accent}{HTML}{" + stripHash(primary) + "}",
-    "\\definecolor{rulecolor}{HTML}{" + stripHash(tint(primary, 0.7)) + "}",
+    "\\definecolor{chaptercolor}{HTML}{" + stripHash(ink) + "}",
+    "\\definecolor{sectioncolor}{HTML}{" + stripHash(shade(ink, 0.2)) + "}",
+    "\\definecolor{accent}{HTML}{" + stripHash(ink) + "}",
+    "\\definecolor{rulecolor}{HTML}{" + stripHash(tint(ink, 0.7)) + "}",
     "\\definecolor{headergray}{HTML}{6B7280}",
-    "\\definecolor{quotegray}{HTML}{" + stripHash(shade(primary, 0.15)) + "}",
+    "\\definecolor{quotegray}{HTML}{" + stripHash(shade(ink, 0.15)) + "}",
     "\\definecolor{captiongray}{HTML}{4B5563}",
     "\\definecolor{subtitlegray}{HTML}{6B7280}",
-    "\\definecolor{linkcolor}{HTML}{" + stripHash(primary) + "}",
+    "\\definecolor{linkcolor}{HTML}{" + stripHash(ink) + "}",
     "\\definecolor{titletextcolor}{HTML}{" +
       (isDark ? "FFFFFF" : "1F2937") +
       "}",
-    "\\definecolor{tipbg}{HTML}{" + stripHash(tint(secondary, 0.92)) + "}",
-    "\\definecolor{tipframe}{HTML}{" + stripHash(shade(secondary, 0.1)) + "}",
-    "\\definecolor{keybg}{HTML}{" + stripHash(tint(primary, 0.92)) + "}",
-    "\\definecolor{keyframe}{HTML}{" + stripHash(primary) + "}",
-    "\\definecolor{warnbg}{HTML}{" + stripHash(tint(tertiary, 0.92)) + "}",
-    "\\definecolor{warnframe}{HTML}{" + stripHash(shade(tertiary, 0.1)) + "}",
-    "\\definecolor{exbg}{HTML}{" + stripHash(tint(secondary, 0.95)) + "}",
-    "\\definecolor{exframe}{HTML}{" + stripHash(secondary) + "}",
-    "\\definecolor{tableheadbg}{HTML}{" + stripHash(shade(primary, 0.15)) + "}",
+    "\\definecolor{tipbg}{HTML}{" + stripHash(tint(sec, 0.92)) + "}",
+    "\\definecolor{tipframe}{HTML}{" + stripHash(shade(sec, 0.1)) + "}",
+    "\\definecolor{keybg}{HTML}{" + stripHash(tint(ink, 0.92)) + "}",
+    "\\definecolor{keyframe}{HTML}{" + stripHash(ink) + "}",
+    "\\definecolor{warnbg}{HTML}{" + stripHash(tint(ter, 0.92)) + "}",
+    "\\definecolor{warnframe}{HTML}{" + stripHash(shade(ter, 0.1)) + "}",
+    "\\definecolor{exbg}{HTML}{" + stripHash(tint(sec, 0.95)) + "}",
+    "\\definecolor{exframe}{HTML}{" + stripHash(sec) + "}",
+    "\\definecolor{tableheadbg}{HTML}{" + stripHash(shade(ink, 0.15)) + "}",
     "\\definecolor{tableheadfg}{HTML}{FFFFFF}",
   ].join("\n");
 }
@@ -1611,19 +1955,46 @@ interface StyleConfig {
   colors: string;
 }
 
+/**
+ * fontspec font pairing per Visual Style preset (LuaLaTeX).
+ * Uses only fonts that ship with MiKTeX/TeX Live (Libertinus, TeX Gyre) so
+ * there are no missing-font failures. \headingfont is the display family used
+ * by chapter/section titles for a serif-body / sans-heading contrast.
+ */
+function getFontSetup(preset: string): string {
+  const setups: Record<string, string> = {
+    // Formal scholarly: Times-like serif body, clean sans headings
+    academic:
+      "\\setmainfont{TeX Gyre Termes}\n\\setsansfont{TeX Gyre Heros}\n\\newfontfamily\\headingfont{TeX Gyre Heros}",
+    // Bold/expressive: warm serif body, geometric sans display
+    creative:
+      "\\setmainfont{TeX Gyre Bonum}\n\\setsansfont{TeX Gyre Adventor}\n\\newfontfamily\\headingfont{TeX Gyre Adventor}",
+    // Corporate: all sans
+    business:
+      "\\setmainfont{TeX Gyre Heros}\n\\setsansfont{TeX Gyre Heros}\n\\newfontfamily\\headingfont{TeX Gyre Heros}\n\\renewcommand{\\familydefault}{\\sfdefault}",
+    // Clean/elegant: Libertinus serif + sans
+    minimal:
+      "\\setmainfont{Libertinus Serif}\n\\setsansfont{Libertinus Sans}\n\\newfontfamily\\headingfont{Libertinus Sans}",
+    // Contemporary (default): Libertinus serif body, geometric sans headings
+    modern:
+      "\\setmainfont{Libertinus Serif}\n\\setsansfont{TeX Gyre Adventor}\n\\newfontfamily\\headingfont{TeX Gyre Adventor}",
+  };
+  return setups[preset] || setups.modern;
+}
+
 function getStyleConfig(preset: string): StyleConfig {
   switch (preset) {
     case "academic":
       return {
         fontPackages: "\\usepackage{times}",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\Large\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter}}{10pt}{\\LARGE\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-10pt}{25pt}`,
+        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\Large\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter.}}{10pt}{\\LARGE\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-10pt}{25pt}`,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\large\\bfseries\\color{sectioncolor}}{\\thesection}{1em}{}\n  [\\vspace{2pt}{\\color{rulecolor}\\titlerule[0.5pt]}]\n\\titleformat{\\subsection}{\\normalfont\\normalsize\\bfseries\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
         colors: `\n\\definecolor{chaptercolor}{HTML}{1A365D}\n\\definecolor{sectioncolor}{HTML}{2D3748}\n\\definecolor{accent}{HTML}{2B6CB0}\n\\definecolor{rulecolor}{HTML}{CBD5E0}\n\\definecolor{headergray}{HTML}{718096}\n\\definecolor{quotegray}{HTML}{4A5568}\n\\definecolor{captiongray}{HTML}{4A5568}\n\\definecolor{subtitlegray}{HTML}{718096}\n\\definecolor{linkcolor}{HTML}{2B6CB0}\n\\definecolor{titletextcolor}{HTML}{1A202C}\n\\definecolor{tipbg}{HTML}{F0FFF4}\n\\definecolor{tipframe}{HTML}{276749}\n\\definecolor{keybg}{HTML}{EBF8FF}\n\\definecolor{keyframe}{HTML}{2B6CB0}\n\\definecolor{warnbg}{HTML}{FFFAF0}\n\\definecolor{warnframe}{HTML}{C05621}\n\\definecolor{exbg}{HTML}{F7FAFC}\n\\definecolor{exframe}{HTML}{4A5568}\n\\definecolor{tableheadbg}{HTML}{2D3748}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
     case "creative":
       return {
         fontPackages: "\\usepackage{palatino}",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\huge\\itshape}{\\textcolor{chaptercolor}{\\Large Chapter\\ \\thechapter}}{0pt}{\\Huge\\bfseries\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-20pt}{30pt}`,
+        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\huge\\itshape}{\\textcolor{chaptercolor}{\\Large\\chaptertitlename\\ \\thechapter.}}{0pt}{\\Huge\\bfseries\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-20pt}{30pt}`,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\Large\\bfseries\\color{sectioncolor}}{\\textcolor{accent}{\\thesection}}{1em}{}\n  [\\vspace{3pt}{\\color{accent}\\titlerule[1pt]}]\n\\titleformat{\\subsection}{\\normalfont\\large\\itshape\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
         colors: `\n\\definecolor{chaptercolor}{HTML}{7C3AED}\n\\definecolor{sectioncolor}{HTML}{2D3748}\n\\definecolor{accent}{HTML}{8B5CF6}\n\\definecolor{rulecolor}{HTML}{DDD6FE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{6B21A8}\n\\definecolor{captiongray}{HTML}{4A5568}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{7C3AED}\n\\definecolor{titletextcolor}{HTML}{1F2937}\n\\definecolor{tipbg}{HTML}{ECFDF5}\n\\definecolor{tipframe}{HTML}{059669}\n\\definecolor{keybg}{HTML}{F5F3FF}\n\\definecolor{keyframe}{HTML}{7C3AED}\n\\definecolor{warnbg}{HTML}{FFF7ED}\n\\definecolor{warnframe}{HTML}{EA580C}\n\\definecolor{exbg}{HTML}{FDF4FF}\n\\definecolor{exframe}{HTML}{A855F7}\n\\definecolor{tableheadbg}{HTML}{6D28D9}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
@@ -1631,21 +2002,21 @@ function getStyleConfig(preset: string): StyleConfig {
       return {
         fontPackages:
           "\\usepackage{helvet}\\renewcommand{\\familydefault}{\\sfdefault}",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\sffamily\\huge\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter}}{15pt}{\\Huge\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-20pt}{30pt}`,
+        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\sffamily\\huge\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter.}}{15pt}{\\Huge\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-20pt}{30pt}`,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\sffamily\\Large\\bfseries}{\\textcolor{accent}{\\thesection}}{1em}{}\n  [\\vspace{2pt}{\\color{rulecolor}\\titlerule[0.8pt]}]\n\\titleformat{\\subsection}{\\normalfont\\sffamily\\large\\bfseries\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
         colors: `\n\\definecolor{chaptercolor}{HTML}{1E40AF}\n\\definecolor{sectioncolor}{HTML}{1F2937}\n\\definecolor{accent}{HTML}{2563EB}\n\\definecolor{rulecolor}{HTML}{BFDBFE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{4B5563}\n\\definecolor{captiongray}{HTML}{4B5563}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{1E40AF}\n\\definecolor{titletextcolor}{HTML}{111827}\n\\definecolor{tipbg}{HTML}{F0FDF4}\n\\definecolor{tipframe}{HTML}{16A34A}\n\\definecolor{keybg}{HTML}{EFF6FF}\n\\definecolor{keyframe}{HTML}{2563EB}\n\\definecolor{warnbg}{HTML}{FFFBEB}\n\\definecolor{warnframe}{HTML}{D97706}\n\\definecolor{exbg}{HTML}{F8FAFC}\n\\definecolor{exframe}{HTML}{475569}\n\\definecolor{tableheadbg}{HTML}{1E3A5F}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
     case "minimal":
       return {
         fontPackages: "",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\Large}{\\textcolor{chaptercolor}{\\chaptername\\ \\thechapter}}{8pt}{\\LARGE\\bfseries\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-10pt}{20pt}`,
+        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\Large}{\\textcolor{chaptercolor}{\\chaptername\\ \\thechapter.}}{8pt}{\\LARGE\\bfseries\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-10pt}{20pt}`,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\large\\bfseries\\color{sectioncolor}}{\\thesection}{1em}{}\n\\titleformat{\\subsection}{\\normalfont\\normalsize\\bfseries\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
         colors: `\n\\definecolor{chaptercolor}{HTML}{374151}\n\\definecolor{sectioncolor}{HTML}{4B5563}\n\\definecolor{accent}{HTML}{6B7280}\n\\definecolor{rulecolor}{HTML}{D1D5DB}\n\\definecolor{headergray}{HTML}{9CA3AF}\n\\definecolor{quotegray}{HTML}{6B7280}\n\\definecolor{captiongray}{HTML}{6B7280}\n\\definecolor{subtitlegray}{HTML}{9CA3AF}\n\\definecolor{linkcolor}{HTML}{4B5563}\n\\definecolor{titletextcolor}{HTML}{111827}\n\\definecolor{tipbg}{HTML}{F9FAFB}\n\\definecolor{tipframe}{HTML}{6B7280}\n\\definecolor{keybg}{HTML}{F3F4F6}\n\\definecolor{keyframe}{HTML}{4B5563}\n\\definecolor{warnbg}{HTML}{FEF9EF}\n\\definecolor{warnframe}{HTML}{92400E}\n\\definecolor{exbg}{HTML}{F9FAFB}\n\\definecolor{exframe}{HTML}{9CA3AF}\n\\definecolor{tableheadbg}{HTML}{374151}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
     default:
       return {
         fontPackages: "\\usepackage{palatino}",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\huge\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter}}{15pt}{\\Huge\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-30pt}{30pt}`,
+        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\huge\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter.}}{15pt}{\\Huge\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-30pt}{30pt}`,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\Large\\bfseries}{\\textcolor{accent}{\\thesection}}{1em}{}\n  [\\vspace{3pt}{\\color{accent}\\titlerule[0.8pt]}]\n\\titleformat{\\subsection}{\\normalfont\\large\\bfseries\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
         colors: `\n\\definecolor{chaptercolor}{HTML}{7C3AED}\n\\definecolor{sectioncolor}{HTML}{374151}\n\\definecolor{accent}{HTML}{7C3AED}\n\\definecolor{rulecolor}{HTML}{DDD6FE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{6B7280}\n\\definecolor{captiongray}{HTML}{4B5563}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{7C3AED}\n\\definecolor{titletextcolor}{HTML}{1F2937}\n\\definecolor{tipbg}{HTML}{ECFDF5}\n\\definecolor{tipframe}{HTML}{059669}\n\\definecolor{keybg}{HTML}{EFF6FF}\n\\definecolor{keyframe}{HTML}{2563EB}\n\\definecolor{warnbg}{HTML}{FFFBEB}\n\\definecolor{warnframe}{HTML}{D97706}\n\\definecolor{exbg}{HTML}{FAF5FF}\n\\definecolor{exframe}{HTML}{9333EA}\n\\definecolor{tableheadbg}{HTML}{5B21B6}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };

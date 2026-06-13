@@ -3,14 +3,58 @@
 // Post-generation quality pass: review → targeted edits
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import Anthropic from "@anthropic-ai/sdk";
+import { z } from "zod";
 import { createPipelineLogger } from "../lib/logger";
+import { createLLMClient } from "../lib/llm";
+import { parseLLMJson } from "../lib/llmJson";
+import { repairControlCharLatex } from "../lib/latexFixes";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const anthropic = createLLMClient();
+
+// ── LLM response schemas ──
+const ReviewResponseSchema = z
+  .object({
+    missing_topics: z.array(z.string()).default([]),
+    redundancies: z
+      .array(
+        z.object({
+          chapters: z.array(z.coerce.number()).default([]),
+          description: z.string().default(""),
+        }),
+      )
+      .default([]),
+    removals: z
+      .array(
+        z.object({
+          chapter: z.coerce.number().default(0),
+          description: z.string().default(""),
+        }),
+      )
+      .default([]),
+    score: z.coerce.number().default(7),
+    needs_revision: z.boolean().default(false),
+    summary: z.string().default(""),
+  })
+  .passthrough();
+
+const InsertionResponseSchema = z
+  .object({
+    target_chapter: z.coerce.number().int().default(1),
+    insert_after: z.string().default(""),
+    new_content: z.string().default(""),
+  })
+  .passthrough();
+
+const RemovalResponseSchema = z
+  .object({
+    remove_start: z.string().default(""),
+    remove_end: z.string().default(""),
+  })
+  .passthrough();
 
 // ── Models ──
-const REVIEW_MODEL = "claude-haiku-4-5"; // cheap — review & scoring
-const REVISION_MODEL = "claude-sonnet-4-5"; // quality — content generation
+const REVIEW_MODEL = "claude-sonnet-4-6"; // review & scoring (Karol: always sonnet)
+const REVISION_MODEL = "claude-sonnet-4-6"; // quality — content generation
 
 // ── Interfaces ──
 
@@ -312,22 +356,20 @@ RESPOND ONLY with valid JSON (no markdown, no commentary):
     response.usage?.output_tokens || 0,
   );
 
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON in review response");
-    const parsed = JSON.parse(jsonMatch[0]);
-
+  const reviewResult = parseLLMJson(text, ReviewResponseSchema);
+  if (reviewResult.ok) {
+    const parsed = reviewResult.data;
     return {
-      missing_topics: (parsed.missing_topics || []).slice(0, 3),
-      redundancies: parsed.redundancies || [],
-      removals: (parsed.removals || []).slice(0, 3),
-      score: Math.min(10, Math.max(1, parseInt(parsed.score) || 7)),
-      needs_revision: parsed.needs_revision ?? false,
-      summary: parsed.summary || "",
+      missing_topics: parsed.missing_topics.slice(0, 3),
+      redundancies: parsed.redundancies,
+      removals: parsed.removals.slice(0, 3),
+      score: Math.min(10, Math.max(1, Math.round(parsed.score) || 7)),
+      needs_revision: parsed.needs_revision,
+      summary: parsed.summary,
       _tokens: tokens,
     };
-  } catch (err: any) {
-    log.warn(`Review JSON parse failed: ${err.message}`);
+  } else {
+    log.warn(`Review JSON parse failed: ${reviewResult.error}`);
     return {
       missing_topics: [],
       redundancies: [],
@@ -435,26 +477,27 @@ CRITICAL:
     response.usage?.output_tokens || 0,
   );
 
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON");
-    const parsed = JSON.parse(jsonMatch[0]);
+  const insertionResult = parseLLMJson(text, InsertionResponseSchema);
+  if (insertionResult.ok) {
+    const parsed = insertionResult.data;
 
-    // Unescape the LaTeX content from JSON
-    const newContent = (parsed.new_content || "")
+    // Unescape the LaTeX content from JSON. If the model used SINGLE
+    // backslashes, JSON.parse already turned \t/\b/\f/\n/\r into control
+    // chars ("\textbf" → TAB+"extbf") — repair those first.
+    const newContent = repairControlCharLatex(parsed.new_content)
       .replace(/\\\\(?=[a-zA-Z])/g, "\\") // \\section → \section
       .replace(/\\n/g, "\n"); // literal \n → newline
 
-    const insertAfter = (parsed.insert_after || "").replace(/\\\\/g, "\\");
+    const insertAfter = parsed.insert_after.replace(/\\\\/g, "\\");
 
     return {
-      target_chapter: parseInt(parsed.target_chapter) || 1,
+      target_chapter: parsed.target_chapter || 1,
       insert_after: insertAfter,
       new_content: newContent,
       _tokens: tokens,
     };
-  } catch (err: any) {
-    log.warn(`Insertion JSON parse failed: ${err.message}`);
+  } else {
+    log.warn(`Insertion JSON parse failed: ${insertionResult.error}`);
     return {
       target_chapter: 1,
       insert_after: "",
@@ -498,7 +541,7 @@ CHAPTER LATEX:
 ${chapter.latex.substring(0, 15000)}`;
 
   const response = await anthropic.messages.create({
-    model: REVIEW_MODEL, // Haiku is enough for locating text
+    model: REVISION_MODEL, // Haiku is enough for locating text
     max_tokens: 300,
     temperature: 0.1,
     messages: [{ role: "user", content: prompt }],
@@ -517,25 +560,21 @@ ${chapter.latex.substring(0, 15000)}`;
     response.usage?.output_tokens || 0,
   );
 
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON");
-    const parsed = JSON.parse(jsonMatch[0]);
-
+  const removalResult = parseLLMJson(text, RemovalResponseSchema);
+  if (removalResult.ok) {
     return {
       target_chapter: chapter.number,
-      remove_start: parsed.remove_start || "",
-      remove_end: parsed.remove_end || "",
-      _tokens: tokens,
-    };
-  } catch {
-    return {
-      target_chapter: chapter.number,
-      remove_start: "",
-      remove_end: "",
+      remove_start: removalResult.data.remove_start,
+      remove_end: removalResult.data.remove_end,
       _tokens: tokens,
     };
   }
+  return {
+    target_chapter: chapter.number,
+    remove_start: "",
+    remove_end: "",
+    _tokens: tokens,
+  };
 }
 
 // ━━━ Helpers ━━━

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — Download Panel v2
+// InkMagnet — Download Panel v2
 // Smart downloads + inline regeneration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -40,6 +40,8 @@ interface DownloadPanelProps {
   unsavedChanges: number;
   /** Saves all dirty chapters. Returns true if all OK. */
   titlePageDirty?: boolean;
+  /** True when project has a cover (GENERATED or CUSTOM_UPLOAD) */
+  hasCover?: boolean;
   onRecompiled?: () => void;
   onSaveAll: () => Promise<boolean>;
 }
@@ -52,6 +54,7 @@ export default function DownloadPanel({
   unsavedChanges,
   onSaveAll,
   titlePageDirty = false,
+  hasCover = false,
   onRecompiled,
 }: DownloadPanelProps) {
   const [epubAvailable, setEpubAvailable] = useState(false);
@@ -153,7 +156,13 @@ export default function DownloadPanel({
 
   const handleDownload = async (format: "pdf" | "epub") => {
     // No edits since last compile → instant download
-    if (!editedSinceCompile && unsavedChanges === 0 && !titlePageDirty) {
+    // hasCover + titlePageDirty: cover was added/changed, needs recompile
+    if (
+      !editedSinceCompile &&
+      unsavedChanges === 0 &&
+      !titlePageDirty &&
+      !hasCover
+    ) {
       if (format === "epub" && !epubAvailable) {
         // EPUB not yet generated — trigger generation
         handleGenerateEpub();
@@ -344,7 +353,7 @@ export default function DownloadPanel({
       )}
 
       {/* ── "Changes pending" banner (not recompiling) ── */}
-      {(editedSinceCompile || titlePageDirty) && !recompiling && (
+      {(editedSinceCompile || titlePageDirty || hasCover) && !recompiling && (
         <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-800 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
           <p className="text-xs text-amber-700 dark:text-amber-400">

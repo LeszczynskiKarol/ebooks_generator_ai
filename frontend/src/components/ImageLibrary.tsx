@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — Image Library + Insert (WordPress-style) v2
+// InkMagnet — Image Library + Insert (WordPress-style) v2
 // Uses backend proxy URLs for thumbnails (no CORS issues)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

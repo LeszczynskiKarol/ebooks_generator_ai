@@ -14,6 +14,9 @@ interface Props {
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   /** Set when the page exists in both languages — enables hreflang alternates. */
   translated?: boolean;
+  /** Explicit alternate paths when EN/PL slugs differ (e.g. /examples vs /pl/przyklady). */
+  hreflangEnPath?: string;
+  hreflangPlPath?: string;
 }
 
 const {
@@ -31,9 +34,12 @@ const canonical = canonicalUrl ?? new URL(Astro.url.pathname, siteConfig.url).hr
 const ogImageAbs = new URL(ogImage, siteConfig.url).href;
 const pageTitle = title.includes(siteConfig.name) ? title : `${title} | ${siteConfig.name}`;
 
-// hreflang pair: en path has no prefix, pl path is /pl<enPath>
-const enPath = Astro.url.pathname.replace(/^\/pl(\/|$)/, "/");
-const plPath = enPath === "/" ? "/pl/" : `/pl${enPath}`;
+// hreflang pair: en path has no prefix, pl path is /pl<enPath> — unless the
+// slugs differ between languages and explicit paths were provided
+const enPath =
+  Astro.props.hreflangEnPath ?? Astro.url.pathname.replace(/^\/pl(\/|$)/, "/");
+const plPath =
+  Astro.props.hreflangPlPath ?? (enPath === "/" ? "/pl/" : `/pl${enPath}`);
 const altEn = new URL(enPath, siteConfig.url).href;
 const altPl = new URL(plPath, siteConfig.url).href;
 ---

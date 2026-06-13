@@ -1,0 +1,160 @@
+---
+import ArticleLayout from "../../layouts/ArticleLayout.astro";
+
+const title = "InkMagnet vs Sqribble (2026) — an honest comparison";
+const description =
+  "Sqribble is a 2018 template designer with a PLR article bank and PDF-only export. InkMagnet writes researched books with EPUB included. The facts, with sources.";
+
+const faq = [
+  {
+    q: "Does Sqribble export EPUB or Kindle files?",
+    a: "No. Sqribble's own FAQ states it exports PDF only, with other formats 'looking to be added shortly' — a sentence that has been on the page for years. Affiliate reviews claiming EPUB export contradict the vendor's own documentation.",
+  },
+  {
+    q: "Does Sqribble use AI to write content?",
+    a: "The official sales page makes no AI claims. Its 'automatic content engine' is a bank of roughly 1,000 pre-written niche articles shared by all customers, plus URL scraping and Word import. Text from a shared bank carries an obvious duplicate-content risk.",
+  },
+  {
+    q: "What does Sqribble really cost?",
+    a: "The sticker is $67 one-time, and that part is genuine. The documented upsell chain behind it totals about $418: Professional ($97), Prime ($47), Fantasia 3D for flipbooks and 3D covers ($77) and Auto Job Finder ($197).",
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+---
+
+<ArticleLayout
+  title={title}
+  description={description}
+  heading="InkMagnet vs Sqribble: 2026 software against a 2018 template pack"
+  subheading="Sqribble has sold ebook templates the same way since 2018. That longevity deserves respect and scrutiny in equal measure — so here is the comparison built on its own sales page, its own FAQ and verifiable reviews."
+  crumbs={[
+    { name: "InkMagnet", href: "/" },
+    { name: "Compare", href: "/vs/sqribble/" },
+    { name: "vs Sqribble", href: "/vs/sqribble/" },
+  ]}
+  jsonLd={jsonLd}
+>
+  <h2>The short version</h2>
+  <p>
+    <a href="https://sqribble.com" rel="nofollow">Sqribble</a> is a
+    template-based ebook designer launched in 2018 and sold through ClickBank
+    for $67 one-time. You pick one of 50 templates, fill it with text — your
+    own, scraped from a URL, or pulled from a built-in bank of about 1,000
+    pre-written articles — and export a PDF. It includes a commercial license,
+    which is why Fiverr freelancers selling cheap ebook gigs are among its most
+    loyal users.
+  </p>
+  <p>
+    InkMagnet generates the book itself: research on the live web, chapters
+    written and reviewed by AI, photographs generated for the content, a cover
+    designed for that one book, and both print-quality PDF and EPUB at the end.
+    The two products share a product category and almost nothing else.
+  </p>
+
+  <h2>Side by side</h2>
+  <table>
+    <thead>
+      <tr><th>Capability</th><th>Sqribble</th><th>InkMagnet</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Content creation</td>
+        <td>Shared bank of ~1,000 pre-written articles, URL scraping, manual writing</td>
+        <td>Original chapters written per book, grounded in live web research</td>
+      </tr>
+      <tr>
+        <td>AI writing</td>
+        <td>None advertised on the official page (2026)</td>
+        <td>Core of the product — writing, review pass, image briefs, cover design</td>
+      </tr>
+      <tr>
+        <td>Export formats</td>
+        <td>PDF only (vendor's own FAQ); flipbook requires the $77 upsell</td>
+        <td>Print-quality PDF + EPUB, always included</td>
+      </tr>
+      <tr>
+        <td>Templates / design</td>
+        <td>50 templates dating to the 2018 launch</td>
+        <td>No templates — typeset per book, cover designed per book</td>
+      </tr>
+      <tr>
+        <td>Images</td>
+        <td>~1,000 stock images and icons</td>
+        <td>AI photographs generated for your specific chapters</td>
+      </tr>
+      <tr>
+        <td>Price</td>
+        <td>$67 one-time + documented $418 upsell chain behind it</td>
+        <td>$9.99–19.99 one-time per book, everything included</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    Sources: the <a href="https://sqribble.com/cb/new/" rel="nofollow">live Sqribble sales page</a> and
+    its FAQ (June 2026), upsell documentation collected by
+    <a href="https://maketimeonline.com/sqribble-review" rel="nofollow">Make Time Online</a> and
+    <a href="https://theendearingdesigner.com/sqribble-review/" rel="nofollow">The Endearing Designer</a>.
+  </p>
+
+  <h2>The content bank problem</h2>
+  <p>
+    Sqribble's "automatic content engine" sounds like generation. It is
+    retrieval: the same ~1,000 articles are available to every customer, and a
+    reviewer put it plainly — "it doesn't create content. It takes articles and
+    pastes them wholesale." Two buyers in the same niche can publish the same
+    chapters under different covers. If your ebook is a lead magnet meant to
+    demonstrate expertise, handing out text that hundreds of other marketers
+    also hand out defeats the purpose, and Google's duplicate-content systems
+    notice it too.
+  </p>
+  <p>
+    Every InkMagnet book is written from scratch for one buyer. The research
+    pass pulls current sources for your specific topic, the writing follows
+    your audience and guidelines, and no two books share text. That is not a
+    marketing line; it is how the pipeline works mechanically.
+  </p>
+
+  <h2>What you can verify yourself in five minutes</h2>
+  <p>
+    Open Sqribble's FAQ and read the export answer: "Sqribble exports files in
+    PDF format. More file types are looking to be added shortly." That promise
+    has not changed in years of archived snapshots. Then look at the upsell
+    list: flipbooks and 3D covers, the features dominating the demo video, cost
+    $77 extra. None of this makes Sqribble a scam — independent reviewers
+    consistently conclude it is real software with aggressive marketing, and
+    its Trustpilot shows 4.7 from about 350 reviews. It makes Sqribble a 2018
+    template pack priced like one.
+  </p>
+  <p>
+    Our equivalent transparency: <a href="/examples/">raw, unretouched pages</a>
+    from books our customers actually downloaded, including a complete 38-page
+    sample PDF. Judge both products on output.
+  </p>
+
+  <h2>When Sqribble is the better pick</h2>
+  <p>
+    If you write content yourself, want a drag-and-drop canvas with a
+    commercial license for client work, and your deliverable is a simple PDF,
+    Sqribble's one-time $67 is defensible — particularly for freelancers
+    selling volume formatting gigs. Choose InkMagnet when you need the book
+    researched and written, when EPUB matters, or when the reader is supposed
+    to come away believing you hired a publisher.
+  </p>
+
+  <h2>Frequently asked questions</h2>
+  {faq.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+</ArticleLayout>

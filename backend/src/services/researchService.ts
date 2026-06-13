@@ -3,16 +3,19 @@
 // Global research (book-level) + Per-chapter research
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import Anthropic from "@anthropic-ai/sdk";
 import axios from "axios";
+import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { createPipelineLogger } from "../lib/logger";
+import { createLLMClient } from "../lib/llm";
+import { parseLLMJson } from "../lib/llmJson";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const anthropic = createLLMClient();
 
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
 const GOOGLE_CX = process.env.GOOGLE_CX || "";
 const SCRAPER_URL = process.env.SCRAPER_URL || "";
+const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY || "";
 
 /** Domains to skip during scraping — known to block bots, return PDFs, or have no useful text */
 const BLOCKED_DOMAINS = [
@@ -489,7 +492,7 @@ Output ONLY 2 queries, one per line, nothing else:`;
 
   log?.claudeReq?.("ch-queries", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-haiku-4-5",
+    model: "claude-sonnet-4-6",
     max_tokens: 100,
     temperature: 0.3,
     messages: [{ role: "user", content: prompt }],
@@ -570,7 +573,7 @@ Pick 2-3 sources. Return [] if none are directly relevant.`;
 
   log?.claudeReq?.("ch-select", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-haiku-4-5",
+    model: "claude-sonnet-4-6",
     max_tokens: 100,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -580,24 +583,21 @@ Pick 2-3 sources. Return [] if none are directly relevant.`;
     message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
   log?.claudeRes?.("ch-select", responseText);
   log.api?.(
-    "claude-haiku-4-5",
+    "claude-sonnet-4-6",
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
 
-  try {
-    const jsonMatch = responseText.match(/\[[\s\S]*?\]/);
-    if (!jsonMatch) return fallbackSelection(scraped);
-    const parsed = JSON.parse(jsonMatch[0]);
-    // Claude explicitly returned [] — respect it, no fallback
-    if (Array.isArray(parsed) && parsed.length === 0) return [];
-    const indices = parsed
-      .map((n: any) => parseInt(n))
-      .filter((n: number) => !isNaN(n) && n >= 0 && n < scraped.length);
-    return indices.length > 0 ? indices.slice(0, 3) : [];
-  } catch {
-    return fallbackSelection(scraped);
-  }
+  const selectionResult = parseLLMJson(responseText, z.array(z.any()), {
+    kind: "array",
+  });
+  if (!selectionResult.ok) return fallbackSelection(scraped);
+  // Claude explicitly returned [] — respect it, no fallback
+  if (selectionResult.data.length === 0) return [];
+  const indices = selectionResult.data
+    .map((n: any) => parseInt(n))
+    .filter((n: number) => !isNaN(n) && n >= 0 && n < scraped.length);
+  return indices.length > 0 ? indices.slice(0, 3) : [];
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -784,7 +784,7 @@ Query:`;
 
   log?.claudeReq?.("simple-query", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-haiku-4-5",
+    model: "claude-sonnet-4-6",
     max_tokens: 50,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -897,8 +897,14 @@ async function scrapeUrls(
       log.step?.(`  🕷️ [${i + 1}/${urls.length}] ${url.substring(0, 70)}...`);
       const response = await axios.post(
         `${SCRAPER_URL}/scrape`,
-        { url },
-        { headers: { "Content-Type": "application/json" }, timeout: 10000 },
+        { url, paginated: true },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(SCRAPER_API_KEY ? { "X-API-Key": SCRAPER_API_KEY } : {}),
+          },
+          timeout: 20000,
+        },
       );
 
       if (
@@ -906,7 +912,23 @@ async function scrapeUrls(
         response.data.text &&
         response.data.text.length > 0
       ) {
-        let text = sanitizeText(response.data.text);
+        // Paginated PDFs → interleave "=== STRONA N ===" markers so the writer
+        // can ground footnotes to a real page and the citation guard can verify
+        // them. Non-PDF / unresolved pagination falls back to plain text.
+        const d = response.data;
+        const rawText =
+          Array.isArray(d.pages) && d.page_numbering?.resolved
+            ? d.pages
+                .map(
+                  (pg: { printed_page: number | null; text: string }) =>
+                    (pg.printed_page != null
+                      ? `=== STRONA ${pg.printed_page} ===\n`
+                      : "") + (pg.text || ""),
+                )
+                .join("\n\n")
+                .trim()
+            : d.text;
+        let text = sanitizeText(rawText);
         const remaining = Math.max(1, urls.length - i);
         const maxForThis = Math.floor((MAX_TOTAL - currentTotal) / remaining);
         if (text.length > maxForThis && maxForThis > 0)
@@ -991,7 +1013,7 @@ RESPOND IN THIS EXACT JSON FORMAT (no other text):
 
   log.claudeReq?.("global-select", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-haiku-4-5",
+    model: "claude-sonnet-4-6",
     max_tokens: 500,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -1001,33 +1023,39 @@ RESPOND IN THIS EXACT JSON FORMAT (no other text):
     message.content[0].type === "text" ? message.content[0].text.trim() : "";
   log.claudeRes?.("global-select", responseText);
   log.api(
-    "claude-haiku-4-5",
+    "claude-sonnet-4-6",
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
 
-  try {
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON in response");
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    const indices = (parsed.selected || [])
-      .map((n: any) => parseInt(n))
-      .filter((n: number) => !isNaN(n) && n >= 0 && n < scrapedResults.length);
-
-    return {
-      selectedIndices:
-        indices.length > 0 ? indices : fallbackSelection(scrapedResults),
-      sufficient: parsed.sufficient !== false,
-      reasoning: parsed.reasoning || "No reasoning provided",
-    };
-  } catch {
+  const globalSelectResult = parseLLMJson(
+    responseText,
+    z
+      .object({
+        selected: z.array(z.any()).default([]),
+        sufficient: z.boolean().default(true),
+        reasoning: z.string().default("No reasoning provided"),
+      })
+      .passthrough(),
+  );
+  if (!globalSelectResult.ok) {
     return {
       selectedIndices: fallbackSelection(scrapedResults),
       sufficient: false,
-      reasoning: "Parse error — defaulting to longest sources",
+      reasoning: `Parse error (${globalSelectResult.error}) — defaulting to longest sources`,
     };
   }
+
+  const indices = globalSelectResult.data.selected
+    .map((n: any) => parseInt(n))
+    .filter((n: number) => !isNaN(n) && n >= 0 && n < scrapedResults.length);
+
+  return {
+    selectedIndices:
+      indices.length > 0 ? indices : fallbackSelection(scrapedResults),
+    sufficient: globalSelectResult.data.sufficient,
+    reasoning: globalSelectResult.data.reasoning,
+  };
 }
 
 async function claudeSelectEnglishSupplement(
@@ -1069,7 +1097,7 @@ Pick 1-3 sources. If none add value, respond with: []`;
 
   log.claudeReq?.("en-supplement", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-haiku-4-5",
+    model: "claude-sonnet-4-6",
     max_tokens: 100,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -1079,21 +1107,19 @@ Pick 1-3 sources. If none add value, respond with: []`;
     message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
   log.claudeRes?.("en-supplement", responseText);
   log.api(
-    "claude-haiku-4-5",
+    "claude-sonnet-4-6",
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
 
-  try {
-    const jsonMatch = responseText.match(/\[[\s\S]*?\]/);
-    if (!jsonMatch) return [];
-    const indices = JSON.parse(jsonMatch[0])
-      .map((n: any) => parseInt(n))
-      .filter((n: number) => !isNaN(n) && n >= 0 && n < enScraped.length);
-    return indices.slice(0, 3);
-  } catch {
-    return [];
-  }
+  const supplementResult = parseLLMJson(responseText, z.array(z.any()), {
+    kind: "array",
+  });
+  if (!supplementResult.ok) return [];
+  const indices = supplementResult.data
+    .map((n: any) => parseInt(n))
+    .filter((n: number) => !isNaN(n) && n >= 0 && n < enScraped.length);
+  return indices.slice(0, 3);
 }
 
 // ━━━ Helpers ━━━

@@ -1,0 +1,168 @@
+---
+import ArticleLayout from "../layouts/ArticleLayout.astro";
+import { Image } from "astro:assets";
+import { siteConfig } from "../config/site";
+import exCover from "../assets/ex-cover-kuchnia.png";
+import exPhoto1 from "../assets/ex-kuchnia-photo1.png";
+import psyChapter from "../assets/page-chapter.png";
+
+const title = "AI Lead Magnet Generator — real ebooks, not template PDFs";
+const description =
+  "Generate a researched, typeset ebook lead magnet in about an hour. AI research, writing, photographs, cover design, PDF + EPUB. One price from $9.99, no subscription.";
+
+const faq = [
+  {
+    q: "Why an ebook instead of a checklist or template?",
+    a: "Both have their place, and short formats convert well for quick wins. Ebooks carry the authority: in NetLine's analysis of 6.2 million B2B content registrations, ebooks took 39.5% of all demand — about four times more than guides and nearly six times more than white papers. When the goal is to be perceived as the expert, length and depth do the work.",
+  },
+  {
+    q: "How long does it take to generate a lead magnet ebook?",
+    a: "Structure appears within minutes for your approval; a complete book — written, illustrated, typeset, with a designed cover — typically lands in under an hour.",
+  },
+  {
+    q: "Do I own the ebook and can I gate it behind an email form?",
+    a: "Yes. Full commercial rights come with every book: gate it, sell it, print it, put your name on the cover. You receive a downloadable PDF and EPUB with no watermarks.",
+  },
+  {
+    q: "What does it cost compared to hiring this out?",
+    a: "A ghostwritten 5,000–10,000-word piece runs $1,000–10,000 at Reedsy marketplace rates, before design. An InkMagnet book costs $9.99–19.99 depending on length, including research, writing, images, cover and both formats.",
+  },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "AI Lead Magnet Generator",
+    provider: { "@type": "Organization", name: "InkMagnet", url: siteConfig.url },
+    description,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "USD",
+      lowPrice: "9.99",
+      highPrice: "19.99",
+    },
+  },
+];
+---
+
+<ArticleLayout
+  title={title}
+  description={description}
+  heading="The lead magnet generator that writes the book, not just the layout"
+  subheading="Most 'lead magnet creators' hand you templates and wish you luck with the writing. InkMagnet researches your topic, writes every chapter, photographs it, designs the cover and typesets a book your subscribers will actually respect."
+  crumbs={[
+    { name: "InkMagnet", href: "/" },
+    { name: "Lead magnet generator", href: "/lead-magnet-generator/" },
+  ]}
+  jsonLd={jsonLd}
+>
+  <h2>Why ebook lead magnets still earn their keep</h2>
+  <p>
+    The data on this is less ambiguous than the hot takes. In
+    <a href="https://img.netline.com/images/netline/assets/2024-StateofB2B-ContentConsumption-DemandReport-NetLine.pdf" rel="nofollow">NetLine's analysis of 6.2 million real B2B content registrations</a>,
+    ebooks captured 39.5% of all gated-content demand — the next format, guides,
+    took 9.7%. On the conversion side,
+    <a href="https://www.optimonk.com/popup-statistics" rel="nofollow">OptiMonk's popup statistics</a>
+    show email popups offering an ebook converting at 7.49% against 5.10% for
+    popups offering nothing, a 47% lift from the incentive alone. And the list
+    you build with it pays back at
+    <a href="https://www.litmus.com/resources/email-marketing-roi" rel="nofollow">$36 per $1 spent on email</a>,
+    per Litmus.
+  </p>
+  <p>
+    The honest caveat: an ebook only produces that effect when it looks worth
+    gating. A reader who exchanges an email address for ten padded pages in a
+    Canva template learns one thing about your brand, and it is not the thing
+    you wanted. This is why the production bar matters more for lead magnets
+    than almost any other content: the asset's entire job is to make you look
+    like the expert.
+  </p>
+
+  <h2>What "generated" means here</h2>
+  <p>
+    InkMagnet is not a template editor with an AI button. The pipeline runs the
+    way a small publishing team would:
+  </p>
+  <ol>
+    <li>
+      <strong>Research.</strong> The engine searches the live web for your
+      topic, scrapes the strongest sources and grounds the book in current
+      material instead of model memory.
+    </li>
+    <li>
+      <strong>Structure you approve.</strong> A chapter-by-chapter outline
+      arrives in minutes. You edit it or approve as is — nothing is written
+      until you do.
+    </li>
+    <li>
+      <strong>Writing and review.</strong> Chapters are written with a
+      consistent voice, then a separate review pass scores the draft and fixes
+      weak sections before you ever see them.
+    </li>
+    <li>
+      <strong>Pictures, cover, typesetting.</strong> Photographs are generated
+      for specific passages, a cover is designed for this one book and
+      reviewed for craft, and the whole thing is typeset by the engine
+      academic publishers use — real hyphenation, running heads, drop caps.
+    </li>
+  </ol>
+  <p>
+    The deliverable is a print-quality PDF and a store-ready EPUB, downloadable,
+    watermark-free, with full commercial rights.
+  </p>
+
+  <figure>
+    <div class="grid grid-cols-3 gap-3">
+      <Image src={exCover} alt="AI-designed cover of a generated cookbook" width={400} />
+      <Image src={exPhoto1} alt="Generated book page with AI food photography" width={400} />
+      <Image src={psyChapter} alt="Chapter opening with drop cap from a generated book" width={400} />
+    </div>
+    <figcaption>
+      Unretouched pages from customer books — <a href="/examples/">more in the examples gallery</a>,
+      including a complete 38-page sample PDF.
+    </figcaption>
+  </figure>
+
+  <h2>The math against doing it the old way</h2>
+  <p>
+    Producing a credible lead magnet ebook traditionally stacks three costs:
+    writing, design and time.
+    <a href="https://reedsy.com/blog/cost-to-hire-a-ghostwriter/" rel="nofollow">Reedsy's marketplace data</a>
+    puts ghostwriting at $1,000–10,000 for the 5,000–10,000 words a typical
+    lead magnet runs, book designers bill around $30–45 per hour on Upwork,
+    and the calendar cost lands in weeks. InkMagnet compresses that into one
+    run priced between $9.99 and $19.99, which changes what is rational: a
+    lead magnet per campaign, per segment, per webinar — instead of one PDF
+    serving the whole funnel for a year.
+  </p>
+
+  <h2>Where we draw the line</h2>
+  <p>
+    InkMagnet does not host opt-in forms or capture emails — tools like
+    Beacon and OptinMonster do that well, and your email platform already has
+    landing pages. We make the asset those forms give away. If you are
+    comparing tools in this space, we keep honest, sourced comparisons of
+    <a href="/vs/beacon-by/">InkMagnet vs Beacon</a>,
+    <a href="/vs/designrr/">vs Designrr</a> and
+    <a href="/vs/sqribble/">vs Sqribble</a> — including the points where they
+    beat us.
+  </p>
+
+  <h2>Frequently asked questions</h2>
+  {faq.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+</ArticleLayout>

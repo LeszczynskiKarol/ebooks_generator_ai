@@ -5,10 +5,11 @@
 // + LaTeX sanitization to prevent compilation failures
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import Anthropic from "@anthropic-ai/sdk";
+import { createLLMClient } from "../lib/llm";
 import { reviewAndReviseBook } from "./reviewService";
 import { prisma } from "../lib/prisma";
-import { getWordsPerPage } from "../lib/types";
+import { getWordsPerPage, footnotesEnabled } from "../lib/types";
+import { applyCitationGuards } from "../lib/citationGuards";
 import { createPipelineLogger } from "../lib/logger";
 import {
   loadResearch,
@@ -16,9 +17,14 @@ import {
   mergeResearchForPrompt,
   ChapterResearchResult,
 } from "./researchService";
+import { parseLLMJson, ChapterRegistrySchema } from "../lib/llmJson";
+import {
+  repairControlCharLatex,
+  mergeSplitTableHeaders,
+} from "../lib/latexFixes";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const UTILITY_MODEL = "claude-haiku-4-5";
+const anthropic = createLLMClient();
+const UTILITY_MODEL = "claude-sonnet-4-6";
 
 interface ChapterStructure {
   id: string;
@@ -139,18 +145,18 @@ RULES:
       response.usage?.output_tokens || 0,
     );
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON in registry response");
-    const parsed = JSON.parse(jsonMatch[0]);
+    const result = parseLLMJson(text, ChapterRegistrySchema);
+    if (!result.ok) throw new Error(result.error);
+    const parsed = result.data;
 
     return {
       chapterNumber,
       chapterTitle,
-      summary: parsed.summary || "",
-      usedExamples: (parsed.usedExamples || []).slice(0, 10),
-      usedStats: (parsed.usedStats || []).slice(0, 10),
-      keyTerms: (parsed.keyTerms || []).slice(0, 8),
-      closingTopic: parsed.closingTopic || "",
+      summary: parsed.summary,
+      usedExamples: parsed.usedExamples.slice(0, 10),
+      usedStats: parsed.usedStats.slice(0, 10),
+      keyTerms: parsed.keyTerms.slice(0, 8),
+      closingTopic: parsed.closingTopic,
     };
   } catch (err: any) {
     log?.warn?.(
@@ -241,7 +247,10 @@ interface ResponseLog {
 // Main entry
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-export async function generateContent(projectId: string) {
+export async function generateContent(
+  projectId: string,
+  opts: { force?: boolean } = {},
+) {
   const log = createPipelineLogger("CONTENT", projectId);
 
   const project = await prisma.project.findUnique({
@@ -253,6 +262,26 @@ export async function generateContent(projectId: string) {
 
   const structureData = JSON.parse(project.structure.structureJson);
   const chapters: ChapterStructure[] = structureData.chapters;
+
+  // ── Resume / user-edit protection ──
+  // A chapter is skipped (its saved content reused) when:
+  //  - the user manually edited it (always protected, even with force), or
+  //  - it is already LATEX_READY and this is a resume run (no force).
+  const existingRecords = await prisma.chapter.findMany({
+    where: { projectId },
+  });
+  const recordByNumber = new Map(
+    existingRecords.map((r) => [r.chapterNumber, r]),
+  );
+  const shouldSkip = (chapterNumber: number): boolean => {
+    const rec = recordByNumber.get(chapterNumber);
+    if (!rec?.latexContent) return false;
+    if (rec.userEditedAt) return true;
+    return !opts.force && rec.status === "LATEX_READY";
+  };
+  const skippedNumbers = new Set(
+    chapters.filter((c) => shouldSkip(c.number)).map((c) => c.number),
+  );
   const bookTitle =
     structureData.suggestedTitle || project.title || project.topic;
   const wpp = getWordsPerPage(project.bookFormat);
@@ -266,6 +295,19 @@ export async function generateContent(projectId: string) {
     Language: project.language,
     Style: project.stylePreset,
   });
+
+  if (skippedNumbers.size > 0) {
+    log.ok(
+      `Resume: reusing ${skippedNumbers.size}/${chapters.length} saved chapter(s) — ` +
+        chapters
+          .filter((c) => skippedNumbers.has(c.number))
+          .map((c) => {
+            const rec = recordByNumber.get(c.number);
+            return `Ch${c.number}${rec?.userEditedAt ? " (user-edited)" : ""}`;
+          })
+          .join(", "),
+    );
+  }
 
   // ── Phase 1: Load global research ──
   log.phase(1, "Load Global Research Data");
@@ -291,6 +333,12 @@ export async function generateContent(projectId: string) {
   const chapterResearchMap = new Map<number, ChapterResearchResult>();
 
   for (const chapter of chapters) {
+    if (skippedNumbers.has(chapter.number)) {
+      log.step(
+        `\n  ⏭️  Ch.${chapter.number}: "${chapter.title}" — already generated, skipping research`,
+      );
+      continue;
+    }
     log.step(
       `\n  🔍 Ch.${chapter.number}: "${chapter.title}" — researching...`,
     );
@@ -328,6 +376,12 @@ export async function generateContent(projectId: string) {
   // ── Phase 3: Create chapter records ──
   log.phase(3, "Initialize Chapter Records");
   for (const ch of chapters) {
+    if (skippedNumbers.has(ch.number)) {
+      log.step(
+        `  Ch.${ch.number}: "${ch.title}" — keeping existing content (skip)`,
+      );
+      continue;
+    }
     await prisma.chapter.upsert({
       where: {
         projectId_chapterNumber: { projectId, chapterNumber: ch.number },
@@ -361,7 +415,7 @@ export async function generateContent(projectId: string) {
     data: {
       generationStatus: "GENERATING_CONTENT",
       currentStage: "GENERATING",
-      generationProgress: 0,
+      generationProgress: skippedNumbers.size / chapters.length,
     },
   });
   log.ok(
@@ -387,6 +441,47 @@ export async function generateContent(projectId: string) {
       },
     });
     if (!rec) continue;
+
+    // ── Resume: reuse saved content instead of regenerating ──
+    if (skippedNumbers.has(chapter.number) && rec.latexContent) {
+      log.step(
+        `\n  ⏭️  Ch ${chapter.number}/${chapters.length}: "${chapter.title}" — reusing saved content${
+          rec.userEditedAt ? " (user-edited)" : ""
+        }`,
+      );
+      previousChaptersContent.push({
+        number: chapter.number,
+        title: chapter.title,
+        latex: rec.latexContent,
+      });
+
+      let registry: ChapterRegistry | null = null;
+      if (rec.registryJson) {
+        try {
+          registry = JSON.parse(rec.registryJson);
+        } catch {
+          registry = null;
+        }
+      }
+      if (!registry) {
+        registry = await extractChapterRegistry(
+          chapter.number,
+          chapter.title,
+          rec.latexContent,
+          project.language,
+          log,
+        );
+        await prisma.chapter.update({
+          where: { id: rec.id },
+          data: { registryJson: JSON.stringify(registry) },
+        });
+      }
+      chapterRegistries.push(registry);
+      previousSummaries.push(
+        `Ch${chapter.number} "${chapter.title}": ${registry.summary}`,
+      );
+      continue;
+    }
 
     const targetWords = chapter.targetPages * wpp;
     log.step(
@@ -444,10 +539,25 @@ export async function generateContent(projectId: string) {
         sourcesText: mergedSourcesText,
         hasResearch,
         wpp,
+        allowFootnotes: footnotesEnabled(project),
         log,
       });
 
       totalTokens += result.tokensUsed;
+
+      // ── Mechanical citation guards (no LLM judge) — only when footnotes are on ──
+      if (footnotesEnabled(project)) {
+        const guard = applyCitationGuards(result.latexContent, mergedSourcesText);
+        result.latexContent = guard.content;
+        if (guard.demotedPages.length || guard.statsFindings.length) {
+          log.warn(
+            `Ch ${chapter.number} citation guards: ${guard.demotedPages.length} unverifiable page(s) stripped, ${guard.statsFindings.length} stat claim(s) flagged`,
+          );
+          for (const d of guard.demotedPages.slice(0, 6))
+            log.step?.(`   ⚠ removed s. ${d.page} (${d.reason})`);
+        }
+      }
+
       previousSummaries.push(
         `Ch${chapter.number} "${chapter.title}": ${result.summary}`,
       );
@@ -482,6 +592,7 @@ export async function generateContent(projectId: string) {
           status: "LATEX_READY",
           writerPrompts: JSON.stringify(result.prompts),
           writerResponses: JSON.stringify(result.responses),
+          registryJson: JSON.stringify(registry),
         },
       });
 
@@ -541,6 +652,13 @@ export async function generateContent(projectId: string) {
     if (reviewStats.editsApplied > 0) {
       log.step(`Saving ${reviewStats.editsApplied} revision(s) to database...`);
       for (const revised of revisedChapters) {
+        // Never let the automated review overwrite a user-edited chapter
+        if (recordByNumber.get(revised.number)?.userEditedAt) {
+          log.warn(
+            `  Ch${revised.number}: user-edited — skipping review revision`,
+          );
+          continue;
+        }
         const wordCount = revised.latex
           .replace(/\\[a-zA-Z]+(\{[^}]*\})?/g, "")
           .split(/\s+/).length;
@@ -576,6 +694,25 @@ export async function generateContent(projectId: string) {
     log.warn(`Review failed (non-critical): ${reviewError.message}`);
   }
 
+  // ── Phase 4.7: AI Illustrations (optional, non-fatal) ──
+  if (project.useAiImages) {
+    log.phase(4.7, "AI Illustrations (FLUX)");
+    const illuTimer = log.timer();
+    try {
+      const { illustrateChapters } = await import("./illustrationService");
+      const added = await illustrateChapters(projectId, {
+        language: project.language,
+        stylePreset: project.stylePreset,
+        imageGuidelines: project.imageGuidelines || null,
+        imageDensity: project.imageDensity || "standard",
+        log,
+      });
+      log.ok(`Illustrations: ${added} image(s) added (${illuTimer()})`);
+    } catch (illuError: any) {
+      log.warn(`Illustrations failed (non-critical): ${illuError.message}`);
+    }
+  }
+
   // ── Phase 5: Finalize ──
   log.phase(5, "Compilation");
 
@@ -594,6 +731,44 @@ export async function generateContent(projectId: string) {
   log.data("Total tokens", totalTokens.toLocaleString());
   log.data("Estimated cost", `$${estimatedCost.toFixed(4)}`);
   log.step("Starting PDF compilation...");
+
+  // ── Auto-generate cover if the user ticked "Generate cover" in the order form ──
+  const projForCover = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+  if (projForCover?.autoCoverRequested && projForCover.coverType === "NONE") {
+    try {
+      const { getDefaultCoverParams, generateCoverLatex, derivePillarsFromChapters } =
+        await import("./coverGenerator");
+      const params = getDefaultCoverParams(projForCover);
+      // Fill the cover's midsection with chapter pillars
+      params.pillars = derivePillarsFromChapters(
+        chapters.map((c) => ({ title: c.title, description: c.description })),
+      );
+      const cc = projForCover.customColors
+        ? JSON.parse(projForCover.customColors)
+        : undefined;
+      const coverLatex = generateCoverLatex(
+        params,
+        projForCover.bookFormat,
+        projForCover.language,
+        projForCover.stylePreset,
+        cc,
+      );
+      await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          coverType: "GENERATED",
+          coverLatex,
+          coverParams: JSON.stringify(params),
+          coverUpdatedAt: new Date(),
+        },
+      });
+      log.ok("Auto-generated professional cover (requested in order form)");
+    } catch (e: any) {
+      log.warn(`Auto-cover generation failed (non-fatal): ${e.message}`);
+    }
+  }
 
   const { compileBook } = await import("./bookCompiler");
   await compileBook(projectId);
@@ -728,6 +903,8 @@ interface GenParams {
   sourcesText: string;
   hasResearch: boolean;
   wpp: number;
+  /** false → popular book: facts stay grounded but NO footnote apparatus */
+  allowFootnotes: boolean;
   log: any;
 }
 
@@ -738,11 +915,15 @@ async function generateChapterLatex(p: GenParams): Promise<{
   prompts: PromptLog[];
   responses: ResponseLog[];
 }> {
-  const targetWords = p.chapter.targetPages * p.wpp;
+  // Models systematically undershoot long-form targets by 15-25%. Ask ABOVE
+  // the real target so a single response usually lands on it — continuations
+  // are a last resort (they tend to leak meta-commentary into the book).
+  const realTargetWords = p.chapter.targetPages * p.wpp;
+  const targetWords = Math.round(realTargetWords * 1.2);
   const lang = getLangName(p.language);
   const prompts: PromptLog[] = [];
   const responses: ResponseLog[] = [];
-  const model = "claude-sonnet-4-5";
+  const model = "claude-sonnet-4-6";
   const isLastChapter = p.chapterIndex === p.totalChapters - 1;
   const hasPreviousChapters = p.previousChaptersContent.length > 0;
 
@@ -863,6 +1044,41 @@ ANTI-FILLER RULES:
       : ""
   }
 
+${
+  p.allowFootnotes
+    ? `CITATIONS & FACTUAL INTEGRITY — CRITICAL (readers may copy citations into academic work):
+- Cite ONLY sources that appear in the research material above, or canonical works you are certain exist
+- NEVER invent page numbers. Some sources are tagged with "=== STRONA N ===" markers — the page of any passage is N in the nearest preceding marker. Add "s. X" / "p. X" ONLY when the fact comes from such a tagged passage and X is that marker's number; for a source with no page markers, cite the work WITHOUT a page number (page citations are auto-verified and silently removed if they don't match the source)
+- NEVER invent journal volume/issue numbers, publication years, author names, sample sizes, or survey results
+- Statistics and percentages MUST come from the research material. If you need an illustrative quantity, phrase it as an estimate ("zwykle", "typowo", "około") — never as a precise fabricated stat
+- Case studies and anecdotes you compose yourself MUST be framed as hypothetical or typical scenarios ("Wyobraź sobie...", "Typowy przebieg wygląda tak:", "Imagine a student who...") — NEVER presented as real named people, real theses, or real published studies`
+    : `FACTUAL INTEGRITY — CRITICAL (this is a POPULAR book — NO footnote apparatus):
+- NEVER use \\footnote{} — this book has no footnotes, no reference list, no academic apparatus
+- When a number or study genuinely matters, attribute it NATURALLY inside the sentence
+  ("badacze z Uniwersytetu Kopenhaskiego policzyli, że...", "według danych Eurostatu...") —
+  and only if that source actually appears in the research material above
+- Statistics and percentages MUST come from the research material. If you need an illustrative
+  quantity, phrase it as an estimate ("zwykle", "typowo", "około") — never as a precise fabricated stat
+- Most paragraphs need NO source at all — practical knowledge speaks for itself; do not
+  decorate the text with attributions where none are needed
+- Case studies and anecdotes you compose yourself MUST be framed as hypothetical or typical
+  scenarios — NEVER presented as real named people or real published studies`
+}
+
+RHYTHM & PUNCTUATION — these patterns expose machine-written text, avoid them:
+- Em-dashes (---) max 1-2 per paragraph. Prefer a comma, colon, parentheses, or a new sentence
+- Do NOT default to three-item structures ("trzy filary", "three steps") — let the count follow the content (2, 4, 5...)
+- The antithesis "not X, but Y" ("nie X, lecz Y") at most ONCE per section
+- BOX TITLES count toward the same limit: titles like "Teoria jako argument, nie dekoracja" /
+  "X, not Y" are the SAME tell. At most ONE antithesis-shaped box title in the whole chapter —
+  the rest must be plain descriptive titles ("Technika mapowania pojęć", "Jak sprawdzić bibliografię")
+- Do NOT end every paragraph or box with an aphorism-style punchline — most should end with plain information
+- NUMERIC TABLES: before finalizing, recompute every derived value (sums, averages, weighted
+  scores) by hand — all arithmetic in a table must check out exactly. Readers verify these
+- Quotes: use \`\`...'' (English) or ,,...'' (Polish). NEVER the straight " character — it breaks typesetting
+- Number ranges tight, no spaces: 5--15, s.~228--229
+- Polish only: use "oraz" solely as a second-level connector after "i" already appeared in the sentence; otherwise write "i"
+
 ═══════════════════════════════════════════════════════════════
 LATEX OUTPUT & VISUAL ELEMENTS
 ═══════════════════════════════════════════════════════════════
@@ -872,7 +1088,7 @@ BASE RULES:
 - Start with \\chapter{${p.chapter.title}}
 - Use \\section{} for main sections, \\subsection{} for subsections
 - Use \\textbf{}, \\textit{}, \\emph{} for emphasis (sparingly)
-- Use \\footnote{} for asides and source attributions
+${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "- \\footnote{} is FORBIDDEN in this book — weave any attribution into the sentence itself"}
 - Escape special chars: \\%, \\&, \\#, \\$, \\_, \\{, \\}
 - Use --- for em-dash, -- for en-dash
 - NO \\usepackage, NO custom command definitions
@@ -946,6 +1162,29 @@ CRITICAL TABLE RULES:
 
 Use \\begin{quote} for notable expert quotes — max 1-2 per chapter, only when impactful.
 
+═══ RICH VISUAL MACROS — use for visual variety (these render as designed graphics) ═══
+
+You have FOUR special macros. Supply ONLY the content — never write raw TikZ. Use REAL data.
+
+1. \\pullquote{...} — a large, elegant pull quote for one striking idea.
+   \\pullquote{Dobre narzędzie nie zmusza cię do myślenia o wyglądzie --- pozwala myśleć o treści.}
+
+2. \\bignumber{VALUE}{short label} — a big highlighted statistic for a key number.
+   \\bignumber{92\\%}{prac naukowych w fizyce składanych jest w \\LaTeX{}-u}
+
+3. \\stepflow{Krok A, Krok B, Krok C, ...} — a horizontal process/flow diagram.
+   Comma-separated, 2-6 SHORT steps (1-3 words each) on ONE line. Use for ANY process or sequence.
+   \\stepflow{Plik .tex, pdflatex, Plik .log, Poprawki, Gotowy PDF}
+
+4. \\concept{Termin}{Definicja} — a highlighted concept/definition box for an important term.
+   \\concept{WYSIWYM}{What You See Is What You Mean --- opisujesz znaczenie, system dba o wygląd.}
+
+MACRO RULES:
+- \\stepflow steps must be SHORT (1-3 words) and comma-separated on ONE line — never long sentences.
+- Prefer a \\stepflow diagram over describing a process only in prose.
+- NEVER use \\includegraphics or reference image files (rysunek.pdf, schemat.pdf, wykres.png, etc.) —
+  you have NO external images. Visualize processes with \\stepflow and concepts with \\concept.
+
 ═══ VISUAL ELEMENT MINIMUMS PER CHAPTER ═══
 
 MANDATORY — every chapter MUST include:
@@ -953,7 +1192,10 @@ MANDATORY — every chapter MUST include:
 □ At least 1 keyinsight box (ideally one per \\section{})
 □ At least 1 tipbox OR warningbox with actionable advice
 □ At least 1 examplebox with a named case study
-□ Total: 3-5 colored boxes + 1-2 tables per chapter
+□ At least 1 \\stepflow diagram visualizing a process or sequence
+□ At least 1 \\pullquote OR \\bignumber for visual emphasis
+□ At least 1 \\concept box defining an important term
+□ Total: 3-5 colored boxes + 1-2 tables + 2-3 macros per chapter
 
 These visual elements should feel NATURAL — placed where the content demands them,
 not forced. A comparison section NEEDS a table. A practical advice section NEEDS a tipbox.
@@ -981,6 +1223,8 @@ QUALITY CHECKLIST — verify before finishing:
 □ Is there at least one real company/product name per section?
 □ Did you include at least 1 booktabs table with real comparative data?
 □ Did you include 3-5 colored boxes (keyinsight, tipbox, warningbox, examplebox)?
+□ Did you include at least 1 \\stepflow diagram + 1 \\concept box + 1 \\pullquote or \\bignumber?
+□ Did you AVOID \\includegraphics and any external image references entirely?
 □ Does every major \\section{} end with a keyinsight box?
 □ Did you avoid long lists of examples/templates that pad word count?
 □ Does the chapter read like a professionally typeset book — not a text dump?
@@ -1014,7 +1258,7 @@ QUALITY CHECKLIST — verify before finishing:
 - Do NOT end with a generic "the future is bright" statement — end with something actionable and specific`;
   }
 
-  userPrompt += `\n\nBegin LaTeX output now. Start with \\chapter{${p.chapter.title}}. Write exactly ${targetWords} words (±10%), entirely in ${lang}. Remember: expert voice, concrete data, no AI filler, RICH visual formatting (tables + colored boxes). Close every opened environment properly.`;
+  userPrompt += `\n\nBegin LaTeX output now. Start with \\chapter{${p.chapter.title}}. Write exactly ${targetWords} words (±10%), entirely in ${lang}. Remember: expert voice, concrete data, no AI filler, RICH visual formatting (tables, colored boxes, AND macros: \\stepflow, \\concept, \\pullquote, \\bignumber). NO \\includegraphics. Close every opened environment properly.`;
 
   // ── Logging ──
   const ts = () => new Date().toISOString();
@@ -1045,9 +1289,11 @@ QUALITY CHECKLIST — verify before finishing:
     isLastChapter ? "YES — closing instructions added" : "NO",
   );
 
-  // ── max_tokens: tighter cap to prevent overshoot ──
-  // LaTeX averages ~1.8 tokens/word; use 2.2x safety margin but cap at 20K
-  const maxTok = Math.max(4000, Math.min(20000, Math.ceil(targetWords * 2.2)));
+  // ── max_tokens ──
+  // Polish LaTeX with tables/commands runs ~3 tokens/word; 6x margin so the
+  // model can FINISH the chapter cleanly instead of being cut off mid-table
+  // (truncation mid-environment is the #1 cause of broken LaTeX / compile fails).
+  const maxTok = Math.max(10000, Math.min(32000, Math.ceil(targetWords * 6)));
   p.log.step(
     `Calling Claude API (max_tokens: ${maxTok}, target: ${targetWords}w)...`,
   );
@@ -1101,7 +1347,9 @@ QUALITY CHECKLIST — verify before finishing:
   );
   p.log.data("Ends cleanly", endsCleanly ? "YES" : "NO — will continue");
 
-  if ((wc < targetWords * 0.85 || !endsCleanly) && p.chapter.targetPages > 2) {
+  // Continue ONLY when the chapter is genuinely short of the REAL page target
+  // or visibly truncated — every continuation is a risk of meta-text leakage.
+  if ((wc < realTargetWords * 0.8 || !endsCleanly) && p.chapter.targetPages > 2) {
     p.log.warn(
       `Needs continuation: ${wc}/${targetWords} words, endsCleanly=${endsCleanly}`,
     );
@@ -1110,6 +1358,12 @@ QUALITY CHECKLIST — verify before finishing:
     const maxTotalWords = Math.round(targetWords * 1.15);
 
     const contPrompt = `You wrote ${wc} of ${targetWords} target words. Continue writing the remaining ~${remainingWords} words.
+
+⚠️ YOUR ENTIRE RESPONSE IS INSERTED VERBATIM INTO THE PRINTED BOOK.
+The FIRST character of your response must already be book content (LaTeX).
+ABSOLUTELY NO meta-commentary, no planning notes, no "Looking at...", no
+"Let me...", no sentences about what you are going to write — any such text
+would be PRINTED in the book and ruin it.
 
 RULES FOR CONTINUATION:
 - Pick up EXACTLY where you left off — do NOT repeat any content
@@ -1135,8 +1389,8 @@ RULES FOR CONTINUATION:
     });
 
     const contMaxTok = Math.max(
-      3000,
-      Math.min(16000, Math.ceil(remainingWords * 2.2)),
+      4000,
+      Math.min(24000, Math.ceil(remainingWords * 4)),
     );
     const contTimer = p.log.timer();
     p.log.claudeReq?.("chapter-cont", contPrompt);
@@ -1155,6 +1409,7 @@ RULES FOR CONTINUATION:
     for (const b of cont.content) {
       if (b.type === "text") contLatex += b.text;
     }
+    contLatex = stripMetaCommentary(contLatex);
     contLatex = cleanLatex(contLatex);
     contLatex = deAIfy(contLatex, p.language);
     contLatex = sanitizeGeneratedLatex(contLatex);
@@ -1307,6 +1562,43 @@ function fixEnvironmentNesting(latex: string): string {
  */
 function sanitizeGeneratedLatex(latex: string): string {
   let result = latex;
+  // 0. Fix box titles — AI sometimes puts title inside body with escaped braces
+  // Pattern: \begin{tipbox}\n\textbackslash{}\{Title\textbackslash{}\} → \begin{tipbox}{Title}
+  for (const box of ["tipbox", "keyinsight", "warningbox", "examplebox"]) {
+    result = result.replace(
+      new RegExp(
+        `(\\\\begin\\{${box}\\})\\s*\\n\\s*(?:\\\\textbackslash\\{\\})*\\\\\\{(.+?)(?:\\\\textbackslash\\{\\})*\\\\\\}`,
+        "g",
+      ),
+      (_match: string, begin: string, title: string) => {
+        const cleanTitle = title.replace(/\\textbackslash\{\}/g, "").trim();
+        return `${begin}{${cleanTitle}}`;
+      },
+    );
+  }
+
+  // 0b. Strip orphan \section{} before first \chapter{} (prevents Chapter 0 in TOC)
+  const chIdx = result.indexOf("\\chapter{");
+  if (chIdx > 0 && /\\section\{/.test(result.substring(0, chIdx))) {
+    result = result.substring(chIdx);
+  }
+
+  // 0c. Ensure spacing around dashes
+  result = result.replace(/([^\s\\{}-])---([^\s\\{}-])/g, "$1 --- $2");
+  result = result.replace(/([^\s\\{}-])--([^\s\\{}-])/g, "$1 -- $2");
+
+  // 0d. Fix corrupted \textbackslash{}textless → \textless{}
+  result = result.replace(/\\textbackslash\{\}textless/g, "\\textless{}");
+  result = result.replace(
+    /\\textless\{\}(?:\\textbackslash\{\})*\\?\{(?:\\textbackslash\{\})*\\?\}/g,
+    "\\textless{}",
+  );
+
+  // 0e. Flatten triple \textbf nesting from table header corruption
+  result = result.replace(
+    /\\textbf\{\\textbf\{\\textbf\{([^}]*)\}\}\}/g,
+    "\\textbf{$1}",
+  );
 
   // 1. Fix unclosed/unmatched environments
   for (const env of KNOWN_ENVS) {
@@ -1366,6 +1658,12 @@ function sanitizeGeneratedLatex(latex: string): string {
     /^(QUALITY CHECKLIST|WORD COUNT TARGET|SECTIONS TO WRITE|RULES FOR CONTINUATION|Begin LaTeX output now).*$/gm,
     "",
   );
+  // Remove model self-commentary that leaked into content (esp. from continuations)
+  // e.g. "The previous output ended mid-table... Here is the clean continuation..."
+  result = result.replace(
+    /^.*\b(the previous output|clean continuation|picking up (from|where)|rewriting the (table|remainder|rest)|here is the (clean|corrected|continuation)|ended mid-(table|sentence|environment)|continuing from where|as (requested|instructed))\b.*$/gim,
+    "",
+  );
   // Remove lines with ⚠️ that are clearly prompt echoes (not inside boxes)
   result = result.replace(
     /^⚠️\s+(Hard limits|STRICT MAXIMUM|COMPLETE every|CONTINUITY|THIS IS THE FINAL|ENSURE every|STOP writing|Close every opened).*$/gm,
@@ -1422,6 +1720,27 @@ function deAIfy(latex: string, language: string): string {
     }
   }
 
+  // ── Structural repairs (PDF + EPUB read this content) ──
+  latex = repairControlCharLatex(latex);
+  latex = mergeSplitTableHeaders(latex);
+
+  // ── Typographic normalization (PDF + EPUB read this content) ──
+  // Straight `"` is an ACTIVE babel character under polish (eats the following
+  // space, `" -` becomes an invisible optional hyphen) — normalize to ,,/''/``.
+  latex = latex.replace(/(?<![\s\\])"/g, "''");
+  latex = latex.replace(/(?<!\\)"(?=\S)/g, language === "pl" ? ",," : "``");
+  // A quote CLOSED with ,, (opening mark) → ''
+  latex = latex.replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1''");
+  // Number ranges stay tight: "228 -- 229" → "228--229"
+  latex = latex.replace(/(\d)\s*---?\s*(\d)/g, "$1--$2");
+  latex = latex.replace(/\b([IVX]{1,4})\s+---?\s+([IVX]{1,4})\b/g, "$1--$2");
+  // Polish typography: tie single-letter words (a/i/o/u/w/z) to the next
+  // word with ~ so they never hang at line ends ("sierotki")
+  latex = latex.replace(
+    /(^|[\s(~])([aiouwzAIOUWZ])[ \t]+(?=[^\s\\&%—–-])/gm,
+    "$1$2~",
+  );
+
   latex = latex.replace(/^\s*\n\s*\n\s*\n/gm, "\n\n");
   return latex;
 }
@@ -1459,7 +1778,7 @@ async function chapterSummary(
     const prompt = `2-sentence summary in ${getLangName(lang)}:\n\n${plain}`;
     log?.claudeReq?.("summary", prompt);
     const r = await anthropic.messages.create({
-      model: "claude-haiku-4-5",
+      model: "claude-sonnet-4-6",
       max_tokens: 200,
       messages: [
         {
@@ -1478,6 +1797,38 @@ async function chapterSummary(
   } catch {
     return "Done.";
   }
+}
+
+/**
+ * Backstop against the model "thinking out loud" before book content: drop
+ * LEADING paragraphs that read as English planning prose, not LaTeX/book text
+ * (e.g. "Looking at what was already written, the chapter has..."). Such a
+ * paragraph once shipped, printed, in a Polish cookbook.
+ */
+function stripMetaCommentary(latex: string): string {
+  const paragraphs = latex.split(/\n\s*\n/);
+  let firstContent = 0;
+  for (const para of paragraphs) {
+    const t = para.trim();
+    if (!t) {
+      firstContent++;
+      continue;
+    }
+    const looksMeta =
+      !t.includes("\\") &&
+      /\b(I |I'll|I will|I need|I can|Let me|Looking at|Based on|The chapter|This chapter (has|is)|continuing from)\b/i.test(
+        t,
+      ) &&
+      // meta prose is plain ASCII; real book text in PL/DE/etc. has diacritics
+      // and even EN book text rarely opens with first-person process talk
+      /^[\x00-\x7F]*$/.test(t);
+    if (looksMeta) {
+      firstContent++;
+      continue;
+    }
+    break;
+  }
+  return paragraphs.slice(firstContent).join("\n\n");
 }
 
 function getLangName(c: string): string {

@@ -291,3 +291,19 @@ export interface ProjectSummary {
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * Footnote apparatus is an academic convention — popular books read better
+ * without it. "auto" follows the visual style; the user can force either way.
+ */
+export function footnotesEnabled(project: {
+  footnoteMode?: string | null;
+  stylePreset: string;
+}): boolean {
+  const mode = project.footnoteMode || "auto";
+  if (mode === "always") return true;
+  if (mode === "never") return false;
+  return project.stylePreset === "academic";
+}
+
+// (generationLockedFor removed — book generation is open to all users.)

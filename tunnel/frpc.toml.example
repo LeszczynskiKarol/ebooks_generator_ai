@@ -1,0 +1,23 @@
+# Skopiuj do frpc.toml i uzupełnij auth.token (token frps z serwera matury).
+serverAddr = "3.68.187.152"
+serverPort = 7000
+auth.method = "token"
+auth.token  = "PUT_FRPS_TOKEN_HERE"
+
+loginFailExit = false
+
+# Frontend (Vite :5173)  ->  https://dev.torweb.pl
+[[proxies]]
+name          = "ebooks-dev-web"
+type          = "http"
+localIP       = "127.0.0.1"
+localPort     = 5173
+customDomains = ["dev.torweb.pl"]
+
+# Backend (Fastify :3000) ->  https://api.torweb.pl
+[[proxies]]
+name          = "ebooks-dev-api"
+type          = "http"
+localIP       = "127.0.0.1"
+localPort     = 3000
+customDomains = ["api.torweb.pl"]

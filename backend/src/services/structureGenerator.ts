@@ -3,13 +3,18 @@
 // Research → Structure generation with real-world data
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import Anthropic from "@anthropic-ai/sdk";
+import { createLLMClient } from "../lib/llm";
 import { prisma } from "../lib/prisma";
 import { getWordsPerPage, getPageSizeTier } from "../lib/types";
 import { createPipelineLogger } from "../lib/logger";
 import { conductResearch, formatSourcesForPrompt } from "./researchService";
+import {
+  parseLLMJson,
+  repairTruncatedJson,
+  BookStructureSchema,
+} from "../lib/llmJson";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const anthropic = createLLMClient();
 
 export async function generateStructure(projectId: string) {
   const log = createPipelineLogger("STRUCTURE", projectId);
@@ -83,8 +88,8 @@ export async function generateStructure(projectId: string) {
   try {
     const apiTimer = log.timer();
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 8000,
+      model: "claude-sonnet-4-6",
+      max_tokens: 16000, // struktura to zwięzły JSON — duży zapas, by NIGDY nie uciąć
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -92,7 +97,7 @@ export async function generateStructure(projectId: string) {
       response.content[0].type === "text" ? response.content[0].text : "";
     const stopReason = response.stop_reason;
     log.api(
-      "claude-sonnet-4-5",
+      "claude-sonnet-4-6",
       response.usage?.input_tokens || 0,
       response.usage?.output_tokens || 0,
     );
@@ -109,29 +114,15 @@ export async function generateStructure(projectId: string) {
       jsonText = repairTruncatedJson(text);
     }
 
-    // Extract JSON
-    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      log.err("No JSON found in Claude response!");
+    // Extract + validate JSON (parseLLMJson repairs truncation internally)
+    const parsed = parseLLMJson(jsonText, BookStructureSchema);
+    if (!parsed.ok) {
+      log.err(`Structure JSON invalid: ${parsed.error}`);
       log.step(`Response preview: ${text.substring(0, 500)}`);
-      throw new Error("No JSON found in response");
+      log.step(`Last 300 chars: ...${jsonText.slice(-300)}`);
+      throw new Error(`Invalid structure from LLM: ${parsed.error}`);
     }
-
-    let structure: any;
-    try {
-      structure = JSON.parse(jsonMatch[0]);
-    } catch (parseErr: any) {
-      log.warn(`JSON parse failed: ${parseErr.message} — attempting repair...`);
-      const repaired = repairTruncatedJson(jsonMatch[0]);
-      try {
-        structure = JSON.parse(repaired);
-        log.ok("JSON repair successful!");
-      } catch {
-        log.err("JSON repair also failed");
-        log.step(`Last 300 chars: ...${jsonMatch[0].slice(-300)}`);
-        throw new Error(`Invalid JSON from Claude: ${parseErr.message}`);
-      }
-    }
+    const structure = parsed.data;
 
     // Log structure
     if (structure.suggestedTitle) {
@@ -231,6 +222,20 @@ interface StructurePromptParams {
   hasResearch: boolean;
 }
 
+/**
+ * Capitalization convention for titles/headings. Capitalizing every word
+ * (Title Case) is an ENGLISH convention; other languages use sentence case
+ * (German additionally capitalizes nouns). Getting this wrong is a tell-tale
+ * sign of a machine-translated/English-authored book.
+ */
+function getCapitalizationRule(lang: string): string {
+  if (lang === "en")
+    return "CAPITALIZATION: use Title Case for the book title and all headings (capitalize the principal words).";
+  if (lang === "de")
+    return "CAPITALIZATION: follow German orthography — capitalize the first word, all nouns and proper nouns; do NOT apply English-style Title Case to verbs, adjectives, articles or prepositions.";
+  return `CAPITALIZATION: the book title and ALL headings use SENTENCE CASE — capitalize ONLY the first word, proper nouns, and the first word after a colon. Capitalizing every word is an English convention and is INCORRECT in this language. Example: "Architektura rozproszenia" (correct), NOT "Architektura Rozproszenia".`;
+}
+
 function buildStructurePrompt(p: StructurePromptParams): string {
   const langInstruction = getLangInstruction(p.language);
 
@@ -275,11 +280,12 @@ CHAPTER DESIGN PRINCIPLES:
 - Chapters should BUILD on each other: foundational → applied → advanced → strategic
 - Avoid the trap of Chapter 1 = "What is X" / Chapter 2 = "Why X matters" — readers know what they bought
 
-SECTION DESCRIPTIONS — these are INSTRUCTIONS for the writer. Make them specific:
-- BAD: "Overview of popular AI writing tools" → The writer will produce a generic list
-- GOOD: "Compare GPT-4, Claude, and Gemini for long-form content: pricing per 1M tokens, context window limits, output quality for Polish/multilingual text. Include a decision matrix: when to use which model based on task type (blog posts vs technical docs vs ad copy). Reference the Stanford HAI benchmark data."
-- Each description should NAME specific things to include: companies, tools, frameworks, data sources
-- Include the ANGLE or argument the section should make, not just the topic
+SECTION DESCRIPTIONS — short writing briefs, NOT essays:
+- 1–2 sentences, MAX ~35 words each. Hard limit — do NOT write paragraphs or multi-step plans.
+- Still be concrete: name 1–3 specific things to cover (tools, companies, data, examples) + the angle/argument.
+- BAD (too vague): "Overview of popular AI writing tools"
+- BAD (too long): a multi-sentence plan with "Poziom 1/2/3", decision matrices, benchmark citations
+- GOOD: "Compare GPT-4, Claude i Gemini do długich tekstów: cena za 1M tokenów, okno kontekstu, jakość po polsku. Wskaż, kiedy użyć którego."
 
 WHAT TO AVOID IN STRUCTURE:
 - Generic "introduction" chapters that waste 25% of the book on basics
@@ -288,28 +294,38 @@ WHAT TO AVOID IN STRUCTURE:
 - Padding sections: "Best practices" or "Tips and tricks" without specific frameworks
 - Mirror chapters: two sections that cover the same ground from slightly different angles
 
+TITLE STYLE — repetitive title patterns expose machine-written books:
+- The antithesis pattern "X, not Y" ("wprowadzenie, nie streszczenie", "precision, not bureaucracy")
+  is allowed in AT MOST ONE title in the whole book. Do not make it the default rhythm.
+- Vary title shapes across chapters/sections: a plain noun phrase, a how-to, a question,
+  a number-driven claim, a concrete promise — not the same template everywhere
+- Not every title needs a colon with a subtitle; use the "Label: explanation" shape for
+  at most half of the titles
+
 CRITICAL FORMATTING RULES:
 - Create EXACTLY ${p.chapters} chapters
 - Each chapter: ${p.sectionsPerChapter} sections
 - Total pages MUST equal approximately ${p.targetPages}
 - ${langInstruction}
+- ${getCapitalizationRule(p.language)}
 - suggestedTitle should be specific and compelling — avoid generic titles
 
-Respond ONLY with valid JSON:
+Respond with RAW JSON ONLY — no markdown, no \`\`\` fences, no commentary before or after.
+Keep every "description" to 1–2 short sentences (max ~35 words). This keeps the output compact and parseable.
 {
-  "suggestedTitle": "Specific, Compelling Book Title",
+  "suggestedTitle": "Specific, compelling book title (in the book's language and its correct capitalization)",
   "chapters": [
     {
       "id": "ch1",
       "number": 1,
-      "title": "Specific Chapter Title With Clear Angle",
-      "description": "2-3 sentence brief: what thesis/argument this chapter makes, what concrete topics it covers, what the reader will be able to DO after reading it",
+      "title": "Specific chapter title with a clear angle",
+      "description": "1–2 sentences: the chapter's thesis + what the reader will be able to DO after it.",
       "targetPages": ${Math.round(p.targetPages / p.chapters)},
       "sections": [
         {
           "id": "ch1-s1",
-          "title": "Section Title",
-          "description": "Detailed writing instructions: name specific tools/companies/data to include, the argument to make, concrete examples to use. This description drives content quality — be specific.",
+          "title": "Section title",
+          "description": "1–2 sentences: name 1–3 concrete things to cover + the angle. Max ~35 words.",
           "targetPages": 2,
           "order": 0
         }
@@ -330,73 +346,4 @@ function getLangInstruction(lang: string): string {
     nl: "Write ALL titles and descriptions in Dutch",
   };
   return map[lang] || "Write all titles and descriptions in English";
-}
-
-/**
- * Attempt to repair truncated JSON by closing open brackets/braces.
- * Works when Claude's response is cut off mid-JSON by max_tokens.
- */
-function repairTruncatedJson(text: string): string {
-  // Find the start of JSON
-  const jsonStart = text.indexOf("{");
-  if (jsonStart === -1) return text;
-
-  let json = text.substring(jsonStart);
-
-  // Remove any trailing incomplete string (cut mid-value)
-  // If ends with unclosed quote, close it
-  const lastQuote = json.lastIndexOf('"');
-  const afterLastQuote = json.substring(lastQuote + 1).trim();
-
-  // If we're in the middle of a string value, truncate to last complete property
-  if (afterLastQuote === "" || afterLastQuote === ":") {
-    // Cut back to the last complete key-value pair
-    const lastComma = json.lastIndexOf(",");
-    const lastBrace = Math.max(json.lastIndexOf("}"), json.lastIndexOf("]"));
-    const cutPoint = Math.max(lastComma, lastBrace);
-    if (cutPoint > jsonStart) {
-      json = json.substring(0, cutPoint + 1);
-    }
-  }
-
-  // Count open brackets and close them
-  let openBraces = 0;
-  let openBrackets = 0;
-  let inString = false;
-  let escaped = false;
-
-  for (const ch of json) {
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (ch === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (ch === '"') {
-      inString = !inString;
-      continue;
-    }
-    if (inString) continue;
-    if (ch === "{") openBraces++;
-    if (ch === "}") openBraces--;
-    if (ch === "[") openBrackets++;
-    if (ch === "]") openBrackets--;
-  }
-
-  // Remove trailing comma before we close
-  json = json.replace(/,\s*$/, "");
-
-  // Close any open structures
-  while (openBrackets > 0) {
-    json += "]";
-    openBrackets--;
-  }
-  while (openBraces > 0) {
-    json += "}";
-    openBraces--;
-  }
-
-  return json;
 }

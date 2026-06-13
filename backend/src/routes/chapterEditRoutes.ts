@@ -113,8 +113,9 @@ export async function chapterEditRoutes(app: FastifyInstance) {
         data: {
           latexContent,
           actualWords: wordCount,
-          // Mark that user has edited this
           status: "LATEX_READY",
+          // Protects this chapter from being overwritten by regeneration/review
+          userEditedAt: new Date(),
         },
       });
 
@@ -147,29 +148,23 @@ export async function chapterEditRoutes(app: FastifyInstance) {
         });
     }
 
+    const { enqueueGeneration } = await import("../lib/jobQueue");
+    const result = await enqueueGeneration("compile", id);
+    if (!result.enqueued) {
+      return reply.status(409).send({
+        success: false,
+        error: "Compilation already in progress",
+      });
+    }
+
     // Set stage to COMPILING so frontend shows progress
+    // (worker reverts to COMPLETED if compilation fails)
     await prisma.project.update({
       where: { id },
       data: {
         currentStage: "COMPILING",
         generationStatus: "COMPILING_LATEX",
       },
-    });
-
-    // Fire and forget — recompile in background
-    const { compileBook } = await import("../services/bookCompiler");
-    compileBook(id).catch(async (err) => {
-      console.error(`❌ Recompile failed for ${id}:`, err);
-      // Revert to COMPLETED even on failure so user can try again
-      await prisma.project
-        .update({
-          where: { id },
-          data: {
-            currentStage: "COMPLETED",
-            generationStatus: "COMPLETED",
-          },
-        })
-        .catch(console.error);
     });
 
     return reply.send({ success: true, message: "Recompilation started" });

@@ -8,6 +8,8 @@ import * as fs from "fs";
 import * as path from "path";
 import archiver from "archiver";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { latexToXhtml, escapeXml } from "../lib/latexHtml";
+import { downloadProjectImages, rewriteImageUrls } from "../lib/projectImages";
 
 const BUILD_DIR = path.join(process.cwd(), "tmp", "builds");
 
@@ -57,22 +59,36 @@ export async function compileEpub(projectId: string): Promise<{
   fs.mkdirSync(epubDir, { recursive: true });
 
   try {
+    const oebpsDir = path.join(epubDir, "OEBPS");
+    fs.mkdirSync(oebpsDir, { recursive: true });
+
+    // ── 0. Package images locally (same as the PDF build does) ──
+    // Without this the chapters reference raw S3 URLs that are dead
+    // offline / on private buckets.
+    console.log("  🖼️  Downloading project images for EPUB...");
+    const imageMap = await downloadProjectImages(projectId, oebpsDir);
+    console.log(`  🖼️  ${imageMap.size} images packaged`);
+
     // ── 1. Convert chapters to XHTML ──
     const chapterFiles: { filename: string; title: string; id: string }[] = [];
 
     for (const ch of readyChapters) {
-      const xhtml = latexToXhtml(ch.latexContent!, ch.title, bookLang);
+      const latexLocal = rewriteImageUrls(ch.latexContent!, imageMap);
+      const xhtml = latexToXhtml(latexLocal, ch.title, bookLang);
       const filename = `chapter-${ch.chapterNumber}.xhtml`;
       const chId = `ch${ch.chapterNumber}`;
 
-      const chapterDir = path.join(epubDir, "OEBPS");
-      if (!fs.existsSync(chapterDir))
-        fs.mkdirSync(chapterDir, { recursive: true });
-      fs.writeFileSync(path.join(chapterDir, filename), xhtml, "utf-8");
+      fs.writeFileSync(path.join(oebpsDir, filename), xhtml, "utf-8");
 
       chapterFiles.push({ filename, title: ch.title, id: chId });
       console.log(`  📄 ${filename}: ${ch.title}`);
     }
+
+    // Collect packaged image files for the OPF manifest
+    const imagesDir = path.join(oebpsDir, "images");
+    const imageFiles = fs.existsSync(imagesDir)
+      ? fs.readdirSync(imagesDir).map((f) => `images/${f}`)
+      : [];
 
     // ── 2. Generate CSS ──
     const css = generateEpubCss(project.stylePreset, customColors);
@@ -87,9 +103,11 @@ export async function compileEpub(projectId: string): Promise<{
     const titleXhtml = generateTitlePage(
       bookTitle,
       bookLang,
-      project.authorName || null, // ← ADD
-      project.subtitle || null, // ← ADD
+      project.authorName || null,
+      project.subtitle || null,
     );
+    // (previously generated but never written — manifest referenced a missing file)
+    fs.writeFileSync(path.join(oebpsDir, "title.xhtml"), titleXhtml, "utf-8");
 
     // ── 4. Table of contents (XHTML nav) ──
     const navXhtml = generateNavDocument(chapterFiles, bookTitle, bookLang);
@@ -104,7 +122,13 @@ export async function compileEpub(projectId: string): Promise<{
     fs.writeFileSync(path.join(epubDir, "OEBPS", "toc.ncx"), ncx, "utf-8");
 
     // ── 6. OPF (package document) ──
-    const opf = generateOpf(chapterFiles, bookTitle, bookLang, projectId);
+    const opf = generateOpf(
+      chapterFiles,
+      bookTitle,
+      bookLang,
+      projectId,
+      imageFiles,
+    );
     fs.writeFileSync(path.join(epubDir, "OEBPS", "content.opf"), opf, "utf-8");
 
     // ── 7. META-INF/container.xml ──
@@ -154,6 +178,9 @@ export async function compileEpub(projectId: string): Promise<{
       data: { outputEpubKey: epubS3Key },
     });
 
+    // Working dir no longer needed once the .epub is packaged
+    fs.rmSync(epubDir, { recursive: true, force: true });
+
     console.log(`  📱 EPUB compilation complete!\n`);
     return { epubPath, s3Key, fileSize: epubSize };
   } catch (error) {
@@ -163,380 +190,6 @@ export async function compileEpub(projectId: string): Promise<{
   }
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// LaTeX → XHTML converter
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-function latexToXhtml(
-  latex: string,
-  chapterTitle: string,
-  lang: string,
-): string {
-  let html = latex;
-
-  // ── Strip preamble/postamble ──
-  html = html.replace(/\\documentclass[^]*?\\begin\{document\}/g, "");
-  html = html.replace(/\\end\{document\}/g, "");
-  html = html.replace(/\\usepackage(\[[^\]]*\])?\{[^}]*\}/g, "");
-  html = html.replace(/\\clearpage/g, "");
-  html = html.replace(/\\newpage/g, "");
-  html = html.replace(/\\tableofcontents/g, "");
-  html = html.replace(/\\maketitle/g, "");
-  html = html.replace(/\\thispagestyle\{[^}]*\}/g, "");
-
-  // ── Headings ──
-  html = html.replace(
-    /\\chapter\{([^}]*)\}/g,
-    '<h1 class="chapter-title">$1</h1>',
-  );
-  html = html.replace(
-    /\\section\{([^}]*)\}/g,
-    '<h2 class="section-title">$1</h2>',
-  );
-  html = html.replace(
-    /\\subsection\{([^}]*)\}/g,
-    '<h3 class="subsection-title">$1</h3>',
-  );
-  html = html.replace(
-    /\\subsubsection\{([^}]*)\}/g,
-    '<h4 class="subsubsection-title">$1</h4>',
-  );
-
-  // ── Inline formatting ──
-  html = html.replace(/\\textbf\{([^}]*)\}/g, "<strong>$1</strong>");
-  html = html.replace(/\\textit\{([^}]*)\}/g, "<em>$1</em>");
-  html = html.replace(/\\emph\{([^}]*)\}/g, "<em>$1</em>");
-  html = html.replace(
-    /\\underline\{([^}]*)\}/g,
-    '<span class="underline">$1</span>',
-  );
-  html = html.replace(/\\texttt\{([^}]*)\}/g, "<code>$1</code>");
-  // Nested: \textbf{\textit{...}}
-  html = html.replace(
-    /<strong><em>([^<]*)<\/em><\/strong>/g,
-    "<strong><em>$1</em></strong>",
-  );
-
-  // ── Footnotes → endnotes within chapter ──
-  const footnotes: string[] = [];
-  html = html.replace(/\\footnote\{([^}]*)\}/g, (_match, content) => {
-    footnotes.push(content);
-    const idx = footnotes.length;
-    return `<sup class="footnote-ref"><a href="#fn${idx}" id="fnref${idx}">[${idx}]</a></sup>`;
-  });
-
-  // ── Colored boxes ──
-  // tipbox
-  html = html.replace(
-    /\\begin\{tipbox\}\{([^}]*)\}([\s\S]*?)\\end\{tipbox\}/g,
-    '<aside class="box box-tip"><p class="box-title">💡 $1</p><div class="box-content">$2</div></aside>',
-  );
-  html = html.replace(
-    /\\begin\{tipbox\}([\s\S]*?)\\end\{tipbox\}/g,
-    '<aside class="box box-tip"><div class="box-content">$1</div></aside>',
-  );
-
-  // keyinsight
-  html = html.replace(
-    /\\begin\{keyinsight\}\{([^}]*)\}([\s\S]*?)\\end\{keyinsight\}/g,
-    '<aside class="box box-key"><p class="box-title">🔑 $1</p><div class="box-content">$2</div></aside>',
-  );
-  html = html.replace(
-    /\\begin\{keyinsight\}([\s\S]*?)\\end\{keyinsight\}/g,
-    '<aside class="box box-key"><div class="box-content">$1</div></aside>',
-  );
-
-  // warningbox
-  html = html.replace(
-    /\\begin\{warningbox\}\{([^}]*)\}([\s\S]*?)\\end\{warningbox\}/g,
-    '<aside class="box box-warn"><p class="box-title">⚠️ $1</p><div class="box-content">$2</div></aside>',
-  );
-  html = html.replace(
-    /\\begin\{warningbox\}([\s\S]*?)\\end\{warningbox\}/g,
-    '<aside class="box box-warn"><div class="box-content">$1</div></aside>',
-  );
-
-  // examplebox
-  html = html.replace(
-    /\\begin\{examplebox\}\{([^}]*)\}([\s\S]*?)\\end\{examplebox\}/g,
-    '<aside class="box box-example"><p class="box-title">📋 $1</p><div class="box-content">$2</div></aside>',
-  );
-  html = html.replace(
-    /\\begin\{examplebox\}([\s\S]*?)\\end\{examplebox\}/g,
-    '<aside class="box box-example"><div class="box-content">$1</div></aside>',
-  );
-
-  // ── Lists ──
-  html = html.replace(/\\begin\{itemize\}/g, '<ul class="list-bullet">');
-  html = html.replace(/\\end\{itemize\}/g, "</ul>");
-  html = html.replace(/\\begin\{enumerate\}/g, '<ol class="list-ordered">');
-  html = html.replace(/\\end\{enumerate\}/g, "</ol>");
-  html = html.replace(
-    /\\begin\{description\}/g,
-    '<dl class="list-description">',
-  );
-  html = html.replace(/\\end\{description\}/g, "</dl>");
-  // \item[term] for description lists
-  html = html.replace(
-    /\\item\[([^\]]*)\]\s*/g,
-    "<dt><strong>$1</strong></dt><dd>",
-  );
-  // Regular \item
-  html = html.replace(/\\item\s*/g, "<li>");
-
-  // ── Quotes ──
-  html = html.replace(
-    /\\begin\{quote\}([\s\S]*?)\\end\{quote\}/g,
-    '<blockquote class="quote">$1</blockquote>',
-  );
-
-  // ── Tables ──
-  // Convert booktabs tables: \begin{table}...\begin{tabularx}...
-  html = convertTables(html);
-
-  // ── Special characters ──
-  html = html.replace(/---/g, "—");
-  html = html.replace(/--/g, "–");
-  html = html.replace(/``/g, "\u201C"); // "
-  html = html.replace(/''/g, "\u201D"); // "
-  html = html.replace(/`/g, "\u2018"); // '
-  html = html.replace(/'/g, "\u2019"); // '
-  html = html.replace(/\\%/g, "%");
-  html = html.replace(/\\&/g, "&amp;");
-  html = html.replace(/\\#/g, "#");
-  html = html.replace(/\\\$/g, "$");
-  html = html.replace(/\\_/g, "_");
-  html = html.replace(/\\textbackslash\{\}/g, "\\");
-  html = html.replace(/\\textasciitilde\{\}/g, "~");
-  html = html.replace(/\\textasciicircum\{\}/g, "^");
-  html = html.replace(/\\\\/g, "<br/>");
-  html = html.replace(/\\,/g, " ");
-  html = html.replace(/~/g, "&nbsp;");
-
-  // ── Strip remaining LaTeX commands ──
-  html = html.replace(/\\label\{[^}]*\}/g, "");
-  html = html.replace(/\\ref\{[^}]*\}/g, "[ref]");
-  html = html.replace(/\\cite\{[^}]*\}/g, "[cite]");
-  html = html.replace(/\\vspace\{[^}]*\}/g, "");
-  html = html.replace(/\\hspace\{[^}]*\}/g, "");
-  html = html.replace(/\\noindent\s*/g, "");
-  html = html.replace(/\\centering\s*/g, "");
-  html = html.replace(
-    /\\caption\{([^}]*)\}/g,
-    '<p class="table-caption">$1</p>',
-  );
-  html = html.replace(/\\rowcolor\{[^}]*\}/g, "");
-  html = html.replace(/\\textcolor\{[^}]*\}\{([^}]*)\}/g, "$1");
-  html = html.replace(/\\color\{[^}]*\}/g, "");
-
-  // Strip any remaining \command{...} or \command[...]{...}
-  html = html.replace(/\\[a-zA-Z]+(\[[^\]]*\])?\{([^}]*)\}/g, "$2");
-  // Strip bare \commands (no arguments)
-  html = html.replace(/\\[a-zA-Z]+/g, "");
-
-  // ── Close unclosed <li> tags ──
-  html = closeLiTags(html);
-
-  // ── Wrap paragraphs ──
-  html = wrapParagraphs(html);
-
-  // ── Build footnotes section ──
-  let footnotesHtml = "";
-  if (footnotes.length > 0) {
-    footnotesHtml =
-      '<section class="footnotes"><hr/><ol class="footnote-list">' +
-      footnotes
-        .map(
-          (fn, i) =>
-            `<li id="fn${i + 1}"><p>${fn} <a href="#fnref${i + 1}">↩</a></p></li>`,
-        )
-        .join("\n") +
-      "</ol></section>";
-  }
-
-  // ── Final XHTML document ──
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${lang}" lang="${lang}">
-<head>
-  <meta charset="UTF-8"/>
-  <title>${escapeXml(chapterTitle)}</title>
-  <link rel="stylesheet" type="text/css" href="css/style.css"/>
-</head>
-<body>
-${html}
-${footnotesHtml}
-</body>
-</html>`;
-}
-
-// ── Table conversion ──
-function convertTables(html: string): string {
-  // Handle \begin{table}[...]...\end{table} wrappers
-  // Extract caption and tabularx/tabular content
-
-  // First: handle tabularx inside table
-  html = html.replace(
-    /\\begin\{table\}(\[[^\]]*\])?([\s\S]*?)\\end\{table\}/g,
-    (_match, _opts, content) => {
-      // Extract caption
-      let caption = "";
-      const captionMatch = content.match(/\\caption\{([^}]*)\}/);
-      if (captionMatch) {
-        caption = `<caption>${captionMatch[1]}</caption>`;
-        content = content.replace(/\\caption\{[^}]*\}/, "");
-      }
-
-      // Extract tabularx or tabular
-      const tabMatch = content.match(
-        /\\begin\{tabular[x]?\}\{[^}]*\}([\s\S]*?)\\end\{tabular[x]?\}/,
-      );
-      if (!tabMatch) return content;
-
-      const tableContent = convertTableContent(tabMatch[1]);
-      return `<table class="data-table">${caption}${tableContent}</table>`;
-    },
-  );
-
-  // Standalone tabularx (no table wrapper)
-  html = html.replace(
-    /\\begin\{tabular[x]?\}\{[^}]*\}([\s\S]*?)\\end\{tabular[x]?\}/g,
-    (_match, content) => {
-      const tableContent = convertTableContent(content);
-      return `<table class="data-table">${tableContent}</table>`;
-    },
-  );
-
-  return html;
-}
-
-function convertTableContent(content: string): string {
-  // Split by \\ (row separator)
-  const rows = content
-    .split(/\\\\\s*/)
-    .map((r) => r.trim())
-    .filter((r) => r.length > 0 && !r.match(/^\\[a-z]+rule$/));
-
-  // Remove booktabs rules
-  const cleanRows = rows.filter(
-    (r) =>
-      !r.match(/^\\(top|mid|bottom|hline)rule$/) &&
-      !r.match(/^\\(top|mid|bottom|hline)rule\s*$/) &&
-      r !== "\\toprule" &&
-      r !== "\\midrule" &&
-      r !== "\\bottomrule" &&
-      r !== "\\hline",
-  );
-
-  // Detect header: rows before \midrule are header
-  let headerEndIdx = -1;
-  const originalRows = content.split(/\\\\\s*/);
-  for (let i = 0; i < originalRows.length; i++) {
-    if (
-      originalRows[i].includes("\\midrule") ||
-      originalRows[i].includes("\\hline")
-    ) {
-      headerEndIdx = i;
-      break;
-    }
-  }
-
-  let htmlRows = "";
-  let rowIdx = 0;
-
-  for (const row of cleanRows) {
-    // Strip \rowcolor, \textcolor wrappers
-    let cleanRow = row
-      .replace(/\\rowcolor\{[^}]*\}\s*/g, "")
-      .replace(/\\textcolor\{[^}]*\}\{\\textbf\{([^}]*)\}\}/g, "$1")
-      .replace(/\\textcolor\{[^}]*\}\{([^}]*)\}/g, "$1")
-      .replace(/\\toprule/g, "")
-      .replace(/\\midrule/g, "")
-      .replace(/\\bottomrule/g, "")
-      .replace(/\\hline/g, "")
-      .trim();
-
-    if (!cleanRow) continue;
-
-    const cells = cleanRow.split("&").map((c) => c.trim());
-    const isHeader = rowIdx === 0 && headerEndIdx > 0;
-    const tag = isHeader ? "th" : "td";
-
-    const cellsHtml = cells
-      .map((c) => {
-        let val = c
-          .replace(/\\textbf\{([^}]*)\}/g, "<strong>$1</strong>")
-          .replace(/\\textit\{([^}]*)\}/g, "<em>$1</em>");
-        return `<${tag}>${val}</${tag}>`;
-      })
-      .join("");
-
-    if (isHeader) {
-      htmlRows += `<thead><tr>${cellsHtml}</tr></thead><tbody>`;
-    } else {
-      htmlRows += `<tr>${cellsHtml}</tr>`;
-    }
-    rowIdx++;
-  }
-
-  // Close tbody if we opened it
-  if (headerEndIdx > 0) {
-    htmlRows += "</tbody>";
-  }
-
-  return htmlRows;
-}
-
-// ── Close unclosed <li> tags ──
-function closeLiTags(html: string): string {
-  // Simple approach: before each </ul>, </ol>, or next <li>, close previous <li>
-  const lines = html.split("\n");
-  const result: string[] = [];
-  let inLi = false;
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith("<li>") && inLi) {
-      result.push("</li>");
-    }
-
-    if (trimmed.startsWith("<li>")) {
-      inLi = true;
-    }
-
-    if ((trimmed === "</ul>" || trimmed === "</ol>") && inLi) {
-      result.push("</li>");
-      inLi = false;
-    }
-
-    result.push(line);
-  }
-
-  if (inLi) result.push("</li>");
-  return result.join("\n");
-}
-
-// ── Wrap loose text in <p> tags ──
-function wrapParagraphs(html: string): string {
-  const blockElements =
-    /^<(h[1-6]|ul|ol|dl|table|aside|blockquote|section|hr|li|dt|dd|thead|tbody|tr|th|td|caption|p|div|br)/;
-  const closingBlock =
-    /^<\/(h[1-6]|ul|ol|dl|table|aside|blockquote|section|li|dt|dd|thead|tbody|tr|th|td|caption|p|div)/;
-
-  const chunks = html.split(/\n\n+/);
-  return chunks
-    .map((chunk) => {
-      const trimmed = chunk.trim();
-      if (!trimmed) return "";
-      if (blockElements.test(trimmed) || closingBlock.test(trimmed))
-        return trimmed;
-      if (trimmed.startsWith("<sup")) return trimmed; // footnote ref
-      // It's inline text — wrap in <p>
-      return `<p>${trimmed}</p>`;
-    })
-    .join("\n\n");
-}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // EPUB CSS (styled per preset + custom colors)
@@ -699,6 +352,22 @@ aside.box-example {
   border: 1px solid ${colors.exFrame};
 }
 aside.box-example .box-title { color: ${colors.exFrame}; }
+
+/* ── Figures ── */
+figure.book-figure {
+  margin: 1.2em 0;
+  text-align: center;
+  page-break-inside: avoid;
+}
+figure.book-figure img {
+  max-width: 100%;
+  height: auto;
+}
+figure.book-figure figcaption {
+  font-size: 0.9em;
+  color: ${colors.accent};
+  margin-top: 0.4em;
+}
 
 /* ── Tables ── */
 table.data-table {
@@ -1051,11 +720,21 @@ function generateNcx(
 </ncx>`;
 }
 
+const IMAGE_MEDIA_TYPES: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".svg": "image/svg+xml",
+};
+
 function generateOpf(
   chapters: { filename: string; title: string; id: string }[],
   bookTitle: string,
   lang: string,
   uid: string,
+  imageFiles: string[] = [],
 ): string {
   const now = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 
@@ -1068,6 +747,11 @@ function generateOpf(
       (ch) =>
         `    <item id="${ch.id}" href="${ch.filename}" media-type="application/xhtml+xml"/>`,
     ),
+    ...imageFiles.map((href, i) => {
+      const ext = path.extname(href).toLowerCase();
+      const mediaType = IMAGE_MEDIA_TYPES[ext] || "image/jpeg";
+      return `    <item id="img${i}" href="${href}" media-type="${mediaType}"/>`;
+    }),
   ].join("\n");
 
   const spineItems = [
@@ -1139,14 +823,6 @@ async function packageEpub(
 // Helpers (color, S3, XML escaping)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
 
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");

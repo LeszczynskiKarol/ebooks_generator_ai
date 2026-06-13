@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — ImageBlock (inline editor widget)
+// InkMagnet — ImageBlock (inline editor widget)
 // Renders an embedded image in the Visual editor with
 // resize handles and alignment toggle
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

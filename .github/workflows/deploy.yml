@@ -1,0 +1,158 @@
+name: Deploy InkMagnet
+
+# Minimal, change-aware deploy:
+#   • backend  → matury VPS (pm2 inkmagnet-api) via rsync + build on host
+#   • site     → S3 (inkmagnet-site-prod) + CloudFront invalidation + Google indexing
+# The app SPA (inkmagnet-app-prod) is intentionally NOT auto-deployed here — its
+# Vite build env is environment-specific; add a job once the build vars are pinned.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_full:
+        description: "Force backend + site rebuild (skip change detection)"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+# Non-secret infra (secrets only for credentials / host / SG)
+env:
+  AWS_REGION: eu-central-1
+  SITE_BUCKET: inkmagnet-site-prod
+  SITE_CF_ID: E2HQKNVM051L97
+  SITE_URL: https://inkmagnet.com
+  SITEMAP_PATH: /sitemap-index.xml
+  APP_BUCKET: inkmagnet-app-prod
+  APP_CF_ID: E2ME7INHY8VH86
+  # App SPA build vars — all public (baked into the client bundle); API is same-origin /api
+  APP_API_URL: /api
+  APP_GOOGLE_CLIENT_ID: 432035195576-tr45uvcj727ulclu7jkv1vqk9d5p5d36.apps.googleusercontent.com
+  APP_RECAPTCHA_SITE_KEY: 6Ld7FhctAAAAADsGgtyOWvKkkTEQjwMMEuLFinSI
+  BACKEND_DIR: /home/ubuntu/inkmagnet/backend
+  PM2_APP: inkmagnet-api
+  HEALTH_URL: http://localhost:3015/api/health
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.f.outputs.backend }}
+      site: ${{ steps.f.outputs.site }}
+      app: ${{ steps.f.outputs.app }}
+      deps: ${{ steps.f.outputs.deps }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - id: f
+        run: |
+          FORCE="${{ github.event.inputs.force_full }}"
+          BEFORE="${{ github.event.before }}"
+          if [ "$FORCE" = "true" ] || [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            echo "Full deploy (force or no comparable previous commit)"
+            { echo "backend=true"; echo "site=true"; echo "app=true"; echo "deps=true"; } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          DIFF=$(git diff --name-only "$BEFORE" "${{ github.sha }}")
+          echo "Changed:"; echo "$DIFF" | sed 's/^/  /'
+          echo "$DIFF" | grep -qE '^backend/'                         && echo "backend=true" >> "$GITHUB_OUTPUT" || echo "backend=false" >> "$GITHUB_OUTPUT"
+          echo "$DIFF" | grep -qE '^site/'                            && echo "site=true"    >> "$GITHUB_OUTPUT" || echo "site=false"    >> "$GITHUB_OUTPUT"
+          echo "$DIFF" | grep -qE '^frontend/'                        && echo "app=true"     >> "$GITHUB_OUTPUT" || echo "app=false"     >> "$GITHUB_OUTPUT"
+          echo "$DIFF" | grep -qE '(backend/package(-lock)?\.json|backend/prisma/schema\.prisma)' && echo "deps=true" >> "$GITHUB_OUTPUT" || echo "deps=false" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    if: needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.site == 'true' || needs.detect-changes.outputs.app == 'true'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: eu-central-1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Plan
+        run: |
+          echo "backend: ${{ needs.detect-changes.outputs.backend }} | site: ${{ needs.detect-changes.outputs.site }} | deps: ${{ needs.detect-changes.outputs.deps }}"
+
+      # ─── Site (Astro landing) → S3 + CloudFront ──────────────────────
+      - name: Build & deploy site
+        if: needs.detect-changes.outputs.site == 'true'
+        run: |
+          cd site
+          npm ci
+          npm run build
+          [ -f dist/index.html ] || { echo "::error::astro build produced no dist/index.html"; exit 1; }
+          aws s3 sync dist "s3://${SITE_BUCKET}" --delete
+          aws cloudfront create-invalidation --distribution-id "${SITE_CF_ID}" --paths "/*"
+
+      # ─── App SPA (Vite) → S3 + CloudFront ────────────────────────────
+      - name: Build & deploy app
+        if: needs.detect-changes.outputs.app == 'true'
+        run: |
+          cd frontend
+          npm ci
+          VITE_API_URL="${APP_API_URL}" \
+            VITE_GOOGLE_CLIENT_ID="${APP_GOOGLE_CLIENT_ID}" \
+            VITE_RECAPTCHA_SITE_KEY="${APP_RECAPTCHA_SITE_KEY}" \
+            npm run build
+          [ -f dist/index.html ] || { echo "::error::app build produced no dist/index.html"; exit 1; }
+          # hashed assets are immutable; index.html must stay fresh for the SPA
+          aws s3 sync dist "s3://${APP_BUCKET}" --delete --exclude index.html --cache-control "public,max-age=31536000,immutable"
+          aws s3 cp dist/index.html "s3://${APP_BUCKET}/index.html" --cache-control "no-cache"
+          aws cloudfront create-invalidation --distribution-id "${APP_CF_ID}" --paths "/*"
+
+      # ─── Backend (matury VPS) — open SSH only for the runner's IP ─────
+      - name: Runner IP
+        if: needs.detect-changes.outputs.backend == 'true'
+        id: ip
+        run: |
+          IP=$(curl -s --retry 3 https://api.ipify.org)
+          [[ "$IP" =~ ^[0-9.]+$ ]] || { echo "bad IP: $IP"; exit 1; }
+          echo "ipv4=$IP" >> "$GITHUB_OUTPUT"
+
+      - name: Open SSH
+        if: needs.detect-changes.outputs.backend == 'true'
+        run: |
+          aws ec2 authorize-security-group-ingress --group-id "${{ secrets.INKMAGNET_SG_ID }}" \
+            --protocol tcp --port 22 --cidr "${{ steps.ip.outputs.ipv4 }}/32"
+
+      - name: Deploy backend (rsync src + build on host)
+        if: needs.detect-changes.outputs.backend == 'true'
+        env:
+          DEPS: ${{ needs.detect-changes.outputs.deps }}
+        run: |
+          install -m 600 /dev/stdin ~/id_deploy <<< "${{ secrets.INKMAGNET_SSH_KEY }}"
+          SSH="ssh -i $HOME/id_deploy -o StrictHostKeyChecking=accept-new"
+          HOST="ubuntu@${{ secrets.INKMAGNET_HOST }}"
+
+          # ship sources only (host keeps its node_modules / dist / .env / tmp)
+          rsync -az --delete \
+            --exclude node_modules --exclude dist --exclude .env \
+            --exclude 'tmp' --exclude '*.log' --exclude '.git' \
+            -e "$SSH" backend/ "$HOST:${BACKEND_DIR}/"
+
+          # build + restart on the host via the version-controlled deploy script
+          $SSH "$HOST" "DEPS='${DEPS}' PM2_APP='${PM2_APP}' HEALTH_URL='${HEALTH_URL}' bash '${BACKEND_DIR}/scripts/prod-deploy.sh'"
+
+      - name: Close SSH
+        if: always() && needs.detect-changes.outputs.backend == 'true' && steps.ip.outputs.ipv4 != ''
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id "${{ secrets.INKMAGNET_SG_ID }}" \
+            --protocol tcp --port 22 --cidr "${{ steps.ip.outputs.ipv4 }}/32" || true
+
+      # ─── Notify Google indexing (only when the public site changed) ──
+      - name: Notify Google indexing
+        if: success() && needs.detect-changes.outputs.site == 'true'
+        run: |
+          aws lambda invoke --function-name google-indexing-notifier \
+            --payload "{\"siteUrl\":\"${SITE_URL}\",\"sitemapPath\":\"${SITEMAP_PATH}\"}" \
+            --cli-binary-format raw-in-base64-out \
+            --invocation-type Event /tmp/indexing.json
+          cat /tmp/indexing.json || true

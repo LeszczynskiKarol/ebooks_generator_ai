@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — LaTeX Editor (CodeMirror 6)
+// InkMagnet — LaTeX Editor (CodeMirror 6)
 // Replaces raw textarea with syntax-highlighted editor
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — Generation Progress v3
+// InkMagnet — Generation Progress v3
 // Rich pipeline visualization matching backend phases
 // + Review & Revision phase visibility
 // GenerationProgress.tsx

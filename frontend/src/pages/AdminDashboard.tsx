@@ -66,7 +66,7 @@ export default function AdminDashboard() {
             Admin Panel
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            BookForge.ai — full visibility
+            InkMagnet — full visibility
           </p>
         </div>
         <button

@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — TipTap Custom Node: Callout Box
+// InkMagnet — TipTap Custom Node: Callout Box
 // Renders tipbox, keyinsight, warningbox, examplebox
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

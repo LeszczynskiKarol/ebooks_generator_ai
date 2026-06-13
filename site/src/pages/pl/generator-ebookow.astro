@@ -1,0 +1,165 @@
+---
+import ArticleLayout from "../../layouts/ArticleLayout.astro";
+import { Image } from "astro:assets";
+import { siteConfig } from "../../config/site";
+import exCover from "../../assets/ex-cover-kuchnia.png";
+import exPhoto1 from "../../assets/ex-kuchnia-photo1.png";
+import exChapter from "../../assets/ex-kuchnia-chapter.png";
+
+const title = "Generator ebooków AI — prawdziwe książki po polsku, nie szablonowe PDF-y";
+const description =
+  "Generator ebooków z researchem, składem typograficznym i ilustracjami AI. Opisz temat, po godzinie pobierz PDF i EPUB. Po polsku, od 9,99 USD, bez abonamentu.";
+
+const faq = [
+  {
+    q: "Czy generator naprawdę pisze po polsku?",
+    a: "Tak, polski jest językiem pierwszej kategorii, nie tłumaczeniem. Research odbywa się w polskich źródłach, tekst powstaje po polsku, a skład respektuje polskie zasady typograficzne: dzielenie wyrazów, przenoszenie sierot (samotnych „i”, „w”, „z”) i polskie cudzysłowy.",
+  },
+  {
+    q: "Ile kosztuje wygenerowanie ebooka?",
+    a: "Od 9,99 do 19,99 dolara za książkę, zależnie od objętości (30–200 stron). Płacisz raz, za konkretną książkę. W cenie jest research, pisanie, recenzja, ilustracje AI, okładka oraz PDF i EPUB. Żadnego abonamentu.",
+  },
+  {
+    q: "Czym to się różni od poproszenia ChatGPT o ebooka?",
+    a: "Czatbot wypisze tekst z pamięci modelu, w jednym oknie, bez źródeł i bez składu. Nasz potok najpierw bada temat w aktualnych polskich źródłach, potem pisze rozdział po rozdziale z zachowaniem spójności, recenzuje własny szkic, generuje fotografie do konkretnych fragmentów i składa całość silnikiem typograficznym wydawnictw. Wynik wygląda jak książka z drukarni, nie jak wklejka z czatu.",
+  },
+  {
+    q: "Do kogo należą prawa do wygenerowanej książki?",
+    a: "Do ciebie, z pełnymi prawami komercyjnymi. Możesz książkę sprzedawać, rozdawać jako lead magnet i publikować pod własnym nazwiskiem. Pliki są bez znaków wodnych.",
+  },
+  {
+    q: "Czy mogę poprawić wygenerowaną treść?",
+    a: "Tak. Każdy rozdział otwiera się we wbudowanym edytorze, a twoje ręczne poprawki są nienaruszalne: późniejsze operacje nigdy ich nie nadpisują. Po edycji przekompilujesz PDF i EPUB jednym kliknięciem.",
+  },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "Generator ebooków AI",
+    provider: { "@type": "Organization", name: "InkMagnet", url: siteConfig.url },
+    description,
+    inLanguage: "pl",
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "USD",
+      lowPrice: "9.99",
+      highPrice: "19.99",
+    },
+  },
+];
+---
+
+<ArticleLayout
+  title={title}
+  description={description}
+  heading="Generator ebooków, który oddaje książkę, nie półprodukt"
+  subheading="Opisujesz temat i odbiorców. Silnik robi research w polskich źródłach, pisze rozdziały, recenzuje własny szkic, generuje fotografie, projektuje okładkę i składa całość typograficznie. Po godzinie pobierasz PDF jakości drukarskiej i EPUB."
+  crumbs={[
+    { name: "InkMagnet", href: "/pl/" },
+    { name: "Generator ebooków", href: "/pl/generator-ebookow/" },
+  ]}
+  jsonLd={jsonLd}
+>
+  <h2>Problem z „generatorami ebooków", które znasz</h2>
+  <p>
+    Większość narzędzi z tą nazwą to edytory szablonów: dostajesz makietę,
+    a pisanie, źródła i sens zostają po twojej stronie. Druga grupa to nakładki
+    na czatboty, które wylewają tekst bez researchu i oddają go jako plik
+    z eksportu worda. W obu wypadkach najtrudniejsza praca (wiedzieć, co
+    napisać, i nadać temu formę książki) pozostaje niewykonana.
+  </p>
+  <p>
+    Zbudowaliśmy InkMagnet od drugiej strony: automatyzujemy właśnie tę
+    najtrudniejszą część. Jedyne, co wnosisz, to temat, odbiorcy i ewentualne
+    wytyczne. Jedyne, co dostajesz, to skończona książka.
+  </p>
+
+  <h2>Jak wygląda proces</h2>
+  <ol>
+    <li>
+      <strong>Opisujesz książkę.</strong> Temat, dla kogo, ile stron (30–200),
+      styl graficzny, paleta kolorów. Tytuł możesz podać albo zostawić silnikowi.
+    </li>
+    <li>
+      <strong>Zatwierdzasz strukturę.</strong> Po kilku minutach dostajesz plan
+      rozdział po rozdziale, oparty na researchu w aktualnych źródłach. Edytujesz
+      go dowolnie; pisanie rusza dopiero po twoim zatwierdzeniu.
+    </li>
+    <li>
+      <strong>Silnik pisze, recenzuje i ilustruje.</strong> Rozdziały powstają
+      po kolei ze wspólnym kontekstem, więc dziesiąty brzmi jak pierwszy.
+      Osobny przebieg recenzencki ocenia szkic i poprawia słabe miejsca. Fotografie
+      AI trafiają do konkretnych fragmentów, a okładka powstaje dla tej jednej
+      książki i przechodzi własną kontrolę jakości.
+    </li>
+    <li>
+      <strong>Pobierasz pliki.</strong> PDF złożony LaTeX-em (systemem wydawnictw
+      akademickich) i EPUB na czytniki. Oba bez znaków wodnych, z pełnymi prawami.
+    </li>
+  </ol>
+
+  <figure>
+    <div class="grid grid-cols-3 gap-3">
+      <Image src={exCover} alt="Okładka polskiej książki wygenerowanej w InkMagnet" width={400} />
+      <Image src={exPhoto1} alt="Strona wygenerowanej książki z fotografią AI przy przepisie" width={400} />
+      <Image src={exChapter} alt="Otwarcie rozdziału z inicjałem w wygenerowanej książce" width={400} />
+    </div>
+    <figcaption>
+      Surowe strony z polskiej książki wygenerowanej w InkMagnet —
+      <a href="/pl/przyklady/">więcej przykładów i pełny PDF do pobrania</a>.
+    </figcaption>
+  </figure>
+
+  <h2>Polski traktujemy poważnie</h2>
+  <p>
+    Generator pisze po polsku natywnie, a skład pilnuje rzeczy, których nie
+    pilnuje żaden eksport z edytora: przenosi sieroty na końcach wierszy,
+    dzieli wyrazy według polskich zasad, stosuje polskie cudzysłowy
+    drukarskie i poprawnie zapisuje zakresy liczb. Research dla polskiego
+    tematu odbywa się w polskich źródłach, więc książka o polskim rynku
+    cytuje polskie realia, nie przetłumaczone amerykańskie.
+  </p>
+
+  <h2>Po co ludzie generują książki</h2>
+  <p>
+    Najczęstszy scenariusz to <strong>lead magnet</strong>: porządny ebook
+    zamknięty formularzem zapisu. Dane na to są jednoznaczne — w analizie
+    6,2 miliona rejestracji B2B ebooki wzięły 39,5% całego popytu na treści
+    za formularzem, a popup z ebookiem konwertuje o 47% lepiej niż popup bez
+    zachęty. Liczby i źródła zebraliśmy w
+    <a href="/pl/blog/lead-magnet-statystyki/">osobnym artykule</a>.
+    Drugi scenariusz to <strong>produkt</strong>: książka sprzedawana na KDP
+    albo dodawana do kursu. Trzeci, coraz częstszy, to <strong>agencje</strong>
+    oddające klientom ebooki w dni zamiast tygodni.
+  </p>
+
+  <h2>Cena bez gwiazdek</h2>
+  <p>
+    Od 9,99 dolara za książkę 30–45 stron do 19,99 za 161–200 stron. Jedna
+    płatność za jedną książkę; research, ilustracje, okładka i oba formaty są
+    w środku. Dla porównania: sam ghostwriting tekstu tej długości kosztuje
+    na rynku od tysiąca dolarów wzwyż, a skład u projektanta liczony jest
+    godzinowo. Jeśli dopiero planujesz treść, w
+    <a href="/pl/blog/jak-stworzyc-ebooka/">poradniku o tworzeniu ebooków</a>
+    rozpisaliśmy wszystkie trzy ścieżki z kosztami.
+  </p>
+
+  <h2>Częste pytania</h2>
+  {faq.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+</ArticleLayout>

@@ -10,30 +10,64 @@ import {
   ArrowLeft,
   Loader2,
   CreditCard,
-  Image,
   Sparkles,
   Pencil,
+  ListTree,
+  Eye,
+  FileText,
+  CheckCircle2,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import DownloadPanel from "@/components/DownloadPanel";
 import GenerationProgress from "@/components/GenerationProgress";
+import StructureProgress from "@/components/StructureProgress";
 import apiClient from "@/lib/api";
+import CoverEditor, { type CoverEditorHandle } from "@/components/CoverEditor";
 import { STAGE_LABELS, type ProjectStage } from "@/lib/types";
 import { useAuthStore } from "@/stores/authStore";
 import toast from "react-hot-toast";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import StructureEditor from "@/components/StructureEditor";
 import BookEditor, { type BookEditorHandle } from "@/components/BookEditor";
 
-const STAGE_STEPS: ProjectStage[] = [
-  "BRIEF",
-  "PRICING",
-  "PAYMENT",
-  "STRUCTURE",
-  "STRUCTURE_REVIEW",
-  "IMAGES",
-  "GENERATING",
-  "COMPILING",
-  "COMPLETED",
+// Visual flow steps — several backend stages collapse into one user-facing
+// step (the legacy IMAGES stage maps onto "Writing").
+const FLOW_STEPS: {
+  label: string;
+  icon: React.ReactNode;
+  stages: ProjectStage[];
+}[] = [
+  {
+    label: "Payment",
+    icon: <CreditCard className="w-4 h-4" />,
+    stages: ["BRIEF", "PRICING", "PAYMENT"],
+  },
+  {
+    label: "Structure",
+    icon: <ListTree className="w-4 h-4" />,
+    stages: ["STRUCTURE"],
+  },
+  {
+    label: "Review",
+    icon: <Eye className="w-4 h-4" />,
+    stages: ["STRUCTURE_REVIEW"],
+  },
+  {
+    label: "Writing",
+    icon: <Sparkles className="w-4 h-4" />,
+    stages: ["IMAGES", "GENERATING"],
+  },
+  {
+    label: "Compiling",
+    icon: <FileText className="w-4 h-4" />,
+    stages: ["COMPILING"],
+  },
+  {
+    label: "Done",
+    icon: <CheckCircle2 className="w-4 h-4" />,
+    stages: ["COMPLETED"],
+  },
 ];
 
 export default function ProjectDetail() {
@@ -52,6 +86,10 @@ export default function ProjectDetail() {
   const colophonRef = useRef<ColophonEditorHandle>(null);
   const [titlePageFormDirty, setTitlePageFormDirty] = useState(false);
   const [colophonFormDirty, setColophonFormDirty] = useState(false);
+  const coverRef = useRef<CoverEditorHandle>(null);
+  const [coverFormDirty, setCoverFormDirty] = useState(false);
+  // True when cover exists but may not be in the current compiled PDF.
+  const [coverNeedsRecompile, setCoverNeedsRecompile] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["project", id],
@@ -67,6 +105,21 @@ export default function ProjectDetail() {
       return false;
     },
   });
+
+  // ══════════════════════════════════════════════════════════
+  // ALL useEffects MUST be above early returns (Rules of Hooks)
+  // ══════════════════════════════════════════════════════════
+
+  // ── When project loads, check if cover needs recompile ──
+  // Backend compares coverUpdatedAt with the newest compiled version.
+  // (Previously the mere EXISTENCE of a cover set this flag, so every
+  // freshly generated book showed "Chapters edited since last build"
+  // and every download forced a pointless recompile.)
+  useEffect(() => {
+    setCoverNeedsRecompile(data?.coverPendingRecompile === true);
+  }, [data?.coverPendingRecompile]);
+
+  // ── Early returns (AFTER all hooks) ──
 
   if (isLoading) {
     return (
@@ -88,7 +141,13 @@ export default function ProjectDetail() {
   }
 
   const project = data;
-  const currentStageIdx = STAGE_STEPS.indexOf(project.currentStage);
+  const isError = project.currentStage === "ERROR";
+  const currentStepIdx = Math.max(
+    0,
+    FLOW_STEPS.findIndex((s) => s.stages.includes(project.currentStage)),
+  );
+  const hasCoverThumb =
+    project.coverType && project.coverType !== "NONE" && token;
 
   const handleCheckout = async () => {
     setCheckoutLoading(true);
@@ -105,7 +164,7 @@ export default function ProjectDetail() {
   const handleApproveStructure = async () => {
     try {
       await apiClient.post(`/projects/${id}/structure/approve`);
-      toast.success("Structure approved!");
+      toast.success("Structure approved — writing your book!");
       refetch();
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed");
@@ -122,9 +181,15 @@ export default function ProjectDetail() {
     }
   };
 
-  // ── Combined save-all: chapters + title page + colophon ──
+  // ── Combined save-all: chapters + title page + colophon + cover ──
   const handleSaveAll = async (): Promise<boolean> => {
     let allOk = true;
+
+    // 0. Save cover if dirty
+    if (coverRef.current?.isDirty) {
+      const ok = await coverRef.current.save();
+      if (!ok) allOk = false;
+    }
 
     // 1. Save title page if dirty
     if (titlePageRef.current?.isDirty) {
@@ -138,7 +203,7 @@ export default function ProjectDetail() {
       if (!ok) allOk = false;
     }
 
-    // 3. Save dirty chapters (BookEditor)
+    // 3. Save dirty chapters
     if (editorRef.current && editorRef.current.dirtyCount > 0) {
       const ok = await editorRef.current.saveAllDirty();
       if (!ok) allOk = false;
@@ -149,7 +214,10 @@ export default function ProjectDetail() {
 
   // ── Compute total unsaved count across all sections ──
   const totalUnsaved =
-    unsavedCount + (titlePageFormDirty ? 1 : 0) + (colophonFormDirty ? 1 : 0);
+    unsavedCount +
+    (titlePageFormDirty ? 1 : 0) +
+    (colophonFormDirty ? 1 : 0) +
+    (coverFormDirty ? 1 : 0);
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in">
@@ -161,34 +229,93 @@ export default function ProjectDetail() {
         >
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-bold font-display text-gray-900 dark:text-white">
-          {project.title || project.topic}
-        </h1>
-        {project.title && (
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {project.topic}
-          </p>
-        )}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-bold font-display text-gray-900 dark:text-white">
+              {project.title || project.topic}
+            </h1>
+            {project.title && (
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                {project.topic}
+              </p>
+            )}
+          </div>
+          {project.currentStage === "COMPLETED" && hasCoverThumb && (
+            <img
+              src={`/api/projects/${id}/cover/thumb?token=${token}&v=${encodeURIComponent(project.coverUpdatedAt || "")}`}
+              alt="Book cover"
+              loading="lazy"
+              draggable={false}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+              className="w-16 sm:w-20 aspect-[210/297] object-cover rounded-lg border border-gray-200 dark:border-gray-700 shadow-md flex-shrink-0"
+            />
+          )}
+        </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress stepper */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
             Progress
           </h2>
-          <span className="text-sm text-primary-600 dark:text-primary-400 font-medium">
+          <span
+            className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+              isError
+                ? "text-red-600 dark:text-red-400"
+                : "text-primary-600 dark:text-primary-400"
+            }`}
+          >
+            {isError && <AlertCircle className="w-4 h-4" />}
             {STAGE_LABELS[project.currentStage as ProjectStage]}
           </span>
         </div>
-        <div className="flex gap-1">
-          {STAGE_STEPS.map((stage, i) => (
-            <div
-              key={stage}
-              className={`h-2 flex-1 rounded-full transition-colors ${i <= currentStageIdx ? "bg-primary-500" : "bg-gray-200 dark:bg-gray-700"}`}
-            />
-          ))}
-        </div>
+        <ol className="flex items-start">
+          {FLOW_STEPS.map((step, i) => {
+            const done = !isError && i < currentStepIdx;
+            const active = !isError && i === currentStepIdx;
+            const isLast = i === FLOW_STEPS.length - 1;
+            return (
+              <li key={step.label} className="flex-1 flex flex-col items-center relative">
+                {/* connector line */}
+                {!isLast && (
+                  <span
+                    className={`absolute top-4 left-1/2 w-full h-0.5 ${
+                      done
+                        ? "bg-primary-500"
+                        : "bg-gray-200 dark:bg-gray-700"
+                    }`}
+                    aria-hidden="true"
+                  />
+                )}
+                <span
+                  className={`relative z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
+                    done
+                      ? "bg-primary-500 border-primary-500 text-white"
+                      : active
+                        ? "bg-white dark:bg-gray-900 border-primary-500 text-primary-600 dark:text-primary-400 ring-4 ring-primary-100 dark:ring-primary-950"
+                        : isError && i === currentStepIdx
+                          ? "bg-red-50 border-red-400 text-red-500"
+                          : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-300 dark:text-gray-600"
+                  }`}
+                >
+                  {done ? <Check className="w-4 h-4" /> : step.icon}
+                </span>
+                <span
+                  className={`mt-2 text-[11px] font-medium hidden sm:block ${
+                    done || active
+                      ? "text-gray-900 dark:text-white"
+                      : "text-gray-400 dark:text-gray-500"
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
       </div>
 
       {/* Project info */}
@@ -277,21 +404,12 @@ export default function ProjectDetail() {
             </div>
           )}
 
-        {/* STRUCTURE — waiting for AI */}
+        {/* STRUCTURE — live research/design progress */}
         {project.paymentStatus === "PAID" &&
           (project.currentStage === "STRUCTURE" ||
             project.currentStage === "STRUCTURE_REVIEW") &&
           !project.structure && (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 text-center">
-              <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                Payment Confirmed!
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Generating your book structure with AI... This takes 10-30
-                seconds.
-              </p>
-            </div>
+            <StructureProgress researchDone={project.researchDone === true} />
           )}
 
         {/* STRUCTURE REVIEW — the editor! */}
@@ -309,19 +427,20 @@ export default function ProjectDetail() {
             </div>
           )}
 
-        {/* IMAGES */}
+        {/* Legacy projects parked in the removed IMAGES stage — new approvals
+            start generation directly, this is just a resume button for old rows */}
         {project.currentStage === "IMAGES" && (
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 text-center">
-            <Image className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+            <Sparkles className="w-12 h-12 text-primary-500 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Images (Optional)
+              Ready to write your book
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Upload images or skip to generate without them.
+              The structure is approved — start the AI generation.
             </p>
             <button
               onClick={handleStartGeneration}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg shadow-lg shadow-primary-600/25"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg shadow-lg shadow-primary-600/25 cursor-pointer"
             >
               <Sparkles className="w-5 h-5" /> Start Generation
             </button>
@@ -348,7 +467,8 @@ export default function ProjectDetail() {
               Compiling Your Book
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Assembling LaTeX and generating PDF... This takes 30-60 seconds.
+              Designing the cover and typesetting the print-ready PDF. This can
+              take a few minutes for a full book — you can keep this tab open.
             </p>
           </div>
         )}
@@ -363,13 +483,30 @@ export default function ProjectDetail() {
               generationStatus={project.generationStatus}
               unsavedChanges={totalUnsaved}
               titlePageDirty={titlePageDirty}
-              onRecompiled={() => setTitlePageDirty(false)}
+              hasCover={coverNeedsRecompile}
+              onRecompiled={() => {
+                setTitlePageDirty(false);
+                setCoverNeedsRecompile(false);
+              }}
               onSaveAll={handleSaveAll}
             />
 
+            {/* ★★★ Cover (Okładka) ★★★ */}
             <div className="border-t border-gray-200 dark:border-gray-700 my-6" />
+            <CoverEditor
+              ref={coverRef}
+              projectId={id!}
+              language={project.language}
+              bookFormat={project.bookFormat}
+              onDirtyChange={setCoverFormDirty}
+              onSaved={() => {
+                refetch();
+                setCoverNeedsRecompile(true);
+              }}
+            />
 
-            {/* ★★★ Title Page Editor ★★★ */}
+            {/* ★★★ Title Page (Strona tytułowa wewnątrz książki) ★★★ */}
+            <div className="border-t border-gray-200 dark:border-gray-700 my-6" />
             <TitlePageEditor
               ref={titlePageRef}
               projectId={id!}
@@ -384,6 +521,8 @@ export default function ProjectDetail() {
               }}
             />
 
+            {/* ★★★ Kolofon ★★★ */}
+            <div className="border-t border-gray-200 dark:border-gray-700 my-6" />
             <ColophonEditor
               ref={colophonRef}
               projectId={id!}

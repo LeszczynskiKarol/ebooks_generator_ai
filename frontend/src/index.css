@@ -18,6 +18,13 @@
   color-scheme: dark;
 }
 
+/* reCAPTCHA badge hidden globally — Google permits this when the protection
+   notice with Privacy/Terms links is shown next to the protected forms
+   (see RecaptchaNotice component). */
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }

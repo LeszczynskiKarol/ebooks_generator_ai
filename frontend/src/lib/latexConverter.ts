@@ -1,5 +1,5 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// BookForge — LaTeX ↔ HTML Bidirectional Converter v3
+// InkMagnet — LaTeX ↔ HTML Bidirectional Converter v3
 // Image blocks with data-alignment, data-width, data-caption
 // Compatible with TipTap ImageBlock custom node
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -66,15 +66,17 @@ export function latexToHtml(latex: string): string {
   // TipTap ImageBlock parseHTML expects: <img src="..." data-alignment="..." data-width="..." data-caption="...">
 
   // ── wrapfigure (text-wrapping) ──
+  // Groups: 1=side(l/r), 2=wrapWidth(e.g. 0.30\textwidth), 3=includegraphics opts, 4=src, 5=caption
+  // ★ CRITICAL: read width from wrapfigure param (group 2), NOT from \includegraphics opts!
+  //   \includegraphics inside wrapfigure uses width=\linewidth (no number), so opts-based parsing fails.
   html = html.replace(
     /\\begin\{wrapfigure\}\{([lr])\}\{([^}]*)\}[\s\S]*?\\includegraphics(?:\[([^\]]*)\])?\{([^}]*)\}(?:[\s\S]*?\\caption\{([^}]*)\})?[\s\S]*?\\end\{wrapfigure\}/g,
-    (_match, side, _wrapWidth, opts, src, caption) => {
+    (_match, side, wrapWidth, _opts, src, caption) => {
       const alignment = side === "l" ? "wrap-left" : "wrap-right";
-      const widthMatch = opts?.match(
-        /width=([0-9.]+)\\(?:textwidth|linewidth)/,
-      );
-      const widthPercent = widthMatch
-        ? Math.round(parseFloat(widthMatch[1]) * 100)
+      // Parse width from wrapfigure's width parameter: {0.30\textwidth}
+      const wrapWidthMatch = wrapWidth?.match(/([0-9.]+)\\textwidth/);
+      const widthPercent = wrapWidthMatch
+        ? Math.round(parseFloat(wrapWidthMatch[1]) * 100)
         : 50;
       const captionAttr = caption ? ` data-caption="${escHtml(caption)}"` : "";
       return `<img src="${escHtml(src)}" alt="${escHtml(caption || "")}" data-alignment="${alignment}" data-width="${widthPercent}"${captionAttr} class="wysiwyg-image" />`;
@@ -551,8 +553,11 @@ function convertHtmlTableToLatex(table: HTMLElement): string {
   return latex;
 }
 
-/** Escape special LaTeX characters in plain text */
+/** Escape special LaTeX characters in plain text.
+ *  CRITICAL: Backslash must use a placeholder to prevent the {/} inside
+ *  \textbackslash{} from being re-escaped → exponential content growth. */
 function escapeLatexChars(text: string): string {
+  // Skip text that already contains LaTeX commands (leaked through conversion)
   if (
     /\\text(backslash|asciitilde|asciicircum|bf|it|tt|sc|color)\{/.test(text)
   ) {
@@ -566,8 +571,11 @@ function escapeLatexChars(text: string): string {
     return text;
   }
 
-  return text
-    .replace(/\\/g, "\\textbackslash{}")
+  // Step 1: Replace \ with null-byte placeholder BEFORE escaping { and }
+  let result = text.replace(/\\/g, "\x00");
+
+  // Step 2: Escape all other special chars (won't touch placeholder)
+  result = result
     .replace(/&/g, "\\&")
     .replace(/%/g, "\\%")
     .replace(/\$/g, "\\$")
@@ -583,6 +591,11 @@ function escapeLatexChars(text: string): string {
     .replace(/\u2019/g, "'")
     .replace(/\u2014/g, "---")
     .replace(/\u2013/g, "--");
+
+  // Step 3: Replace placeholder with \textbackslash{} AFTER brace escaping
+  result = result.replace(/\x00/g, "\\textbackslash{}");
+
+  return result;
 }
 
 function stripLatexEsc(text: string): string {

@@ -15,11 +15,36 @@ model User {
   googleId     String? @unique
   avatarUrl    String?
 
+  emailVerified DateTime? // null = registration not confirmed (Google logins auto-verify)
+  authTokens    AuthToken[]
+
   stripeCustomerId String? @unique
   projects         Project[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+// Single-use auth secrets (6-digit codes / reset links). Only SHA256 hashes
+// are stored; `attempts` guards brute-forcing of the short codes.
+model AuthToken {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      AuthTokenType
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  attempts  Int           @default(0)
+  createdAt DateTime      @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
 }
 
 model Project {
@@ -52,6 +77,9 @@ model Project {
 
   images      ProjectImage[]
   useAiImages Boolean        @default(false)
+  imageGuidelines String?    @db.Text // optional user steering for AI illustrations
+  imageDensity String        @default("standard") // standard (~1/5 pages) | rich (~1/3 pages)
+  footnoteMode String        @default("auto") // auto (by style) | always | never
 
   chapters           Chapter[]
   generationStatus   GenerationStatus @default(NOT_STARTED)
@@ -78,6 +106,16 @@ model Project {
 
   @@index([userId])
   @@index([currentStage])
+
+   coverType         CoverType @default(NONE)
+   coverLatex        String?   @db.Text        // Generated LaTeX source for cover
+   coverImageS3Key   String?                   // Custom uploaded cover image (S3 key)
+   coverImageLocalPath String?                 // Custom uploaded cover image (local fallback)
+   coverPdfS3Key     String?                   // Compiled cover PDF (S3 key)
+   coverPdfLocalPath String?                   // Compiled cover PDF (local fallback)
+   coverParams       String?   @db.Text        // JSON: layout, font overrides, etc.
+   autoCoverRequested Boolean  @default(false)  // user ticked "Generate cover" in order form
+   coverUpdatedAt    DateTime?                  // last cover mutation — compared against the newest BookVersion to detect "cover not yet in compiled PDF"
 }
 
 model BookVersion {
@@ -99,11 +137,21 @@ model BookVersion {
   texLocalPath String?
   texFileSize  Int?
 
+  coverPdfS3Key     String?
+  coverPdfLocalPath String?
+
+
   note      String?  @db.VarChar(500)
   createdAt DateTime @default(now())
 
   @@unique([projectId, version])
   @@index([projectId])
+}
+
+enum CoverType {
+  NONE
+  GENERATED
+  CUSTOM_UPLOAD
 }
 
 enum ProjectStage {
@@ -174,6 +222,10 @@ model Chapter {
   writerPrompts   String? @db.Text
   writerResponses String? @db.Text
   researchData    String? @db.Text
+  registryJson    String? @db.Text
+
+  // Set when the user manually edits the chapter — regeneration must not overwrite it
+  userEditedAt DateTime?
 
   imagePlacements ImagePlacement[]
   status          ChapterStatus @default(PENDING)

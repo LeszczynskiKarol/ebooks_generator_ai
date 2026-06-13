@@ -8,8 +8,13 @@ export default defineConfig({
     alias: { "@": path.resolve(__dirname, "./src") },
   },
   server: {
+    host: "127.0.0.1", // nasłuch na IPv4 loopback – żeby frpc (tunel) trafiał w 127.0.0.1:5173
     port: 5173,
-    allowedHosts: ["app-reactapp.ngrok.app", "server-reactapp.ngrok.app"],
+    allowedHosts: [
+      "app-reactapp.ngrok.app",
+      "server-reactapp.ngrok.app",
+      "dev.torweb.pl",
+    ],
     proxy: {
       "/api": { target: "http://localhost:3000", changeOrigin: true },
     },
