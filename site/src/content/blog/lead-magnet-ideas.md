@@ -1,5 +1,6 @@
 ---
 title: "23 lead magnet ideas, sorted by what they signal about you"
+seoTitle: "23 lead magnet ideas for 2026"
 description: "Checklists win speed, ebooks win authority, tools win retention. 23 concrete lead magnet ideas with the conversion logic behind each category."
 lang: en
 pubDate: 2026-06-11

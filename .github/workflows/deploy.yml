@@ -88,7 +88,14 @@ jobs:
           npm install --no-audit --no-fund
           npm run build
           [ -f dist/index.html ] || { echo "::error::astro build produced no dist/index.html"; exit 1; }
-          aws s3 sync dist "s3://${SITE_BUCKET}" --delete
+          # Hashed assets are content-addressed → cache forever (immutable).
+          aws s3 sync dist "s3://${SITE_BUCKET}" --delete \
+            --exclude "*.html" --exclude "*.xml" --exclude "robots.txt" \
+            --cache-control "public,max-age=31536000,immutable"
+          # HTML / sitemap / robots must stay fresh → short TTL, revalidate.
+          aws s3 sync dist "s3://${SITE_BUCKET}" --delete \
+            --exclude "*" --include "*.html" --include "*.xml" --include "robots.txt" \
+            --cache-control "public,max-age=3600,must-revalidate"
           aws cloudfront create-invalidation --distribution-id "${SITE_CF_ID}" --paths "/*"
 
       # ─── App SPA (Vite) → S3 + CloudFront ────────────────────────────

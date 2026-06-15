@@ -1,5 +1,6 @@
 ---
 title: "Lead magnet w liczbach: co naprawdę mówią badania o ebookach"
+seoTitle: "Lead magnet w liczbach — statystyki"
 description: "39,5% rejestracji B2B, +47% konwersji popupów, luka konsumpcji 31 godzin. Dwanaście statystyk o lead magnetach ze źródłami, także te niewygodne."
 lang: pl
 pubDate: 2026-06-10

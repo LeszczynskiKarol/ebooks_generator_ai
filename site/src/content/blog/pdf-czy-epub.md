@@ -1,5 +1,6 @@
 ---
 title: "PDF czy EPUB: który format ebooka wybrać i kiedy potrzebujesz obu"
+seoTitle: "PDF czy EPUB — który format ebooka"
 description: "Stały układ kontra płynący tekst, wymagania sklepów, dostępność i praktyka lead magnetów. Roboczy przewodnik po formatach ebooków na 2026 rok."
 lang: pl
 pubDate: 2026-06-11

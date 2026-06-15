@@ -1,5 +1,6 @@
 ---
 title: "23 pomysły na lead magnet, ułożone według tego, co mówią o tobie"
+seoTitle: "23 pomysły na lead magnet (2026)"
 description: "Checklisty wygrywają szybkością, ebooki autorytetem, narzędzia retencją. 23 konkretne pomysły na lead magnet z logiką konwersji dla każdej kategorii."
 lang: pl
 pubDate: 2026-06-11

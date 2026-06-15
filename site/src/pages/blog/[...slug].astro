@@ -31,7 +31,7 @@ const articleLd = {
 ---
 
 <ArticleLayout
-  title={post.data.title}
+  title={post.data.seoTitle ?? post.data.title}
   description={post.data.description}
   heading={post.data.title}
   subheading={post.data.description}

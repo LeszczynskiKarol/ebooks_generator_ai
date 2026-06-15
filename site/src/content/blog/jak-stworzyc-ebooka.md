@@ -1,5 +1,6 @@
 ---
 title: "Jak stworzyć ebooka w 2026: cały proces krok po kroku, z kosztami"
+seoTitle: "Jak stworzyć ebooka w 2026"
 description: "Od pomysłu do PDF i EPUB: research, konspekt, trzy ścieżki pisania z realnymi kosztami, skład typograficzny, okładka i dystrybucja. Bez lania wody."
 lang: pl
 pubDate: 2026-06-10

@@ -1,5 +1,6 @@
 ---
 title: "PDF vs EPUB: which ebook format to use, and when you need both"
+seoTitle: "PDF vs EPUB: which ebook format?"
 description: "Fixed layout vs reflowable text, store requirements, accessibility and lead magnet practice — a working guide to choosing ebook formats in 2026."
 lang: en
 pubDate: 2026-06-11

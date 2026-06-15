@@ -1,5 +1,6 @@
 ---
 title: "Jak wydać ebooka w 2026: KDP, Apple Books i Kobo bez mitologii"
+seoTitle: "Jak wydać ebooka w 2026 (KDP, Kobo)"
 description: "Matematyka tantiem, wymagania formatów, pytanie o wyłączność i sekwencja startu. Praktyczna droga od gotowego tekstu do opublikowanego ebooka."
 lang: pl
 pubDate: 2026-06-11

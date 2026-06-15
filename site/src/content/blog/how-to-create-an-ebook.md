@@ -1,5 +1,6 @@
 ---
 title: "How to create an ebook in 2026: the complete process, costs included"
+seoTitle: "How to create an ebook in 2026"
 description: "From topic to PDF and EPUB: research, outlining, three writing paths with real costs, typesetting, covers and distribution — without the usual filler."
 lang: en
 pubDate: 2026-06-10

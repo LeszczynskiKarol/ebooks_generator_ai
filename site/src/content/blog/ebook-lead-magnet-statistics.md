@@ -1,5 +1,6 @@
 ---
 title: "Ebook lead magnets in 2026: what the data actually says"
+seoTitle: "Ebook lead magnet statistics for 2026"
 description: "Registration shares, popup conversion lifts, the consumption gap — 12 sourced statistics on ebook lead magnets, including the ones vendors don't quote."
 lang: en
 pubDate: 2026-06-10

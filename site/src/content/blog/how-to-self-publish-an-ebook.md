@@ -1,5 +1,6 @@
 ---
 title: "How to self-publish an ebook in 2026: KDP, Apple Books and Kobo without the mythology"
+seoTitle: "How to self-publish an ebook in 2026"
 description: "Royalty math, format requirements, the exclusivity question and the launch checklist — a practical path from finished manuscript to published ebook."
 lang: en
 pubDate: 2026-06-11
