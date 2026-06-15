@@ -57,7 +57,7 @@ const {
 
 const lang: Lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const registerUrl = `${siteConfig.appUrl}/auth/register`;
+const registerUrl = `${siteConfig.appUrl}/auth/register${lang === "pl" ? "?lang=pl" : ""}`;
 
 const breadcrumbLd = {
   "@context": "https://schema.org",

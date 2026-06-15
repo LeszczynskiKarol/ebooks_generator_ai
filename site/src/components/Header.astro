@@ -14,6 +14,9 @@ const otherLang: Lang = lang === "pl" ? "en" : "pl";
 const enPath = Astro.url.pathname.replace(/^\/pl(\/|$)/, "/");
 const switchHref = otherLang === "pl" ? (enPath === "/" ? "/pl/" : `/pl${enPath}`) : enPath;
 
+// carry the language into the app so login/registration open in the right one
+const appQ = lang === "pl" ? "?lang=pl" : "";
+
 const navItems = [
   { href: `${p}/#how`, label: t.nav.how },
   //{ href: lang === "pl" ? "/pl/przyklady/" : "/examples/", label: t.nav.examples },
@@ -55,19 +58,20 @@ const navItems = [
     <div class="flex items-center gap-2 sm:gap-4">
       <a
         href={switchHref}
+        data-langswitch={otherLang}
         class="rounded-lg px-2 py-1 text-sm font-semibold text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-900"
         aria-label={otherLang === "pl" ? "Wersja polska" : "English version"}
       >
         {otherLang.toUpperCase()}
       </a>
       <a
-        href={`${siteConfig.appUrl}/auth/login`}
+        href={`${siteConfig.appUrl}/auth/login${appQ}`}
         class="hidden text-sm font-medium text-ink-600 transition-colors hover:text-ink-900 sm:block"
       >
         {t.nav.signIn}
       </a>
       <a
-        href={`${siteConfig.appUrl}/auth/register`}
+        href={`${siteConfig.appUrl}/auth/register${appQ}`}
         class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
       >
         {t.nav.cta}

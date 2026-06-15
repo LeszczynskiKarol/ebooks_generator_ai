@@ -16,7 +16,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = langPrefix(lang);
-const registerUrl = `${siteConfig.appUrl}/auth/register`;
+const registerUrl = `${siteConfig.appUrl}/auth/register${lang === "pl" ? "?lang=pl" : ""}`;
 
 const isPL = lang === "pl";
 // real interior page renders (PL books generated with InkMagnet); EN falls back

@@ -4,6 +4,7 @@ import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { getRecaptchaToken } from "@/lib/recaptcha";
 import { uiLang } from "@/lib/locale";
+import { useT } from "@/lib/i18n";
 
 interface VerifiedUser {
   id: string;
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function VerifyCodeForm({ email, autoSend, onVerified, onBack }: Props) {
+  const t = useT();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(60);
@@ -41,11 +43,11 @@ export default function VerifyCodeForm({ email, autoSend, onVerified, onBack }: 
       const recaptchaToken = await getRecaptchaToken("resend_code");
       await api.post("/auth/resend-code", { email, recaptchaToken, lang: uiLang() });
       setResendIn(60);
-      if (!silent) toast.success("Code sent — check your inbox");
+      if (!silent) toast.success(t("codeSent"));
     } catch (err: any) {
       const retryAfter = err.response?.data?.retryAfter;
       if (typeof retryAfter === "number") setResendIn(retryAfter);
-      if (!silent) toast.error(err.response?.data?.error || "Could not resend the code");
+      if (!silent) toast.error(err.response?.data?.error || t("couldNotResend"));
     }
   };
 
@@ -57,7 +59,7 @@ export default function VerifyCodeForm({ email, autoSend, onVerified, onBack }: 
       const { data } = await api.post("/auth/verify-email", { email, code, lang: uiLang() });
       onVerified(data.data.user, data.data.accessToken, data.data.refreshToken);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Invalid code");
+      toast.error(err.response?.data?.error || t("invalidCode"));
       setCode("");
     } finally {
       setLoading(false);
@@ -70,9 +72,9 @@ export default function VerifyCodeForm({ email, autoSend, onVerified, onBack }: 
         <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center mb-3">
           <MailCheck className="w-6 h-6 text-primary-600 dark:text-primary-400" />
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Check your email</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t("checkEmail")}</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          We sent a 6-digit code to <span className="font-medium text-gray-900 dark:text-white">{email}</span>
+          {t("sentCodeTo")} <span className="font-medium text-gray-900 dark:text-white">{email}</span>
         </p>
       </div>
 
@@ -91,7 +93,7 @@ export default function VerifyCodeForm({ email, autoSend, onVerified, onBack }: 
         disabled={loading || code.length !== 6}
         className="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
       >
-        {loading && <Loader2 className="w-4 h-4 animate-spin" />} Verify
+        {loading && <Loader2 className="w-4 h-4 animate-spin" />} {t("verify")}
       </button>
 
       <div className="flex items-center justify-between text-sm">
@@ -101,7 +103,7 @@ export default function VerifyCodeForm({ email, autoSend, onVerified, onBack }: 
           disabled={resendIn > 0}
           className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium disabled:opacity-50 disabled:cursor-default cursor-pointer"
         >
-          {resendIn > 0 ? `Resend code (${resendIn}s)` : "Resend code"}
+          {resendIn > 0 ? t("resendCodeIn", { s: resendIn }) : t("resendCode")}
         </button>
         {onBack && (
           <button
@@ -109,7 +111,7 @@ export default function VerifyCodeForm({ email, autoSend, onVerified, onBack }: 
             onClick={onBack}
             className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
           >
-            Use a different email
+            {t("useDifferentEmail")}
           </button>
         )}
       </div>

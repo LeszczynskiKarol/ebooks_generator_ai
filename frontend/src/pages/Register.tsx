@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,21 +10,20 @@ import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { getRecaptchaToken, warmRecaptcha } from "@/lib/recaptcha";
 import { uiLang } from "@/lib/locale";
+import { useT, useLangStore, translate } from "@/lib/i18n";
+import LangToggle from "@/components/LangToggle";
 import VerifyCodeForm from "@/components/VerifyCodeForm";
 import GoogleButton from "@/components/GoogleButton";
 import RecaptchaNotice from "@/components/RecaptchaNotice";
 
-const registerSchema = z.object({
-  name: z.string().min(2, "Min 2 characters"),
-  email: z.string().email("Invalid email"),
-  password: z.string().min(8, "Min 8 characters"),
-});
-type RegisterForm = z.infer<typeof registerSchema>;
+type RegisterForm = { name: string; email: string; password: string };
 
 export default function Register() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
   const { dark, toggle } = useThemeStore();
+  const t = useT();
+  const lang = useLangStore((s) => s.lang);
   const [loading, setLoading] = useState(false);
   // Email awaiting a verification code; non-null switches to the code step
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
@@ -34,6 +33,16 @@ export default function Register() {
   useEffect(() => {
     warmRecaptcha();
   }, []);
+
+  const registerSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(2, translate(lang, "errNameMin")),
+        email: z.string().email(translate(lang, "errEmail")),
+        password: z.string().min(8, translate(lang, "errPasswordMin")),
+      }),
+    [lang],
+  );
 
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -53,7 +62,7 @@ export default function Register() {
         setPendingEmail(form.email);
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Registration failed");
+      toast.error(err.response?.data?.error || t("registrationFailed"));
     } finally {
       setLoading(false);
     }
@@ -61,6 +70,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 transition-colors">
+      <LangToggle />
       <button onClick={toggle} className="fixed top-4 right-4 p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
         {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
       </button>
@@ -72,10 +82,10 @@ export default function Register() {
             <span className="text-2xl font-bold font-display text-gray-900 dark:text-white">InkMagnet</span>
           </a>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {pendingEmail ? "Verify your email" : "Create your account"}
+            {pendingEmail ? t("verifyTitle") : t("createAccountTitle")}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {pendingEmail ? "One last step before you start" : "Start creating professional eBooks"}
+            {pendingEmail ? t("oneLastStep") : t("startCreating")}
           </p>
         </div>
 
@@ -85,29 +95,29 @@ export default function Register() {
             onBack={() => setPendingEmail(null)}
             onVerified={(user, accessToken, refreshToken) => {
               setAuth(user, accessToken, refreshToken);
-              toast.success("Account created!");
+              toast.success(t("accountCreatedToast"));
               navigate("/dashboard");
             }}
           />
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-              <input type="text" {...register("name")} placeholder="John Doe"
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("fullName")}</label>
+              <input type="text" {...register("name")} placeholder={t("namePlaceholder")}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("email")}</label>
               <input type="email" {...register("email")} placeholder="you@example.com"
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-              <input type="password" {...register("password")} placeholder="Min. 8 characters"
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("password")}</label>
+              <input type="password" {...register("password")} placeholder={t("passwordMinPlaceholder")}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
@@ -129,7 +139,7 @@ export default function Register() {
 
             <button type="submit" disabled={loading}
               className="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2">
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />} Create Account
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />} {t("createAccountBtn")}
             </button>
 
             <GoogleButton />
@@ -137,8 +147,8 @@ export default function Register() {
         )}
 
         <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-          Already have an account?{" "}
-          <Link to="/auth/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">Sign in</Link>
+          {t("haveAccount")}{" "}
+          <Link to="/auth/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">{t("signIn")}</Link>
         </p>
         <RecaptchaNotice />
       </div>

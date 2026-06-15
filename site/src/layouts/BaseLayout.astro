@@ -49,6 +49,28 @@ const altPl = new URL(plPath, siteConfig.url).href;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* First-visit language auto-routing: send pl-PL browsers to /pl from the
+        homepage, unless the visitor already made an explicit choice. Runs before
+        paint to avoid a flash; homepage-only because EN/PL deep-link slugs differ. */}
+    <script is:inline>
+      (function () {
+        try {
+          if (location.pathname !== "/") return;
+          if (localStorage.getItem("im_lang")) return;
+          var ua = navigator.userAgent || "";
+          if (/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|embedly/i.test(ua)) return;
+          var l = (navigator.language || navigator.userLanguage || "").toLowerCase();
+          if (l.indexOf("pl") === 0) location.replace("/pl/" + location.search + location.hash);
+        } catch (e) {}
+      })();
+      // Remember an explicit EN/PL choice when the user clicks the switcher.
+      document.addEventListener("click", function (e) {
+        var a = e.target && e.target.closest && e.target.closest("[data-langswitch]");
+        if (a) {
+          try { localStorage.setItem("im_lang", a.getAttribute("data-langswitch")); } catch (_) {}
+        }
+      });
+    </script>
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
