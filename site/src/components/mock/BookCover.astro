@@ -1,0 +1,76 @@
+---
+// One book-cover card for the dashboard mockups (hero + app showcase).
+// Renders a real-looking designed cover (gradient, serif title, author, status
+// badge, optional generation progress) — driven by localized data from t.mock.
+interface Book {
+  title: string;
+  author: string;
+  pages: number;
+  fmt: string;
+  status: string;
+  pct?: number;
+}
+interface Props {
+  book: Book;
+  idx: number;
+  labels: { done: string; writing: string; pagesWord: string };
+}
+const { book, idx, labels } = Astro.props;
+
+const GRADIENTS = [
+  "from-violet-500 to-indigo-700",
+  "from-rose-500 to-orange-600",
+  "from-emerald-500 to-teal-700",
+  "from-sky-500 to-blue-700",
+  "from-amber-500 to-rose-600",
+  "from-fuchsia-500 to-purple-700",
+  "from-cyan-500 to-blue-700",
+  "from-lime-600 to-emerald-700",
+];
+const grad = GRADIENTS[idx % GRADIENTS.length];
+const writing = book.status === "writing";
+---
+
+<div class="overflow-hidden rounded-lg border border-ink-100 bg-white shadow-sm">
+  <div class={`relative flex aspect-[3/4] flex-col justify-between overflow-hidden bg-gradient-to-br ${grad} p-3`}>
+    {/* faint decorative book glyph */}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" class="pointer-events-none absolute -bottom-4 -right-3 h-20 w-20 text-white/10">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25c-1.6-1-3.8-1.5-6-1.5-1 0-1.9.1-2.8.3v12.7c.9-.2 1.8-.3 2.8-.3 2.2 0 4.4.5 6 1.5m0-12.7c1.6-1 3.8-1.5 6-1.5 1 0 1.9.1 2.8.3v12.7c-.9-.2-1.8-.3-2.8-.3-2.2 0-4.4.5-6 1.5m0-12.7v12.7" />
+    </svg>
+
+    {/* status badge */}
+    <span class={`relative z-10 inline-flex w-fit items-center gap-1 rounded-full px-1.5 py-0.5 text-[7px] font-bold ${writing ? "bg-white/90 text-violet-700" : "bg-white/90 text-emerald-700"}`}>
+      <span class={`h-1 w-1 rounded-full ${writing ? "animate-pulse bg-violet-500" : "bg-emerald-500"}`}></span>
+      {writing ? labels.writing : labels.done}
+    </span>
+
+    {/* title block */}
+    <div class="relative z-10">
+      <span class="mb-1.5 block h-px w-7 bg-white/50"></span>
+      <p class="font-serif text-[11px] font-bold leading-[1.15] text-white [text-wrap:balance] line-clamp-3">
+        {book.title}
+      </p>
+      <p class="mt-1 text-[7.5px] uppercase tracking-wide text-white/70">{book.author}</p>
+    </div>
+
+    {/* generation progress overlay */}
+    {
+      writing && (
+        <div class="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 to-transparent p-2 pt-5">
+          <div class="mb-1 flex items-center justify-between">
+            <span class="text-[7px] font-medium text-white/90">{labels.writing}</span>
+            <span class="text-[7px] font-bold text-white">{book.pct}%</span>
+          </div>
+          <div class="h-1 overflow-hidden rounded-full bg-white/25">
+            <div class="h-full rounded-full bg-white" style={`width:${book.pct}%`}></div>
+          </div>
+        </div>
+      )
+    }
+  </div>
+
+  <div class="flex items-center justify-between px-2.5 py-1.5">
+    <span class="text-[8.5px] text-ink-400">{book.pages} {labels.pagesWord} · {book.fmt}</span>
+    <span class="h-1 w-1 rounded-full bg-ink-200"></span>
+  </div>
+</div>

@@ -1,18 +1,26 @@
 ---
-// Faithful code mockups of the four real InkMagnet app screens, recreated from
-// the live components so the landing "how it works" steps match what's actually
-// inside the app (app.inkmagnet.com/projects/new and /projects/[id]):
-//   i=0 → NewProject form        (Create New Book)
-//   i=1 → StructureEditor        (Book Structure review)
-//   i=2 → GenerationProgress     (the live writing pipeline)
-//   i=3 → DownloadPanel          (finished book — PDF + EPUB)
-// The app UI is English-only, so labels are the real ones. The app's primary
-// accent is #7C3AED === Tailwind violet-600, so we use violet-* throughout to
-// match it exactly; ink-* are the site greys; phase colours mirror the real app.
+// Faithful, localized code mockups of the four real InkMagnet app screens,
+// recreated from the live components (app.inkmagnet.com/projects/new and
+// /projects/[id]). All copy comes from t.mock so PL and EN render their own
+// language. The app's primary accent is #7C3AED === Tailwind violet-600, so we
+// use violet-* to match it; ink-* are the site greys; phase colours mirror the
+// real generation pipeline.
+import { useTranslations, type Lang } from "../../i18n/ui";
 interface Props {
   i: number;
+  lang: Lang;
 }
-const { i } = Astro.props;
+const { i, lang } = Astro.props;
+const m = useTranslations(lang).mock;
+const ui = m.ui;
+const book = m.book;
+
+// generation pipeline chapter rows (status derived for the snapshot)
+const genChapters = book.chapters.map((c, idx) => ({
+  n: c.n,
+  t: c.title,
+  st: idx < 2 ? "done" : idx === 2 ? "active" : "pending",
+}));
 ---
 
 <div class="overflow-hidden rounded-xl border border-ink-200 bg-white">
@@ -23,58 +31,55 @@ const { i } = Astro.props;
     <span class="h-2 w-2 rounded-full bg-ink-200"></span>
     <span class="ml-2 flex h-5 flex-1 items-center rounded bg-white px-2 text-[9px] font-medium text-ink-400 ring-1 ring-ink-100">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-1 h-2.5 w-2.5 text-ink-300"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 13.5v6a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
-      app.inkmagnet.com{i === 0 ? "/projects/new" : "/projects/8f2a"}
+      {i === 0 ? m.urlNew : m.urlProject}
     </span>
   </div>
 
   <div class="p-4">
-    {/* ━━━ 1 — NewProject form (Create New Book) ━━━ */}
+    {/* ━━━ 1 — NewProject form ━━━ */}
     {
       i === 0 && (
         <div class="space-y-3 text-left">
           <div class="flex items-center gap-2">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4 text-violet-600"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25c-1.6-1-3.8-1.5-6-1.5-1 0-1.9.1-2.8.3v12.7c.9-.2 1.8-.3 2.8-.3 2.2 0 4.4.5 6 1.5m0-12.7c1.6-1 3.8-1.5 6-1.5 1 0 1.9.1 2.8.3v12.7c-.9-.2-1.8-.3-2.8-.3-2.2 0-4.4.5-6 1.5m0-12.7v12.7" /></svg>
-            <span class="text-[13px] font-extrabold text-ink-900">Create New Book</span>
+            <span class="text-[13px] font-extrabold text-ink-900">{ui.createNewBook}</span>
           </div>
 
-          {/* Topic / Subject textarea with live char counter */}
           <div>
             <div class="mb-1 flex items-baseline justify-between">
-              <span class="text-[10px] font-semibold text-ink-700">Topic / Subject *</span>
+              <span class="text-[10px] font-semibold text-ink-700">{ui.topicLabel} *</span>
               <span class="text-[9px] text-ink-400">142 / 500</span>
             </div>
             <div class="rounded-lg border border-violet-300 bg-white px-2.5 py-2 ring-2 ring-violet-100">
-              <p class="text-[10px] leading-relaxed text-ink-600">A practical guide to launching a profitable SaaS in 2025 — for non-technical founders.</p>
+              <p class="text-[10px] leading-relaxed text-ink-600">{book.topic}</p>
             </div>
           </div>
 
-          {/* Book Size — radio tiers with the "Popular" badge + price */}
           <div>
-            <span class="text-[10px] font-semibold text-ink-700">Book Size</span>
+            <span class="text-[10px] font-semibold text-ink-700">{ui.bookSize}</span>
             <div class="mt-1 space-y-1.5">
               <div class="relative flex items-center justify-between rounded-lg border-2 border-violet-500 bg-violet-50 px-3 py-2">
-                <span class="absolute -top-1.5 left-3 rounded-full bg-violet-600 px-1.5 text-[7px] font-bold uppercase tracking-wide text-white">Popular</span>
+                <span class="absolute -top-1.5 left-3 rounded-full bg-violet-600 px-1.5 text-[7px] font-bold uppercase tracking-wide text-white">{ui.popular}</span>
                 <span class="flex items-center gap-2">
                   <span class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-violet-600">
                     <svg viewBox="0 0 20 20" fill="currentColor" class="h-2.5 w-2.5 text-white"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
                   </span>
-                  <span class="text-[10px] font-bold text-violet-700">Standard · 60 pages</span>
+                  <span class="text-[10px] font-bold text-violet-700">{ui.tierStandard}</span>
                 </span>
                 <span class="text-[11px] font-extrabold text-violet-700">$24</span>
               </div>
               <div class="flex items-center justify-between rounded-lg border-2 border-ink-200 px-3 py-2">
                 <span class="flex items-center gap-2">
                   <span class="h-3.5 w-3.5 rounded-full border-2 border-ink-300" />
-                  <span class="text-[10px] font-semibold text-ink-700">Comprehensive · 120 pages</span>
+                  <span class="text-[10px] font-semibold text-ink-700">{ui.tierComprehensive}</span>
                 </span>
                 <span class="text-[11px] font-bold text-ink-500">$44</span>
               </div>
             </div>
           </div>
 
-          {/* Color Scheme — the real 11-col swatch grid, 3 selected & numbered */}
           <div>
-            <span class="text-[10px] font-semibold text-ink-700">Color Scheme <span class="font-normal text-ink-400">— 3/3 selected</span></span>
+            <span class="text-[10px] font-semibold text-ink-700">{ui.colorScheme} <span class="font-normal text-ink-400">— {ui.selected}</span></span>
             <div class="mt-1 grid grid-cols-11 gap-1">
               {[
                 { c: "#1E40AF", n: 0 }, { c: "#2563EB", n: 0 }, { c: "#0EA5E9", n: 0 },
@@ -96,30 +101,28 @@ const { i } = Astro.props;
             </div>
           </div>
 
-          {/* Continue to Payment */}
           <div class="flex h-9 items-center justify-center rounded-lg bg-violet-600 text-[11px] font-bold text-white shadow-sm shadow-violet-600/30">
-            Continue to Payment — $24
+            {ui.continuePayment}
           </div>
         </div>
       )
     }
 
-    {/* ━━━ 2 — StructureEditor (Book Structure review) ━━━ */}
+    {/* ━━━ 2 — StructureEditor ━━━ */}
     {
       i === 1 && (
         <div class="space-y-2.5 text-left">
           <div class="flex items-center justify-between">
             <span class="flex items-center gap-1.5">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4 text-violet-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25c-1.6-1-3.8-1.5-6-1.5-1 0-1.9.1-2.8.3v12.7c.9-.2 1.8-.3 2.8-.3 2.2 0 4.4.5 6 1.5m0-12.7c1.6-1 3.8-1.5 6-1.5 1 0 1.9.1 2.8.3v12.7c-.9-.2-1.8-.3-2.8-.3-2.2 0-4.4.5-6 1.5m0-12.7v12.7" /></svg>
-              <span class="text-[13px] font-extrabold text-ink-900">Book Structure</span>
+              <span class="text-[13px] font-extrabold text-ink-900">{ui.bookStructure}</span>
             </span>
-            <span class="text-[9px] text-ink-400">8 chapters · 60 pages</span>
+            <span class="text-[9px] text-ink-400">8 {m.chaptersWord} · 60 {m.pagesWord}</span>
           </div>
 
-          {/* suggested title pill */}
           <div class="rounded-lg border border-violet-100 bg-violet-50 px-3 py-2">
-            <p class="text-[7px] font-bold uppercase tracking-wide text-violet-600">Book Title</p>
-            <p class="text-[11px] font-bold text-ink-900">The Lean SaaS Launch Playbook</p>
+            <p class="text-[7px] font-bold uppercase tracking-wide text-violet-600">{ui.bookTitleLabel}</p>
+            <p class="text-[11px] font-bold text-ink-900">{book.title}</p>
           </div>
 
           {/* chapter 1 — expanded */}
@@ -127,16 +130,16 @@ const { i } = Astro.props;
             <div class="flex items-center gap-2 px-2.5 py-2">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3 w-3 text-ink-300"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01" /></svg>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5 text-ink-400"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" /></svg>
-              <span class="text-[8px] font-bold text-violet-600">CH 1</span>
-              <span class="flex-1 truncate text-[10px] font-semibold text-ink-900">Validating the idea</span>
+              <span class="text-[8px] font-bold text-violet-600">CH {book.chapters[0].n}</span>
+              <span class="flex-1 truncate text-[10px] font-semibold text-ink-900">{book.chapters[0].title}</span>
               <span class="flex items-center gap-0.5 text-ink-400">
                 <span class="flex h-3.5 w-3.5 items-center justify-center rounded bg-ink-200 text-[9px] leading-none">−</span>
-                <span class="w-5 text-center text-[9px] font-medium text-ink-600">8p</span>
+                <span class="w-5 text-center text-[9px] font-medium text-ink-600">{book.chapters[0].pages}p</span>
                 <span class="flex h-3.5 w-3.5 items-center justify-center rounded bg-ink-200 text-[9px] leading-none">+</span>
               </span>
             </div>
             <div class="border-t border-ink-200 bg-white">
-              {["Finding a painful problem", "Pricing & willingness to pay"].map((s) => (
+              {book.chapters[0].sections.map((s) => (
                 <div class="flex items-center gap-2 border-b border-ink-100 px-2.5 py-1.5 pl-7 last:border-b-0">
                   <span class="h-1 w-1 flex-shrink-0 rounded-full bg-violet-400" />
                   <span class="flex-1 truncate text-[9px] font-medium text-ink-700">{s}</span>
@@ -150,42 +153,39 @@ const { i } = Astro.props;
           <div class="flex items-center gap-2 rounded-lg border border-ink-200 bg-ink-50/60 px-2.5 py-2">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3 w-3 text-ink-300"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01" /></svg>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5 text-ink-400"><path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" /></svg>
-            <span class="text-[8px] font-bold text-violet-600">CH 2</span>
-            <span class="flex-1 truncate text-[10px] font-semibold text-ink-900">Building the MVP</span>
-            <span class="text-[9px] font-medium text-ink-500">9p</span>
+            <span class="text-[8px] font-bold text-violet-600">CH {book.chapters[1].n}</span>
+            <span class="flex-1 truncate text-[10px] font-semibold text-ink-900">{book.chapters[1].title}</span>
+            <span class="text-[9px] font-medium text-ink-500">{book.chapters[1].pages}p</span>
           </div>
 
-          {/* add chapter */}
           <div class="flex h-7 items-center justify-center gap-1 rounded-lg border-2 border-dashed border-ink-200 text-[9px] font-medium text-ink-400">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3 w-3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-            Add Chapter
+            {ui.addChapter}
           </div>
 
-          {/* actions */}
           <div class="flex gap-2 pt-0.5">
-            <span class="flex h-8 items-center rounded-lg bg-ink-100 px-3 text-[10px] font-medium text-ink-600">Save Changes</span>
+            <span class="flex h-8 items-center rounded-lg bg-ink-100 px-3 text-[10px] font-medium text-ink-600">{ui.saveChanges}</span>
             <span class="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600 text-[11px] font-bold text-white shadow-sm shadow-green-600/30">
               <svg viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
-              Approve &amp; Continue
+              {ui.approveContinue}
             </span>
           </div>
         </div>
       )
     }
 
-    {/* ━━━ 3 — GenerationProgress (live writing pipeline) ━━━ */}
+    {/* ━━━ 3 — GenerationProgress ━━━ */}
     {
       i === 2 && (
         <div class="text-left">
-          {/* header */}
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-2">
               <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 shadow-md shadow-violet-500/30">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25c-1.6-1-3.8-1.5-6-1.5-1 0-1.9.1-2.8.3v12.7c.9-.2 1.8-.3 2.8-.3 2.2 0 4.4.5 6 1.5m0-12.7c1.6-1 3.8-1.5 6-1.5 1 0 1.9.1 2.8.3v12.7c-.9-.2-1.8-.3-2.8-.3-2.2 0-4.4.5-6 1.5m0-12.7v12.7" /></svg>
               </span>
               <div>
-                <p class="text-[12px] font-extrabold text-ink-900">Generating Your Book</p>
-                <p class="text-[9px] text-ink-400">The Lean SaaS Launch Playbook</p>
+                <p class="text-[12px] font-extrabold text-ink-900">{ui.generatingBook}</p>
+                <p class="text-[9px] text-ink-400">{book.title}</p>
               </div>
             </div>
             <div class="text-right">
@@ -193,11 +193,10 @@ const { i } = Astro.props;
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-2.5 w-2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" /></svg>
                 2m 34s
               </p>
-              <p class="text-[8px] text-ink-400">~6m remaining</p>
+              <p class="text-[8px] text-ink-400">{ui.remaining}</p>
             </div>
           </div>
 
-          {/* overall progress bar */}
           <div class="mt-3 flex items-center gap-2">
             <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-100">
               <div class="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-blue-500" style="width:62%" />
@@ -205,7 +204,6 @@ const { i } = Astro.props;
             <span class="text-[9px] font-bold text-ink-700">62%</span>
           </div>
 
-          {/* pipeline timeline */}
           <div class="mt-3 space-y-0">
             {/* research — done */}
             <div class="relative flex gap-2.5">
@@ -214,12 +212,12 @@ const { i } = Astro.props;
                 <svg viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5 text-green-500"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
               </span>
               <div class="flex items-center gap-1.5 pb-3">
-                <span class="text-[10px] font-semibold text-green-700">Research &amp; Source Analysis</span>
-                <span class="rounded bg-green-100 px-1 text-[7px] font-medium text-green-600">Done</span>
+                <span class="text-[10px] font-semibold text-green-700">{ui.phaseResearch}</span>
+                <span class="rounded bg-green-100 px-1 text-[7px] font-medium text-green-600">{ui.doneBadge}</span>
               </div>
             </div>
 
-            {/* writing — active, with chapter list */}
+            {/* writing — active */}
             <div class="relative flex gap-2.5">
               <span class="absolute left-[11px] top-6 h-[calc(100%-12px)] w-0.5 bg-ink-200" />
               <span class="z-10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-violet-200 bg-violet-50">
@@ -227,16 +225,11 @@ const { i } = Astro.props;
               </span>
               <div class="flex-1 pb-3">
                 <div class="flex items-center gap-1.5">
-                  <span class="text-[10px] font-semibold text-violet-600">Content Generation</span>
-                  <span class="rounded bg-violet-50 px-1 text-[7px] font-medium text-violet-600">In Progress</span>
+                  <span class="text-[10px] font-semibold text-violet-600">{ui.phaseWriting}</span>
+                  <span class="rounded bg-violet-50 px-1 text-[7px] font-medium text-violet-600">{ui.inProgress}</span>
                 </div>
                 <div class="mt-1.5 space-y-1">
-                  {[
-                    { n: 1, t: "Validating the idea", st: "done" },
-                    { n: 2, t: "Building the MVP", st: "done" },
-                    { n: 3, t: "Finding first customers", st: "active" },
-                    { n: 4, t: "Pricing & packaging", st: "pending" },
-                  ].map((c) => (
+                  {genChapters.map((c) => (
                     <div class={`flex items-center gap-2 rounded-md px-2 py-1 ${c.st === "active" ? "border border-violet-100 bg-violet-50" : c.st === "pending" ? "opacity-50" : ""}`}>
                       {c.st === "done" ? (
                         <svg viewBox="0 0 20 20" fill="currentColor" class="h-3 w-3 flex-shrink-0 text-green-500"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
@@ -254,29 +247,24 @@ const { i } = Astro.props;
             </div>
 
             {/* remaining phases — pending */}
-            {[
-              { label: "Review & Revision", icon: "m9 12 2 2 4-4" },
-              { label: "PDF Compilation", icon: "M9 13h6m-6 4h3" },
-              { label: "EPUB Generation", icon: "M9 13h6m-6 4h3" },
-            ].map((p, idx) => (
+            {[ui.phaseReview, ui.phasePdf, ui.phaseEpub].map((label, idx) => (
               <div class="relative flex gap-2.5">
                 {idx < 2 ? <span class="absolute left-[11px] top-6 h-[calc(100%-12px)] w-0.5 bg-ink-200" /> : null}
                 <span class="z-10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-ink-200 bg-ink-50">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3 w-3 text-ink-400"><path stroke-linecap="round" stroke-linejoin="round" d={p.icon} /></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3 w-3 text-ink-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-6 4h3" /></svg>
                 </span>
                 <div class="flex items-center pb-3">
-                  <span class="text-[10px] font-medium text-ink-400">{p.label}</span>
+                  <span class="text-[10px] font-medium text-ink-400">{label}</span>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* stats footer */}
           <div class="-mx-4 -mb-4 mt-1 flex items-center justify-between border-t border-ink-100 bg-ink-50 px-4 py-2">
             <span class="flex items-center gap-2.5 text-[8px] text-ink-500">
-              <span>60 pages target</span>
-              <span>8 chapters</span>
-              <span class="text-green-600">2/8 written</span>
+              <span>{ui.pagesTarget}</span>
+              <span>{ui.chaptersStat}</span>
+              <span class="text-green-600">{ui.written}</span>
             </span>
             <span class="flex items-center gap-1 text-[8px] text-ink-400">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-2.5 w-2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m14-6h2m-2 6h2M7 7h10v10H7z" /></svg>
@@ -287,13 +275,12 @@ const { i } = Astro.props;
       )
     }
 
-    {/* ━━━ 4 — DownloadPanel (finished book) ━━━ */}
+    {/* ━━━ 4 — DownloadPanel ━━━ */}
     {
       i === 3 && (
         <div class="text-left">
-          {/* completed stepper */}
           <div class="mb-3 flex items-center">
-            {["Pay", "Plan", "Review", "Write", "Build", "Done"].map((s, idx) => (
+            {[0, 1, 2, 3, 4, 5].map((idx) => (
               <div class="flex flex-1 items-center last:flex-none">
                 <span class={`flex h-5 w-5 items-center justify-center rounded-full ${idx === 5 ? "bg-violet-500 ring-4 ring-violet-100" : "bg-green-500"}`}>
                   <svg viewBox="0 0 20 20" fill="currentColor" class="h-3 w-3 text-white"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
@@ -303,55 +290,50 @@ const { i } = Astro.props;
             ))}
           </div>
 
-          {/* download panel header */}
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4 text-violet-600"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25c-1.6-1-3.8-1.5-6-1.5-1 0-1.9.1-2.8.3v12.7c.9-.2 1.8-.3 2.8-.3 2.2 0 4.4.5 6 1.5m0-12.7c1.6-1 3.8-1.5 6-1.5 1 0 1.9.1 2.8.3v12.7c-.9-.2-1.8-.3-2.8-.3-2.2 0-4.4.5-6 1.5m0-12.7v12.7" /></svg>
               </span>
               <div>
-                <p class="text-[12px] font-extrabold text-ink-900">Download Your Book</p>
-                <p class="text-[9px] text-ink-400">The Lean SaaS Launch Playbook</p>
+                <p class="text-[12px] font-extrabold text-ink-900">{ui.downloadBook}</p>
+                <p class="text-[9px] text-ink-400">{book.title}</p>
               </div>
             </div>
             <span class="flex items-center gap-1 rounded-md bg-ink-100 px-2 py-1 text-[8px] font-medium text-ink-500">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-2.5 w-2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8" /></svg>
-              Versions
+              {ui.versions}
               <span class="rounded bg-ink-200 px-1 text-[7px]">3</span>
             </span>
           </div>
 
-          {/* download cards */}
           <div class="mt-3 grid grid-cols-2 gap-2">
-            {/* PDF */}
             <div class="flex items-center gap-2 rounded-xl border-2 border-violet-200 bg-violet-50 p-2.5">
               <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-violet-500">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4.5 w-4.5 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M14.5 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-4.5-4.5Z M14 2.5V7h5" /></svg>
               </span>
               <div class="min-w-0 flex-1">
-                <p class="text-[10px] font-bold text-ink-900">Download PDF</p>
-                <p class="text-[8px] text-ink-500">Print-ready, styled layout</p>
+                <p class="text-[10px] font-bold text-ink-900">{ui.downloadPdf}</p>
+                <p class="text-[8px] text-ink-500">{ui.pdfDesc}</p>
               </div>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5 flex-shrink-0 text-violet-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v13m0 0 4-4m-4 4-4-4M4 21h16" /></svg>
             </div>
-            {/* EPUB */}
             <div class="flex items-center gap-2 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-2.5">
               <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4.5 w-4.5 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M8 2.5h8a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 20V4A1.5 1.5 0 0 1 8 2.5Zm3 16h2" /></svg>
               </span>
               <div class="min-w-0 flex-1">
-                <p class="text-[10px] font-bold text-ink-900">Download EPUB</p>
-                <p class="text-[8px] text-ink-500">Kindle, Apple Books, Kobo</p>
+                <p class="text-[10px] font-bold text-ink-900">{ui.downloadEpub}</p>
+                <p class="text-[8px] text-ink-500">{ui.epubDesc}</p>
               </div>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5 flex-shrink-0 text-emerald-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v13m0 0 4-4m-4 4-4-4M4 21h16" /></svg>
             </div>
           </div>
 
-          {/* latest version row */}
           <div class="mt-2 flex items-center justify-between rounded-lg border border-violet-200 bg-ink-50/60 px-3 py-2">
             <span class="flex items-center gap-2">
-              <span class="rounded bg-violet-50 px-1.5 py-0.5 text-[8px] font-bold text-violet-700">v3 (latest)</span>
-              <span class="text-[9px] text-ink-600">Jun 15, 14:08 · 4.2 MB · 60 pages</span>
+              <span class="rounded bg-violet-50 px-1.5 py-0.5 text-[8px] font-bold text-violet-700">{ui.latest}</span>
+              <span class="text-[9px] text-ink-600">{ui.versionMeta}</span>
             </span>
             <span class="flex gap-1">
               <span class="rounded border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[8px] font-medium text-violet-700">PDF</span>
