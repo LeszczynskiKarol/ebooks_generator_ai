@@ -16,6 +16,7 @@ export function langPrefix(lang: Lang): string {
 export const ui = {
   en: {
     nav: {
+      tagline: "Ebook AI generator",
       how: "How it works",
       features: "Features",
       pricing: "Pricing",
@@ -144,6 +145,7 @@ export const ui = {
       urlProject: "app.inkmagnet.com/projects/8f2a",
       dashTitle: "My Books",
       newBook: "New Book",
+      newBookShort: "New",
       statusDone: "Completed",
       statusWriting: "Writing…",
       pagesWord: "pages",
@@ -231,6 +233,46 @@ export const ui = {
         latest: "v3 (latest)",
         versionMeta: "Jun 15, 14:08 · 4.2 MB · 60 pages",
       },
+      editor: {
+        heading: "Edit Book Content",
+        visual: "Visual",
+        code: "LaTeX",
+        save: "Save",
+        unsaved: "2 unsaved",
+        editing: "Editing chapter",
+      },
+    },
+    sourcing: {
+      title: "Where the depth comes from",
+      sub: "Most AI writing is a confident guess from training data. InkMagnet builds every book on real sources it reads at generation time — and on a structure planned before a single sentence is written.",
+      items: [
+        { title: "Full sources, not snippets", desc: "For each book the engine searches the live web and scrapes dozens of complete pages and scientific documents end to end — not the two-line previews a search box returns. The numbers, names and citations come from what the sources actually say." },
+        { title: "A structure before a sentence", desc: "It plans the whole book first — chapters, sections and a research brief for each — then writes against that plan, so every chapter knows what the others cover. No rambling, no repetition, no dropped threads." },
+        { title: "Reviewed, then revised", desc: "After the first draft an AI editor checks coverage, trims redundant passages and fills the gaps — the editing pass a book gets before it ships, not a one-shot dump." },
+        { title: "Grounded and original", desc: "Because it writes from sources it has just read — not from memory — the prose is current, specific and yours: written for your exact topic, audience and angle." },
+      ],
+    },
+    universality: {
+      title: "If it can be researched, it can be a book",
+      sub: "InkMagnet isn't tied to one niche. The same pipeline researches and writes a cookbook, a thesis companion, a SaaS playbook or a course handbook — in your language, on practically any subject.",
+      topics: ["Business & startups", "Marketing & sales", "Personal finance", "Health & nutrition", "Cooking & recipes", "Academic & theses", "Psychology & self-help", "Technology & coding", "Education & courses", "Travel & lifestyle", "Law & compliance", "Parenting", "Fitness & sport", "Hobbies & crafts", "Career & productivity", "Science explained"],
+      note: "Pick a topic — InkMagnet does the reading.",
+    },
+    editorSection: {
+      title: "Don't like a paragraph? Rewrite it.",
+      sub: "Every finished book opens in a full editor. Rewrite any chapter, drop in tables, callout boxes or images, then regenerate a fresh PDF — your hand-edits are never overwritten.",
+      points: [
+        "Visual or LaTeX — edit however you like",
+        "Headings, bold, lists, quotes, callout boxes, tables and images",
+        "Version history — every regenerate is saved",
+        "Your edits are sacred — regenerations never clobber them",
+      ],
+    },
+    interiorReader: {
+      title: "Real books, not a wall of text",
+      sub: "Open an InkMagnet ebook and you get genuine book design — a clickable contents, drop-cap chapter openings, styled tables, insight boxes and matched illustrations, typeset with the system behind academic publishing. Reads great on any device.",
+      note: "Real interior pages from a book generated with InkMagnet.",
+      device: "Kindle · tablets · phones · print",
     },
     useCases: {
       title: "Built for people who need books that work",
@@ -334,6 +376,7 @@ export const ui = {
   },
   pl: {
     nav: {
+      tagline: "Generator ebooków AI",
       how: "Jak to działa",
       features: "Możliwości",
       pricing: "Cennik",
@@ -462,6 +505,7 @@ export const ui = {
       urlProject: "app.inkmagnet.com/projects/8f2a",
       dashTitle: "Moje książki",
       newBook: "Nowa książka",
+      newBookShort: "Nowa",
       statusDone: "Gotowe",
       statusWriting: "Pisanie…",
       pagesWord: "stron",
@@ -549,6 +593,46 @@ export const ui = {
         latest: "v3 (najnowsza)",
         versionMeta: "15 cze, 14:08 · 4,2 MB · 60 stron",
       },
+      editor: {
+        heading: "Edytuj treść książki",
+        visual: "Wizualnie",
+        code: "LaTeX",
+        save: "Zapisz",
+        unsaved: "2 niezapisane",
+        editing: "Edycja rozdziału",
+      },
+    },
+    sourcing: {
+      title: "Skąd bierze się ta głębia",
+      sub: "Większość treści AI to pewny siebie strzał z danych treningowych. InkMagnet buduje każdą książkę na realnych źródłach czytanych w trakcie generowania — i na strukturze zaplanowanej, zanim padnie pierwsze zdanie.",
+      items: [
+        { title: "Pełne źródła, nie zajawki", desc: "Do każdej książki silnik przeszukuje aktualny internet i scrapuje dziesiątki kompletnych stron oraz dokumentów naukowych w całości — nie dwuwierszowe zapowiedzi z wyszukiwarki. Liczby, nazwiska i cytowania pochodzą z tego, co źródła naprawdę mówią." },
+        { title: "Najpierw struktura, potem zdanie", desc: "Najpierw planuje całą książkę — rozdziały, podrozdziały i brief źródłowy do każdego — a potem pisze zgodnie z tym planem, więc każdy rozdział wie, co zawierają pozostałe. Bez lania wody, powtórzeń i porzuconych wątków." },
+        { title: "Recenzja, potem poprawki", desc: "Po pierwszej wersji redaktor AI sprawdza kompletność, przycina powtórzenia i uzupełnia luki — to redakcja, którą książka dostaje przed wydaniem, a nie jednorazowy zrzut tekstu." },
+        { title: "Osadzone i oryginalne", desc: "Ponieważ pisze z przed chwilą przeczytanych źródeł — nie z pamięci — tekst jest aktualny, konkretny i Twój: napisany pod Twój dokładny temat, odbiorcę i ujęcie." },
+      ],
+    },
+    universality: {
+      title: "Jeśli da się to zbadać, może być książką",
+      sub: "InkMagnet nie jest przypisany do jednej niszy. Ten sam silnik bada i pisze książkę kucharską, kompendium do pracy dyplomowej, podręcznik SaaS czy materiał do kursu — w Twoim języku, na praktycznie dowolny temat.",
+      topics: ["Biznes i startupy", "Marketing i sprzedaż", "Finanse osobiste", "Zdrowie i dieta", "Gotowanie i przepisy", "Prace dyplomowe", "Psychologia i rozwój", "Technologia i kod", "Edukacja i kursy", "Podróże i lifestyle", "Prawo i compliance", "Rodzicielstwo", "Fitness i sport", "Hobby i rękodzieło", "Kariera i produktywność", "Nauka w pigułce"],
+      note: "Wybierz temat — czytanie bierze na siebie InkMagnet.",
+    },
+    editorSection: {
+      title: "Nie podoba Ci się akapit? Przepisz go.",
+      sub: "Każda gotowa książka otwiera się w pełnym edytorze. Przepisz dowolny rozdział, wstaw tabele, ramki albo obrazy, a potem wygeneruj świeży PDF — Twoje ręczne zmiany nigdy nie zostają nadpisane.",
+      points: [
+        "Wizualnie albo w LaTeX-u — jak wolisz",
+        "Nagłówki, pogrubienia, listy, cytaty, ramki, tabele i obrazy",
+        "Historia wersji — każda regeneracja jest zapisana",
+        "Twoje zmiany są święte — regeneracje ich nie kasują",
+      ],
+    },
+    interiorReader: {
+      title: "Prawdziwe książki, nie ściana tekstu",
+      sub: "Otwórz ebooka z InkMagnet i dostajesz prawdziwy skład książki — klikalny spis treści, otwarcia rozdziałów z inicjałem, tabele, ramki i dopasowane ilustracje, złożone systemem stojącym za publikacjami naukowymi. Świetnie czyta się na każdym urządzeniu.",
+      note: "Prawdziwe strony z książki wygenerowanej w InkMagnet.",
+      device: "Kindle · tablety · telefony · druk",
     },
     useCases: {
       title: "Dla ludzi, którym książka ma na siebie zarobić",

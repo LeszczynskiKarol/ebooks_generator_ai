@@ -1,0 +1,47 @@
+---
+// E-reader / tablet device showing the open book — the interior "blended into a
+// reader". PL gets a real rendered page from a book generated with InkMagnet;
+// EN falls back to the localized typeset code page (PageMock) until an EN book
+// exists. Real PL renders live in public/book/*.webp (optimized).
+import { useTranslations, type Lang } from "../../i18n/ui";
+import PageMock from "./PageMock.astro";
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const isPL = lang === "pl";
+---
+
+<div class="relative mx-auto w-full max-w-[300px]" aria-hidden="true">
+  <!-- back page peeking for depth -->
+  <div class="absolute left-1/2 top-4 h-full w-[88%] -translate-x-1/2 rotate-3 rounded-[1.6rem] bg-ink-200/60"></div>
+
+  <!-- tablet -->
+  <div class="relative rounded-[1.7rem] border border-ink-800/30 bg-ink-900 p-2.5 shadow-2xl shadow-ink-900/40 ring-1 ring-black/10">
+    <div class="overflow-hidden rounded-[1.1rem] bg-white">
+      {
+        isPL ? (
+          <img
+            src="/book/pl-chapter.webp"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            draggable="false"
+            class="block aspect-[3/4] w-full object-cover object-top"
+          />
+        ) : (
+          <PageMock kind={1} lang={lang} />
+        )
+      }
+    </div>
+    <!-- camera dot -->
+    <span class="absolute left-1/2 top-1 h-1 w-1 -translate-x-1/2 rounded-full bg-ink-700"></span>
+  </div>
+
+  <!-- device caption chip -->
+  <div class="absolute -bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-ink-100 bg-white px-3 py-1.5 text-[11px] font-semibold text-ink-700 shadow-lg">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-3.5 w-3.5 text-brand-600"><path stroke-linecap="round" stroke-linejoin="round" d="M9.5 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2" /></svg>
+    {t.interiorReader.device}
+  </div>
+</div>

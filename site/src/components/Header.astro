@@ -16,7 +16,7 @@ const switchHref = otherLang === "pl" ? (enPath === "/" ? "/pl/" : `/pl${enPath}
 
 const navItems = [
   { href: `${p}/#how`, label: t.nav.how },
-  { href: lang === "pl" ? "/pl/przyklady/" : "/examples/", label: t.nav.examples },
+  //{ href: lang === "pl" ? "/pl/przyklady/" : "/examples/", label: t.nav.examples },
   { href: `${p}/#pricing`, label: t.nav.pricing },
   { href: lang === "pl" ? "/pl/blog/" : "/blog/", label: t.nav.blog },
 ];
@@ -33,7 +33,10 @@ const navItems = [
           />
         </svg>
       </span>
-      <span class="font-display text-lg font-bold tracking-tight text-ink-900">InkMagnet</span>
+      <span class="flex flex-col leading-none">
+        <span class="font-display text-lg font-bold tracking-tight text-ink-900">InkMagnet</span>
+        <span class="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-600/90">{t.nav.tagline}</span>
+      </span>
     </a>
 
     <nav class="hidden items-center gap-8 md:flex" aria-label="Main">
