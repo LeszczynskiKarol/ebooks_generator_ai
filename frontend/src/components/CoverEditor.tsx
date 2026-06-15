@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import { useAuthStore } from "@/stores/authStore";
 import {
   COVER_LAYOUTS,
@@ -66,6 +67,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
   { projectId, language, bookFormat = "a5", onDirtyChange, onSaved },
   ref,
 ) {
+  const t = useT();
   const [loading, setLoading] = useState(true);
 
   // ── Upload dimension info per format ──
@@ -151,10 +153,10 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
       setPreviewKey((k) => k + 1);
       setDirty(false);
       onSaved?.();
-      toast.success("Cover generated!");
+      toast.success(t("cover.toastGenerated"));
       return true;
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Generation failed");
+      toast.error(err.response?.data?.error || t("cover.toastGenerationFailed"));
       return false;
     } finally {
       setGenerating(false);
@@ -186,9 +188,9 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
       setPreviewKey((k) => k + 1);
       setDirty(false);
       onSaved?.();
-      toast.success("Custom cover uploaded!");
+      toast.success(t("cover.toastUploaded"));
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Upload failed");
+      toast.error(err.response?.data?.error || t("cover.toastUploadFailed"));
     } finally {
       setUploading(false);
     }
@@ -211,9 +213,9 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
       );
       setDirty(false);
       onSaved?.();
-      toast.success("Cover removed");
+      toast.success(t("cover.toastRemoved"));
     } catch (err: any) {
-      toast.error("Failed to remove cover");
+      toast.error(t("cover.toastRemoveFailed"));
     }
   };
 
@@ -247,21 +249,21 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
           </div>
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white text-sm">
-              Book Cover
+              {t("cover.heading")}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {coverData?.coverType === "GENERATED"
-                ? "AI-generated cover"
+                ? t("cover.subAiGenerated")
                 : coverData?.coverType === "CUSTOM_UPLOAD"
-                  ? "Custom uploaded cover"
-                  : "No cover — click to add one"}
+                  ? t("cover.subCustomUploaded")
+                  : t("cover.subNone")}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {hasCover && (
             <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-              <Check className="w-3 h-3" /> Active
+              <Check className="w-3 h-3" /> {t("cover.active")}
             </span>
           )}
           {expanded ? (
@@ -294,9 +296,9 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
             >
               <Sparkles className="w-6 h-6 mx-auto mb-2 text-primary-500" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                Generate
+                {t("cover.generate")}
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">AI-designed cover</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t("cover.generateDesc")}</p>
             </button>
 
             {/* Upload */}
@@ -315,9 +317,9 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                 <Upload className="w-6 h-6 mx-auto mb-2 text-emerald-500" />
               )}
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                Upload
+                {t("cover.upload")}
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">Your own image</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t("cover.uploadDesc")}</p>
               <p className="text-[10px] text-gray-400 mt-1">
                 {dims.mm} ({dims.px})
               </p>
@@ -345,9 +347,9 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
             >
               <X className="w-6 h-6 mx-auto mb-2 text-gray-400" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                None
+                {t("cover.none")}
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">No cover page</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t("cover.noneDesc")}</p>
             </button>
           </div>
 
@@ -356,7 +358,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Layout Template
+                  {t("cover.layoutTemplate")}
                 </label>
                 <div className="grid grid-cols-5 gap-2">
                   {COVER_LAYOUTS.map((layout) => (
@@ -388,7 +390,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Title
+                    {t("cover.title")}
                   </label>
                   <input
                     type="text"
@@ -399,43 +401,43 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Author Name
+                    {t("cover.authorName")}
                   </label>
                   <input
                     type="text"
                     value={params.authorName || ""}
                     onChange={(e) => updateParam("authorName", e.target.value)}
-                    placeholder="Optional"
+                    placeholder={t("cover.optional")}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Subtitle
+                    {t("cover.subtitle")}
                   </label>
                   <input
                     type="text"
                     value={params.subtitle || ""}
                     onChange={(e) => updateParam("subtitle", e.target.value)}
-                    placeholder="Optional"
+                    placeholder={t("cover.optional")}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Tagline
+                    {t("cover.tagline")}
                   </label>
                   <input
                     type="text"
                     value={params.tagline || ""}
                     onChange={(e) => updateParam("tagline", e.target.value)}
-                    placeholder="e.g. 'A Practical Guide'"
+                    placeholder={t("cover.taglinePlaceholder")}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Author Credentials
+                    {t("cover.authorCredentials")}
                   </label>
                   <input
                     type="text"
@@ -443,25 +445,25 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                     onChange={(e) =>
                       updateParam("authorCredentials", e.target.value)
                     }
-                    placeholder="e.g. '15+ years in digital marketing'"
+                    placeholder={t("cover.authorCredentialsPlaceholder")}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Feature Badge Text
+                    {t("cover.featureBadgeText")}
                   </label>
                   <input
                     type="text"
                     value={params.featureText || ""}
                     onChange={(e) => updateParam("featureText", e.target.value)}
-                    placeholder="e.g. '360°' or '2026'"
+                    placeholder={t("cover.featureBadgeTextPlaceholder")}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Feature Badge Subtext
+                    {t("cover.featureBadgeSubtext")}
                   </label>
                   <input
                     type="text"
@@ -469,7 +471,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                     onChange={(e) =>
                       updateParam("featureSubtext", e.target.value)
                     }
-                    placeholder="e.g. 'Complete Guide'"
+                    placeholder={t("cover.featureBadgeSubtextPlaceholder")}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                 </div>
@@ -478,7 +480,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
               {/* ── Topic Pillars (up to 3 boxes on cover) ── */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                  Topic Pillars — up to 3 info boxes on cover
+                  {t("cover.topicPillars")}
                 </label>
                 <div className="space-y-2">
                   {(params.pillars || []).map((pillar, i) => (
@@ -491,7 +493,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                           pillars[i] = { ...pillars[i], title: e.target.value };
                           updateParam("pillars", pillars);
                         }}
-                        placeholder="Title"
+                        placeholder={t("cover.pillarTitle")}
                         className="w-28 px-2 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs focus:ring-2 focus:ring-primary-500 outline-none"
                       />
                       <input
@@ -505,7 +507,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                           };
                           updateParam("pillars", pillars);
                         }}
-                        placeholder="Short description"
+                        placeholder={t("cover.pillarDescription")}
                         className="flex-1 px-2 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs focus:ring-2 focus:ring-primary-500 outline-none"
                       />
                       <button
@@ -532,7 +534,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                       }}
                       className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                     >
-                      + Add pillar
+                      {t("cover.addPillar")}
                     </button>
                   )}
                 </div>
@@ -557,17 +559,17 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                     <RefreshCw className="w-4 h-4" />
                   )}
                   {generating
-                    ? "Generating..."
+                    ? t("cover.generating")
                     : dirty
-                      ? "Generate Cover"
-                      : "Regenerate"}
+                      ? t("cover.generateCover")
+                      : t("cover.regenerate")}
                 </button>
                 {hasCover && (
                   <button
                     onClick={handleRemove}
                     className="inline-flex items-center gap-1.5 px-3 py-2 text-xs text-gray-500 hover:text-red-500 transition-colors"
                   >
-                    <Trash2 className="w-3.5 h-3.5" /> Remove
+                    <Trash2 className="w-3.5 h-3.5" /> {t("cover.remove")}
                   </button>
                 )}
               </div>
@@ -579,7 +581,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
             <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                  <Eye className="w-3.5 h-3.5" /> Preview
+                  <Eye className="w-3.5 h-3.5" /> {t("cover.preview")}
                 </label>
                 <a
                   href={previewUrl}
@@ -587,7 +589,7 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
                   rel="noopener noreferrer"
                   className="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                 >
-                  Open full size ↗
+                  {t("cover.openFullSize")}
                 </a>
               </div>
               <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 flex justify-center">

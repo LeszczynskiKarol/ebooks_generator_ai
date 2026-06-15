@@ -6,6 +6,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { useState, useEffect, useMemo } from "react";
+import { useT } from "@/lib/i18n";
 import {
   Search,
   PenTool,
@@ -89,89 +90,93 @@ function detectPhase(
 const RESEARCH_STEPS = [
   {
     icon: Globe,
-    label: "Searching web sources for the book topic",
-    detail: "Google Custom Search API",
+    labelKey: "generation.research.0.label",
+    detailKey: "generation.research.0.detail",
   },
   {
     icon: ScanSearch,
-    label: "Scraping and extracting content from sources",
-    detail: "Analyzing page content",
+    labelKey: "generation.research.1.label",
+    detailKey: "generation.research.1.detail",
   },
   {
     icon: BrainCircuit,
-    label: "AI selecting highest-quality sources",
-    detail: "Claude evaluates relevance & data density",
+    labelKey: "generation.research.2.label",
+    detailKey: "generation.research.2.detail",
   },
   {
     icon: Search,
-    label: "Per-chapter targeted research queries",
-    detail: "2 specialized queries per chapter",
+    labelKey: "generation.research.3.label",
+    detailKey: "generation.research.3.detail",
   },
   {
     icon: Layers,
-    label: "Building chapter research briefs",
-    detail: "Merging global + chapter-specific sources",
+    labelKey: "generation.research.4.label",
+    detailKey: "generation.research.4.detail",
   },
 ];
 
 const REVIEW_STEPS = [
   {
     icon: ClipboardCheck,
-    label: "Reviewing book completeness & quality",
-    detail: "AI editor evaluating coverage, redundancy, depth",
+    labelKey: "generation.review.0.label",
+    detailKey: "generation.review.0.detail",
   },
   {
     icon: Trash2,
-    label: "Removing redundant content",
-    detail: "Trimming repeated sections across chapters",
+    labelKey: "generation.review.1.label",
+    detailKey: "generation.review.1.detail",
   },
   {
     icon: Plus,
-    label: "Adding missing topics",
-    detail: "Writing new subsections for uncovered areas",
+    labelKey: "generation.review.2.label",
+    detailKey: "generation.review.2.detail",
   },
   {
     icon: ShieldCheck,
-    label: "Post-revision quality check",
-    detail: "Verifying improvement score",
+    labelKey: "generation.review.3.label",
+    detailKey: "generation.review.3.detail",
   },
 ];
 
 const COMPILE_PDF_STEPS = [
   {
     icon: FileCode,
-    label: "Assembling LaTeX document",
-    detail: "Merging chapter content + preamble",
+    labelKey: "generation.compilePdf.0.label",
+    detailKey: "generation.compilePdf.0.detail",
   },
   {
     icon: Braces,
-    label: "Running pdflatex (pass 1/2)",
-    detail: "Building cross-references",
+    labelKey: "generation.compilePdf.1.label",
+    detailKey: "generation.compilePdf.1.detail",
   },
   {
     icon: Braces,
-    label: "Running pdflatex (pass 2/2)",
-    detail: "Resolving references",
+    labelKey: "generation.compilePdf.2.label",
+    detailKey: "generation.compilePdf.2.detail",
   },
   {
     icon: Upload,
-    label: "Uploading PDF to cloud",
-    detail: "S3 versioned storage",
+    labelKey: "generation.compilePdf.3.label",
+    detailKey: "generation.compilePdf.3.detail",
   },
 ];
 
 const COMPILE_EPUB_STEPS = [
   {
     icon: FileCode,
-    label: "Converting chapters to XHTML",
-    detail: "Semantic HTML structure",
+    labelKey: "generation.compileEpub.0.label",
+    detailKey: "generation.compileEpub.0.detail",
   },
   {
     icon: Package,
-    label: "Packaging EPUB container",
-    detail: "OPF + NCX + mimetype",
+    labelKey: "generation.compileEpub.1.label",
+    detailKey: "generation.compileEpub.1.detail",
   },
-  { icon: Upload, label: "Uploading EPUB", detail: "S3 cloud storage" },
+  {
+    icon: Upload,
+    labelKey: "generation.compileEpub.2.label",
+    detailKey: "generation.compileEpub.2.detail",
+  },
 ];
 
 // ── Phase metadata ──
@@ -180,8 +185,8 @@ const PHASE_META: Record<
   Phase,
   {
     icon: any;
-    label: string;
-    description: string;
+    labelKey: string;
+    descriptionKey: string;
     color: string;
     bgColor: string;
     borderColor: string;
@@ -190,9 +195,8 @@ const PHASE_META: Record<
 > = {
   research: {
     icon: Search,
-    label: "Research & Source Analysis",
-    description:
-      "Web search, source scraping, AI-powered source selection — building the knowledge base for your book",
+    labelKey: "generation.phase.research.label",
+    descriptionKey: "generation.phase.research.description",
     color: "text-blue-600 dark:text-blue-400",
     bgColor: "bg-blue-50 dark:bg-blue-950/30",
     borderColor: "border-blue-200 dark:border-blue-800",
@@ -200,9 +204,8 @@ const PHASE_META: Record<
   },
   writing: {
     icon: PenTool,
-    label: "Content Generation",
-    description:
-      "AI writing each chapter with expert voice, rich LaTeX formatting, tables, and colored insight boxes",
+    labelKey: "generation.phase.writing.label",
+    descriptionKey: "generation.phase.writing.description",
     color: "text-violet-600 dark:text-violet-400",
     bgColor: "bg-violet-50 dark:bg-violet-950/30",
     borderColor: "border-violet-200 dark:border-violet-800",
@@ -210,9 +213,8 @@ const PHASE_META: Record<
   },
   reviewing: {
     icon: ClipboardCheck,
-    label: "Review & Revision",
-    description:
-      "AI editor reviewing completeness, removing redundancy, and adding missing topics to improve quality",
+    labelKey: "generation.phase.reviewing.label",
+    descriptionKey: "generation.phase.reviewing.description",
     color: "text-rose-600 dark:text-rose-400",
     bgColor: "bg-rose-50 dark:bg-rose-950/30",
     borderColor: "border-rose-200 dark:border-rose-800",
@@ -220,9 +222,8 @@ const PHASE_META: Record<
   },
   compiling_pdf: {
     icon: FileText,
-    label: "PDF Compilation",
-    description:
-      "Assembling LaTeX, running pdflatex with auto-fix, generating print-ready PDF",
+    labelKey: "generation.phase.compiling_pdf.label",
+    descriptionKey: "generation.phase.compiling_pdf.description",
     color: "text-amber-600 dark:text-amber-400",
     bgColor: "bg-amber-50 dark:bg-amber-950/30",
     borderColor: "border-amber-200 dark:border-amber-800",
@@ -230,8 +231,8 @@ const PHASE_META: Record<
   },
   compiling_epub: {
     icon: Smartphone,
-    label: "EPUB Generation",
-    description: "Converting to XHTML, packaging for Kindle/Apple Books/Kobo",
+    labelKey: "generation.phase.compiling_epub.label",
+    descriptionKey: "generation.phase.compiling_epub.description",
     color: "text-emerald-600 dark:text-emerald-400",
     bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
     borderColor: "border-emerald-200 dark:border-emerald-800",
@@ -239,8 +240,8 @@ const PHASE_META: Record<
   },
   finalizing: {
     icon: Upload,
-    label: "Publishing",
-    description: "Uploading files and finalizing version",
+    labelKey: "generation.phase.finalizing.label",
+    descriptionKey: "generation.phase.finalizing.description",
     color: "text-teal-600 dark:text-teal-400",
     bgColor: "bg-teal-50 dark:bg-teal-950/30",
     borderColor: "border-teal-200 dark:border-teal-800",
@@ -248,8 +249,8 @@ const PHASE_META: Record<
   },
   done: {
     icon: CheckCircle,
-    label: "Complete",
-    description: "Your book is ready!",
+    labelKey: "generation.phase.done.label",
+    descriptionKey: "generation.phase.done.description",
     color: "text-green-600 dark:text-green-400",
     bgColor: "bg-green-50 dark:bg-green-950/30",
     borderColor: "border-green-200 dark:border-green-800",
@@ -275,6 +276,7 @@ export default function GenerationProgress({
   bookTitle,
   language,
 }: GenerationProgressProps) {
+  const t = useT();
   const [elapsed, setElapsed] = useState(0);
   const [researchStep, setResearchStep] = useState(0);
   const [reviewStep, setReviewStep] = useState(0);
@@ -413,7 +415,7 @@ export default function GenerationProgress({
             </div>
             <div>
               <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                Generating Your Book
+                {t("generation.title")}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 max-w-sm truncate">
                 {bookTitle}
@@ -427,7 +429,7 @@ export default function GenerationProgress({
             </div>
             {estimatedMinutes > 0 && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                ~{Math.ceil(estimatedMinutes)}m remaining
+                {t("generation.remaining", { n: Math.ceil(estimatedMinutes) })}
               </p>
             )}
           </div>
@@ -513,25 +515,25 @@ export default function GenerationProgress({
                               : "text-gray-400 dark:text-gray-500"
                         }`}
                       >
-                        {meta.label}
+                        {t(meta.labelKey)}
                       </h4>
                       {isComplete && (
                         <span className="text-[10px] font-medium bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded">
-                          Done
+                          {t("generation.badge.done")}
                         </span>
                       )}
                       {isActive && (
                         <span
                           className={`text-[10px] font-medium ${meta.bgColor} ${meta.color} px-1.5 py-0.5 rounded`}
                         >
-                          In Progress
+                          {t("generation.badge.inProgress")}
                         </span>
                       )}
                     </div>
 
                     {(isActive || isComplete) && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        {meta.description}
+                        {t(meta.descriptionKey)}
                       </p>
                     )}
 
@@ -591,16 +593,19 @@ export default function GenerationProgress({
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
               <BarChart3 className="w-3.5 h-3.5" />
-              {targetPages} pages target
+              {t("generation.footer.pagesTarget", { n: targetPages })}
             </span>
             <span className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
               <Layers className="w-3.5 h-3.5" />
-              {chapters.length || "—"} chapters
+              {t("generation.footer.chapters", { n: chapters.length || "—" })}
             </span>
             {chapterStats.done > 0 && (
               <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
                 <Zap className="w-3.5 h-3.5" />
-                {chapterStats.done}/{chapterStats.total} written
+                {t("generation.footer.written", {
+                  done: chapterStats.done,
+                  total: chapterStats.total,
+                })}
               </span>
             )}
           </div>
@@ -627,6 +632,7 @@ function ResearchDetail({
   chaptersCount: number;
   language: string;
 }) {
+  const t = useT();
   return (
     <div className="mt-3 space-y-1.5">
       {RESEARCH_STEPS.map((step, idx) => {
@@ -664,11 +670,11 @@ function ResearchDetail({
                       : "text-gray-400 dark:text-gray-500"
                 }`}
               >
-                {step.label}
+                {t(step.labelKey)}
               </p>
               {isActive && (
                 <p className="text-[10px] text-blue-500 dark:text-blue-400 mt-0.5">
-                  {step.detail}
+                  {t(step.detailKey)}
                 </p>
               )}
             </div>
@@ -679,13 +685,15 @@ function ResearchDetail({
       <div className="flex items-center gap-2 mt-2 pl-3">
         <Globe className="w-3 h-3 text-blue-400" />
         <span className="text-[10px] text-gray-500 dark:text-gray-400">
-          Searching in{" "}
-          {language === "pl"
-            ? "Polish"
-            : language === "en"
-              ? "English"
-              : language.toUpperCase()}{" "}
-          + English supplement • {chaptersCount * 2} targeted queries planned
+          {t("generation.research.searchingLine", {
+            lang:
+              language === "pl"
+                ? t("generation.lang.polish")
+                : language === "en"
+                  ? t("generation.lang.english")
+                  : language.toUpperCase(),
+            n: chaptersCount * 2,
+          })}
         </span>
       </div>
     </div>
@@ -707,12 +715,13 @@ function WritingDetail({
   };
   progress: number;
 }) {
+  const t = useT();
   if (chapters.length === 0) {
     return (
       <div className="mt-3 flex items-center gap-2 py-2 px-3 bg-violet-50 dark:bg-violet-950/30 rounded-lg border border-violet-100 dark:border-violet-900">
         <Loader2 className="w-3.5 h-3.5 text-violet-500 animate-spin" />
         <span className="text-xs text-violet-600 dark:text-violet-400">
-          Initializing chapter records...
+          {t("generation.writing.initializing")}
         </span>
       </div>
     );
@@ -786,8 +795,7 @@ function WritingDetail({
               {isActive && (
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-[10px] text-violet-500 dark:text-violet-400">
-                    Writing with research sources • LaTeX formatting • Tables &
-                    insight boxes
+                    {t("generation.writing.chapterDetail")}
                   </p>
                 </div>
               )}
@@ -823,7 +831,10 @@ function WritingDetail({
             )}
           </div>
           <span className="text-[10px] text-gray-500 dark:text-gray-400 tabular-nums whitespace-nowrap">
-            {stats.done}/{stats.total} chapters
+            {t("generation.writing.statsChapters", {
+              done: stats.done,
+              total: stats.total,
+            })}
           </span>
         </div>
       )}
@@ -836,10 +847,11 @@ function SubStepDetail({
   currentStep,
   accentColor = "amber",
 }: {
-  steps: Array<{ icon: any; label: string; detail: string }>;
+  steps: Array<{ icon: any; labelKey: string; detailKey: string }>;
   currentStep: number;
   accentColor?: "amber" | "rose" | "emerald";
 }) {
+  const t = useT();
   const colors = {
     amber: {
       activeBg:
@@ -898,11 +910,11 @@ function SubStepDetail({
                       : "text-gray-400 dark:text-gray-500"
                 }`}
               >
-                {step.label}
+                {t(step.labelKey)}
               </p>
               {isActive && (
                 <p className={`text-[10px] ${c.detail} mt-0.5`}>
-                  {step.detail}
+                  {t(step.detailKey)}
                 </p>
               )}
             </div>

@@ -4,6 +4,20 @@
 //   2. localStorage "im_lang" (a previous explicit choice)
 //   3. navigator.language (pl* → pl, otherwise en)
 import { create } from "zustand";
+import * as common from "./dict/common";
+import * as layout from "./dict/layout";
+import * as dashboard from "./dict/dashboard";
+import * as newProject from "./dict/newProject";
+import * as projectDetail from "./dict/projectDetail";
+import * as forgotReset from "./dict/forgotReset";
+import * as generation from "./dict/generation";
+import * as structure from "./dict/structure";
+import * as download from "./dict/download";
+import * as editor from "./dict/editor";
+import * as cover from "./dict/cover";
+import * as titlePage from "./dict/titlePage";
+import * as imageLibrary from "./dict/imageLibrary";
+import * as admin from "./dict/admin";
 
 export type AppLang = "en" | "pl";
 
@@ -141,7 +155,12 @@ const pl: Dict = {
   recaptchaPost: "Google.",
 };
 
-const DICT: Record<AppLang, Dict> = { en, pl };
+const AREAS = [common, layout, dashboard, newProject, projectDetail, forgotReset, generation, structure, download, editor, cover, titlePage, imageLibrary, admin];
+
+const DICT: Record<AppLang, Dict> = {
+  en: Object.assign({}, en, ...AREAS.map((a) => a.en)),
+  pl: Object.assign({}, pl, ...AREAS.map((a) => a.pl)),
+};
 
 /** Translate with optional `{s}`-style interpolation. */
 export function translate(lang: AppLang, key: string, vars?: Record<string, string | number>): string {

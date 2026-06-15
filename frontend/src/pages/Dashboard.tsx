@@ -15,8 +15,8 @@ import {
 } from "lucide-react";
 import apiClient from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
+import { useT } from "@/lib/i18n";
 import {
-  STAGE_LABELS,
   type ProjectSummary,
   type ProjectStage,
 } from "@/lib/types";
@@ -82,19 +82,21 @@ const STAGE_BADGE: Record<
 };
 
 function StatusBadge({ stage }: { stage: ProjectStage }) {
+  const t = useT();
   const badge = STAGE_BADGE[stage] ?? STAGE_BADGE.BRIEF;
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium backdrop-blur-sm ${badge.classes}`}
     >
       {badge.icon}
-      {STAGE_LABELS[stage]}
+      {t("common.stage." + stage)}
     </span>
   );
 }
 
 // ── Cover area: real thumbnail when available, styled placeholder otherwise ──
 function CoverThumb({ project }: { project: ProjectSummary }) {
+  const t = useT();
   const token = useAuthStore((s) => s.accessToken);
   const [failed, setFailed] = useState(false);
 
@@ -109,7 +111,7 @@ function CoverThumb({ project }: { project: ProjectSummary }) {
       {showImage ? (
         <img
           src={thumbUrl}
-          alt={`Cover: ${project.title || project.topic}`}
+          alt={t("dashboard.coverAlt", { s: project.title || project.topic })}
           loading="lazy"
           draggable={false}
           onError={() => setFailed(true)}
@@ -142,8 +144,8 @@ function CoverThumb({ project }: { project: ProjectSummary }) {
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] font-medium text-white/90">
               {project.currentStage === "COMPILING"
-                ? "Compiling…"
-                : "Writing chapters…"}
+                ? t("dashboard.compiling")
+                : t("dashboard.writingChapters")}
             </span>
             <span className="text-[11px] font-semibold text-white">
               {Math.round(project.generationProgress * 100)}%
@@ -164,6 +166,7 @@ function CoverThumb({ project }: { project: ProjectSummary }) {
 }
 
 function ProjectCard({ project }: { project: ProjectSummary }) {
+  const t = useT();
   const created = new Date(project.createdAt).toLocaleDateString(undefined, {
     day: "numeric",
     month: "short",
@@ -189,7 +192,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
 
         <div className="flex items-center justify-between mt-3 text-xs text-gray-500 dark:text-gray-400">
           <span className="inline-flex items-center gap-2">
-            <span>{project.targetPages} pages</span>
+            <span>{t("dashboard.pages", { s: project.targetPages })}</span>
             {project.bookFormat && (
               <>
                 <span
@@ -221,6 +224,7 @@ function SkeletonCard() {
 }
 
 export default function Dashboard() {
+  const t = useT();
   const { data, isLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
@@ -237,7 +241,7 @@ export default function Dashboard() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold font-display text-gray-900 dark:text-white">
-              My Books
+              {t("dashboard.myBooks")}
             </h1>
             {!isLoading && projects.length > 0 && (
               <span className="px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-sm font-medium text-gray-600 dark:text-gray-300">
@@ -246,14 +250,14 @@ export default function Dashboard() {
             )}
           </div>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your eBook projects
+            {t("dashboard.subtitle")}
           </p>
         </div>
         <Link
           to="/projects/new"
           className="inline-flex items-center gap-2 px-5 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium shadow-sm cursor-pointer"
         >
-          <Plus className="w-5 h-5" /> New Book
+          <Plus className="w-5 h-5" /> {t("dashboard.newBook")}
         </Link>
       </div>
 
@@ -269,17 +273,16 @@ export default function Dashboard() {
             <BookOpen className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            No books yet
+            {t("dashboard.noBooks")}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            Create your first professional eBook with AI. Takes less than a
-            minute.
+            {t("dashboard.emptyDesc")}
           </p>
           <Link
             to="/projects/new"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium cursor-pointer"
           >
-            <Plus className="w-5 h-5" /> Create Your First Book
+            <Plus className="w-5 h-5" /> {t("dashboard.createFirst")}
           </Link>
         </div>
       ) : (

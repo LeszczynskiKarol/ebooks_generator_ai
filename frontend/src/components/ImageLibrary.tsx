@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 // ── Types ──
 
@@ -60,35 +61,35 @@ interface ImageLibraryProps {
 }
 
 const SIZE_PRESETS = [
-  { label: "Small", value: 30 },
-  { label: "Medium", value: 50 },
-  { label: "Large", value: 75 },
-  { label: "Full", value: 100 },
+  { labelKey: "imageLibrary.sizeSmall", value: 30 },
+  { labelKey: "imageLibrary.sizeMedium", value: 50 },
+  { labelKey: "imageLibrary.sizeLarge", value: 75 },
+  { labelKey: "imageLibrary.sizeFull", value: 100 },
 ];
 
 const ALIGNMENT_OPTIONS: {
   value: ImageAlignment;
-  label: string;
+  labelKey: string;
   icon: typeof AlignCenter;
-  desc: string;
+  descKey: string;
 }[] = [
   {
     value: "wrap-left",
-    label: "Left",
+    labelKey: "imageLibrary.alignLeft",
     icon: AlignLeft,
-    desc: "Text wraps on right",
+    descKey: "imageLibrary.alignLeftDesc",
   },
   {
     value: "center",
-    label: "Center",
+    labelKey: "imageLibrary.alignCenter",
     icon: AlignCenter,
-    desc: "Between paragraphs",
+    descKey: "imageLibrary.alignCenterDesc",
   },
   {
     value: "wrap-right",
-    label: "Right",
+    labelKey: "imageLibrary.alignRight",
     icon: AlignRight,
-    desc: "Text wraps on left",
+    descKey: "imageLibrary.alignRightDesc",
   },
 ];
 
@@ -98,6 +99,7 @@ export default function ImageLibrary({
   onClose,
   onInsert,
 }: ImageLibraryProps) {
+  const t = useT();
   const [images, setImages] = useState<ProjectImageData[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -116,7 +118,7 @@ export default function ImageLibrary({
       const res = await apiClient.get(`/projects/${projectId}/images`);
       setImages(res.data.data || []);
     } catch {
-      toast.error("Failed to load images");
+      toast.error(t("imageLibrary.toastLoadFailed"));
     } finally {
       setLoading(false);
     }
@@ -135,7 +137,7 @@ export default function ImageLibrary({
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("Max 10 MB");
+      toast.error(t("imageLibrary.toastMaxSize"));
       return;
     }
 
@@ -151,9 +153,9 @@ export default function ImageLibrary({
       const newImage = res.data.data;
       setImages((prev) => [newImage, ...prev]);
       setSelectedImage(newImage);
-      toast.success("Image uploaded!");
+      toast.success(t("imageLibrary.toastUploaded"));
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Upload failed");
+      toast.error(err.response?.data?.error || t("imageLibrary.toastUploadFailed"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -162,14 +164,14 @@ export default function ImageLibrary({
 
   // ── Delete ──
   const handleDelete = async (imageId: string) => {
-    if (!confirm("Delete this image?")) return;
+    if (!confirm(t("imageLibrary.confirmDelete"))) return;
     try {
       await apiClient.delete(`/projects/${projectId}/images/${imageId}`);
       setImages((prev) => prev.filter((i) => i.id !== imageId));
       if (selectedImage?.id === imageId) setSelectedImage(null);
-      toast.success("Deleted");
+      toast.success(t("imageLibrary.toastDeleted"));
     } catch {
-      toast.error("Delete failed");
+      toast.error(t("imageLibrary.toastDeleteFailed"));
     }
   };
 
@@ -198,11 +200,12 @@ export default function ImageLibrary({
           <div className="flex items-center gap-2">
             <ImageIcon className="w-5 h-5 text-primary-500" />
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-              Insert Image
+              {t("imageLibrary.title")}
             </h2>
           </div>
           <button
             onClick={onClose}
+            aria-label={t("imageLibrary.close")}
             className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -230,10 +233,10 @@ export default function ImageLibrary({
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                {uploading ? "Uploading..." : "Upload Image"}
+                {uploading ? t("imageLibrary.uploading") : t("imageLibrary.upload")}
               </button>
               <span className="ml-3 text-xs text-gray-500">
-                JPEG, PNG, WebP, GIF · Max 10 MB
+                {t("imageLibrary.formatsHint")}
               </span>
             </div>
 
@@ -245,7 +248,7 @@ export default function ImageLibrary({
               ) : images.length === 0 ? (
                 <div className="text-center py-12">
                   <ImageIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-sm text-gray-500">No images yet.</p>
+                  <p className="text-sm text-gray-500">{t("imageLibrary.noImages")}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-3">
@@ -280,6 +283,7 @@ export default function ImageLibrary({
                             e.stopPropagation();
                             handleDelete(img.id);
                           }}
+                          aria-label={t("imageLibrary.delete")}
                           className="absolute top-2 left-2 w-6 h-6 bg-red-500 text-white rounded-full items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden group-hover:flex"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -321,7 +325,7 @@ export default function ImageLibrary({
                 {/* Alignment */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Alignment
+                    {t("imageLibrary.alignment")}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {ALIGNMENT_OPTIONS.map((opt) => {
@@ -344,10 +348,10 @@ export default function ImageLibrary({
                           <span
                             className={`text-xs font-medium ${isActive ? "text-primary-700 dark:text-primary-300" : "text-gray-600 dark:text-gray-400"}`}
                           >
-                            {opt.label}
+                            {t(opt.labelKey)}
                           </span>
                           <span className="text-[10px] text-gray-400">
-                            {opt.desc}
+                            {t(opt.descKey)}
                           </span>
                         </button>
                       );
@@ -358,7 +362,7 @@ export default function ImageLibrary({
                 {/* Size */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Size — {widthPercent}% of text width
+                    {t("imageLibrary.sizeLabel", { n: widthPercent })}
                   </label>
                   <div className="flex gap-2 mb-3">
                     {SIZE_PRESETS.map((p) => (
@@ -372,7 +376,7 @@ export default function ImageLibrary({
                             : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
                         }`}
                       >
-                        {p.label}
+                        {t(p.labelKey)}
                       </button>
                     ))}
                   </div>
@@ -411,7 +415,7 @@ export default function ImageLibrary({
                   {/* Preview */}
                   <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <p className="text-[10px] text-gray-400 mb-2 text-center">
-                      Layout preview
+                      {t("imageLibrary.layoutPreview")}
                     </p>
                     <AlignmentPreview
                       alignment={alignment}
@@ -423,13 +427,13 @@ export default function ImageLibrary({
                 {/* Caption */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Caption (optional)
+                    {t("imageLibrary.captionLabel")}
                   </label>
                   <input
                     type="text"
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
-                    placeholder="e.g., Figure 1: Market share comparison"
+                    placeholder={t("imageLibrary.captionPlaceholder")}
                     className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                 </div>
@@ -438,9 +442,9 @@ export default function ImageLibrary({
               <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center">
                   <ImageIcon className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-sm text-gray-500">Select an image</p>
+                  <p className="text-sm text-gray-500">{t("imageLibrary.selectImage")}</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    or upload a new one
+                    {t("imageLibrary.orUploadNew")}
                   </p>
                 </div>
               </div>
@@ -452,7 +456,7 @@ export default function ImageLibrary({
                 onClick={onClose}
                 className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 transition-colors"
               >
-                Cancel
+                {t("imageLibrary.cancel")}
               </button>
               <button
                 onClick={handleInsert}
@@ -460,7 +464,7 @@ export default function ImageLibrary({
                 className="inline-flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Check className="w-4 h-4" />
-                Insert Image
+                {t("imageLibrary.insert")}
               </button>
             </div>
           </div>

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 interface TitlePageEditorProps {
   projectId: string;
@@ -48,6 +49,7 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
     },
     ref,
   ) {
+    const t = useT();
     const [title, setTitle] = useState(currentTitle || "");
     const [authorName, setAuthorName] = useState(currentAuthorName || "");
     const [subtitle, setSubtitle] = useState(currentSubtitle || "");
@@ -72,7 +74,7 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
       if (!hasChanges) return true; // nothing to save
 
       if (!title.trim()) {
-        toast.error(isPolish ? "Tytuł jest wymagany" : "Title is required");
+        toast.error(t("titlePage.toastTitleRequired"));
         return false;
       }
 
@@ -88,7 +90,7 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
         onSaved();
         return true;
       } catch (err: any) {
-        toast.error(err.response?.data?.error || "Save failed");
+        toast.error(err.response?.data?.error || t("titlePage.toastSaveFailed"));
         return false;
       } finally {
         setSaving(false);
@@ -108,9 +110,7 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
       const ok = await saveInternal();
       if (ok && hasChanges) {
         // hasChanges was true before save
-        toast.success(
-          isPolish ? "Strona tytułowa zaktualizowana" : "Title page updated",
-        );
+        toast.success(t("titlePage.toastUpdated"));
       }
     };
 
@@ -119,7 +119,7 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
         <div className="flex items-center gap-2 mb-2">
           <BookOpen className="w-5 h-5 text-primary-500" />
           <h3 className="text-base font-bold text-gray-900 dark:text-white">
-            {isPolish ? "Strona tytułowa" : "Title Page"}
+            {t("titlePage.heading")}
           </h3>
         </div>
 
@@ -127,14 +127,14 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
         <div>
           <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             <Type className="w-3.5 h-3.5" />
-            {isPolish ? "Tytuł książki" : "Book Title"}
+            {t("titlePage.bookTitle")}
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-colors"
-            placeholder={isPolish ? "Tytuł Twojej książki" : "Your Book Title"}
+            placeholder={t("titlePage.bookTitlePlaceholder")}
           />
         </div>
 
@@ -142,9 +142,9 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
         <div>
           <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             <User className="w-3.5 h-3.5" />
-            {isPolish ? "Autor" : "Author"}{" "}
+            {t("titlePage.author")}{" "}
             <span className="text-xs text-gray-400 font-normal">
-              ({isPolish ? "opcjonalnie" : "optional"})
+              ({t("titlePage.optional")})
             </span>
           </label>
           <input
@@ -152,7 +152,7 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
             value={authorName}
             onChange={(e) => setAuthorName(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-colors"
-            placeholder={isPolish ? "Jan Kowalski" : "John Smith"}
+            placeholder={t("titlePage.authorPlaceholder")}
           />
         </div>
 
@@ -160,9 +160,9 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
         <div>
           <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             <FileText className="w-3.5 h-3.5" />
-            {isPolish ? "Podtytuł" : "Subtitle"}{" "}
+            {t("titlePage.subtitle")}{" "}
             <span className="text-xs text-gray-400 font-normal">
-              ({isPolish ? "opcjonalnie" : "optional"})
+              ({t("titlePage.optional")})
             </span>
           </label>
           <input
@@ -177,9 +177,7 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
         {/* Save button */}
         <div className="flex items-center justify-between pt-2">
           <p className="text-xs text-gray-400">
-            {isPolish
-              ? "Zmiany pojawią się po rekompilacji PDF"
-              : "Changes will appear after PDF recompilation"}
+            {t("titlePage.recompileHint")}
           </p>
           <button
             onClick={handleSave}
@@ -198,16 +196,10 @@ const TitlePageEditor = forwardRef<TitlePageEditorHandle, TitlePageEditorProps>(
               <Save className="w-3.5 h-3.5" />
             )}
             {saving
-              ? isPolish
-                ? "Zapisywanie..."
-                : "Saving..."
+              ? t("titlePage.saving")
               : saved
-                ? isPolish
-                  ? "Zapisano"
-                  : "Saved"
-                : isPolish
-                  ? "Zapisz"
-                  : "Save"}
+                ? t("titlePage.saved")
+                : t("titlePage.save")}
           </button>
         </div>
       </div>

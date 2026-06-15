@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Loader2, Globe, ListTree, Sparkles } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   /** true once web research finished and Claude is designing chapters */
@@ -22,6 +23,7 @@ function fmtElapsed(ms: number): string {
  * Replaces the old static "takes 10-30 seconds" card that lied about timing.
  */
 export default function StructureProgress({ researchDone }: Props) {
+  const t = useT();
   const startRef = useRef(Date.now());
   const [, force] = useState(0);
 
@@ -33,18 +35,18 @@ export default function StructureProgress({ researchDone }: Props) {
 
   const steps: Step[] = [
     {
-      label: "Researching the web",
-      desc: "Searching and reading the best sources on your topic",
+      label: t("generation.structure.0.label"),
+      desc: t("generation.structure.0.desc"),
       icon: <Globe className="w-5 h-5" />,
     },
     {
-      label: "Designing chapter structure",
-      desc: "AI drafts chapters and sections grounded in the research",
+      label: t("generation.structure.1.label"),
+      desc: t("generation.structure.1.desc"),
       icon: <ListTree className="w-5 h-5" />,
     },
     {
-      label: "Ready for your review",
-      desc: "You'll approve or tweak the structure before writing starts",
+      label: t("generation.structure.2.label"),
+      desc: t("generation.structure.2.desc"),
       icon: <Sparkles className="w-5 h-5" />,
     },
   ];
@@ -55,15 +57,14 @@ export default function StructureProgress({ researchDone }: Props) {
     <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6">
       <div className="flex items-center justify-between mb-1">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-          Payment confirmed — building your book plan
+          {t("generation.structure.title")}
         </h3>
         <span className="text-sm font-mono text-gray-400 dark:text-gray-500 tabular-nums">
           {fmtElapsed(Date.now() - startRef.current)}
         </span>
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        This usually takes 1–2 minutes. You can safely leave this page — we'll
-        keep working.
+        {t("generation.structure.subtitle")}
       </p>
 
       <ol className="space-y-1">

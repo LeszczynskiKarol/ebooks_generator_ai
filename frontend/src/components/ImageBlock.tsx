@@ -13,6 +13,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import type { ImageAlignment } from "@/components/ImageLibrary";
+import { useT } from "@/lib/i18n";
 
 interface ImageBlockProps {
   src: string;
@@ -35,6 +36,7 @@ export default function ImageBlock({
   onUpdate,
   onRemove,
 }: ImageBlockProps) {
+  const t = useT();
   const [showControls, setShowControls] = useState(false);
   const [resizing, setResizing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -113,17 +115,17 @@ export default function ImageBlock({
               {
                 val: "wrap-left" as ImageAlignment,
                 Icon: AlignLeft,
-                tip: "Wrap left",
+                tip: t("editor.wrapLeft"),
               },
               {
                 val: "center" as ImageAlignment,
                 Icon: AlignCenter,
-                tip: "Center",
+                tip: t("editor.center"),
               },
               {
                 val: "wrap-right" as ImageAlignment,
                 Icon: AlignRight,
-                tip: "Wrap right",
+                tip: t("editor.wrapRight"),
               },
             ] as const
           ).map(({ val, Icon, tip }) => (
@@ -153,7 +155,7 @@ export default function ImageBlock({
           {/* Delete */}
           <button
             onClick={onRemove}
-            title="Remove image"
+            title={t("editor.removeImage")}
             className="p-1.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
           >
             <Trash2 className="w-4 h-4" />
@@ -199,7 +201,7 @@ export default function ImageBlock({
             type="text"
             value={caption}
             onChange={(e) => onUpdate({ caption: e.target.value })}
-            placeholder={showControls ? "Add caption..." : ""}
+            placeholder={showControls ? t("editor.addCaption") : ""}
             className={`w-full text-xs text-center italic bg-transparent border-none outline-none transition-colors ${
               caption
                 ? "text-gray-500 dark:text-gray-400"

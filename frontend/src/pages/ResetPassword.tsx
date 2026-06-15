@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,28 +8,37 @@ import { useAuthStore } from "@/stores/authStore";
 import { useThemeStore } from "@/stores/themeStore";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
+import { useT, useLangStore, translate } from "@/lib/i18n";
+import LangToggle from "@/components/LangToggle";
 
-const schema = z
-  .object({
-    password: z.string().min(8, "Min 8 characters"),
-    confirm: z.string(),
-  })
-  .refine((d) => d.password === d.confirm, {
-    path: ["confirm"],
-    message: "Passwords don't match",
-  });
-type Form = z.infer<typeof schema>;
+type Form = { password: string; confirm: string };
 
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
   const { dark, toggle } = useThemeStore();
+  const t = useT();
+  const lang = useLangStore((s) => s.lang);
   const [loading, setLoading] = useState(false);
 
   const token = params.get("token") || "";
   const email = params.get("email") || "";
   const linkValid = !!(token && email);
+
+  const schema = useMemo(
+    () =>
+      z
+        .object({
+          password: z.string().min(8, translate(lang, "forgotReset.errMinPassword")),
+          confirm: z.string(),
+        })
+        .refine((d) => d.password === d.confirm, {
+          path: ["confirm"],
+          message: translate(lang, "forgotReset.errPasswordsMatch"),
+        }),
+    [lang],
+  );
 
   const { register, handleSubmit, formState: { errors } } = useForm<Form>({
     resolver: zodResolver(schema),
@@ -44,10 +53,10 @@ export default function ResetPassword() {
         password: form.password,
       });
       setAuth(data.data.user, data.data.accessToken, data.data.refreshToken);
-      toast.success("Password updated!");
+      toast.success(t("forgotReset.passwordUpdated"));
       navigate("/dashboard");
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Invalid or expired link");
+      toast.error(err.response?.data?.error || t("forgotReset.invalidLink"));
     } finally {
       setLoading(false);
     }
@@ -55,6 +64,7 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 transition-colors">
+      <LangToggle />
       <button onClick={toggle} className="fixed top-4 right-4 p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
         {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
       </button>
@@ -65,32 +75,32 @@ export default function ResetPassword() {
             <BookOpen className="w-8 h-8 text-primary-600" />
             <span className="text-2xl font-bold font-display text-gray-900 dark:text-white">InkMagnet</span>
           </a>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Set a new password</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("forgotReset.setNewTitle")}</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">{email || "—"}</p>
         </div>
 
         {!linkValid ? (
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 text-center space-y-3">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">This link is incomplete</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t("forgotReset.linkIncomplete")}</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Open the link from the email again, or request a new one.
+              {t("forgotReset.linkIncompleteBody")}
             </p>
             <Link to="/auth/forgot-password"
               className="inline-block mt-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm">
-              Request a new link
+              {t("forgotReset.requestNewLink")}
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New password</label>
-              <input type="password" {...register("password")} placeholder="Min. 8 characters" autoFocus
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("forgotReset.newPassword")}</label>
+              <input type="password" {...register("password")} placeholder={t("forgotReset.newPasswordPlaceholder")} autoFocus
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Repeat password</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("forgotReset.repeatPassword")}</label>
               <input type="password" {...register("confirm")} placeholder="••••••••"
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
               {errors.confirm && <p className="text-red-500 text-xs mt-1">{errors.confirm.message}</p>}
@@ -98,14 +108,14 @@ export default function ResetPassword() {
 
             <button type="submit" disabled={loading}
               className="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2">
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />} Save new password
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />} {t("forgotReset.saveNewPassword")}
             </button>
           </form>
         )}
 
         <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-          Back to{" "}
-          <Link to="/auth/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">Sign in</Link>
+          {t("forgotReset.backTo")}{" "}
+          <Link to="/auth/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">{t("forgotReset.signIn")}</Link>
         </p>
       </div>
     </div>

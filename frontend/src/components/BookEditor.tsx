@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
+import { useT } from "@/lib/i18n";
 import LaTeXEditor from "@/components/LaTeXEditor";
 import WysiwygEditor from "@/components/WysiwygEditor";
 import { latexToHtml, htmlToLatex } from "@/lib/latexConverter";
@@ -66,17 +67,17 @@ interface Props {
 
 const MODE_CONFIG: Record<
   EditorMode,
-  { label: string; icon: typeof Type; description: string }
+  { labelKey: string; icon: typeof Type; descriptionKey: string }
 > = {
   visual: {
-    label: "Visual",
+    labelKey: "editor.modeVisual",
     icon: Type,
-    description: "Word-like editor — no LaTeX knowledge needed",
+    descriptionKey: "editor.modeVisualDesc",
   },
   code: {
-    label: "Code",
+    labelKey: "editor.modeCode",
     icon: Code2,
-    description: "LaTeX source with syntax highlighting",
+    descriptionKey: "editor.modeCodeDesc",
   },
 };
 
@@ -86,6 +87,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
   { projectId, onDirtyChange },
   ref,
 ) {
+  const t = useT();
   const [chapters, setChapters] = useState<ChapterData[]>([]);
   const [editorKey, setEditorKey] = useState(0);
   const [imageLibraryOpen, setImageLibraryOpen] = useState(false);
@@ -184,7 +186,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
         setExpandedChapter(data[0].chapterNumber);
       }
     } catch {
-      toast.error("Failed to load chapters");
+      toast.error(t("editor.loadChaptersFailed"));
     } finally {
       setLoading(false);
     }
@@ -379,7 +381,8 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
     } catch (err: any) {
       console.error(`❌ [SAVE] Failed:`, err.response?.data || err.message);
       toast.error(
-        err.response?.data?.error || `Save chapter ${chapterNumber} failed`,
+        err.response?.data?.error ||
+          t("editor.saveChapterFailed", { n: chapterNumber }),
       );
       return false;
     } finally {
@@ -390,7 +393,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
   // Public save (with toast)
   const saveChapter = async (chapterNumber: number) => {
     const ok = await saveChapterInternal(chapterNumber);
-    if (ok) toast.success(`Chapter ${chapterNumber} saved`);
+    if (ok) toast.success(t("editor.chapterSaved", { n: chapterNumber }));
   };
 
   // ── Utils ──
@@ -409,7 +412,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-6 h-6 text-primary-500 animate-spin" />
-        <span className="ml-2 text-gray-500">Loading chapters...</span>
+        <span className="ml-2 text-gray-500">{t("editor.loadingChapters")}</span>
       </div>
     );
   }
@@ -417,7 +420,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
   if (chapters.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        No chapters available for editing.
+        {t("editor.noChapters")}
       </div>
     );
   }
@@ -431,16 +434,18 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
         <div className="flex items-center gap-3">
           <FileText className="w-5 h-5 text-primary-500" />
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-            Edit Your Book
+            {t("editor.editYourBook")}
           </h3>
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            {chapters.length} chapters
+            {t("editor.chaptersCount", { n: chapters.length })}
           </span>
         </div>
         {totalDirty > 0 && (
           <span className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1">
             <AlertTriangle className="w-3.5 h-3.5" />
-            {totalDirty} unsaved {totalDirty === 1 ? "change" : "changes"}
+            {totalDirty === 1
+              ? t("editor.unsavedChange", { n: totalDirty })
+              : t("editor.unsavedChanges", { n: totalDirty })}
           </span>
         )}
       </div>
@@ -476,14 +481,14 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                   <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
                 )}
                 <span className="text-xs font-bold text-primary-600 dark:text-primary-400 flex-shrink-0">
-                  CH {chapter.chapterNumber}
+                  {t("editor.chapterAbbr", { n: chapter.chapterNumber })}
                 </span>
                 <span className="font-medium text-gray-900 dark:text-white truncate flex-1">
                   {chapter.title}
                 </span>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {currentWords.toLocaleString()} words
+                    {t("editor.words", { n: currentWords.toLocaleString() })}
                   </span>
                   {isDirty && (
                     <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
@@ -513,7 +518,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                               onClick={() =>
                                 setMode(chapter.chapterNumber, key)
                               }
-                              title={cfg.description}
+                              title={t(cfg.descriptionKey)}
                               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
                                 isActive
                                   ? "bg-white dark:bg-gray-900 text-primary-700 dark:text-primary-300 shadow-sm"
@@ -522,7 +527,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                             >
                               <Icon className="w-3.5 h-3.5" />
                               <span className="hidden sm:inline">
-                                {cfg.label}
+                                {t(cfg.labelKey)}
                               </span>
                             </button>
                           );
@@ -534,7 +539,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                           onClick={() => undoChanges(chapter.chapterNumber)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                         >
-                          <Undo2 className="w-3.5 h-3.5" /> Undo All
+                          <Undo2 className="w-3.5 h-3.5" /> {t("editor.undoAll")}
                         </button>
                       )}
                       <button
@@ -542,14 +547,14 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                           setImageLibraryChapter(chapter.chapterNumber);
                           setImageLibraryOpen(true);
                         }}
-                        title="Insert image"
+                        title={t("editor.insertImage")}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
                       >
-                        <ImageIcon className="w-3.5 h-3.5" /> Image
+                        <ImageIcon className="w-3.5 h-3.5" /> {t("editor.image")}
                       </button>
                       {mode === "code" && (
                         <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-2 hidden lg:inline">
-                          Ctrl+F to search · Ctrl+Z to undo
+                          {t("editor.codeHint")}
                         </span>
                       )}
                     </div>
@@ -571,7 +576,11 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                       ) : (
                         <Check className="w-3.5 h-3.5" />
                       )}
-                      {isSaving ? "Saving..." : isDirty ? "Save" : "Saved"}
+                      {isSaving
+                        ? t("editor.saving")
+                        : isDirty
+                          ? t("editor.save")
+                          : t("editor.saved")}
                     </button>
                   </div>
 
@@ -580,9 +589,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                     <div className="mb-3 flex items-start gap-2 px-3 py-2 bg-primary-50 dark:bg-primary-950/20 rounded-lg border border-primary-100 dark:border-primary-900/50">
                       <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
                       <p className="text-xs text-primary-700 dark:text-primary-400 leading-relaxed">
-                        Visual editor — edit like in Word. Click an image to
-                        resize, reposition, or delete. Switch to Code mode for
-                        raw LaTeX.
+                        {t("editor.visualHint")}
                       </p>
                     </div>
                   )}
@@ -617,13 +624,15 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
 
                   {/* Stats */}
                   <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    <span>{currentWords.toLocaleString()} words</span>
-                    <span>~{Math.round(currentWords / 300)} pages</span>
+                    <span>{t("editor.words", { n: currentWords.toLocaleString() })}</span>
+                    <span>{t("editor.pages", { n: Math.round(currentWords / 300) })}</span>
                     <span>
-                      {chapter.latexContent.length.toLocaleString()} chars
+                      {t("editor.chars", {
+                        n: chapter.latexContent.length.toLocaleString(),
+                      })}
                     </span>
                     <span className="ml-auto text-gray-400 dark:text-gray-500">
-                      {MODE_CONFIG[mode].label} mode
+                      {t(MODE_CONFIG[mode].labelKey)} {t("editor.modeSuffix")}
                     </span>
                   </div>
                 </div>

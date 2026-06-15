@@ -32,6 +32,15 @@ import {
   Plus,
 } from "lucide-react";
 import { Callout, CALLOUT_STYLES } from "./CalloutNode";
+import { useT } from "@/lib/i18n";
+
+// Map callout type → i18n key for the user-visible label
+const CALLOUT_LABEL_KEY: Record<string, string> = {
+  tipbox: "editor.calloutTipbox",
+  keyinsight: "editor.calloutKeyinsight",
+  warningbox: "editor.calloutWarningbox",
+  examplebox: "editor.calloutExamplebox",
+};
 
 // ── Props ──
 interface WysiwygEditorProps {
@@ -53,6 +62,7 @@ export default function WysiwygEditor({
   maxHeight = "600px",
   className = "",
 }: WysiwygEditorProps) {
+  const t = useT();
   const [showCalloutMenu, setShowCalloutMenu] = useState(false);
   const calloutRef = useRef<HTMLDivElement>(null);
 
@@ -73,7 +83,7 @@ export default function WysiwygEditor({
       TableCell,
       TableHeader,
       Placeholder.configure({
-        placeholder: "Start writing…",
+        placeholder: t("editor.startWriting"),
       }),
       Callout,
     ],
@@ -156,9 +166,10 @@ export default function WysiwygEditor({
   );
 
   const insertCallout = (type: string) => {
-    const calloutTitle =
-      CALLOUT_STYLES[type]?.label ||
-      type.charAt(0).toUpperCase() + type.slice(1);
+    const calloutTitle = CALLOUT_LABEL_KEY[type]
+      ? t(CALLOUT_LABEL_KEY[type])
+      : CALLOUT_STYLES[type]?.label ||
+        type.charAt(0).toUpperCase() + type.slice(1);
     editor
       .chain()
       .focus()
@@ -168,7 +179,7 @@ export default function WysiwygEditor({
         content: [
           {
             type: "paragraph",
-            content: [{ type: "text", text: "Your content here." }],
+            content: [{ type: "text", text: t("editor.yourContentHere") }],
           },
         ],
       })
@@ -195,14 +206,14 @@ export default function WysiwygEditor({
           <Btn
             onClick={() => editor.chain().focus().undo().run()}
             disabled={!editor.can().undo()}
-            title="Undo (Ctrl+Z)"
+            title={t("editor.undo")}
           >
             <Undo2 className="w-4 h-4" />
           </Btn>
           <Btn
             onClick={() => editor.chain().focus().redo().run()}
             disabled={!editor.can().redo()}
-            title="Redo (Ctrl+Y)"
+            title={t("editor.redo")}
           >
             <Redo2 className="w-4 h-4" />
           </Btn>
@@ -215,7 +226,7 @@ export default function WysiwygEditor({
               editor.chain().focus().toggleHeading({ level: 3 }).run()
             }
             active={editor.isActive("heading", { level: 3 })}
-            title="Section heading"
+            title={t("editor.sectionHeading")}
           >
             <Heading2 className="w-4 h-4" />
           </Btn>
@@ -224,7 +235,7 @@ export default function WysiwygEditor({
               editor.chain().focus().toggleHeading({ level: 4 }).run()
             }
             active={editor.isActive("heading", { level: 4 })}
-            title="Subsection heading"
+            title={t("editor.subsectionHeading")}
           >
             <Heading3 className="w-4 h-4" />
           </Btn>
@@ -235,21 +246,21 @@ export default function WysiwygEditor({
           <Btn
             onClick={() => editor.chain().focus().toggleBold().run()}
             active={editor.isActive("bold")}
-            title="Bold (Ctrl+B)"
+            title={t("editor.bold")}
           >
             <Bold className="w-4 h-4" />
           </Btn>
           <Btn
             onClick={() => editor.chain().focus().toggleItalic().run()}
             active={editor.isActive("italic")}
-            title="Italic (Ctrl+I)"
+            title={t("editor.italic")}
           >
             <Italic className="w-4 h-4" />
           </Btn>
           <Btn
             onClick={() => editor.chain().focus().toggleUnderline().run()}
             active={editor.isActive("underline")}
-            title="Underline (Ctrl+U)"
+            title={t("editor.underline")}
           >
             <UnderlineIcon className="w-4 h-4" />
           </Btn>
@@ -260,14 +271,14 @@ export default function WysiwygEditor({
           <Btn
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             active={editor.isActive("bulletList")}
-            title="Bullet list"
+            title={t("editor.bulletList")}
           >
             <List className="w-4 h-4" />
           </Btn>
           <Btn
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             active={editor.isActive("orderedList")}
-            title="Numbered list"
+            title={t("editor.numberedList")}
           >
             <ListOrdered className="w-4 h-4" />
           </Btn>
@@ -278,7 +289,7 @@ export default function WysiwygEditor({
           <Btn
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             active={editor.isActive("blockquote")}
-            title="Quote"
+            title={t("editor.quote")}
           >
             <Quote className="w-4 h-4" />
           </Btn>
@@ -286,7 +297,7 @@ export default function WysiwygEditor({
           {/* Horizontal rule */}
           <Btn
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
-            title="Horizontal rule"
+            title={t("editor.horizontalRule")}
           >
             <Minus className="w-4 h-4" />
           </Btn>
@@ -298,7 +309,7 @@ export default function WysiwygEditor({
             <button
               type="button"
               onClick={() => setShowCalloutMenu(!showCalloutMenu)}
-              title="Insert callout box"
+              title={t("editor.insertCallout")}
               className={`h-8 flex items-center gap-1 px-2 rounded-md text-sm transition-colors ${
                 showCalloutMenu
                   ? "bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300"
@@ -306,7 +317,7 @@ export default function WysiwygEditor({
               }`}
             >
               <Lightbulb className="w-4 h-4" />
-              <span className="text-xs hidden sm:inline">Callout</span>
+              <span className="text-xs hidden sm:inline">{t("editor.callout")}</span>
               <ChevronDown className="w-3 h-3" />
             </button>
 
@@ -319,7 +330,11 @@ export default function WysiwygEditor({
                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <span>{style.emoji}</span>
-                    <span>{style.label}</span>
+                    <span>
+                      {CALLOUT_LABEL_KEY[type]
+                        ? t(CALLOUT_LABEL_KEY[type])
+                        : style.label}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -327,7 +342,7 @@ export default function WysiwygEditor({
           </div>
 
           {/* Table */}
-          <Btn onClick={insertTable} title="Insert table">
+          <Btn onClick={insertTable} title={t("editor.insertTable")}>
             <TableIcon className="w-4 h-4" />
           </Btn>
 
@@ -337,19 +352,19 @@ export default function WysiwygEditor({
               <Sep />
               <Btn
                 onClick={() => editor.chain().focus().addColumnAfter().run()}
-                title="Add column"
+                title={t("editor.addColumn")}
               >
                 <Plus className="w-3.5 h-3.5" />
               </Btn>
               <Btn
                 onClick={() => editor.chain().focus().addRowAfter().run()}
-                title="Add row"
+                title={t("editor.addRow")}
               >
                 <Plus className="w-3.5 h-3.5 rotate-90" />
               </Btn>
               <Btn
                 onClick={() => editor.chain().focus().deleteTable().run()}
-                title="Delete table"
+                title={t("editor.deleteTable")}
               >
                 <Trash2 className="w-3.5 h-3.5 text-red-500" />
               </Btn>

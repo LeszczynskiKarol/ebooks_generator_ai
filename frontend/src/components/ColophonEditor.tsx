@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 // ── Default templates ──
 
@@ -128,6 +129,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
     },
     ref,
   ) {
+    const t = useT();
     const [text, setText] = useState(currentText || "");
     const [fontSize, setFontSize] = useState(currentFontSize || 10);
     const [enabled, setEnabled] = useState(currentEnabled);
@@ -182,7 +184,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
         onSaved();
         return true;
       } catch (err: any) {
-        toast.error(err.response?.data?.error || "Save failed");
+        toast.error(err.response?.data?.error || t("titlePage.toastSaveFailed"));
         return false;
       } finally {
         setSaving(false);
@@ -201,9 +203,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
     const handleSave = async () => {
       const ok = await saveInternal();
       if (ok && hasChanges) {
-        toast.success(
-          isPolish ? "Strona redakcyjna zapisana" : "Copyright page saved",
-        );
+        toast.success(t("titlePage.toastColophonSaved"));
       }
     };
 
@@ -214,7 +214,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-primary-500" />
             <h3 className="text-base font-bold text-gray-900 dark:text-white">
-              {isPolish ? "Strona redakcyjna" : "Copyright Page"}
+              {t("titlePage.colophonHeading")}
             </h3>
           </div>
 
@@ -231,13 +231,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
             ) : (
               <ToggleLeft className="w-5 h-5" />
             )}
-            {enabled
-              ? isPolish
-                ? "Włączona"
-                : "Enabled"
-              : isPolish
-                ? "Wyłączona"
-                : "Disabled"}
+            {enabled ? t("titlePage.enabled") : t("titlePage.disabled")}
           </button>
         </div>
 
@@ -267,7 +261,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
                   onClick={generateDefault}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary-50 dark:bg-primary-950/30 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-950/50 transition-colors font-medium"
                 >
-                  {isPolish ? "Wstaw szablon" : "Insert template"}
+                  {t("titlePage.insertTemplate")}
                 </button>
               )}
             </div>
@@ -277,23 +271,17 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
               {/* Textarea */}
               <div>
                 <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">
-                  {isPolish ? "Treść" : "Content"}
+                  {t("titlePage.content")}
                 </label>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   rows={14}
                   className="w-full px-3 py-2.5 text-sm font-mono leading-relaxed border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-colors resize-none"
-                  placeholder={
-                    isPolish
-                      ? "Wpisz treść strony redakcyjnej lub kliknij 'Wstaw szablon'..."
-                      : "Type copyright page content or click 'Insert template'..."
-                  }
+                  placeholder={t("titlePage.colophonPlaceholder")}
                 />
                 <p className="text-[10px] text-gray-400 mt-1">
-                  {isPolish
-                    ? "Każda linia = nowa linia w książce. Pusta linia = odstęp."
-                    : "Each line = new line in book. Empty line = spacing."}
+                  {t("titlePage.lineHint")}
                 </p>
               </div>
 
@@ -301,7 +289,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
               <div>
                 <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 flex items-center gap-1">
                   <Eye className="w-3 h-3" />
-                  {isPolish ? "Podgląd" : "Preview"}
+                  {t("titlePage.preview")}
                 </label>
                 <div
                   className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-950 overflow-hidden"
@@ -326,9 +314,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
                       </div>
                     ) : (
                       <div className="text-center text-gray-300 dark:text-gray-600 text-sm italic">
-                        {isPolish
-                          ? "Podgląd strony redakcyjnej"
-                          : "Copyright page preview"}
+                        {t("titlePage.colophonPreview")}
                       </div>
                     )}
                   </div>
@@ -339,9 +325,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
             {/* ── Save button ── */}
             <div className="flex items-center justify-between pt-1">
               <p className="text-xs text-gray-400">
-                {isPolish
-                  ? "Pojawi się po stronie tytułowej po rekompilacji"
-                  : "Appears after the title page upon recompilation"}
+                {t("titlePage.colophonRecompileHint")}
               </p>
               <button
                 onClick={handleSave}
@@ -360,16 +344,10 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
                   <Save className="w-3.5 h-3.5" />
                 )}
                 {saving
-                  ? isPolish
-                    ? "Zapisywanie..."
-                    : "Saving..."
+                  ? t("titlePage.saving")
                   : saved
-                    ? isPolish
-                      ? "Zapisano"
-                      : "Saved"
-                    : isPolish
-                      ? "Zapisz"
-                      : "Save"}
+                    ? t("titlePage.saved")
+                    : t("titlePage.save")}
               </button>
             </div>
           </>
@@ -388,7 +366,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
               ) : (
                 <Save className="w-3.5 h-3.5" />
               )}
-              {isPolish ? "Zapisz" : "Save"}
+              {t("titlePage.save")}
             </button>
           </div>
         )}

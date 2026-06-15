@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,23 +25,32 @@ import {
 import apiClient from "@/lib/api";
 import toast from "react-hot-toast";
 import DevModelPicker from "@/components/DevModelPicker";
+import { useT, useLangStore, translate, type AppLang } from "@/lib/i18n";
 
-const LANGUAGES: Record<string, string> = {
-  en: "English",
-  pl: "Polish",
-  de: "German",
-  es: "Spanish",
-  fr: "French",
-  it: "Italian",
-  pt: "Portuguese",
-  nl: "Dutch",
+// Language keys → i18n label keys (the select VALUES en/pl/de… stay code)
+const LANGUAGE_KEYS: Record<string, string> = {
+  en: "newProject.langEn",
+  pl: "newProject.langPl",
+  de: "newProject.langDe",
+  es: "newProject.langEs",
+  fr: "newProject.langFr",
+  it: "newProject.langIt",
+  pt: "newProject.langPt",
+  nl: "newProject.langNl",
 };
-const STYLES: Record<string, string> = {
-  modern: "Modern — Clean, contemporary",
-  academic: "Academic — Formal, scholarly",
-  minimal: "Minimal — Simple, elegant",
-  creative: "Creative — Bold, expressive",
-  business: "Business — Professional, corporate",
+const STYLE_KEYS: Record<string, string> = {
+  modern: "newProject.styleModern",
+  academic: "newProject.styleAcademic",
+  minimal: "newProject.styleMinimal",
+  creative: "newProject.styleCreative",
+  business: "newProject.styleBusiness",
+};
+const STYLE_NAME_KEYS: Record<string, string> = {
+  modern: "newProject.styleNameModern",
+  academic: "newProject.styleNameAcademic",
+  minimal: "newProject.styleNameMinimal",
+  creative: "newProject.styleNameCreative",
+  business: "newProject.styleNameBusiness",
 };
 // Accent palettes matching the backend style presets — gives the text-only
 // radio list a visual cue of what each style actually looks like
@@ -52,18 +61,19 @@ const STYLE_SWATCHES: Record<string, string[]> = {
   creative: ["#A855F7", "#F472B6", "#38BDF8"],
   business: ["#2563EB", "#10B981", "#F59E0B"],
 };
-const FORMATS: Record<string, string> = {
-  a5: "A5 (148×210mm) — Standard",
-  b5: "B5 (176×250mm) — Larger",
-  letter: "Letter (216×279mm) — US",
-  a4: "A4 (210×297mm) — Full",
+const FORMAT_KEYS: Record<string, string> = {
+  a5: "newProject.formatA5",
+  b5: "newProject.formatB5",
+  letter: "newProject.formatLetter",
+  a4: "newProject.formatA4",
 };
-// Real paper dimensions (mm) — rendered as proportional rectangles in the picker
-const FORMAT_DIMS: { key: string; label: string; desc: string; w: number; h: number }[] = [
-  { key: "a5", label: "A5", desc: "Standard", w: 148, h: 210 },
-  { key: "b5", label: "B5", desc: "Larger", w: 176, h: 250 },
-  { key: "letter", label: "Letter", desc: "US", w: 216, h: 279 },
-  { key: "a4", label: "A4", desc: "Full", w: 210, h: 297 },
+// Real paper dimensions (mm) — rendered as proportional rectangles in the picker.
+// `label` stays a literal (A5/B5/Letter/A4 are format codes); `descKey` is i18n.
+const FORMAT_DIMS: { key: string; label: string; descKey: string; w: number; h: number }[] = [
+  { key: "a5", label: "A5", descKey: "newProject.formatDescStandard", w: 148, h: 210 },
+  { key: "b5", label: "B5", descKey: "newProject.formatDescLarger", w: 176, h: 250 },
+  { key: "letter", label: "Letter", descKey: "newProject.formatDescUs", w: 216, h: 279 },
+  { key: "a4", label: "A4", descKey: "newProject.formatDescFull", w: 210, h: 297 },
 ];
 const FORMAT_SCALE = 0.16; // mm → px for the mini page previews
 
@@ -73,57 +83,64 @@ const FORMAT_SCALE = 0.16; // mm → px for the mini page previews
 
 interface PresetColor {
   hex: string;
-  name: string;
+  nameKey: string;
 }
 
 const COLOR_PALETTE: PresetColor[] = [
-  { hex: "#FFFFFF", name: "White" },
-  { hex: "#000000", name: "Black" },
-  { hex: "#1E40AF", name: "Royal Blue" },
-  { hex: "#2563EB", name: "Blue" },
-  { hex: "#0EA5E9", name: "Sky Blue" },
-  { hex: "#06B6D4", name: "Cyan" },
-  { hex: "#7C3AED", name: "Violet" },
-  { hex: "#9333EA", name: "Purple" },
-  { hex: "#A855F7", name: "Lavender" },
-  { hex: "#EC4899", name: "Pink" },
-  { hex: "#059669", name: "Emerald" },
-  { hex: "#16A34A", name: "Green" },
-  { hex: "#65A30D", name: "Lime" },
-  { hex: "#14B8A6", name: "Teal" },
-  { hex: "#DC2626", name: "Red" },
-  { hex: "#EA580C", name: "Orange" },
-  { hex: "#D97706", name: "Amber" },
-  { hex: "#CA8A04", name: "Gold" },
-  { hex: "#1E293B", name: "Slate" },
-  { hex: "#374151", name: "Gray" },
-  { hex: "#78350F", name: "Brown" },
-  { hex: "#831843", name: "Rose" },
+  { hex: "#FFFFFF", nameKey: "newProject.colorWhite" },
+  { hex: "#000000", nameKey: "newProject.colorBlack" },
+  { hex: "#1E40AF", nameKey: "newProject.colorRoyalBlue" },
+  { hex: "#2563EB", nameKey: "newProject.colorBlue" },
+  { hex: "#0EA5E9", nameKey: "newProject.colorSkyBlue" },
+  { hex: "#06B6D4", nameKey: "newProject.colorCyan" },
+  { hex: "#7C3AED", nameKey: "newProject.colorViolet" },
+  { hex: "#9333EA", nameKey: "newProject.colorPurple" },
+  { hex: "#A855F7", nameKey: "newProject.colorLavender" },
+  { hex: "#EC4899", nameKey: "newProject.colorPink" },
+  { hex: "#059669", nameKey: "newProject.colorEmerald" },
+  { hex: "#16A34A", nameKey: "newProject.colorGreen" },
+  { hex: "#65A30D", nameKey: "newProject.colorLime" },
+  { hex: "#14B8A6", nameKey: "newProject.colorTeal" },
+  { hex: "#DC2626", nameKey: "newProject.colorRed" },
+  { hex: "#EA580C", nameKey: "newProject.colorOrange" },
+  { hex: "#D97706", nameKey: "newProject.colorAmber" },
+  { hex: "#CA8A04", nameKey: "newProject.colorGold" },
+  { hex: "#1E293B", nameKey: "newProject.colorSlate" },
+  { hex: "#374151", nameKey: "newProject.colorGray" },
+  { hex: "#78350F", nameKey: "newProject.colorBrown" },
+  { hex: "#831843", nameKey: "newProject.colorRose" },
 ];
 
-const COLOR_ROLES = [
-  "Primary — chapter headings, main accents",
-  "Secondary — boxes, highlights, tips",
-  "Tertiary — details, borders, subtle elements",
+const COLOR_ROLE_KEYS = [
+  "newProject.colorRolePrimary",
+  "newProject.colorRoleSecondary",
+  "newProject.colorRoleTertiary",
 ];
 
-const schema = z.object({
-  topic: z.string().min(5, "Min 5 chars").max(500),
-  title: z.string().max(200).optional(),
-  targetPages: z.number().min(MIN_PAGES).max(MAX_PAGES),
-  language: z.string().default("en"),
-  guidelines: z.string().max(5000).optional(),
-  stylePreset: z.string().default("modern"),
-  bookFormat: z.string().default("a5"),
-  useAiImages: z.boolean().default(false),
-  imageGuidelines: z.string().max(1000).optional(),
-  imageDensity: z.enum(["standard", "rich"]).default("standard"),
-  footnoteMode: z.enum(["auto", "always", "never"]).default("auto"),
-});
-type FormData = z.infer<typeof schema>;
+const makeSchema = (lang: AppLang) =>
+  z.object({
+    topic: z
+      .string()
+      .min(5, translate(lang, "newProject.errMinChars"))
+      .max(500),
+    title: z.string().max(200).optional(),
+    targetPages: z.number().min(MIN_PAGES).max(MAX_PAGES),
+    language: z.string().default("en"),
+    guidelines: z.string().max(5000).optional(),
+    stylePreset: z.string().default("modern"),
+    bookFormat: z.string().default("a5"),
+    useAiImages: z.boolean().default(false),
+    imageGuidelines: z.string().max(1000).optional(),
+    imageDensity: z.enum(["standard", "rich"]).default("standard"),
+    footnoteMode: z.enum(["auto", "always", "never"]).default("auto"),
+  });
+type FormData = z.infer<ReturnType<typeof makeSchema>>;
 
 export default function NewProject() {
   const navigate = useNavigate();
+  const t = useT();
+  const lang = useLangStore((s) => s.lang);
+  const schema = useMemo(() => makeSchema(lang), [lang]);
   const [loading, setLoading] = useState(false);
   const [selectedTierIdx, setSelectedTierIdx] = useState(1);
 
@@ -183,7 +200,7 @@ export default function NewProject() {
           ) {
             setSelectedTierIdx(d.selectedTierIdx);
           }
-          toast("Draft restored", { icon: "📝" });
+          toast(t("newProject.draftRestored"), { icon: "📝" });
         }
       }
     } catch {
@@ -227,7 +244,7 @@ export default function NewProject() {
     setSelectedColors((prev) => {
       if (prev.includes(hex)) return prev.filter((c) => c !== hex);
       if (prev.length >= 3) {
-        toast.error("Maximum 3 colors");
+        toast.error(t("newProject.maxColors"));
         return prev;
       }
       return [...prev, hex];
@@ -241,15 +258,15 @@ export default function NewProject() {
   const addCustomColor = () => {
     const cleaned = customHex.trim().toUpperCase();
     if (!/^#[0-9A-F]{6}$/.test(cleaned)) {
-      toast.error("Enter a valid hex color (e.g. #FF5500)");
+      toast.error(t("newProject.invalidHex"));
       return;
     }
     if (selectedColors.length >= 3) {
-      toast.error("Maximum 3 colors");
+      toast.error(t("newProject.maxColors"));
       return;
     }
     if (selectedColors.includes(cleaned)) {
-      toast.error("Color already selected");
+      toast.error(t("newProject.colorAlreadySelected"));
       return;
     }
     setSelectedColors((prev) => [...prev, cleaned]);
@@ -277,11 +294,11 @@ export default function NewProject() {
         window.location.href = data.data.sessionUrl;
       } else {
         // Fallback if Stripe session wasn't created (shouldn't happen)
-        toast.success("Project created!");
+        toast.success(t("newProject.projectCreated"));
         navigate(`/projects/${data.data.project.id}`);
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed");
+      toast.error(err.response?.data?.error || t("newProject.failed"));
     } finally {
       setLoading(false);
     }
@@ -299,10 +316,10 @@ export default function NewProject() {
       <DevModelPicker />
       <div className="mb-8">
         <h1 className="text-3xl font-bold font-display text-gray-900 dark:text-white">
-          Create New Book
+          {t("newProject.title")}
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Tell us about your eBook. Edit everything later.
+          {t("newProject.subtitle")}
         </p>
       </div>
 
@@ -311,25 +328,25 @@ export default function NewProject() {
         <div className={cardCls}>
           <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
             <BookOpen className="w-5 h-5 text-primary-600 dark:text-primary-400" />{" "}
-            Book Details
+            {t("newProject.bookDetails")}
           </h2>
 
           <div>
-            <label className={labelCls}>Book Title (optional)</label>
+            <label className={labelCls}>{t("newProject.bookTitleLabel")}</label>
             <input
               type="text"
               {...register("title")}
               className={inputCls}
-              placeholder="e.g., The SaaS Playbook"
+              placeholder={t("newProject.bookTitlePlaceholder")}
             />
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              Leave empty — we'll suggest one based on your topic
+              {t("newProject.bookTitleHelp")}
             </p>
           </div>
 
           <div>
             <div className="flex items-baseline justify-between">
-              <label className={labelCls}>Topic / Subject *</label>
+              <label className={labelCls}>{t("newProject.topicLabel")}</label>
               <span
                 className={`text-xs ${(watch("topic")?.length || 0) > 450 ? "text-amber-600 dark:text-amber-400" : "text-gray-400 dark:text-gray-500"}`}
               >
@@ -341,11 +358,10 @@ export default function NewProject() {
               rows={3}
               maxLength={500}
               className={inputCls + " resize-none"}
-              placeholder="e.g., A comprehensive guide to starting a SaaS business in 2025..."
+              placeholder={t("newProject.topicPlaceholder")}
             />
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              The more specific the topic, the better the book — audience,
-              scope, angle.
+              {t("newProject.topicHelp")}
             </p>
             {errors.topic && (
               <p className="text-red-500 text-xs mt-1">
@@ -356,7 +372,7 @@ export default function NewProject() {
 
           <div>
             <div className="flex items-baseline justify-between">
-              <label className={labelCls}>Guidelines (optional)</label>
+              <label className={labelCls}>{t("newProject.guidelinesLabel")}</label>
               <span className="text-xs text-gray-400 dark:text-gray-500">
                 {watch("guidelines")?.length || 0}/5000
               </span>
@@ -366,7 +382,7 @@ export default function NewProject() {
               rows={3}
               maxLength={5000}
               className={inputCls + " resize-none"}
-              placeholder="e.g., Focus on practical examples, include case studies..."
+              placeholder={t("newProject.guidelinesPlaceholder")}
             />
           </div>
         </div>
@@ -375,7 +391,7 @@ export default function NewProject() {
         <div className={cardCls}>
           <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
             <DollarSign className="w-5 h-5 text-primary-600 dark:text-primary-400" />{" "}
-            Book Size
+            {t("newProject.bookSize")}
           </h2>
 
           <div className="grid gap-3">
@@ -395,7 +411,7 @@ export default function NewProject() {
                 >
                   {tier.id === "standard" && (
                     <span className="absolute -top-2.5 left-4 px-2 py-0.5 rounded-full bg-primary-600 text-white text-[10px] font-bold uppercase tracking-wide">
-                      Popular
+                      {t("newProject.popular")}
                     </span>
                   )}
                   <div className="flex items-center gap-3">
@@ -426,7 +442,8 @@ export default function NewProject() {
                       {tierPrice.priceUsdFormatted}
                     </p>
                     <p className="text-xs text-gray-500">
-                      ${(tierPrice.perPageCents / 100).toFixed(2)}/page
+                      ${(tierPrice.perPageCents / 100).toFixed(2)}
+                      {t("newProject.perPage")}
                     </p>
                   </div>
                 </button>
@@ -444,11 +461,10 @@ export default function NewProject() {
         <div className={cardCls}>
           <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
             <Palette className="w-5 h-5 text-primary-600 dark:text-primary-400" />{" "}
-            Color Scheme
+            {t("newProject.colorScheme")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 -mt-2">
-            Pick 1–3 accent colors for headings, boxes, and tables. Leave empty
-            for style defaults.
+            {t("newProject.colorSchemeDesc")}
           </p>
 
           {/* Selected colors strip */}
@@ -466,10 +482,10 @@ export default function NewProject() {
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                       {idx === 0
-                        ? "Primary"
+                        ? t("newProject.rolePrimary")
                         : idx === 1
-                          ? "Secondary"
-                          : "Tertiary"}
+                          ? t("newProject.roleSecondary")
+                          : t("newProject.roleTertiary")}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
                       {hex}
@@ -491,8 +507,8 @@ export default function NewProject() {
           <div>
             <p className={labelCls}>
               {selectedColors.length === 0
-                ? "Choose colors"
-                : `${selectedColors.length}/3 selected`}
+                ? t("newProject.chooseColors")
+                : t("newProject.colorsSelected", { s: selectedColors.length })}
             </p>
             <div className="grid grid-cols-11 gap-2">
               {COLOR_PALETTE.map((color) => {
@@ -503,7 +519,7 @@ export default function NewProject() {
                     key={color.hex}
                     type="button"
                     onClick={() => toggleColor(color.hex)}
-                    title={`${color.name} (${color.hex})`}
+                    title={`${t(color.nameKey)} (${color.hex})`}
                     className={`relative w-full aspect-square rounded-lg border-2 transition-all hover:scale-110 ${
                       isActive
                         ? "border-gray-900 dark:border-white shadow-lg scale-110 ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-500 dark:ring-offset-gray-900"
@@ -540,7 +556,7 @@ export default function NewProject() {
                 className="inline-flex items-center gap-1.5 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Add custom color
+                {t("newProject.addCustomColor")}
               </button>
             ) : (
               <div className="flex items-center gap-2">
@@ -575,7 +591,7 @@ export default function NewProject() {
                   onClick={addCustomColor}
                   className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
                 >
-                  Add
+                  {t("newProject.add")}
                 </button>
                 <button
                   type="button"
@@ -585,7 +601,7 @@ export default function NewProject() {
                   }}
                   className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Cancel
+                  {t("newProject.cancel")}
                 </button>
               </div>
             )}
@@ -595,7 +611,7 @@ export default function NewProject() {
           {selectedColors.length > 0 && (
             <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
               <p className="font-medium text-gray-600 dark:text-gray-300 mb-1.5">
-                How your colors will be used:
+                {t("newProject.howColorsUsed")}
               </p>
               {selectedColors.map((hex, idx) => (
                 <p key={hex} className="flex items-center gap-2">
@@ -603,13 +619,12 @@ export default function NewProject() {
                     className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
                     style={{ backgroundColor: hex }}
                   />
-                  {COLOR_ROLES[idx]}
+                  {t(COLOR_ROLE_KEYS[idx])}
                 </p>
               ))}
               {selectedColors.length === 1 && (
                 <p className="text-gray-400 italic mt-1">
-                  With 1 color, complementary shades are generated
-                  automatically.
+                  {t("newProject.oneColorNote")}
                 </p>
               )}
             </div>
@@ -619,32 +634,36 @@ export default function NewProject() {
         <div className={cardCls}>
           <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
             <ImagePlus className="w-5 h-5 text-primary-600 dark:text-primary-400" />{" "}
-            Book Cover
+            {t("newProject.bookCover")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 -mt-2">
-            Choose how to handle your book cover. You can always change this
-            later.
+            {t("newProject.bookCoverDesc")}
           </p>
 
           <div className="grid gap-2">
             {[
               {
                 value: "generate" as const,
-                label: "Generate cover",
-                desc: "AI-designed professional cover based on your book details",
+                label: t("newProject.coverGenerateLabel"),
+                desc: t("newProject.coverGenerateDesc"),
                 icon: <Sparkles className="w-4 h-4" />,
                 recommended: true,
               },
               {
                 value: "upload" as const,
-                label: "Upload own cover",
-                desc: `Provide your own image (${FORMATS[watch("bookFormat") || "a5"]?.split("—")[0]?.trim() || "A5"} format)`,
+                label: t("newProject.coverUploadLabel"),
+                desc: t("newProject.coverUploadDesc", {
+                  s:
+                    t(FORMAT_KEYS[watch("bookFormat") || "a5"] || "newProject.formatA5")
+                      .split("—")[0]
+                      ?.trim() || "A5",
+                }),
                 icon: <Upload className="w-4 h-4" />,
               },
               {
                 value: "none" as const,
-                label: "No cover",
-                desc: "Start without a cover — add one later in the editor",
+                label: t("newProject.coverNoneLabel"),
+                desc: t("newProject.coverNoneDesc"),
                 icon: <BookDashed className="w-4 h-4" />,
               },
             ].map((opt) => (
@@ -675,7 +694,7 @@ export default function NewProject() {
                     {opt.label}
                     {opt.recommended && (
                       <span className="px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300 text-[10px] font-bold uppercase tracking-wide">
-                        Recommended
+                        {t("newProject.recommended")}
                       </span>
                     )}
                   </span>
@@ -696,14 +715,13 @@ export default function NewProject() {
             />
             <div className="flex-1">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300 inline-flex items-center gap-2">
-                AI illustrations inside the book
+                {t("newProject.aiIllustrations")}
                 <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold uppercase tracking-wide">
-                  Included
+                  {t("newProject.included")}
                 </span>
               </span>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                AI-generated images matched to the content and your visual
-                style. No extra cost.
+                {t("newProject.aiIllustrationsDesc")}
               </p>
             </div>
           </label>
@@ -712,11 +730,11 @@ export default function NewProject() {
           {watch("useAiImages") && (
             <div className="mt-1 pl-3 border-l-2 border-primary-200 dark:border-primary-800 space-y-3">
               <div>
-                <label className={labelCls}>How many illustrations?</label>
+                <label className={labelCls}>{t("newProject.howManyIllustrations")}</label>
                 <div className="grid grid-cols-2 gap-2 mt-1">
                   {[
-                    { value: "standard", label: "Standard", desc: "~1 image per 5 pages" },
-                    { value: "rich", label: "Rich", desc: "~1 image per 3 pages — great for cooking, crafts, travel" },
+                    { value: "standard", label: t("newProject.densityStandardLabel"), desc: t("newProject.densityStandardDesc") },
+                    { value: "rich", label: t("newProject.densityRichLabel"), desc: t("newProject.densityRichDesc") },
                   ].map((opt) => (
                     <label
                       key={opt.value}
@@ -740,7 +758,7 @@ export default function NewProject() {
               </div>
               <div className="flex items-baseline justify-between">
                 <label className={labelCls}>
-                  Image preferences (optional)
+                  {t("newProject.imagePrefsLabel")}
                 </label>
                 <span className="text-xs text-gray-400 dark:text-gray-500">
                   {watch("imageGuidelines")?.length || 0}/1000
@@ -751,11 +769,10 @@ export default function NewProject() {
                 rows={2}
                 maxLength={1000}
                 className={inputCls + " resize-none"}
-                placeholder="e.g., prefer photos of real workplaces, warm tones, no close-up faces..."
+                placeholder={t("newProject.imagePrefsPlaceholder")}
               />
               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                Lightly steer the AI images — mood, color, subjects to prefer
-                or avoid.
+                {t("newProject.imagePrefsHelp")}
               </p>
             </div>
           )}
@@ -763,22 +780,22 @@ export default function NewProject() {
         {/* Settings */}
         <div className={cardCls}>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Settings
+            {t("newProject.settings")}
           </h2>
 
           <div className="grid gap-5">
             <div>
-              <label className={labelCls}>Language</label>
+              <label className={labelCls}>{t("newProject.languageLabel")}</label>
               <select {...register("language")} className={inputCls}>
-                {Object.entries(LANGUAGES).map(([k, v]) => (
+                {Object.entries(LANGUAGE_KEYS).map(([k, vKey]) => (
                   <option key={k} value={k}>
-                    {v}
+                    {t(vKey)}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Page Format</label>
+              <label className={labelCls}>{t("newProject.pageFormatLabel")}</label>
               <input type="hidden" {...register("bookFormat")} />
               <div className="grid grid-cols-4 gap-2">
                 {FORMAT_DIMS.map((f) => {
@@ -790,7 +807,7 @@ export default function NewProject() {
                       onClick={() =>
                         setValue("bookFormat", f.key, { shouldDirty: true })
                       }
-                      title={FORMATS[f.key]}
+                      title={t(FORMAT_KEYS[f.key])}
                       className={`flex flex-col items-center gap-1.5 p-2 pt-3 rounded-lg border-2 transition-all cursor-pointer ${
                         isActive
                           ? "border-primary-500 bg-primary-50 dark:bg-primary-950"
@@ -844,9 +861,9 @@ export default function NewProject() {
           </div>
 
           <div>
-            <label className={labelCls}>Visual Style</label>
+            <label className={labelCls}>{t("newProject.visualStyleLabel")}</label>
             <div className="grid gap-2">
-              {Object.entries(STYLES).map(([k, v]) => (
+              {Object.entries(STYLE_KEYS).map(([k, vKey]) => (
                 <label
                   key={k}
                   className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-300 dark:hover:border-primary-700 cursor-pointer transition-colors has-[:checked]:border-primary-500 has-[:checked]:bg-primary-50 dark:has-[:checked]:bg-primary-950"
@@ -858,7 +875,7 @@ export default function NewProject() {
                     className="accent-primary-600"
                   />
                   <span className="flex-1 text-sm text-gray-700 dark:text-gray-300">
-                    {v}
+                    {t(vKey)}
                   </span>
                   <span className="flex items-center gap-1" aria-hidden="true">
                     {(STYLE_SWATCHES[k] || []).map((hex) => (
@@ -876,12 +893,12 @@ export default function NewProject() {
 
           {/* Footnotes mode */}
           <div className="mt-4">
-            <label className={labelCls}>Footnotes & sources</label>
+            <label className={labelCls}>{t("newProject.footnotesLabel")}</label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1">
               {[
-                { value: "auto", label: "Auto", desc: "Follows the style — Academic gets footnotes, others stay clean" },
-                { value: "always", label: "With footnotes", desc: "Full source apparatus in every chapter" },
-                { value: "never", label: "No footnotes", desc: "Popular style — sources woven into the text" },
+                { value: "auto", label: t("newProject.footnoteAutoLabel"), desc: t("newProject.footnoteAutoDesc") },
+                { value: "always", label: t("newProject.footnoteAlwaysLabel"), desc: t("newProject.footnoteAlwaysDesc") },
+                { value: "never", label: t("newProject.footnoteNeverLabel"), desc: t("newProject.footnoteNeverDesc") },
               ].map((opt) => (
                 <label
                   key={opt.value}
@@ -911,20 +928,23 @@ export default function NewProject() {
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
                 {PAGE_SIZE_TIERS[selectedTierIdx].label} ·{" "}
-                {PAGE_SIZE_TIERS[selectedTierIdx].targetPages} pages
+                {t("newProject.pages", {
+                  s: PAGE_SIZE_TIERS[selectedTierIdx].targetPages,
+                })}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {(watch("bookFormat") || "a5").toUpperCase()} ·{" "}
-                {LANGUAGES[watch("language") || "en"]} ·{" "}
-                {(watch("stylePreset") || "modern").charAt(0).toUpperCase() +
-                  (watch("stylePreset") || "modern").slice(1)}{" "}
-                style ·{" "}
+                {t(LANGUAGE_KEYS[watch("language") || "en"] || "newProject.langEn")} ·{" "}
+                {t(STYLE_NAME_KEYS[watch("stylePreset") || "modern"] || "newProject.styleNameModern")}{" "}
+                {t("newProject.styleSuffix")} ·{" "}
                 {coverOption === "generate"
-                  ? "AI cover"
+                  ? t("newProject.summaryAiCover")
                   : coverOption === "upload"
-                    ? "Own cover"
-                    : "No cover"}
-                {watch("useAiImages") ? " · AI illustrations" : ""}
+                    ? t("newProject.summaryOwnCover")
+                    : t("newProject.summaryNoCover")}
+                {watch("useAiImages")
+                  ? ` · ${t("newProject.summaryAiIllustrations")}`
+                  : ""}
               </p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
@@ -953,7 +973,7 @@ export default function NewProject() {
           className="w-full py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary-600/25 cursor-pointer"
         >
           {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-          Continue to Payment — {pricing.priceUsdFormatted}
+          {t("newProject.continueToPayment", { s: pricing.priceUsdFormatted })}
         </button>
       </form>
     </div>

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 interface Section {
   id: string;
@@ -52,6 +53,7 @@ export default function StructureEditor({
   onApprove,
   onRefetch,
 }: Props) {
+  const t = useT();
   const [structure, setStructure] = useState<StructureData>(() =>
     JSON.parse(structureJson),
   );
@@ -152,14 +154,14 @@ export default function StructureEditor({
     const newCh: Chapter = {
       id: `ch${num}-${Date.now()}`,
       number: num,
-      title: "New Chapter",
-      description: "Chapter description",
+      title: t("structure.newChapter"),
+      description: t("structure.chapterDescription"),
       targetPages: 2,
       sections: [
         {
           id: `ch${num}-s1-${Date.now()}`,
-          title: "New Section",
-          description: "Section description",
+          title: t("structure.newSection"),
+          description: t("structure.sectionDescription"),
           targetPages: 1,
           order: 0,
         },
@@ -170,7 +172,7 @@ export default function StructureEditor({
 
   const removeChapter = (id: string) => {
     if (structure.chapters.length <= 1)
-      return toast.error("Need at least 1 chapter");
+      return toast.error(t("structure.needChapter"));
     setStructure((prev) => ({
       ...prev,
       chapters: prev.chapters
@@ -191,8 +193,8 @@ export default function StructureEditor({
             ...c.sections,
             {
               id: `${chapterId}-s${order + 1}-${Date.now()}`,
-              title: "New Section",
-              description: "Section description",
+              title: t("structure.newSection"),
+              description: t("structure.sectionDescription"),
               targetPages: 0.5,
               order,
             },
@@ -208,7 +210,7 @@ export default function StructureEditor({
       chapters: prev.chapters.map((c) => {
         if (c.id !== chapterId) return c;
         if (c.sections.length <= 1) {
-          toast.error("Need at least 1 section");
+          toast.error(t("structure.needSection"));
           return c;
         }
         return {
@@ -228,9 +230,9 @@ export default function StructureEditor({
       await apiClient.put(`/projects/${projectId}/structure`, {
         chapters: structure.chapters,
       });
-      toast.success("Structure saved!");
+      toast.success(t("structure.savedToast"));
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Save failed");
+      toast.error(err.response?.data?.error || t("structure.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -242,11 +244,11 @@ export default function StructureEditor({
       await apiClient.post(`/projects/${projectId}/structure/redo`, {
         feedback: redoFeedback,
       });
-      toast.success("Regenerating structure...");
+      toast.success(t("structure.regenerating"));
       setShowRedo(false);
       onRefetch();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Redo failed");
+      toast.error(err.response?.data?.error || t("structure.redoFailed"));
     }
   };
 
@@ -310,12 +312,15 @@ export default function StructureEditor({
         <div className="flex items-center gap-3">
           <BookOpen className="w-6 h-6 text-primary-500" />
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-            Book Structure
+            {t("structure.bookStructure")}
           </h3>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-gray-500 dark:text-gray-400">
-            {structure.chapters.length} chapters • {totalPages} pages
+            {t("structure.countLine", {
+              chapters: structure.chapters.length,
+              pages: totalPages,
+            })}
           </span>
         </div>
       </div>
@@ -324,7 +329,7 @@ export default function StructureEditor({
       {structure.suggestedTitle && (
         <div className="mb-6 p-4 bg-primary-50 dark:bg-primary-950/50 rounded-xl border border-primary-100 dark:border-primary-900">
           <p className="text-xs font-semibold text-primary-600 dark:text-primary-400 uppercase mb-1">
-            Book Title
+            {t("structure.bookTitle")}
           </p>
           <EditableText
             fieldKey="title"
@@ -467,7 +472,7 @@ export default function StructureEditor({
                   onClick={() => addSection(chapter.id)}
                   className="flex items-center gap-2 px-4 py-2 pl-16 text-xs text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/30 w-full transition-colors"
                 >
-                  <Plus className="w-3.5 h-3.5" /> Add Section
+                  <Plus className="w-3.5 h-3.5" /> {t("structure.addSection")}
                 </button>
               </div>
             )}
@@ -480,7 +485,7 @@ export default function StructureEditor({
         onClick={addChapter}
         className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:border-primary-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center justify-center gap-2 mb-6"
       >
-        <Plus className="w-4 h-4" /> Add Chapter
+        <Plus className="w-4 h-4" /> {t("structure.addChapter")}
       </button>
 
       {/* Redo section */}
@@ -489,13 +494,13 @@ export default function StructureEditor({
           {showRedo ? (
             <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">
-                What should be changed? (optional)
+                {t("structure.whatChanged")}
               </p>
               <textarea
                 value={redoFeedback}
                 onChange={(e) => setRedoFeedback(e.target.value)}
                 rows={2}
-                placeholder="e.g., Add more practical examples, split chapter 2..."
+                placeholder={t("structure.redoPlaceholder")}
                 className="w-full px-3 py-2 border border-amber-300 dark:border-amber-700 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white outline-none resize-none mb-3"
               />
               <div className="flex gap-2">
@@ -503,13 +508,13 @@ export default function StructureEditor({
                   onClick={handleRedo}
                   className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium"
                 >
-                  Regenerate
+                  {t("structure.regenerate")}
                 </button>
                 <button
                   onClick={() => setShowRedo(false)}
                   className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 text-sm"
                 >
-                  Cancel
+                  {t("structure.cancel")}
                 </button>
               </div>
             </div>
@@ -518,8 +523,7 @@ export default function StructureEditor({
               onClick={() => setShowRedo(true)}
               className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700"
             >
-              <RotateCcw className="w-4 h-4" /> Regenerate structure with AI
-              (one-time)
+              <RotateCcw className="w-4 h-4" /> {t("structure.regenerateWithAi")}
             </button>
           )}
         </div>
@@ -532,13 +536,13 @@ export default function StructureEditor({
           disabled={saving}
           className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
         >
-          {saving ? "Saving..." : "Save Changes"}
+          {saving ? t("structure.saving") : t("structure.saveChanges")}
         </button>
         <button
           onClick={onApprove}
           className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg shadow-green-600/25"
         >
-          <Check className="w-5 h-5" /> Approve & Continue
+          <Check className="w-5 h-5" /> {t("structure.approveContinue")}
         </button>
       </div>
     </div>

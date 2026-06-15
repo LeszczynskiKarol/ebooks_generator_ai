@@ -19,6 +19,7 @@ import {
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
+import { useT } from "@/lib/i18n";
 
 // ── Types ──
 
@@ -57,6 +58,7 @@ export default function DownloadPanel({
   hasCover = false,
   onRecompiled,
 }: DownloadPanelProps) {
+  const t = useT();
   const [epubAvailable, setEpubAvailable] = useState(false);
   const [epubGenerating, setEpubGenerating] = useState(false);
   const [checkingEpub, setCheckingEpub] = useState(true);
@@ -110,7 +112,7 @@ export default function DownloadPanel({
         if (available && gs !== "COMPILING_EPUB") {
           setEpubAvailable(true);
           setEpubGenerating(false);
-          toast.success("EPUB is ready!");
+          toast.success(t("download.toastEpubReady"));
           // Auto-download if pending
           if (pendingDownload.current === "epub") {
             triggerDownload("epub");
@@ -178,10 +180,10 @@ export default function DownloadPanel({
 
     // 1. Save dirty chapters
     if (unsavedChanges > 0) {
-      toast("Saving changes...", { icon: "💾" });
+      toast(t("download.toastSaving"), { icon: "💾" });
       const ok = await onSaveAll();
       if (!ok) {
-        toast.error("Some chapters failed to save. Fix errors and retry.");
+        toast.error(t("download.toastSaveFailed"));
         pendingDownload.current = null;
         return;
       }
@@ -191,10 +193,10 @@ export default function DownloadPanel({
     setRecompiling(true);
     try {
       await apiClient.post(`/projects/${projectId}/recompile`);
-      toast("Recompiling your book...", { icon: "📖" });
+      toast(t("download.toastRecompiling"), { icon: "📖" });
       pollForCompletion();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Recompile failed");
+      toast.error(err.response?.data?.error || t("download.toastRecompileFailed"));
       setRecompiling(false);
       pendingDownload.current = null;
     }
@@ -213,7 +215,7 @@ export default function DownloadPanel({
           onRecompiled?.();
           checkEpubStatus();
           loadVersions();
-          toast.success("Book regenerated!");
+          toast.success(t("download.toastBookRegenerated"));
 
           // Auto-download the requested format
           const fmt = pendingDownload.current;
@@ -229,7 +231,7 @@ export default function DownloadPanel({
           clearInterval(interval);
           setRecompiling(false);
           pendingDownload.current = null;
-          toast.error("Recompilation failed. Please try again.");
+          toast.error(t("download.toastRecompilationFailed"));
         }
       } catch {
         /* ignore */
@@ -251,10 +253,10 @@ export default function DownloadPanel({
     setEpubGenerating(true);
     try {
       await apiClient.post(`/projects/${projectId}/epub/regenerate`);
-      toast("EPUB generation started...", { icon: "📱" });
+      toast(t("download.toastEpubStarted"), { icon: "📱" });
     } catch (err: any) {
       toast.error(
-        err.response?.data?.error || "Failed to start EPUB generation",
+        err.response?.data?.error || t("download.toastEpubStartFailed"),
       );
       setEpubGenerating(false);
       pendingDownload.current = null;
@@ -309,7 +311,7 @@ export default function DownloadPanel({
           </div>
           <div>
             <h3 className="font-bold text-gray-900 dark:text-white">
-              Download Your Book
+              {t("download.title")}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {projectTitle}
@@ -326,7 +328,7 @@ export default function DownloadPanel({
           }`}
         >
           <History className="w-3.5 h-3.5" />
-          Versions
+          {t("download.versions")}
           {versions.length > 0 && (
             <span className="text-[10px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded-md">
               {versions.length}
@@ -342,10 +344,10 @@ export default function DownloadPanel({
             <Loader2 className="w-5 h-5 text-primary-500 animate-spin flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-primary-800 dark:text-primary-300">
-                Saving &amp; recompiling your book...
+                {t("download.recompiling")}
               </p>
               <p className="text-xs text-primary-600 dark:text-primary-400 mt-0.5">
-                Your download will start automatically when ready (~30-60s).
+                {t("download.recompilingHint")}
               </p>
             </div>
           </div>
@@ -358,8 +360,13 @@ export default function DownloadPanel({
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
           <p className="text-xs text-amber-700 dark:text-amber-400">
             {unsavedChanges > 0
-              ? `${unsavedChanges} unsaved change${unsavedChanges > 1 ? "s" : ""}. Downloads will auto-save & regenerate first.`
-              : "Chapters edited since last build. Downloads will regenerate automatically."}
+              ? t(
+                  unsavedChanges > 1
+                    ? "download.pendingUnsavedMany"
+                    : "download.pendingUnsavedOne",
+                  { n: unsavedChanges },
+                )
+              : t("download.pendingEdited")}
           </p>
         </div>
       )}
@@ -381,10 +388,10 @@ export default function DownloadPanel({
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-gray-900 dark:text-white">
-              Download PDF
+              {t("download.pdf")}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Print-ready, styled layout
+              {t("download.pdfHint")}
             </p>
           </div>
           {recompiling ? (
@@ -401,8 +408,10 @@ export default function DownloadPanel({
               <Loader2 className="w-5 h-5 text-gray-500 animate-spin" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-gray-500">EPUB</p>
-              <p className="text-xs text-gray-400">Checking...</p>
+              <p className="font-semibold text-gray-500">
+                {t("download.epub")}
+              </p>
+              <p className="text-xs text-gray-400">{t("download.checking")}</p>
             </div>
           </div>
         ) : epubGenerating ? (
@@ -412,12 +421,12 @@ export default function DownloadPanel({
             </div>
             <div className="flex-1">
               <p className="font-semibold text-gray-900 dark:text-white">
-                EPUB
+                {t("download.epub")}
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-400">
                 {pendingDownload.current === "epub"
-                  ? "Generating... will download automatically"
-                  : "Generating... ~30s"}
+                  ? t("download.epubGeneratingAuto")
+                  : t("download.epubGenerating")}
               </p>
             </div>
           </div>
@@ -446,10 +455,12 @@ export default function DownloadPanel({
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-gray-900 dark:text-white">
-                {epubAvailable ? "Download EPUB" : "Generate EPUB"}
+                {epubAvailable
+                  ? t("download.epubDownload")
+                  : t("download.epubGenerate")}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Kindle, Apple Books, Kobo
+                {t("download.epubHint")}
               </p>
             </div>
             {recompiling ? (
@@ -484,15 +495,15 @@ export default function DownloadPanel({
       {showVersions && (
         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4" /> Version History
+            <Clock className="w-4 h-4" /> {t("download.versionHistory")}
           </h4>
           {loadingVersions ? (
             <div className="flex items-center gap-2 py-3 text-sm text-gray-500">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading...
+              <Loader2 className="w-4 h-4 animate-spin" /> {t("download.loading")}
             </div>
           ) : versions.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-gray-400 py-2">
-              No versions yet. Each download regeneration creates a new version.
+              {t("download.noVersions")}
             </p>
           ) : (
             <div className="space-y-2">
@@ -514,7 +525,7 @@ export default function DownloadPanel({
                       }`}
                     >
                       v{v.version}
-                      {idx === 0 && " (latest)"}
+                      {idx === 0 && ` ${t("download.latest")}`}
                     </span>
                     <div>
                       <p className="text-sm text-gray-800 dark:text-gray-200">
@@ -522,7 +533,7 @@ export default function DownloadPanel({
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {formatSize(v.fileSize)}
-                        {v.pageCount ? ` · ${v.pageCount} pages` : ""}
+                        {v.pageCount ? ` · ${v.pageCount} ${t("download.pages")}` : ""}
                         {v.note ? ` · ${v.note}` : ""}
                       </p>
                     </div>

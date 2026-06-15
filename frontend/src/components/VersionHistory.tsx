@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import apiClient from "@/lib/api";
 import { useAuthStore } from "@/stores/authStore";
+import { useT } from "@/lib/i18n";
 
 interface FormatInfo {
   available: boolean;
@@ -46,6 +47,7 @@ export default function VersionHistory({
   projectId,
   refreshTrigger,
 }: VersionHistoryProps) {
+  const t = useT();
   const [versions, setVersions] = useState<BookVersion[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -113,7 +115,7 @@ export default function VersionHistory({
           <ChevronRight className="w-4 h-4" />
         )}
         <History className="w-4 h-4" />
-        Version History
+        {t("download.versionHistory")}
         {versions.length > 0 && (
           <span className="text-xs bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded-md">
             {versions.length}
@@ -125,16 +127,16 @@ export default function VersionHistory({
       {open && (
         <div className="mt-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4" /> All Versions
+            <Clock className="w-4 h-4" /> {t("download.allVersions")}
           </h4>
 
           {loading ? (
             <div className="flex items-center gap-2 py-3 text-sm text-gray-500">
-              <Loader2 className="w-4 h-4 animate-spin" /> Loading...
+              <Loader2 className="w-4 h-4 animate-spin" /> {t("download.loading")}
             </div>
           ) : versions.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-gray-400 py-2">
-              No versions yet. Each compilation creates a new version.
+              {t("download.noVersionsCompile")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -158,14 +160,14 @@ export default function VersionHistory({
                         }`}
                       >
                         v{v.version}
-                        {idx === 0 && " (latest)"}
+                        {idx === 0 && ` ${t("download.latest")}`}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
                         {formatDate(v.createdAt)}
                       </span>
                       {v.pageCount && (
                         <span className="text-xs text-gray-400">
-                          · {v.pageCount} pages
+                          · {v.pageCount} {t("download.pages")}
                         </span>
                       )}
                     </div>

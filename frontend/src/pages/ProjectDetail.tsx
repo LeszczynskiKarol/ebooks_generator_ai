@@ -24,7 +24,8 @@ import GenerationProgress from "@/components/GenerationProgress";
 import StructureProgress from "@/components/StructureProgress";
 import apiClient from "@/lib/api";
 import CoverEditor, { type CoverEditorHandle } from "@/components/CoverEditor";
-import { STAGE_LABELS, type ProjectStage } from "@/lib/types";
+import { type ProjectStage } from "@/lib/types";
+import { useT } from "@/lib/i18n";
 import { useAuthStore } from "@/stores/authStore";
 import toast from "react-hot-toast";
 import { useRef, useState, useEffect } from "react";
@@ -34,37 +35,37 @@ import BookEditor, { type BookEditorHandle } from "@/components/BookEditor";
 // Visual flow steps — several backend stages collapse into one user-facing
 // step (the legacy IMAGES stage maps onto "Writing").
 const FLOW_STEPS: {
-  label: string;
+  labelKey: string;
   icon: React.ReactNode;
   stages: ProjectStage[];
 }[] = [
   {
-    label: "Payment",
+    labelKey: "projectDetail.step.payment",
     icon: <CreditCard className="w-4 h-4" />,
     stages: ["BRIEF", "PRICING", "PAYMENT"],
   },
   {
-    label: "Structure",
+    labelKey: "projectDetail.step.structure",
     icon: <ListTree className="w-4 h-4" />,
     stages: ["STRUCTURE"],
   },
   {
-    label: "Review",
+    labelKey: "projectDetail.step.review",
     icon: <Eye className="w-4 h-4" />,
     stages: ["STRUCTURE_REVIEW"],
   },
   {
-    label: "Writing",
+    labelKey: "projectDetail.step.writing",
     icon: <Sparkles className="w-4 h-4" />,
     stages: ["IMAGES", "GENERATING"],
   },
   {
-    label: "Compiling",
+    labelKey: "projectDetail.step.compiling",
     icon: <FileText className="w-4 h-4" />,
     stages: ["COMPILING"],
   },
   {
-    label: "Done",
+    labelKey: "projectDetail.step.done",
     icon: <CheckCircle2 className="w-4 h-4" />,
     stages: ["COMPLETED"],
   },
@@ -72,6 +73,7 @@ const FLOW_STEPS: {
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
+  const t = useT();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [titlePageDirty, setTitlePageDirty] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
@@ -132,9 +134,11 @@ export default function ProjectDetail() {
   if (!data) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500 dark:text-gray-400">Project not found</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          {t("projectDetail.notFound")}
+        </p>
         <Link to="/dashboard" className="text-primary-600 mt-4 inline-block">
-          Back to Dashboard
+          {t("projectDetail.backToDashboard")}
         </Link>
       </div>
     );
@@ -155,7 +159,9 @@ export default function ProjectDetail() {
       const res = await apiClient.post(`/projects/${id}/checkout`);
       window.location.href = res.data.data.sessionUrl;
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Checkout failed");
+      toast.error(
+        err.response?.data?.error || t("projectDetail.toast.checkoutFailed"),
+      );
     } finally {
       setCheckoutLoading(false);
     }
@@ -164,20 +170,20 @@ export default function ProjectDetail() {
   const handleApproveStructure = async () => {
     try {
       await apiClient.post(`/projects/${id}/structure/approve`);
-      toast.success("Structure approved — writing your book!");
+      toast.success(t("projectDetail.toast.structureApproved"));
       refetch();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed");
+      toast.error(err.response?.data?.error || t("projectDetail.toast.failed"));
     }
   };
 
   const handleStartGeneration = async () => {
     try {
       await apiClient.post(`/projects/${id}/generate`);
-      toast.success("Generation started!");
+      toast.success(t("projectDetail.toast.generationStarted"));
       refetch();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed");
+      toast.error(err.response?.data?.error || t("projectDetail.toast.failed"));
     }
   };
 
@@ -227,7 +233,7 @@ export default function ProjectDetail() {
           to="/dashboard"
           className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 mb-4"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+          <ArrowLeft className="w-4 h-4" /> {t("projectDetail.backToDashboard")}
         </Link>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -243,7 +249,7 @@ export default function ProjectDetail() {
           {project.currentStage === "COMPLETED" && hasCoverThumb && (
             <img
               src={`/api/projects/${id}/cover/thumb?token=${token}&v=${encodeURIComponent(project.coverUpdatedAt || "")}`}
-              alt="Book cover"
+              alt={t("projectDetail.coverAlt")}
               loading="lazy"
               draggable={false}
               onError={(e) => {
@@ -259,7 +265,7 @@ export default function ProjectDetail() {
       <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 mb-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Progress
+            {t("projectDetail.progress")}
           </h2>
           <span
             className={`inline-flex items-center gap-1.5 text-sm font-medium ${
@@ -269,7 +275,7 @@ export default function ProjectDetail() {
             }`}
           >
             {isError && <AlertCircle className="w-4 h-4" />}
-            {STAGE_LABELS[project.currentStage as ProjectStage]}
+            {t("common.stage." + project.currentStage)}
           </span>
         </div>
         <ol className="flex items-start">
@@ -278,7 +284,7 @@ export default function ProjectDetail() {
             const active = !isError && i === currentStepIdx;
             const isLast = i === FLOW_STEPS.length - 1;
             return (
-              <li key={step.label} className="flex-1 flex flex-col items-center relative">
+              <li key={step.labelKey} className="flex-1 flex flex-col items-center relative">
                 {/* connector line */}
                 {!isLast && (
                   <span
@@ -310,7 +316,7 @@ export default function ProjectDetail() {
                       : "text-gray-400 dark:text-gray-500"
                   }`}
                 >
-                  {step.label}
+                  {t(step.labelKey)}
                 </span>
               </li>
             );
@@ -322,18 +328,18 @@ export default function ProjectDetail() {
       <div className="grid sm:grid-cols-2 gap-6 mb-6">
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6">
           <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">
-            Details
+            {t("projectDetail.details")}
           </h3>
           <dl className="space-y-3">
             {[
-              ["Pages", project.targetPages],
-              ["Language", project.language.toUpperCase()],
-              ["Style", project.stylePreset],
-              ["Format", project.bookFormat.toUpperCase()],
+              ["projectDetail.pages", project.targetPages],
+              ["projectDetail.language", project.language.toUpperCase()],
+              ["projectDetail.style", project.stylePreset],
+              ["projectDetail.format", project.bookFormat.toUpperCase()],
             ].map(([label, val]) => (
               <div key={label as string} className="flex justify-between">
                 <dt className="text-sm text-gray-600 dark:text-gray-400">
-                  {label}
+                  {t(label as string)}
                 </dt>
                 <dd className="text-sm font-medium text-gray-900 dark:text-white capitalize">
                   {val}
@@ -345,13 +351,13 @@ export default function ProjectDetail() {
 
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6">
           <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">
-            Payment
+            {t("projectDetail.payment")}
           </h3>
           <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 font-display mb-1">
             {project.priceUsdFormatted || "—"}
           </div>
           <p className="text-sm text-gray-500 mb-4">
-            Status:{" "}
+            {t("projectDetail.status")}{" "}
             <span
               className={`font-medium ${project.paymentStatus === "PAID" ? "text-green-600" : "text-amber-600"}`}
             >
@@ -361,7 +367,7 @@ export default function ProjectDetail() {
           {project.guidelines && (
             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
               <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">
-                Guidelines
+                {t("projectDetail.guidelines")}
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {project.guidelines}
@@ -380,11 +386,12 @@ export default function ProjectDetail() {
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 text-center">
               <CreditCard className="w-12 h-12 text-amber-500 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                Payment Pending
+                {t("projectDetail.paymentPending")}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Your payment of {project.priceUsdFormatted} hasn't been
-                completed yet.
+                {t("projectDetail.paymentNotCompleted", {
+                  s: project.priceUsdFormatted,
+                })}
               </p>
               <button
                 onClick={handleCheckout}
@@ -396,10 +403,12 @@ export default function ProjectDetail() {
                 ) : (
                   <CreditCard className="w-5 h-5" />
                 )}
-                Complete Payment — {project.priceUsdFormatted}
+                {t("projectDetail.completePayment", {
+                  s: project.priceUsdFormatted,
+                })}
               </button>
               <p className="text-xs text-gray-500 mt-3">
-                Secure payment via Stripe
+                {t("projectDetail.securePayment")}
               </p>
             </div>
           )}
@@ -433,16 +442,16 @@ export default function ProjectDetail() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 text-center">
             <Sparkles className="w-12 h-12 text-primary-500 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Ready to write your book
+              {t("projectDetail.readyToWrite")}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              The structure is approved — start the AI generation.
+              {t("projectDetail.structureApprovedStart")}
             </p>
             <button
               onClick={handleStartGeneration}
               className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg shadow-lg shadow-primary-600/25 cursor-pointer"
             >
-              <Sparkles className="w-5 h-5" /> Start Generation
+              <Sparkles className="w-5 h-5" /> {t("projectDetail.startGeneration")}
             </button>
           </div>
         )}
@@ -464,11 +473,10 @@ export default function ProjectDetail() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 text-center">
             <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Compiling Your Book
+              {t("projectDetail.compilingBook")}
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Designing the cover and typesetting the print-ready PDF. This can
-              take a few minutes for a full book — you can keep this tab open.
+              {t("projectDetail.compilingDesc")}
             </p>
           </div>
         )}
@@ -547,10 +555,10 @@ export default function ProjectDetail() {
                   onClick={() => setShowEditor(true)}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors font-medium"
                 >
-                  <Pencil className="w-5 h-5" /> Edit Book Content
+                  <Pencil className="w-5 h-5" /> {t("projectDetail.editBookContent")}
                 </button>
                 <p className="text-xs text-gray-500 mt-2">
-                  Edit any chapter, then regenerate a new PDF
+                  {t("projectDetail.editChapterHint")}
                 </p>
               </div>
             ) : (
