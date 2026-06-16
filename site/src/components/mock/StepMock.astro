@@ -73,14 +73,14 @@ const genChapters = book.chapters.map((c, idx) => ({
                   </span>
                   <span class="text-[10px] font-bold text-violet-700">{ui.tierStandard}</span>
                 </span>
-                <span class="text-[11px] font-extrabold text-violet-700">{isPL ? <span class="js-zl" data-usd="24">{money(24)}</span> : money(24)}</span>
+                <span class="text-[11px] font-extrabold text-violet-700">{isPL ? <span class="js-zl" data-usd="24.99">{money(24.99)}</span> : money(24.99)}</span>
               </div>
               <div class="flex items-center justify-between rounded-lg border-2 border-ink-200 px-3 py-2">
                 <span class="flex items-center gap-2">
                   <span class="h-3.5 w-3.5 rounded-full border-2 border-ink-300" />
                   <span class="text-[10px] font-semibold text-ink-700">{ui.tierComprehensive}</span>
                 </span>
-                <span class="text-[11px] font-bold text-ink-500">{isPL ? <span class="js-zl" data-usd="44">{money(44)}</span> : money(44)}</span>
+                <span class="text-[11px] font-bold text-ink-500">{isPL ? <span class="js-zl" data-usd="44.99">{money(44.99)}</span> : money(44.99)}</span>
               </div>
             </div>
           </div>
@@ -109,7 +109,7 @@ const genChapters = book.chapters.map((c, idx) => ({
           </div>
 
           <div class="flex h-9 items-center justify-center rounded-lg bg-violet-600 text-[11px] font-bold text-white shadow-sm shadow-violet-600/30">
-            {cpParts[0]}{isPL ? <span class="js-zl" data-usd="24">{money(24)}</span> : money(24)}{cpParts[1] ?? ""}
+            {cpParts[0]}{isPL ? <span class="js-zl" data-usd="24.99">{money(24.99)}</span> : money(24.99)}{cpParts[1] ?? ""}
           </div>
         </div>
       )

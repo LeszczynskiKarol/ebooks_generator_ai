@@ -474,6 +474,47 @@ const useCaseIcons = [
     </div>
   </section>
 
+  <!-- ━━━ Value anchor — what it costs elsewhere ━━━ -->
+  <section class="border-t border-ink-100 bg-ink-50">
+    <div class="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
+          {t.valueAnchor.title}
+        </h2>
+        <p class="mt-4 text-lg text-ink-600">{t.valueAnchor.sub}</p>
+      </div>
+
+      <div class="mt-12 overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm">
+        {
+          t.valueAnchor.items.map((it) => (
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-ink-100 px-5 py-4 sm:px-7">
+              <div class="min-w-0">
+                <p class="font-display text-base font-bold text-ink-700">{it.label}</p>
+                <p class="text-sm text-ink-500">{it.note}</p>
+              </div>
+              <p class="font-display text-lg font-bold text-ink-400 line-through decoration-ink-300/70">{it.cost}</p>
+            </div>
+          ))
+        }
+        <!-- InkMagnet row -->
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 bg-brand-50/60 px-5 py-5 sm:px-7">
+          <div class="min-w-0">
+            <p class="flex items-center gap-2 font-display text-base font-extrabold text-brand-700">
+              <svg viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
+              {t.valueAnchor.usLabel}
+            </p>
+            <p class="text-sm text-ink-600">{t.valueAnchor.usNote}</p>
+          </div>
+          <p class="font-display text-2xl font-extrabold text-brand-700">
+            {t.valueAnchor.usPre}{" "}
+            {isPL ? (<span class="js-zl" data-usd="14.99">{formatZl(14.99, plnRate)}</span>) : "$14.99"}
+          </p>
+        </div>
+      </div>
+      <p class="mt-6 text-center text-xs text-ink-400">{t.valueAnchor.foot}</p>
+    </div>
+  </section>
+
   <!-- ━━━ Pricing ━━━ -->
   <section id="pricing" class="scroll-mt-20">
     <div class="mx-auto max-w-5xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">

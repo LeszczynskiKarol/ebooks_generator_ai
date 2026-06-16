@@ -33,7 +33,7 @@ A useful outline assigns length, not just order. For the standard lead-magnet ra
 
 **Hire a ghostwriter.** [Reedsy's marketplace rates](https://reedsy.com/blog/cost-to-hire-a-ghostwriter/) put short nonfiction at $1,000–10,000 and full specialist books at $24,000–48,000. Add 2–6 weeks and the briefing work — a ghostwriter is only as good as the brief. This path makes sense when the book is a revenue product and your name carries weight.
 
-**Generate with AI.** The 2026 reality, stated plainly: generic chatbot output is recognizable and thin, but purpose-built pipelines that research first, write against sources, and review their own drafts produce books that hold up. The economics are a different species — [our generator](/lead-magnet-generator/) delivers a researched, illustrated, typeset book for $9.99–19.99. The honest trade-off: you trade some control of voice for a hundredfold cost reduction, and you should always read what you publish. AI output unread by its publisher is how embarrassments happen.
+**Generate with AI.** The 2026 reality, stated plainly: generic chatbot output is recognizable and thin, but purpose-built pipelines that research first, write against sources, and review their own drafts produce books that hold up. The economics are a different species — [our generator](/lead-magnet-generator/) delivers a researched, illustrated, typeset book for $14.99–59.99. The honest trade-off: you trade some control of voice for a hundredfold cost reduction, and you should always read what you publish. AI output unread by its publisher is how embarrassments happen.
 
 ## Typesetting is where amateur ebooks announce themselves
 
