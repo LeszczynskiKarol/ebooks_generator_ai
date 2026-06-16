@@ -18,6 +18,16 @@ echo "== npm install =="
 npm install --no-audit --no-fund || exit 1
 
 npx prisma generate || exit 1
+
+# Sync the DB schema to the regenerated client. This project uses `db push`
+# (no migration files), so a new schema field is NOT applied to the database by
+# `generate` alone — without this the client SELECTs a column the DB lacks and
+# every query 500s while /api/health still passes (silent breakage). Additive
+# changes apply non-interactively; a destructive change fails loudly here (no
+# --accept-data-loss), which is the desired safety net.
+echo "== prisma db push =="
+npx prisma db push --skip-generate || exit 1
+
 npm run build || exit 1
 
 pm2 restart "${PM2_APP:-inkmagnet-api}" --update-env || exit 1
