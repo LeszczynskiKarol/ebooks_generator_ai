@@ -9,6 +9,7 @@ import BookCover from "./mock/BookCover.astro";
 import { getUsdPlnRate, formatZl } from "../lib/rate.ts";
 import EditorMock from "./mock/EditorMock.astro";
 import ReaderMock from "./mock/ReaderMock.astro";
+import Lightbox from "./Lightbox.astro";
 
 interface Props {
   lang: Lang;
@@ -218,7 +219,8 @@ const useCaseIcons = [
                   alt={item.alt}
                   loading="lazy"
                   decoding="async"
-                  class="block aspect-[3/4] w-full object-cover object-top"
+                  data-zoom
+                  class="block aspect-[3/4] w-full cursor-zoom-in object-cover object-top"
                 />
               </div>
               <figcaption class="mt-3 text-center text-sm font-medium text-ink-700">
@@ -593,6 +595,7 @@ const useCaseIcons = [
 </main>
 
 <Footer lang={lang} />
+<Lightbox />
 
 {
   /* Keep zł prices current with the live NBP rate (no rebuild needed). The

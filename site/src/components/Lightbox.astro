@@ -1,0 +1,131 @@
+---
+// Click-to-zoom lightbox for the homepage mockups. Tag any element with
+// `data-zoom` and it opens enlarged in a smooth overlay: <img> shows at full
+// resolution, HTML mockups are cloned and scaled up. Vanilla JS, no deps.
+---
+
+<div id="lightbox" class="lb" aria-hidden="true">
+  <button type="button" class="lb-close" aria-label="Close">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="22" height="22">
+      <path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  </button>
+  <div class="lb-stage"></div>
+</div>
+
+<script is:inline>
+  (function () {
+    var lb = document.getElementById("lightbox");
+    if (!lb) return;
+    var stage = lb.querySelector(".lb-stage");
+    var isOpen = false;
+
+    function show(el) {
+      stage.innerHTML = "";
+      if (el.tagName === "IMG") {
+        var img = new Image();
+        img.src = el.currentSrc || el.src;
+        img.alt = el.alt || "";
+        img.className = "lb-img";
+        stage.appendChild(img);
+      } else {
+        var w = Math.round(el.getBoundingClientRect().width);
+        var box = document.createElement("div");
+        box.className = "lb-html";
+        box.style.width = w + "px";
+        var clone = el.cloneNode(true);
+        clone.removeAttribute("data-zoom");
+        clone.style.cursor = "default";
+        box.appendChild(clone);
+        stage.appendChild(box);
+        requestAnimationFrame(function () {
+          var maxW = window.innerWidth * 0.94;
+          var maxH = window.innerHeight * 0.9;
+          var bw = box.offsetWidth || w;
+          var bh = box.offsetHeight || w;
+          var s = Math.min(maxW / bw, maxH / bh, 2.4);
+          if (s > 1.02) box.style.transform = "scale(" + s + ")";
+        });
+      }
+      lb.classList.add("open");
+      lb.setAttribute("aria-hidden", "false");
+      document.documentElement.style.overflow = "hidden";
+      isOpen = true;
+    }
+
+    function hide() {
+      lb.classList.remove("open");
+      lb.setAttribute("aria-hidden", "true");
+      document.documentElement.style.overflow = "";
+      isOpen = false;
+      setTimeout(function () { stage.innerHTML = ""; }, 260);
+    }
+
+    document.addEventListener("click", function (e) {
+      var z = e.target.closest("[data-zoom]");
+      if (z) { e.preventDefault(); show(z); return; }
+      if (isOpen && (e.target === lb || e.target.closest(".lb-close"))) hide();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (isOpen && e.key === "Escape") hide();
+    });
+  })();
+</script>
+
+<style is:global>
+  [data-zoom] { cursor: zoom-in; }
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background: rgba(15, 23, 42, 0.72);
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.26s ease;
+  }
+  .lb.open { opacity: 1; pointer-events: auto; }
+  .lb-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    max-height: 100%;
+    transform: scale(0.92);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .lb.open .lb-stage { transform: scale(1); }
+  .lb-img {
+    max-width: 94vw;
+    max-height: 90vh;
+    border-radius: 14px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
+  }
+  .lb-html { transform-origin: center center; }
+  .lb-close {
+    position: fixed;
+    top: 18px;
+    right: 20px;
+    z-index: 1;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 9999px;
+    cursor: pointer;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.14);
+    transition: background 0.15s ease;
+  }
+  .lb-close:hover { background: rgba(255, 255, 255, 0.26); }
+  @media (prefers-reduced-motion: reduce) {
+    .lb, .lb-stage { transition: none; }
+  }
+</style>
