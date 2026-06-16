@@ -4,7 +4,6 @@ import { useTranslations, langPrefix, type Lang } from "../i18n/ui";
 import Header from "./Header.astro";
 import Footer from "./Footer.astro";
 import StepMock from "./mock/StepMock.astro";
-import PageMock from "./mock/PageMock.astro";
 import HeroMock from "./mock/HeroMock.astro";
 import BookCover from "./mock/BookCover.astro";
 import { getUsdPlnRate, formatZl } from "../lib/rate.ts";
@@ -22,9 +21,11 @@ const registerUrl = `${siteConfig.appUrl}/auth/register${lang === "pl" ? "?lang=
 const isPL = lang === "pl";
 // PL prices are shown in zł, converted from the USD base at the current NBP rate.
 const plnRate = isPL ? await getUsdPlnRate() : 0;
-// real interior page renders (PL books generated with InkMagnet); EN falls back
-// to the localized typeset code pages until an EN sample book exists.
+// real interior page renders from books generated with InkMagnet — PL (cookery
+// book) and EN (lead-magnet book). Matched to the gallery captions per locale.
 const plPages = ["/book/pl-toc.webp", "/book/pl-chapter.webp", "/book/pl-table.webp", "/book/pl-photo.webp"];
+const enPages = ["/book/en-toc.webp", "/book/en-chapter.webp", "/book/en-box.webp", "/book/en-stat.webp"];
+const galleryPages = isPL ? plPages : enPages;
 
 const featureIcons = [
   // globe / research
@@ -212,17 +213,13 @@ const useCaseIcons = [
           t.gallery.items.map((item, i) => (
             <figure class="group">
               <div class="overflow-hidden rounded-xl border border-ink-200 bg-white shadow-md shadow-ink-900/5 transition-shadow group-hover:shadow-xl">
-                {isPL ? (
-                  <img
-                    src={plPages[i]}
-                    alt={item.alt}
-                    loading="lazy"
-                    decoding="async"
-                    class="block aspect-[3/4] w-full object-cover object-top"
-                  />
-                ) : (
-                  <PageMock kind={i} lang={lang} />
-                )}
+                <img
+                  src={galleryPages[i]}
+                  alt={item.alt}
+                  loading="lazy"
+                  decoding="async"
+                  class="block aspect-[3/4] w-full object-cover object-top"
+                />
               </div>
               <figcaption class="mt-3 text-center text-sm font-medium text-ink-700">
                 {item.caption}

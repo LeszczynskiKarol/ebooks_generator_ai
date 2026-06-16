@@ -161,26 +161,26 @@ export const ui = {
     },
     gallery: {
       title: "What your finished pages look like",
-      sub: "Clickable contents, drop-cap chapter openings, styled tables and matched illustrations — the typesetting every InkMagnet book ships with.",
+      sub: "A clickable contents, clean chapter openings, styled callout boxes and highlighted stats — the book design every InkMagnet title ships with.",
       items: [
         {
           caption: "Clickable table of contents",
-          alt: "Table of contents page layout",
+          alt: "Table of contents page from a generated book",
         },
         {
-          caption: "Chapter openings with drop caps",
-          alt: "Chapter opening page layout with drop cap",
+          caption: "Chapter openings with pull-stats",
+          alt: "Chapter opening page with a large highlighted statistic",
         },
         {
-          caption: "Styled tables and insight boxes",
-          alt: "Book page layout with a data table and a definition box",
+          caption: "Insight and fact callout boxes",
+          alt: "Book page with styled callout and insight boxes",
         },
         {
-          caption: "AI illustrations with captions",
-          alt: "Book page layout with an illustration and figure caption",
+          caption: "Highlighted stats and key figures",
+          alt: "Section opening page with a large highlighted figure",
         },
       ],
-      note: "Every book is typeset to this standard and exported to PDF and EPUB.",
+      note: "Real pages from a book generated with InkMagnet — exported to PDF and EPUB.",
     },
     appShowcase: {
       title: "One panel for every book you make",

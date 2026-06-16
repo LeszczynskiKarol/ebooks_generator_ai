@@ -1,16 +1,15 @@
 ---
 // E-reader / tablet device showing the open book — the interior "blended into a
-// reader". PL gets a real rendered page from a book generated with InkMagnet;
-// EN falls back to the localized typeset code page (PageMock) until an EN book
-// exists. Real PL renders live in public/book/*.webp (optimized).
+// reader". Both locales show a real chapter-opening page rendered from a book
+// generated with InkMagnet (PL: cookery book, EN: lead-magnet book). Renders
+// live in public/book/*.webp (optimized).
 import { useTranslations, type Lang } from "../../i18n/ui";
-import PageMock from "./PageMock.astro";
 interface Props {
   lang: Lang;
 }
 const { lang } = Astro.props;
 const t = useTranslations(lang);
-const isPL = lang === "pl";
+const chapterImg = lang === "pl" ? "/book/pl-chapter.webp" : "/book/en-chapter.webp";
 ---
 
 <div class="relative mx-auto w-full max-w-[300px]" aria-hidden="true">
@@ -20,20 +19,14 @@ const isPL = lang === "pl";
   <!-- tablet -->
   <div class="relative rounded-[1.7rem] border border-ink-800/30 bg-ink-900 p-2.5 shadow-2xl shadow-ink-900/40 ring-1 ring-black/10">
     <div class="overflow-hidden rounded-[1.1rem] bg-white">
-      {
-        isPL ? (
-          <img
-            src="/book/pl-chapter.webp"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            draggable="false"
-            class="block aspect-[3/4] w-full object-cover object-top"
-          />
-        ) : (
-          <PageMock kind={1} lang={lang} />
-        )
-      }
+      <img
+        src={chapterImg}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        draggable="false"
+        class="block aspect-[3/4] w-full object-cover object-top"
+      />
     </div>
     <!-- camera dot -->
     <span class="absolute left-1/2 top-1 h-1 w-1 -translate-x-1/2 rounded-full bg-ink-700"></span>
