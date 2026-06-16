@@ -6,6 +6,7 @@
 // use violet-* to match it; ink-* are the site greys; phase colours mirror the
 // real generation pipeline.
 import { useTranslations, type Lang } from "../../i18n/ui";
+import { getUsdPlnRate, formatZl } from "../../lib/rate.ts";
 interface Props {
   i: number;
   lang: Lang;
@@ -16,6 +17,12 @@ const ui = m.ui;
 const book = m.book;
 
 // generation pipeline chapter rows (status derived for the snapshot)
+// demo prices shown in the mock — zł on /pl, $ otherwise
+const isPL = lang === "pl";
+const rate = isPL ? await getUsdPlnRate() : 0;
+const money = (usd: number) => (isPL ? formatZl(usd, rate) : `$${usd}`);
+const cpParts = ui.continuePayment.split("{price}");
+
 const genChapters = book.chapters.map((c, idx) => ({
   n: c.n,
   t: c.title,
@@ -66,14 +73,14 @@ const genChapters = book.chapters.map((c, idx) => ({
                   </span>
                   <span class="text-[10px] font-bold text-violet-700">{ui.tierStandard}</span>
                 </span>
-                <span class="text-[11px] font-extrabold text-violet-700">$24</span>
+                <span class="text-[11px] font-extrabold text-violet-700">{isPL ? <span class="js-zl" data-usd="24">{money(24)}</span> : money(24)}</span>
               </div>
               <div class="flex items-center justify-between rounded-lg border-2 border-ink-200 px-3 py-2">
                 <span class="flex items-center gap-2">
                   <span class="h-3.5 w-3.5 rounded-full border-2 border-ink-300" />
                   <span class="text-[10px] font-semibold text-ink-700">{ui.tierComprehensive}</span>
                 </span>
-                <span class="text-[11px] font-bold text-ink-500">$44</span>
+                <span class="text-[11px] font-bold text-ink-500">{isPL ? <span class="js-zl" data-usd="44">{money(44)}</span> : money(44)}</span>
               </div>
             </div>
           </div>
@@ -102,7 +109,7 @@ const genChapters = book.chapters.map((c, idx) => ({
           </div>
 
           <div class="flex h-9 items-center justify-center rounded-lg bg-violet-600 text-[11px] font-bold text-white shadow-sm shadow-violet-600/30">
-            {ui.continuePayment}
+            {cpParts[0]}{isPL ? <span class="js-zl" data-usd="24">{money(24)}</span> : money(24)}{cpParts[1] ?? ""}
           </div>
         </div>
       )

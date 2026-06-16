@@ -8,6 +8,27 @@ import {
   MIN_PAGES,
   MAX_PAGES,
 } from "../lib/types";
+import { getUsdPlnRate } from "../services/exchangeRateService";
+
+/** Build a Stripe price_data line in the project's currency (USD base, or PLN
+ *  converted at the given rate). PLN minor unit is grosze. */
+function priceLine(
+  currency: string,
+  priceUsdCents: number,
+  rate: number | null,
+  name: string,
+  description: string,
+) {
+  const pln = currency === "pln" && rate;
+  return {
+    price_data: {
+      currency: pln ? "pln" : "usd",
+      unit_amount: pln ? Math.round(priceUsdCents * rate) : priceUsdCents,
+      product_data: { name, description },
+    },
+    quantity: 1,
+  };
+}
 
 /**
  * Return a Stripe customer id valid for the CURRENT Stripe mode. If the stored
@@ -58,6 +79,7 @@ export async function projectRoutes(app: FastifyInstance) {
       authorName,
       subtitle,
       coverOption,
+      currency: reqCurrency,
     } = request.body as any;
 
     if (!topic || topic.length < 5) {
@@ -96,6 +118,10 @@ export async function projectRoutes(app: FastifyInstance) {
       }
     }
 
+    // ── Currency: USD base, PLN converted at the live NBP rate ──
+    const usePln = reqCurrency === "pln";
+    const fxRate = usePln ? (await getUsdPlnRate()).rate : null;
+
     // ── Create project ──
     const project = await prisma.project.create({
       data: {
@@ -108,6 +134,8 @@ export async function projectRoutes(app: FastifyInstance) {
         stylePreset: stylePreset || "modern",
         bookFormat: bookFormat || "a5",
         priceUsdCents: pricing.priceUsdCents,
+        currency: usePln ? "pln" : "usd",
+        exchangeRate: fxRate,
         currentStage: "PAYMENT",
         authorName: authorName || null,
         subtitle: subtitle || null,
@@ -139,17 +167,15 @@ export async function projectRoutes(app: FastifyInstance) {
       mode: "payment",
       payment_method_types: ["card"],
       line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            unit_amount: pricing.priceUsdCents,
-            product_data: {
-              name: `eBook: ${title || topic}`,
-              description: `${pages}-page professional eBook`,
-            },
-          },
-          quantity: 1,
-        },
+        priceLine(
+          usePln ? "pln" : "usd",
+          pricing.priceUsdCents,
+          fxRate,
+          `eBook: ${title || topic}`,
+          usePln
+            ? `Profesjonalny eBook (${pages} stron)`
+            : `${pages}-page professional eBook`,
+        ),
       ],
       metadata: { projectId: project.id, userId: request.user.userId },
       success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
@@ -327,22 +353,26 @@ export async function projectRoutes(app: FastifyInstance) {
 
     const customerId = await ensureStripeCustomer(stripe, request.user.userId);
 
+    // Charge in the project's currency; back-fill the rate for legacy PLN rows.
+    const usePln = project.currency === "pln";
+    const fxRate = usePln
+      ? project.exchangeRate ?? (await getUsdPlnRate()).rate
+      : null;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "payment",
       payment_method_types: ["card"],
       line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            unit_amount: project.priceUsdCents,
-            product_data: {
-              name: `eBook: ${project.title || project.topic}`,
-              description: `${project.targetPages}-page professional eBook`,
-            },
-          },
-          quantity: 1,
-        },
+        priceLine(
+          usePln ? "pln" : "usd",
+          project.priceUsdCents,
+          fxRate,
+          `eBook: ${project.title || project.topic}`,
+          usePln
+            ? `Profesjonalny eBook (${project.targetPages} stron)`
+            : `${project.targetPages}-page professional eBook`,
+        ),
       ],
       metadata: { projectId: project.id, userId: request.user.userId },
       success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
@@ -351,7 +381,11 @@ export async function projectRoutes(app: FastifyInstance) {
 
     await prisma.project.update({
       where: { id },
-      data: { stripeSessionId: session.id, currentStage: "PAYMENT" },
+      data: {
+        stripeSessionId: session.id,
+        currentStage: "PAYMENT",
+        ...(usePln && project.exchangeRate == null ? { exchangeRate: fxRate } : {}),
+      },
     });
     return reply.send({
       success: true,
@@ -591,11 +625,22 @@ export async function projectRoutes(app: FastifyInstance) {
 }
 
 function formatProject(p: any) {
+  const usd = p.priceUsdCents;
+  const priceUsdFormatted = usd ? `$${(usd / 100).toFixed(2)}` : null;
+  // Display in the charged currency. PLN reconstructs the exact charged amount
+  // from the rate stored at checkout (deterministic), using the "zł" symbol.
+  let priceFormatted = priceUsdFormatted;
+  if (usd && p.currency === "pln" && p.exchangeRate) {
+    const zl = Math.round(usd * p.exchangeRate) / 100;
+    priceFormatted = `${zl.toLocaleString("pl-PL", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} zł`;
+  }
   return {
     ...p,
-    priceUsdFormatted: p.priceUsdCents
-      ? `$${(p.priceUsdCents / 100).toFixed(2)}`
-      : null,
+    priceUsdFormatted,
+    priceFormatted,
     // Parse customColors back to array for frontend
     customColors: p.customColors ? JSON.parse(p.customColors) : null,
   };

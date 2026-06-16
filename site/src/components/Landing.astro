@@ -7,6 +7,7 @@ import StepMock from "./mock/StepMock.astro";
 import PageMock from "./mock/PageMock.astro";
 import HeroMock from "./mock/HeroMock.astro";
 import BookCover from "./mock/BookCover.astro";
+import { getUsdPlnRate, formatZl } from "../lib/rate.ts";
 import EditorMock from "./mock/EditorMock.astro";
 import ReaderMock from "./mock/ReaderMock.astro";
 
@@ -19,6 +20,8 @@ const p = langPrefix(lang);
 const registerUrl = `${siteConfig.appUrl}/auth/register${lang === "pl" ? "?lang=pl" : ""}`;
 
 const isPL = lang === "pl";
+// PL prices are shown in zł, converted from the USD base at the current NBP rate.
+const plnRate = isPL ? await getUsdPlnRate() : 0;
 // real interior page renders (PL books generated with InkMagnet); EN falls back
 // to the localized typeset code pages until an EN sample book exists.
 const plPages = ["/book/pl-toc.webp", "/book/pl-chapter.webp", "/book/pl-table.webp", "/book/pl-photo.webp"];
@@ -495,7 +498,7 @@ const useCaseIcons = [
                     {tier.pages} {t.pricing.pages}
                   </td>
                   <td class="px-5 py-4 text-right sm:px-8">
-                    <span class="font-display text-xl font-extrabold text-brand-600">{tier.price}</span>
+                    <span class="font-display text-xl font-extrabold text-brand-600">{isPL ? (<span class="js-zl" data-usd={tier.usd}>{formatZl(tier.usd, plnRate)}</span>) : tier.price}</span>
                     <span class="ml-1 text-xs text-ink-500">{t.pricing.perBook}</span>
                   </td>
                 </tr>
@@ -566,3 +569,47 @@ const useCaseIcons = [
 </main>
 
 <Footer lang={lang} />
+
+{
+  /* Keep zł prices current with the live NBP rate (no rebuild needed). The
+     build-time value is the instant fallback; this refreshes it client-side. */
+  isPL && (
+    <script is:inline>
+      (function () {
+        var els = document.querySelectorAll(".js-zl[data-usd]");
+        if (!els.length) return;
+        function apply(rate) {
+          els.forEach(function (el) {
+            var usd = parseFloat(el.getAttribute("data-usd"));
+            if (!isFinite(usd)) return;
+            el.textContent =
+              (usd * rate).toLocaleString("pl-PL", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }) + " zł";
+          });
+        }
+        try {
+          var c = JSON.parse(sessionStorage.getItem("im_nbp_usd_pln") || "null");
+          if (c && c.rate && Date.now() - c.t < 15 * 60 * 1000) {
+            apply(c.rate);
+            return;
+          }
+        } catch (e) {}
+        fetch("https://api.nbp.pl/api/exchangerates/rates/a/usd/?format=json")
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            var rate = d.rates[0].mid;
+            apply(rate);
+            try {
+              sessionStorage.setItem(
+                "im_nbp_usd_pln",
+                JSON.stringify({ rate: rate, t: Date.now() }),
+              );
+            } catch (e) {}
+          })
+          .catch(function () {});
+      })();
+    </script>
+  )
+}

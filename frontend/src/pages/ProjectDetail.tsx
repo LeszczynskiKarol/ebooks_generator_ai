@@ -354,7 +354,7 @@ export default function ProjectDetail() {
             {t("projectDetail.payment")}
           </h3>
           <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 font-display mb-1">
-            {project.priceUsdFormatted || "—"}
+            {(project.priceFormatted ?? project.priceUsdFormatted) || "—"}
           </div>
           <p className="text-sm text-gray-500 mb-4">
             {t("projectDetail.status")}{" "}
@@ -390,7 +390,7 @@ export default function ProjectDetail() {
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {t("projectDetail.paymentNotCompleted", {
-                  s: project.priceUsdFormatted,
+                  s: (project.priceFormatted ?? project.priceUsdFormatted),
                 })}
               </p>
               <button
@@ -404,7 +404,7 @@ export default function ProjectDetail() {
                   <CreditCard className="w-5 h-5" />
                 )}
                 {t("projectDetail.completePayment", {
-                  s: project.priceUsdFormatted,
+                  s: (project.priceFormatted ?? project.priceUsdFormatted),
                 })}
               </button>
               <p className="text-xs text-gray-500 mt-3">

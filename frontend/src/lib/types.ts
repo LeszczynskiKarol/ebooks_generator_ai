@@ -37,6 +37,8 @@ export interface ProjectSummary {
   paymentStatus: PaymentStatus;
   priceUsdCents: number | null;
   priceUsdFormatted: string | null;
+  priceFormatted?: string | null;
+  currency?: string;
   coverType?: "NONE" | "GENERATED" | "CUSTOM_UPLOAD";
   coverUpdatedAt?: string | null;
   currentVersion?: number;

@@ -12,6 +12,7 @@ import { coverRoutes } from "./routes/coverRoutes";
 import { chapterEditRoutes } from "./routes/chapterEditRoutes";
 import { epubDownloadRoutes } from "./routes/epubDownloadRoutes";
 import { imageRoutes } from "./routes/imageRoutes";
+import { exchangeRateRoutes } from "./routes/exchangeRate";
 import {
   startGenerationWorker,
   recoverInterruptedJobs,
@@ -57,6 +58,7 @@ async function start() {
   // ── Routes ──
   await app.register(webhookRoutes);
   await app.register(authRoutes);
+  await app.register(exchangeRateRoutes);
   await app.register(adminRoutes);
   await app.register(coverRoutes);
   await app.register(downloadRoutes);

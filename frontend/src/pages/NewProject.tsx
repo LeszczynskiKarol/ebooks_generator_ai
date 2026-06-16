@@ -26,6 +26,7 @@ import apiClient from "@/lib/api";
 import toast from "react-hot-toast";
 import DevModelPicker from "@/components/DevModelPicker";
 import { useT, useLangStore, translate, type AppLang } from "@/lib/i18n";
+import { useMoney } from "@/lib/money";
 
 // Language keys → i18n label keys (the select VALUES en/pl/de… stay code)
 const LANGUAGE_KEYS: Record<string, string> = {
@@ -175,6 +176,7 @@ export default function NewProject() {
 
   const pages = watch("targetPages");
   const pricing = calculatePrice(pages || PAGE_SIZE_TIERS[1].targetPages);
+  const { formatUsdCents, currency } = useMoney();
 
   // ── Draft autosave (localStorage) — survives accidental tab close ──
   const DRAFT_KEY = "bookforge:newProjectDraft";
@@ -278,6 +280,7 @@ export default function NewProject() {
     setLoading(true);
     try {
       const payload: Record<string, unknown> = { ...form };
+      payload.currency = currency; // "pln" for the Polish UI → Stripe charges in zł
       if (selectedColors.length > 0) {
         payload.customColors = selectedColors;
       }
@@ -439,10 +442,10 @@ export default function NewProject() {
                     <p
                       className={`text-xl font-bold font-display ${isSelected ? "text-primary-600 dark:text-primary-400" : "text-gray-700 dark:text-gray-300"}`}
                     >
-                      {tierPrice.priceUsdFormatted}
+                      {formatUsdCents(tierPrice.priceUsdCents)}
                     </p>
                     <p className="text-xs text-gray-500">
-                      ${(tierPrice.perPageCents / 100).toFixed(2)}
+                      {formatUsdCents(tierPrice.perPageCents)}
                       {t("newProject.perPage")}
                     </p>
                   </div>
@@ -960,7 +963,7 @@ export default function NewProject() {
                 </span>
               )}
               <p className="text-2xl font-bold font-display text-gray-900 dark:text-white">
-                {pricing.priceUsdFormatted}
+                {formatUsdCents(pricing.priceUsdCents)}
               </p>
             </div>
           </div>
@@ -973,7 +976,7 @@ export default function NewProject() {
           className="w-full py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary-600/25 cursor-pointer"
         >
           {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-          {t("newProject.continueToPayment", { s: pricing.priceUsdFormatted })}
+          {t("newProject.continueToPayment", { s: formatUsdCents(pricing.priceUsdCents) })}
         </button>
       </form>
     </div>

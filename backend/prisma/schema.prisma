@@ -67,6 +67,7 @@ model Project {
 
   priceUsdCents   Int?
   currency        String        @default("usd")
+  exchangeRate    Float?        // USD→PLN rate used at checkout (when currency = "pln")
   stripeSessionId String?
   stripePaymentId String?
   paymentStatus   PaymentStatus @default(PENDING)
