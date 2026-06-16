@@ -2,12 +2,14 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import ExamplesGallery from "../components/ExamplesGallery.astro";
+import ExampleBooks from "../components/ExampleBooks.astro";
 import { siteConfig } from "../config/site";
 
-const title = "Ebook examples — real pages from AI-generated books";
+const registerUrl = `${siteConfig.appUrl}/auth/register`;
+
+const title = "Ebook examples — real AI-generated books you can download";
 const description =
-  "Unretouched pages from books generated with InkMagnet: AI-designed covers, dish photography, tables, footnotes and a full 38-page sample PDF to download.";
+  "A library of complete books generated with InkMagnet — covers, typeset interiors, research-grounded copy. Download any sample PDF and judge the quality yourself.";
 
 const jsonLd = [
   {
@@ -39,17 +41,53 @@ const jsonLd = [
   <main class="pt-16">
     <div class="mx-auto max-w-7xl px-4 pb-4 pt-14 text-center sm:px-6 lg:px-8">
       <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-5xl">
-        Real books. Raw pages. No mockups.
+        Real books. Free to download. No mockups.
       </h1>
       <p class="mx-auto mt-5 max-w-2xl text-lg text-ink-600">
-        Every tool promises "professional ebooks". Below you can judge ours the only
-        way that matters: actual pages rendered straight from the PDFs our customers
-        download, plus one complete book as a free sample.
+        Every tool promises "professional ebooks". Judge ours the only way that
+        matters — download a complete sample and read the actual file a customer gets.
       </p>
     </div>
-    <div class="py-10">
-      <ExamplesGallery lang="en" />
+
+    <div class="py-8">
+      <ExampleBooks lang="en" />
     </div>
+
+    <section class="mx-auto max-w-7xl px-4 pb-4 pt-10 sm:px-6 lg:px-8">
+      <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
+        Look inside a complete book
+      </h2>
+      <p class="mt-3 max-w-3xl text-ink-600">
+        Raw pages from the lead-magnet ebook above — research-grounded copy, a clickable
+        table of contents, chapter openings, callout boxes and highlighted stats, all
+        typeset automatically. Nothing retouched.
+      </p>
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          [
+            ["/book/en-toc.webp", "Clickable table of contents"],
+            ["/book/en-chapter.webp", "Chapter opening with a pull-stat"],
+            ["/book/en-box.webp", "Insight and fact callout boxes"],
+            ["/book/en-stat.webp", "Highlighted stats and key figures"],
+          ].map(([src, cap]) => (
+            <figure>
+              <div class="overflow-hidden rounded-xl border border-ink-200 shadow-md shadow-ink-900/5">
+                <img src={src} alt={cap} loading="lazy" decoding="async" class="block aspect-[3/4] w-full object-cover object-top" />
+              </div>
+              <figcaption class="mt-2.5 text-center text-sm text-ink-600">{cap}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+      <div class="mt-12 pb-16 text-center">
+        <a
+          href={registerUrl}
+          class="inline-block rounded-xl bg-brand-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700"
+        >
+          Generate your own book
+        </a>
+      </div>
+    </section>
   </main>
   <Footer lang="en" />
 </BaseLayout>

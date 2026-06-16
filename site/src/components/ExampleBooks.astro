@@ -1,0 +1,68 @@
+---
+// Grid of example books (cover + title + meta + PDF download), driven by
+// src/data/examples.js. The EN page passes lang="en" → shows only English
+// books; the PL page passes lang="pl" → shows every book.
+import { examples } from "../data/examples.js";
+import type { Lang } from "../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const pl = lang === "pl";
+
+const books = (pl ? examples : examples.filter((b) => b.lang === "en"))
+  .slice()
+  .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+
+const catLabel: Record<string, string> = pl
+  ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie" }
+  : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic" };
+const pagesWord = pl ? "stron" : "pages";
+const downloadWord = pl ? "Pobierz PDF" : "Download PDF";
+---
+
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      books.map((b) => (
+        <a
+          href={`/samples/${b.slug}.pdf`}
+          download
+          class="group flex flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg"
+        >
+          <div class="relative aspect-[3/4] overflow-hidden bg-ink-50">
+            <img
+              src={`/samples/covers/${b.slug}.webp`}
+              alt={`${pl ? "Okładka" : "Cover"}: ${b.title}`}
+              loading="lazy"
+              decoding="async"
+              class="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.03]"
+            />
+            <span class="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-600 ring-1 ring-ink-200 backdrop-blur-sm">
+              {b.lang}
+            </span>
+          </div>
+          <div class="flex flex-1 flex-col p-5">
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-semibold">
+              <span class="rounded-full bg-brand-50 px-2 py-0.5 text-brand-700">{catLabel[b.category]}</span>
+              <span class="text-ink-400">{b.style}</span>
+              <span class="text-ink-300">·</span>
+              <span class="text-ink-400">{b.pages} {pagesWord}</span>
+            </div>
+            <h3 class="mt-2.5 font-display text-base font-bold leading-snug text-ink-900 [text-wrap:balance]">
+              {b.title}
+            </h3>
+            <p class="mt-2 flex-1 text-sm leading-relaxed text-ink-600">{b.desc[lang]}</p>
+            <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 transition-colors group-hover:text-brand-700">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              {downloadWord} · {b.pages} {pagesWord}
+            </span>
+          </div>
+        </a>
+      ))
+    }
+  </div>
+</div>

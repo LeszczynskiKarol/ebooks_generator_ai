@@ -3,6 +3,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import ExamplesGallery from "../../components/ExamplesGallery.astro";
+import ExampleBooks from "../../components/ExampleBooks.astro";
 import { siteConfig } from "../../config/site";
 
 const title = "Przykłady ebooków — prawdziwe strony z książek generowanych przez AI";
@@ -43,12 +44,26 @@ const jsonLd = [
         Prawdziwe książki. Surowe strony. Zero mockupów.
       </h1>
       <p class="mx-auto mt-5 max-w-2xl text-lg text-ink-600">
-        Każde narzędzie obiecuje „profesjonalne ebooki". Poniżej możesz ocenić nasze
-        jedynym uczciwym sposobem: na stronach wyrenderowanych wprost z PDF-ów, które
-        pobierają klienci, i na pełnej książce do pobrania za darmo.
+        Każde narzędzie obiecuje „profesjonalne ebooki". Oceń nasze jedynym uczciwym
+        sposobem: pobierz pełną, gotową książkę i przeczytaj dokładnie ten plik, który
+        dostaje klient. Poniżej cała biblioteka przykładów do pobrania.
       </p>
     </div>
-    <div class="py-10">
+
+    <div class="py-8">
+      <ExampleBooks lang="pl" />
+    </div>
+
+    <section class="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8">
+      <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
+        Zajrzyj do środka — strona po stronie
+      </h2>
+      <p class="mt-3 max-w-3xl text-ink-600">
+        Nieretuszowane strony z dwóch książek z biblioteki powyżej — okładka, skład,
+        fotografie i ramki, dokładnie tak, jak wychodzą z generatora.
+      </p>
+    </section>
+    <div class="pt-6">
       <ExamplesGallery lang="pl" />
     </div>
   </main>
