@@ -23,7 +23,7 @@ try {
   await send("Page.navigate", { url: URL });
   await sleep(3500);
   // click the 2nd gallery image (chapter page) via JS
-  const r = await send("Runtime.evaluate", { expression: `(function(){var els=document.querySelectorAll('[data-zoom]');var t=[].slice.call(els).filter(function(x){return x.tagName!=='IMG'})[1]||els[0];if(!t)return 'none';t.scrollIntoView({block:'center'});t.click();return els.length+' zoomable; clicked '+(t.tagName);})()`, returnByValue: true });
+  const r = await send("Runtime.evaluate", { expression: `(function(){var els=document.querySelectorAll('[data-zoom]');var imgs=document.querySelectorAll('img[data-zoom]');var t=imgs[1]||imgs[0]||els[0];if(!t)return 'none';t.scrollIntoView({block:'center'});t.click();return els.length+' zoomable; clicked '+(t.tagName);})()`, returnByValue: true });
   console.log("eval:", r.result?.result?.value);
   await sleep(700);
   const shot = await send("Page.captureScreenshot", { format: "png" });
