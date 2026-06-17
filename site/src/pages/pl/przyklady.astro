@@ -4,6 +4,7 @@ import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import ExamplesGallery from "../../components/ExamplesGallery.astro";
 import ExampleBooks from "../../components/ExampleBooks.astro";
+import { exampleBooksJsonLd } from "../../data/examples.js";
 import { siteConfig } from "../../config/site";
 
 const title = "Przykłady ebooków — prawdziwe strony z książek generowanych przez AI";
@@ -27,6 +28,7 @@ const jsonLd = [
     url: `${siteConfig.url}/pl/przyklady/`,
     inLanguage: "pl",
   },
+  exampleBooksJsonLd("pl", siteConfig.url),
 ];
 ---
 

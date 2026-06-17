@@ -2,6 +2,7 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
+import { examples } from "./src/data/examples.js";
 
 export default defineConfig({
   site: "https://inkmagnet.com",
@@ -18,6 +19,8 @@ export default defineConfig({
     sitemap({
       changefreq: "weekly",
       priority: 0.7,
+      // downloadable sample ebooks — let Google discover the PDFs
+      customPages: examples.map((b) => `https://inkmagnet.com/samples/${b.slug}.pdf`),
       // legal pages are noindex — keep them out of the sitemap
       filter: (page) =>
         !page.includes("/privacy") &&
@@ -27,6 +30,10 @@ export default defineConfig({
       serialize(item) {
         if (item.url === "https://inkmagnet.com/" || item.url === "https://inkmagnet.com/pl/") {
           item.priority = 1.0;
+        } else if (item.url.includes("/samples/") && item.url.endsWith(".pdf")) {
+          // sample books rarely change; lower priority than landing pages
+          item.priority = 0.6;
+          item.changefreq = "monthly";
         }
         return item;
       },

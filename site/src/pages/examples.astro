@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import ExampleBooks from "../components/ExampleBooks.astro";
+import { exampleBooksJsonLd } from "../data/examples.js";
 import { siteConfig } from "../config/site";
 
 const registerUrl = `${siteConfig.appUrl}/auth/register`;
@@ -27,6 +28,7 @@ const jsonLd = [
     description,
     url: `${siteConfig.url}/examples/`,
   },
+  exampleBooksJsonLd("en", siteConfig.url),
 ];
 ---
 

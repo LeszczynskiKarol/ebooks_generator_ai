@@ -137,3 +137,38 @@ export const examples = [
     },
   },
 ];
+
+/** Books shown on a given page: PL shows all, EN shows only English books. */
+export function booksFor(pageLang) {
+  return pageLang === "pl" ? examples : examples.filter((b) => b.lang === "en");
+}
+
+/** schema.org ItemList of the example books (each a Book linking to its PDF),
+ *  so search engines index the downloads with the right titles. */
+export function exampleBooksJsonLd(pageLang, siteUrl) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: pageLang === "pl" ? "Przykładowe ebooki InkMagnet" : "InkMagnet example ebooks",
+    itemListElement: booksFor(pageLang).map((b, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Book",
+        name: b.title,
+        inLanguage: b.lang,
+        numberOfPages: b.pages,
+        bookFormat: "https://schema.org/EBook",
+        author: { "@type": "Organization", name: "InkMagnet" },
+        publisher: { "@type": "Organization", name: "InkMagnet" },
+        url: `${siteUrl}/samples/${b.slug}.pdf`,
+        image: `${siteUrl}/samples/covers/${b.slug}.webp`,
+        encoding: {
+          "@type": "MediaObject",
+          contentUrl: `${siteUrl}/samples/${b.slug}.pdf`,
+          encodingFormat: "application/pdf",
+        },
+      },
+    })),
+  };
+}

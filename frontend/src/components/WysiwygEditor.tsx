@@ -65,6 +65,9 @@ export default function WysiwygEditor({
   const t = useT();
   const [showCalloutMenu, setShowCalloutMenu] = useState(false);
   const calloutRef = useRef<HTMLDivElement>(null);
+  // Declared before useEditor: onUpdate can fire synchronously during editor
+  // creation, so prevContent must be initialized first (avoid TDZ error).
+  const prevContent = useRef(content);
 
   const editor = useEditor({
     extensions: [
@@ -108,7 +111,6 @@ export default function WysiwygEditor({
   }, [editor, editorRef]);
 
   // Update content when prop changes (e.g., mode switch)
-  const prevContent = useRef(content);
   useEffect(() => {
     if (editor && content !== prevContent.current) {
       editor.commands.setContent(content, { emitUpdate: false });
