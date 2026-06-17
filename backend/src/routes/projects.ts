@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import { FastifyInstance, FastifyRequest } from "fastify";
 import Stripe from "stripe";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
@@ -30,6 +30,36 @@ function priceLine(
   };
 }
 
+function isAdmin(email: string): boolean {
+  return !!process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL;
+}
+
+interface StripeConfig {
+  stripe: Stripe;
+  webhookSecret: string;
+  testMode: boolean;
+}
+
+/** Pick the live or test Stripe keys based on whether the current user is the
+ *  admin. Returns null if the required env vars are missing. */
+function getStripeConfig(request: FastifyRequest): StripeConfig | null {
+  const testMode = isAdmin(request.user.email);
+  const secretKey = testMode
+    ? process.env.STRIPE_SECRET_KEY_TEST
+    : process.env.STRIPE_SECRET_KEY;
+  const webhookSecret = testMode
+    ? process.env.STRIPE_WEBHOOK_SECRET_TEST
+    : process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!secretKey || !webhookSecret) return null;
+
+  return {
+    stripe: new Stripe(secretKey),
+    webhookSecret,
+    testMode,
+  };
+}
+
 /**
  * Return a Stripe customer id valid for the CURRENT Stripe mode. If the stored
  * id is missing or stale (e.g. a test-mode id used under a live key after
@@ -38,13 +68,17 @@ function priceLine(
 async function ensureStripeCustomer(
   stripe: Stripe,
   userId: string,
+  testMode: boolean,
 ): Promise<string> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new Error("User not found");
-  if (user.stripeCustomerId) {
+
+  const storedId = testMode ? user.stripeCustomerIdTest : user.stripeCustomerId;
+
+  if (storedId) {
     try {
-      const c = await stripe.customers.retrieve(user.stripeCustomerId);
-      if (!(c as any).deleted) return user.stripeCustomerId;
+      const c = await stripe.customers.retrieve(storedId);
+      if (!(c as any).deleted) return storedId;
     } catch {
       // stale id (wrong Stripe mode / deleted) — fall through and recreate
     }
@@ -52,11 +86,13 @@ async function ensureStripeCustomer(
   const customer = await stripe.customers.create({
     email: user.email,
     name: user.name || undefined,
-    metadata: { userId: user.id },
+    metadata: { userId: user.id, testMode: String(testMode) },
   });
   await prisma.user.update({
     where: { id: user.id },
-    data: { stripeCustomerId: customer.id },
+    data: testMode
+      ? { stripeCustomerIdTest: customer.id }
+      : { stripeCustomerId: customer.id },
   });
   return customer.id;
 }
@@ -88,13 +124,13 @@ export async function projectRoutes(app: FastifyInstance) {
         .send({ success: false, error: "Topic must be at least 5 characters" });
     }
 
-    if (!process.env.STRIPE_SECRET_KEY) {
+    const stripeConfig = getStripeConfig(request);
+    if (!stripeConfig) {
       return reply
         .status(500)
         .send({ success: false, error: "Stripe not configured" });
     }
-
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const { stripe, testMode } = stripeConfig;
 
     // Snap to nearest tier
     const rawPages = Math.max(
@@ -160,12 +196,16 @@ export async function projectRoutes(app: FastifyInstance) {
     });
 
     // ── Create Stripe session immediately ──
-    const customerId = await ensureStripeCustomer(stripe, request.user.userId);
+    const customerId = await ensureStripeCustomer(
+      stripe,
+      request.user.userId,
+      testMode,
+    );
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "payment",
-      payment_method_types: ["card"],
+      payment_method_types: usePln ? ["card", "blik"] : ["card"],
       line_items: [
         priceLine(
           usePln ? "pln" : "usd",
@@ -332,13 +372,14 @@ export async function projectRoutes(app: FastifyInstance) {
 
   // ━━━ POST /api/projects/:id/checkout ━━━
   app.post("/api/projects/:id/checkout", async (request, reply) => {
-    if (!process.env.STRIPE_SECRET_KEY) {
+    const stripeConfig = getStripeConfig(request);
+    if (!stripeConfig) {
       return reply
         .status(500)
         .send({ success: false, error: "Stripe not configured" });
     }
+    const { stripe, testMode } = stripeConfig;
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const { id } = request.params as any;
     const project = await prisma.project.findFirst({
       where: { id, userId: request.user.userId },
@@ -351,7 +392,11 @@ export async function projectRoutes(app: FastifyInstance) {
     if (!project.priceUsdCents)
       return reply.status(400).send({ success: false, error: "Price not set" });
 
-    const customerId = await ensureStripeCustomer(stripe, request.user.userId);
+    const customerId = await ensureStripeCustomer(
+      stripe,
+      request.user.userId,
+      testMode,
+    );
 
     // Charge in the project's currency; back-fill the rate for legacy PLN rows.
     const usePln = project.currency === "pln";
@@ -362,7 +407,7 @@ export async function projectRoutes(app: FastifyInstance) {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "payment",
-      payment_method_types: ["card"],
+      payment_method_types: usePln ? ["card", "blik"] : ["card"],
       line_items: [
         priceLine(
           usePln ? "pln" : "usd",

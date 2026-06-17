@@ -20,32 +20,49 @@ export async function webhookRoutes(app: FastifyInstance) {
   app.post("/api/webhooks/stripe", async (request, reply) => {
     console.log(`\n💳 ═══ STRIPE WEBHOOK ═══ ${new Date().toISOString()}`);
 
-    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+    const secretKey =
+      process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY_TEST;
+    const secrets = [
+      process.env.STRIPE_WEBHOOK_SECRET_TEST,
+      process.env.STRIPE_WEBHOOK_SECRET,
+    ].filter(Boolean) as string[];
+
+    if (!secretKey || secrets.length === 0) {
       console.log(
-        `  ❌ Stripe not configured — missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET`,
+        `  ❌ Stripe not configured — missing STRIPE_SECRET_KEY/STRIPE_SECRET_KEY_TEST or webhook secrets`,
       );
       return reply.status(500).send({ error: "Stripe not configured" });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const stripe = new Stripe(secretKey);
     const sig = request.headers["stripe-signature"];
     if (!sig) {
       console.log(`  ❌ Missing stripe-signature header`);
       return reply.status(400).send({ error: "Missing signature" });
     }
 
-    let event: Stripe.Event;
-    try {
-      event = stripe.webhooks.constructEvent(
-        (request as any).rawBody,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET!,
-      );
-      console.log(`  ✅ Signature verified — event: ${event.type}`);
-    } catch (err: any) {
-      console.log(`  ❌ Invalid Stripe signature: ${err.message}`);
+    // Try both live and test webhook secrets — admin test-mode checkouts send
+    // test events to the same endpoint.
+    let event: Stripe.Event | null = null;
+    let lastErr: any;
+    for (const secret of secrets) {
+      try {
+        event = stripe.webhooks.constructEvent(
+          (request as any).rawBody,
+          sig,
+          secret,
+        );
+        break;
+      } catch (err: any) {
+        lastErr = err;
+      }
+    }
+
+    if (!event) {
+      console.log(`  ❌ Invalid Stripe signature: ${lastErr?.message}`);
       return reply.status(400).send({ error: "Invalid signature" });
     }
+    console.log(`  ✅ Signature verified — event: ${event.type}`);
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
