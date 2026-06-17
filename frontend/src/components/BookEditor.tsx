@@ -106,6 +106,12 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
   const originalContent = useRef<Record<number, string>>({});
   const wysiwygRef = useRef<any>(null);
 
+  // Image URL maps (filled on load from /images/url-map).
+  // toDisplay: stored s3Url → browser-loadable URL (presigned/local) for <img>.
+  // toStorage: that display URL → s3Url, so saved LaTeX keeps the canonical URL.
+  const toDisplay = useRef<Record<string, string>>({});
+  const toStorage = useRef<Record<string, string>>({});
+
   // ── Notify parent of dirty count changes ──
 
   useEffect(() => {
@@ -142,7 +148,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
     if (currentMode === "visual" && mode !== "visual") {
       const cachedHtml = htmlCache.current[chapterNumber];
       if (cachedHtml !== undefined) {
-        const newLatex = htmlToLatex(cachedHtml);
+        const newLatex = htmlToLatex(cachedHtml, toStorage.current);
         setChapters((prev) =>
           prev.map((ch) =>
             ch.chapterNumber === chapterNumber
@@ -156,7 +162,10 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
 
     // Entering Visual → convert LaTeX → HTML
     if (mode === "visual") {
-      htmlCache.current[chapterNumber] = latexToHtml(chapter.latexContent);
+      htmlCache.current[chapterNumber] = latexToHtml(
+        chapter.latexContent,
+        toDisplay.current,
+      );
     }
 
     setChapterModes((prev) => ({ ...prev, [chapterNumber]: mode }));
@@ -171,14 +180,38 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
   const loadChapters = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get(`/projects/${projectId}/chapters`);
+      // Fetch chapters and the image URL map together. The map lets AI-generated
+      // figures (whose LaTeX only holds a private s3Url) render in the editor.
+      const [res, mapRes] = await Promise.all([
+        apiClient.get(`/projects/${projectId}/chapters`),
+        apiClient
+          .get(`/projects/${projectId}/images/url-map`)
+          .catch(() => null),
+      ]);
+
+      const display: Record<string, string> = {};
+      const storage: Record<string, string> = {};
+      const mapData: { s3Url: string; displayUrl: string }[] =
+        mapRes?.data?.data || [];
+      mapData.forEach(({ s3Url, displayUrl }) => {
+        if (s3Url && displayUrl && s3Url !== displayUrl) {
+          display[s3Url] = displayUrl;
+          storage[displayUrl] = s3Url;
+        }
+      });
+      toDisplay.current = display;
+      toStorage.current = storage;
+
       const data: ChapterData[] = res.data.data;
       setChapters(data);
 
       const originals: Record<number, string> = {};
       data.forEach((ch) => {
         originals[ch.chapterNumber] = ch.latexContent;
-        htmlCache.current[ch.chapterNumber] = latexToHtml(ch.latexContent);
+        htmlCache.current[ch.chapterNumber] = latexToHtml(
+          ch.latexContent,
+          toDisplay.current,
+        );
       });
       originalContent.current = originals;
 
@@ -227,15 +260,28 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
         src: payload.src,
       });
 
+      // Register the inserted image so its display URL round-trips back to the
+      // stored s3Url on save (display uses the presigned/proxy URL, LaTeX keeps
+      // the s3Url for the PDF compiler).
+      if (
+        payload.displaySrc &&
+        payload.src &&
+        payload.displaySrc !== payload.src
+      ) {
+        toDisplay.current[payload.src] = payload.displaySrc;
+        toStorage.current[payload.displaySrc] = payload.src;
+      }
+
       if (mode === "visual") {
         const editor = wysiwygRef.current;
         if (editor) {
-          // Use custom setImageBlock command with full params
+          // Use custom setImageBlock command with full params.
+          // Display the browser-loadable URL; save maps it back to s3Url.
           (editor as any)
             .chain()
             .focus()
             .setImageBlock({
-              src: payload.src,
+              src: payload.displaySrc || payload.src,
               alt: payload.caption || payload.originalName,
               alignment: payload.alignment,
               widthPercent: Math.min(100, Math.max(20, payload.widthPercent)),
@@ -251,7 +297,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
           setChapters((prev) =>
             prev.map((ch) =>
               ch.chapterNumber === chapterNumber
-                ? { ...ch, latexContent: htmlToLatex(updatedHtml) }
+                ? { ...ch, latexContent: htmlToLatex(updatedHtml, toStorage.current) }
                 : ch,
             ),
           );
@@ -304,7 +350,10 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
             : ch,
         ),
       );
-      htmlCache.current[chapterNumber] = latexToHtml(original);
+      htmlCache.current[chapterNumber] = latexToHtml(
+        original,
+        toDisplay.current,
+      );
       setDirtyChapters((prev) => {
         const next = new Set(prev);
         next.delete(chapterNumber);
@@ -326,7 +375,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
     if (mode === "visual") {
       const cachedHtml = htmlCache.current[chapterNumber];
       if (cachedHtml !== undefined) {
-        latexToSave = htmlToLatex(cachedHtml);
+        latexToSave = htmlToLatex(cachedHtml, toStorage.current);
 
         console.group(`📝 [SAVE] Chapter ${chapterNumber} — Visual mode`);
         console.log("HTML cache length:", cachedHtml.length);
@@ -371,7 +420,10 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
         ),
       );
       originalContent.current[chapterNumber] = latexToSave;
-      htmlCache.current[chapterNumber] = latexToHtml(latexToSave);
+      htmlCache.current[chapterNumber] = latexToHtml(
+        latexToSave,
+        toDisplay.current,
+      );
       setDirtyChapters((prev) => {
         const next = new Set(prev);
         next.delete(chapterNumber);
@@ -601,7 +653,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                       editorRef={wysiwygRef}
                       content={
                         htmlCache.current[chapter.chapterNumber] ||
-                        latexToHtml(chapter.latexContent)
+                        latexToHtml(chapter.latexContent, toDisplay.current)
                       }
                       onChange={(html) =>
                         updateHtmlContent(chapter.chapterNumber, html)

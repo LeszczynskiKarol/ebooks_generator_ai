@@ -12,6 +12,7 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
 import * as path from "path";
 
@@ -27,6 +28,39 @@ function getS3Client() {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     },
   });
+}
+
+// Browser-loadable URL for an image's <img src>.
+// The bucket blocks public access AND the proxy route needs an Authorization
+// header (which <img> can't send), so for S3-backed images we hand the browser
+// a presigned GET URL (valid 7 days, the SigV4 maximum). For the local
+// fallback we use the unauthenticated file-serving route. Used both for the
+// AI-generated figures embedded in chapter LaTeX and for upload thumbnails.
+const PRESIGN_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days (SigV4 max)
+
+async function browserUrlForImage(
+  projectId: string,
+  image: { s3Key: string; s3Url: string | null },
+): Promise<string> {
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.S3_BUCKET) {
+    try {
+      return await getSignedUrl(
+        getS3Client(),
+        new GetObjectCommand({
+          Bucket: process.env.S3_BUCKET!,
+          Key: image.s3Key,
+        }),
+        { expiresIn: PRESIGN_TTL_SECONDS },
+      );
+    } catch (err) {
+      console.error("presign failed, falling back to local route:", err);
+    }
+  }
+  // Local fallback: s3Url may already be a /api/... route (user upload) or a
+  // bookforge-local:// token (AI image) — in both cases the file lives under
+  // tmp/uploads/{projectId}/{basename(s3Key)}.
+  if (image.s3Url?.startsWith("/api/")) return image.s3Url;
+  return `/api/projects/${projectId}/images/file/${path.basename(image.s3Key)}`;
 }
 
 export async function imageRoutes(app: FastifyInstance) {
@@ -61,11 +95,44 @@ export async function imageRoutes(app: FastifyInstance) {
         },
       });
 
-      // ★ Return proxy URLs — avoids CORS/S3 issues entirely
-      const data = images.map((img) => ({
-        ...img,
-        displayUrl: `/api/projects/${id}/images/proxy/${img.id}`,
-      }));
+      // ★ Presigned (or local) URLs the browser can load directly — the proxy
+      // route needs an Authorization header that <img> can't send.
+      const data = await Promise.all(
+        images.map(async (img) => ({
+          ...img,
+          displayUrl: await browserUrlForImage(id, img),
+        })),
+      );
+
+      return reply.send({ success: true, data });
+    },
+  });
+
+  // ━━━ GET /api/projects/:id/images/url-map ━━━
+  // Maps every project image's stored s3Url → a browser-loadable URL.
+  // The editor uses this to render AI-generated figures (and uploads) whose
+  // chapter LaTeX only carries the private s3Url. Covers BOTH sources.
+  app.get("/api/projects/:id/images/url-map", {
+    preHandler: authenticate,
+    handler: async (request, reply) => {
+      const { id } = request.params as any;
+      const project = await prisma.project.findFirst({
+        where: { id, userId: request.user.userId },
+      });
+      if (!project)
+        return reply.status(404).send({ success: false, error: "Not found" });
+
+      const images = await prisma.projectImage.findMany({
+        where: { projectId: id },
+        select: { id: true, s3Key: true, s3Url: true },
+      });
+
+      const data = await Promise.all(
+        images.map(async (img) => ({
+          s3Url: img.s3Url,
+          displayUrl: await browserUrlForImage(id, img),
+        })),
+      );
 
       return reply.send({ success: true, data });
     },
@@ -152,7 +219,7 @@ export async function imageRoutes(app: FastifyInstance) {
           originalName: image.originalName,
           s3Key: image.s3Key,
           s3Url: image.s3Url,
-          displayUrl: `/api/projects/${id}/images/proxy/${image.id}`,
+          displayUrl: await browserUrlForImage(id, image),
           width: image.width,
           height: image.height,
           format: image.format,

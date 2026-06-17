@@ -17,8 +17,21 @@ function escHtml(s: string): string {
 // LATEX → HTML
 // ────────────────────────────────────────────────────
 
-export function latexToHtml(latex: string): string {
+/**
+ * Convert chapter LaTeX to editor HTML.
+ *
+ * `urlMap` maps a stored image URL (the private s3Url embedded in
+ * \includegraphics) to a browser-loadable URL (a presigned S3 URL or local
+ * route). Without it, AI-generated figures point at a private S3 object and
+ * render blank/broken in the editor. The reverse mapping happens in
+ * htmlToLatex so the stored LaTeX (and the PDF compiler) keep the s3Url.
+ */
+export function latexToHtml(
+  latex: string,
+  urlMap?: Record<string, string>,
+): string {
   let html = latex;
+  const mapSrc = (s: string): string => urlMap?.[s] ?? s;
 
   // ── Strip LaTeX preamble artifacts ──
   html = html.replace(/\\documentclass[^]*?\\begin\{document\}/g, "");
@@ -79,7 +92,7 @@ export function latexToHtml(latex: string): string {
         ? Math.round(parseFloat(wrapWidthMatch[1]) * 100)
         : 50;
       const captionAttr = caption ? ` data-caption="${escHtml(caption)}"` : "";
-      return `<img src="${escHtml(src)}" alt="${escHtml(caption || "")}" data-alignment="${alignment}" data-width="${widthPercent}"${captionAttr} class="wysiwyg-image" />`;
+      return `<img src="${escHtml(mapSrc(src))}" alt="${escHtml(caption || "")}" data-alignment="${alignment}" data-width="${widthPercent}"${captionAttr} class="wysiwyg-image" />`;
     },
   );
 
@@ -92,7 +105,7 @@ export function latexToHtml(latex: string): string {
         ? Math.round(parseFloat(widthMatch[1]) * 100)
         : 80;
       const captionAttr = caption ? ` data-caption="${escHtml(caption)}"` : "";
-      return `<img src="${escHtml(src)}" alt="${escHtml(caption || "")}" data-alignment="center" data-width="${widthPercent}"${captionAttr} class="wysiwyg-image" />`;
+      return `<img src="${escHtml(mapSrc(src))}" alt="${escHtml(caption || "")}" data-alignment="center" data-width="${widthPercent}"${captionAttr} class="wysiwyg-image" />`;
     },
   );
 
@@ -104,7 +117,7 @@ export function latexToHtml(latex: string): string {
       const widthPercent = widthMatch
         ? Math.round(parseFloat(widthMatch[1]) * 100)
         : 80;
-      return `<img src="${escHtml(src)}" alt="" data-alignment="center" data-width="${widthPercent}" class="wysiwyg-image" />`;
+      return `<img src="${escHtml(mapSrc(src))}" alt="" data-alignment="center" data-width="${widthPercent}" class="wysiwyg-image" />`;
     },
   );
 
@@ -312,7 +325,15 @@ function wrapParagraphs(html: string): string {
 // HTML → LATEX
 // ────────────────────────────────────────────────────
 
-export function htmlToLatex(html: string): string {
+// Reverse of latexToHtml's urlMap: maps a browser display URL (presigned S3 /
+// local route) back to the stored s3Url so the saved LaTeX keeps the canonical
+// URL the PDF compiler expects. Set per-call from htmlToLatex's `urlMap` arg.
+let activeReverseUrlMap: Record<string, string> | undefined;
+
+export function htmlToLatex(
+  html: string,
+  urlMap?: Record<string, string>,
+): string {
   const parser = new DOMParser();
   const doc = parser.parseFromString(
     `<div id="root">${html}</div>`,
@@ -321,7 +342,12 @@ export function htmlToLatex(html: string): string {
   const root = doc.getElementById("root");
   if (!root) return html;
 
-  return nodeToLatex(root).trim();
+  activeReverseUrlMap = urlMap;
+  try {
+    return nodeToLatex(root).trim();
+  } finally {
+    activeReverseUrlMap = undefined;
+  }
 }
 
 function nodeToLatex(node: Node): string {
@@ -463,8 +489,11 @@ function nodeToLatex(node: Node): string {
 
 /** Convert an <img> element (or wrapper dataset) to LaTeX figure/wrapfigure */
 function imageToLatex(img: Element, dataset: DOMStringMap): string {
-  const src = img.getAttribute("src") || "";
-  if (!src) return "";
+  const rawSrc = img.getAttribute("src") || "";
+  if (!rawSrc) return "";
+  // Map the display URL (presigned/local) back to the stored s3Url so saved
+  // LaTeX stays canonical for the PDF compiler.
+  const src = activeReverseUrlMap?.[rawSrc] ?? rawSrc;
 
   const alignment =
     dataset.alignment || img.getAttribute("data-alignment") || "center";
