@@ -6,6 +6,7 @@ import { authRoutes } from "./routes/auth";
 import { projectRoutes } from "./routes/projects";
 import { webhookRoutes } from "./routes/webhooks";
 import { adminRoutes } from "./routes/admin";
+import { autopilotRoutes } from "./routes/autopilotRoutes";
 import { downloadRoutes } from "./routes/downloads";
 import { versionRoutes } from "./routes/versionRoutes";
 import { coverRoutes } from "./routes/coverRoutes";
@@ -60,6 +61,7 @@ async function start() {
   await app.register(authRoutes);
   await app.register(exchangeRateRoutes);
   await app.register(adminRoutes);
+  await app.register(autopilotRoutes);
   await app.register(coverRoutes);
   await app.register(downloadRoutes);
   await app.register(projectRoutes);

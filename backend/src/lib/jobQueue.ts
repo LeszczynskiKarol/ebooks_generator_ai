@@ -15,12 +15,19 @@ import { prisma } from "./prisma";
 const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
 const QUEUE_NAME = "generation";
 
-export type GenerationJobName = "structure" | "content" | "compile" | "research";
+export type GenerationJobName =
+  | "structure"
+  | "content"
+  | "compile"
+  | "research"
+  | "finalize";
 
 export interface GenerationJobData {
   projectId: string;
   /** content only: regenerate even chapters that are already LATEX_READY (user-edited chapters are always kept) */
   force?: boolean;
+  /** finalize only: run FLUX illustration before compiling (routine-ingested books) */
+  withImages?: boolean;
 }
 
 // BullMQ bundles its own ioredis, so we pass plain connection options
@@ -69,7 +76,7 @@ export interface EnqueueResult {
 export async function enqueueGeneration(
   name: GenerationJobName,
   projectId: string,
-  opts: { force?: boolean } = {},
+  opts: { force?: boolean; withImages?: boolean } = {},
 ): Promise<EnqueueResult> {
   const jobId = jobIdFor(name, projectId);
 
@@ -83,9 +90,19 @@ export async function enqueueGeneration(
     await existing.remove();
   }
 
+  // Stamp the run start so the UI elapsed timer is anchored to a server time
+  // (survives refresh). Only for the run-initiating jobs — a standalone
+  // recompile of a finished book must not reset the timer.
+  if (name === "structure" || name === "content") {
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { generationStartedAt: new Date() },
+    });
+  }
+
   await generationQueue.add(
     name,
-    { projectId, force: opts.force },
+    { projectId, force: opts.force, withImages: opts.withImages },
     {
       jobId,
       attempts: 1,
@@ -99,8 +116,31 @@ export async function enqueueGeneration(
 // ━━━ Worker ━━━
 
 async function processJob(name: GenerationJobName, data: GenerationJobData) {
-  const { projectId, force } = data;
+  const { projectId, force, withImages } = data;
   switch (name) {
+    case "finalize": {
+      // Routine-ingested book: optionally generate FLUX illustrations for the
+      // agent-authored chapters, then compile. No LLM authoring here.
+      if (withImages) {
+        const proj = await prisma.project.findUnique({
+          where: { id: projectId },
+        });
+        if (proj) {
+          const { illustrateChapters } = await import(
+            "../services/illustrationService"
+          );
+          await illustrateChapters(projectId, {
+            language: proj.language,
+            stylePreset: proj.stylePreset,
+            imageGuidelines: proj.imageGuidelines,
+            imageDensity: proj.imageDensity,
+          });
+        }
+      }
+      const { compileBook } = await import("../services/bookCompiler");
+      await compileBook(projectId);
+      break;
+    }
     case "structure": {
       const { generateStructure } = await import("../services/structureGenerator");
       await generateStructure(projectId);

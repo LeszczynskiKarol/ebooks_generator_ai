@@ -143,7 +143,17 @@ export default function NewProject() {
   const lang = useLangStore((s) => s.lang);
   const schema = useMemo(() => makeSchema(lang), [lang]);
   const [loading, setLoading] = useState(false);
+  const [autopilotLoading, setAutopilotLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedTierIdx, setSelectedTierIdx] = useState(1);
+
+  // Admin-only: enable the "Autopilot (Routines)" button that bypasses payment.
+  useEffect(() => {
+    apiClient
+      .get("/auth/me")
+      .then(({ data }) => setIsAdmin(data.data?.isAdmin === true))
+      .catch(() => setIsAdmin(false));
+  }, []);
 
   // Color state
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -165,7 +175,9 @@ export default function NewProject() {
     resolver: zodResolver(schema),
     defaultValues: {
       targetPages: PAGE_SIZE_TIERS[1].targetPages,
-      language: "en",
+      // Default the BOOK language to the UI locale — a PL visitor most likely
+      // wants a Polish book (was hardcoded "en" even on /pl).
+      language: lang === "pl" ? "pl" : "en",
       stylePreset: "modern",
       bookFormat: "a5",
       useAiImages: false,
@@ -304,6 +316,32 @@ export default function NewProject() {
       toast.error(err.response?.data?.error || t("newProject.failed"));
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Admin "Autopilot (Routines)" — same form, but skips payment + the manual
+  // structure-approval gate and runs the full pipeline unattended. Hits the
+  // SAME backend path a Routine would (POST /api/admin/books/generate); the
+  // logged-in admin's JWT authorizes it.
+  const onAutopilot = async (form: FormData) => {
+    setAutopilotLoading(true);
+    try {
+      // Fires the Anthropic Claude Code ROUTINE (subscription), which authors
+      // the book and ingests it. No project exists yet — it appears once the
+      // routine finishes, so we don't navigate to one.
+      const payload: Record<string, unknown> = { ...form };
+      if (selectedColors.length > 0) payload.customColors = selectedColors;
+      const { data } = await apiClient.post("/admin/routine/run-book", payload);
+      localStorage.removeItem(DRAFT_KEY);
+      const sessionUrl = data?.data?.session_url || data?.data?.url;
+      toast.success(
+        "Rutyna odpalona (subskrypcja) — książka pojawi się po jej zakończeniu",
+      );
+      if (sessionUrl) window.open(sessionUrl, "_blank");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || t("newProject.failed"));
+    } finally {
+      setAutopilotLoading(false);
     }
   };
 
@@ -978,6 +1016,21 @@ export default function NewProject() {
           {loading && <Loader2 className="w-5 h-5 animate-spin" />}
           {t("newProject.continueToPayment", { s: formatUsdCents(pricing.priceUsdCents) })}
         </button>
+
+        {/* Admin-only: separate Autopilot/Routines trigger — skips payment and
+            runs the whole pipeline unattended. Standard payment flow above is
+            untouched. */}
+        {isAdmin && (
+          <button
+            type="button"
+            disabled={autopilotLoading}
+            onClick={handleSubmit(onAutopilot)}
+            className="w-full py-3 border-2 border-dashed border-amber-400 text-amber-700 dark:text-amber-300 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {autopilotLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+            ⚡ Autopilot (Routines) — admin, bez płatności
+          </button>
+        )}
       </form>
     </div>
   );

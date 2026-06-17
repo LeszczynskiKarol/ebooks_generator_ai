@@ -86,6 +86,18 @@ model Project {
   chapters           Chapter[]
   generationStatus   GenerationStatus @default(NOT_STARTED)
   generationProgress Float            @default(0)
+  // Wall-clock start of the CURRENT run (structure/content enqueue). Lets the
+  // UI show a true elapsed timer that survives page refresh instead of
+  // restarting from 0 on every mount.
+  generationStartedAt DateTime?
+  // Admin autopilot run: structure is auto-approved (no human gate) so the
+  // pipeline goes research → structure → content → compile unattended.
+  autoPilot Boolean @default(false)
+  // Where the chapter LaTeX came from: "api" = backend generated it (normal
+  // paid user — runs the backend vision QA); "routine" = a Claude Code routine
+  // agent authored it on the subscription and already did its OWN visual QA, so
+  // the backend skips the (API-billed) vision review.
+  contentSource String @default("api")
 
   colophonText     String?  @db.Text  
   colophonFontSize Int?     @default(10)

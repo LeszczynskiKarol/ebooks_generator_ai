@@ -1,0 +1,210 @@
+% ============================================================
+% BookForge — Generated Book Cover
+% Compile: xelatex cover.tex (or pdflatex as fallback)
+% ============================================================
+\documentclass{article}
+\usepackage[paperwidth=210mm, paperheight=297mm, margin=0pt]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{calc,positioning}
+\usepackage{eso-pic}
+
+% ── Font setup (xelatex preferred, pdflatex fallback) ──
+\usepackage{ifxetex}
+\ifxetex
+  \usepackage{fontspec}
+  \setmainfont{Liberation Sans}[
+    BoldFont={Liberation Sans Bold},
+    ItalicFont={Liberation Sans Italic}
+  ]
+  \setsansfont{Liberation Sans}[
+    BoldFont={Liberation Sans Bold},
+    ItalicFont={Liberation Sans Italic}
+  ]
+\else
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+  \usepackage{helvet}
+  \renewcommand{\familydefault}{\sfdefault}
+\fi
+
+\usepackage{xcolor}
+\usepackage{textcomp}
+\pagestyle{empty}
+\parindent=0pt
+\topskip=0pt
+
+% ── Cover colors ──
+\definecolor{covbgdeep}{HTML}{011710}
+\definecolor{covbgmid}{HTML}{01261A}
+\definecolor{covprimary}{HTML}{059669}
+\definecolor{covprimarydark}{HTML}{04694A}
+\definecolor{covprimarylight}{HTML}{E1F2ED}
+\definecolor{covaccent}{HTML}{FFFFFF}
+\definecolor{covaccentalt}{HTML}{16A34A}
+\definecolor{covtextbright}{HTML}{FFFFFF}
+\definecolor{covtextmuted}{HTML}{689386}
+
+% ── Page background (fills any gaps around TikZ picture) ──
+\pagecolor{covbgdeep}
+
+\begin{document}%
+% [remember picture, overlay] anchors the artwork at the exact page corner
+% (needs the 2nd compile pass — compileCover always runs two). This fills the
+% page edge-to-edge without the old +5mm paper hack, and unlike an eso-pic
+% shipout hook it keeps TikZ transparency working (opacity dies in shipout BG).
+\thispagestyle{empty}%
+\begin{tikzpicture}[remember picture, overlay,
+  shift={(current page.south west)},
+  x=1.00000mm, y=1.00000mm]
+\clip (0,0) rectangle (210,297);
+
+
+% === Background ===
+\fill[covbgdeep] (0,0) rectangle (210,297);
+
+  % ── Subtle grid ──
+  \begin{scope}[opacity=0.035]
+    \foreach \x in {0,8,...,210} {
+      \draw[covprimary, line width=0.2pt] (\x, 0) -- (\x, 297);
+    }
+    \foreach \y in {0,8,...,297} {
+      \draw[covprimary, line width=0.2pt] (0, \y) -- (210, \y);
+    }
+  \end{scope}
+
+% === Geometric circles — top-right ===
+
+  % ── Geometric circles ──
+  \draw[covprimary, line width=1pt, opacity=0.12]
+    (175, 255) circle (75);
+  \draw[covprimary, line width=0.5pt, opacity=0.08]
+    (175, 255) circle (95);
+  \draw[covaccentalt, line width=0.3pt, opacity=0.10]
+    (175, 255) circle (110);
+
+% === Circles — bottom-left ===
+\draw[covprimary, line width=0.6pt, opacity=0.08] (30, 35) circle (55);
+\draw[covprimary, line width=0.3pt, opacity=0.05] (30, 35) circle (70);
+
+% === Glow effects ===
+  \fill[covaccentalt, opacity=0.05] (178, 260) circle (45);
+  \fill[covprimary, opacity=0.04] (35, 40) circle (35);
+
+% === Background watermark ===
+\node[anchor=east, opacity=0.055] at (205, 170) {%
+  \fontsize{170}{170}\selectfont\bfseries\sffamily\color{covprimary}%
+  60%
+};
+
+% === Featured badge circle ===
+
+  % ── Featured badge ──
+  \draw[covprimary!50, line width=2.5pt, opacity=0.5]
+    (105, 230) circle (26);
+  \draw[covaccent, line width=2.8pt, line cap=round]
+    (105, 230) ++(90:26) arc (90:430:26);
+  % Grot strzałki
+  \fill[covaccent]
+    ([shift={(80:26)}]105,230) -- ++(70:3.5) -- ++(160:3.5) -- cycle;
+  % Tekst wewnątrz
+  \node[anchor=center] at (105, 232) {%
+    \fontsize{22}{22}\selectfont\bfseries\sffamily\color{covtextbright}%
+    60%
+  };
+  \node[anchor=center] at (105, 221) {%
+    \fontsize{6.5}{6.5}\selectfont\sffamily\color{covtextmuted}%
+    STRON · KOMPLETNY PRZEWODNIK%
+  };
+
+% === Accent line ===
+  \fill[covaccent] (15, 200) rectangle (55, 200.8);
+
+% === TITLE ===
+
+\node[anchor=south west] at (15, 179) {%
+  \fontsize{28}{31}\selectfont\bfseries\sffamily\color{covtextbright}%
+  \mbox{Jak} \mbox{napisać} \mbox{pracę} \mbox{magisterską}%
+};
+\node[anchor=south west] at (15, 166) {%
+  \fontsize{28}{31}\selectfont\bfseries\sffamily\color{covprimary}%
+  \mbox{z} \mbox{psychologii}%
+};
+
+% === Subtitle ===
+
+  \fill[covaccent] (15, 152) rectangle (70, 152.7);
+\node[anchor=north west, text width=170mm] at (15, 149) {%
+  \fontsize{16}{20}\selectfont\sffamily\color{covtextmuted}%
+  Magisterka z psychologii od A do Z - kompletny przewodnik%
+};
+
+% === Topic pillar boxes ===
+
+  % ── Topic pillar boxes ──
+  \fill[covprimary, opacity=0.12, rounded corners=2pt]
+    (15, 104) rectangle (63, 125);
+  \draw[covprimary, line width=0.6pt, rounded corners=2pt]
+    (15, 104) rectangle (63, 125);
+  \node[anchor=north west] at (18, 123) {%
+    \fontsize{8}{8}\selectfont\bfseries\sffamily\color{covaccentalt}%
+    OD POMYSŁU DO TEMATU%
+  };
+  \node[anchor=north west, text width=42mm] at (18, 115) {%
+    \fontsize{7}{9}\selectfont\sffamily\color{covtextmuted}%
+    Student dowie się, jak przekształcić ogólne zainteresowanie…%
+  };
+  \fill[covprimary, opacity=0.12, rounded corners=2pt]
+    (68, 104) rectangle (116, 125);
+  \draw[covprimary, line width=0.6pt, rounded corners=2pt]
+    (68, 104) rectangle (116, 125);
+  \node[anchor=north west] at (71, 123) {%
+    \fontsize{8}{8}\selectfont\bfseries\sffamily\color{covaccentalt}%
+    PISANIE ROZDZIAŁÓW%
+  };
+  \node[anchor=north west, text width=42mm] at (71, 115) {%
+    \fontsize{7}{9}\selectfont\sffamily\color{covtextmuted}%
+    Czytelnik nauczy się pisać każdy rozdział pracy…%
+  };
+  \fill[covprimary, opacity=0.12, rounded corners=2pt]
+    (121, 104) rectangle (169, 125);
+  \draw[covprimary, line width=0.6pt, rounded corners=2pt]
+    (121, 104) rectangle (169, 125);
+  \node[anchor=north west] at (124, 123) {%
+    \fontsize{8}{8}\selectfont\bfseries\sffamily\color{covaccentalt}%
+    OBRONA I FINISZ%
+  };
+  \node[anchor=north west, text width=42mm] at (124, 115) {%
+    \fontsize{7}{9}\selectfont\sffamily\color{covtextmuted}%
+    Praktyczny przewodnik przez ostatni etap: techniczne wymogi…%
+  };
+
+% === Decorative dots (left edge) ===
+  \foreach \y in {72,76,...,96} {
+    \fill[covprimary, opacity=0.2] (8, \y) circle (0.5);
+  }
+
+% === Separator ===
+\fill[covprimary, opacity=0.25] (15, 62) rectangle (195, 62.3);
+
+% === Author ===
+
+
+
+% === Year ===
+\node[anchor=north east] at (195, 55) {%
+  \fontsize{13}{13}\selectfont\sffamily\color{covprimary}%
+  2026%
+};
+
+% === Bottom accent bars ===
+  \fill[covaccent] (15, 22) rectangle (40, 22.7);
+\fill[covprimary] (43, 22) rectangle (61, 22.7);
+
+% === Bottom-right decoration ===
+\fill[covprimary, opacity=0.06] (182, 28) circle (14);
+\fill[covaccentalt, opacity=0.04] (188, 22) circle (7);
+
+
+\end{tikzpicture}%
+\end{document}

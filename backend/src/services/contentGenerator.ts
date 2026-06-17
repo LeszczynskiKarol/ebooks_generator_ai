@@ -810,14 +810,17 @@ export function buildPreviousChaptersContext(
   if (ch1) {
     const sample = extractStyleSample(ch1.latex);
     parts.push(`
-═══ YOUR WRITING STYLE (from Chapter 1 — match this EXACTLY) ═══
+═══ YOUR WRITING VOICE (from Chapter 1 — match the VOICE, not the punctuation habits) ═══
 
 ${sample}
 
 ═══ END STYLE SAMPLE ═══
 
-CRITICAL: Match this voice precisely. Same sentence rhythm, same level of directness,
-same way you use data and examples. The reader must feel ONE consistent author.`);
+Match the VOICE: same register, directness, and way of using data and examples, so the
+reader feels ONE consistent author. But do NOT copy punctuation manierisms from this sample
+(em-dashes, colon-continuations, aphorism closers, "nie tylko... lecz"). The RHYTHM &
+PUNCTUATION rules below OVERRIDE this sample — even if Chapter 1 overused dashes, you keep
+them rare.`);
   }
 
   // ── 2. Content registry (what's been covered) ──
@@ -1065,14 +1068,22 @@ ${
   scenarios — NEVER presented as real named people or real published studies`
 }
 
+NO FABRICATED AUTHORITY — applies whether or not footnotes are on:
+- NEVER invent verbatim quotes from regulations, statutes, dyplomowanie rules, ministry guidelines, or any institutional document. Do not present '",,...''"' as a quoted rule unless that exact wording appears in the research material above.
+- NEVER attribute a specific policy, requirement, quoted rule, or precise number to a NAMED institution (a university, faculty, a system like JSA, a ministry) unless that exact fact is in the research material. Without a verifiable source, write generally ("wiele uczelni wymaga...", "regulaminy dyplomowania zwykle określają...", "część wydziałów...") — a vague-but-true statement always beats a precise invention.
+- Institution names: use the official name and keep it IDENTICAL on every mention (e.g. always "Uniwersytet SWPS", never mix "SWPS"/"USWPS"; never alternate "Vizja"/"Wizja"). If unsure of the exact name, refer generically rather than guess.
+
 RHYTHM & PUNCTUATION — these patterns expose machine-written text, avoid them:
-- Em-dashes (---) max 1-2 per paragraph. Prefer a comma, colon, parentheses, or a new sentence
+- Em-dashes (--- / —) are the SINGLE biggest AI tell (a publisher rejected a whole book over their density). HARD BUDGET: roughly one per two pages — a handful in the ENTIRE chapter, NEVER a default connector. Replace almost all with a comma, a full stop (split the sentence in two), parentheses, or a meaning-specific word ("czyli", "lecz", "ponieważ", "dlatego"). NEVER use a PAIR "--- ... ---" for an aside; use commas or parentheses.
+- The colon is NOT a universal connector. Use it almost only before an explicit list. Continuing a thought after a colon ("...wykazała zależność: im więcej X, tym...") is an AI mannerism — vary it with a comma + "czyli", a semicolon, or a new sentence. At most ~1 mid-sentence colon per 3-4 paragraphs.
 - Do NOT default to three-item structures ("trzy filary", "three steps") — let the count follow the content (2, 4, 5...)
 - The antithesis "not X, but Y" ("nie X, lecz Y") at most ONCE per section
+- "nie tylko... lecz/ale również/także/też" is the SAME antithesis figure — at most ONCE per section; rewrite the rest as a plain declarative sentence
+- Mechanical modals (warto / należy / trzeba / powinien) — do not open advice sentences with them by reflex; replace many with a direct imperative ("Pobierz...", "Sprawdź...") or a plain descriptive statement
 - BOX TITLES count toward the same limit: titles like "Teoria jako argument, nie dekoracja" /
   "X, not Y" are the SAME tell. At most ONE antithesis-shaped box title in the whole chapter —
   the rest must be plain descriptive titles ("Technika mapowania pojęć", "Jak sprawdzić bibliografię")
-- Do NOT end every paragraph or box with an aphorism-style punchline — most should end with plain information
+- Aphorism-style punchlines are a strong tell — HARD LIMIT 1-2 in the WHOLE chapter (count them before finishing). This includes symmetric closers ("X wymaga planowania, nie talentu"; "...nie pracą, lecz aktem wiary"; "Bez X nie ma Y, a bez Y nie ma Z"; "...niż wszystkie inne razem wzięte"). Almost every paragraph and box must end on a plain, informative sentence — not a quotable line
 - NUMERIC TABLES: before finalizing, recompute every derived value (sums, averages, weighted
   scores) by hand — all arithmetic in a table must check out exactly. Readers verify these
 - Quotes: use \`\`...'' (English) or ,,...'' (Polish). NEVER the straight " character — it breaks typesetting
@@ -1180,6 +1191,7 @@ You have FOUR special macros. Supply ONLY the content — never write raw TikZ. 
    \\concept{WYSIWYM}{What You See Is What You Mean --- opisujesz znaczenie, system dba o wygląd.}
 
 MACRO RULES:
+- \\bignumber{VALUE}: VALUE must be an ACTUAL figure (e.g. 320\\,000, 68\\%, 2,5×), never a description or phrase. If you have no real number from the research material, do NOT use \\bignumber at all.
 - \\stepflow steps must be SHORT (1-3 words) and comma-separated on ONE line — never long sentences.
 - Prefer a \\stepflow diagram over describing a process only in prose.
 - NEVER use \\includegraphics or reference image files (rysunek.pdf, schemat.pdf, wykres.png, etc.) —

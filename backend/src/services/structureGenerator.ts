@@ -178,6 +178,36 @@ export async function generateStructure(projectId: string) {
       },
     });
 
+    // Autopilot (admin unattended run): skip the human STRUCTURE_REVIEW gate —
+    // auto-approve the freshly saved structure and chain straight into content
+    // (mirrors the manual /structure/approve endpoint). Content then auto-runs
+    // compile, so the whole pipeline completes with no further input.
+    const proj = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { autoPilot: true, structure: { select: { id: true } } },
+    });
+    if (proj?.autoPilot && proj.structure) {
+      await prisma.projectStructure.update({
+        where: { id: proj.structure.id },
+        data: { approvedAt: new Date() },
+      });
+      await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          currentStage: "GENERATING",
+          generationStatus: "GENERATING_CONTENT",
+        },
+      });
+      const { enqueueGeneration } = await import("../lib/jobQueue");
+      await enqueueGeneration("content", projectId);
+      log.ok("Autopilot: structure auto-approved, content generation enqueued");
+      log.footer(
+        "SUCCESS",
+        `${structure.chapters?.length || 0} chapters, ${totalWords.toLocaleString()} target words (autopilot)`,
+      );
+      return;
+    }
+
     await prisma.project.update({
       where: { id: projectId },
       data: {

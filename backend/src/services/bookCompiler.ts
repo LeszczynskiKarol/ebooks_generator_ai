@@ -108,7 +108,10 @@ export async function compileBook(projectId: string) {
         let coverResult: { pdfPath: string } | null = null;
         if (
           project.coverType === "GENERATED" &&
-          process.env.COVER_DESIGNER !== "off"
+          process.env.COVER_DESIGNER !== "off" &&
+          // Routine books ship the agent's own coverLatex — compile it directly
+          // (compileCover), don't run the API-billed FLUX cover designer.
+          project.contentSource !== "routine"
         ) {
           try {
             const { designCover } = await import("./coverDesigner");
@@ -139,7 +142,9 @@ export async function compileBook(projectId: string) {
       }
     }
 
-    const texContent = assembleLatexDocument({
+    // Everything the document needs EXCEPT the chapters — reused verbatim when
+    // the visual-review pass re-assembles after patching chapter LaTeX.
+    const baseAssembleOpts = {
       title: bookTitle,
       language: project.language,
       authorName: project.authorName,
@@ -154,6 +159,10 @@ export async function compileBook(projectId: string) {
       coverType: project.coverType,
       stripFootnotes: !footnotesEnabled(project),
       coverPdfFile,
+    };
+
+    const texContent = assembleLatexDocument({
+      ...baseAssembleOpts,
       chapters: readyChapters,
     });
 
@@ -248,6 +257,51 @@ export async function compileBook(projectId: string) {
       throw new Error(
         `Compiled PDF looks broken (${(pdfSize / 1024).toFixed(0)} KB, ${pageCount ?? "?"} pages) — check ${path.join(buildDir, "book.log")}`,
       );
+    }
+
+    // ── 2.6 VISUAL verification pass (vision QA → fix → recompile) ──
+    // Render every page, have a vision model catch on-page defects (raw LaTeX
+    // printed as text, overflow, clipped images, broken tables...), patch the
+    // chapter LaTeX and recompile. Bounded; non-fatal (book ships either way).
+    // Routine-authored books already had the agent's own (subscription) visual
+    // QA — don't re-run the API-billed backend review on them.
+    if (process.env.VISUAL_REVIEW !== "off" && project.contentSource !== "routine") {
+      try {
+        const { visualReviewAndFix } = await import("./visualReviewService");
+        const recompile = async () => {
+          const fresh = await prisma.chapter.findMany({
+            where: { projectId },
+            orderBy: { chapterNumber: "asc" },
+          });
+          const freshReady = fresh.filter(
+            (c) => c.latexContent && c.status === "LATEX_READY",
+          );
+          const tex = assembleLatexDocument({
+            ...baseAssembleOpts,
+            chapters: freshReady,
+          });
+          fs.writeFileSync(texPath, tex, "utf-8");
+          for (let pass = 1; pass <= 2; pass++) {
+            try {
+              await execAsync(
+                `lualatex -interaction=nonstopmode -output-directory="${buildDir}" "${texPath}"`,
+                { timeout: 180000, maxBuffer: 10 * 1024 * 1024, cwd: buildDir },
+              );
+            } catch {
+              /* judge by the PDF, like the main loop */
+            }
+          }
+        };
+        const vr = await visualReviewAndFix(projectId, buildDir, recompile, {
+          step: (m: string) => console.log(`  🔍 ${m}`),
+          warn: (m: string) => console.warn(`  ⚠️ ${m}`),
+        });
+        console.log(
+          `  🔍 Visual review: ${vr.rounds} round(s), ${vr.totalIssues} issue(s), ${vr.totalFixes} fix(es) applied`,
+        );
+      } catch (vrErr: any) {
+        console.warn(`  ⚠️ Visual review skipped (non-fatal): ${vrErr.message}`);
+      }
     }
 
     // ── 3. Version management ──

@@ -26,6 +26,7 @@ import apiClient from "@/lib/api";
 import CoverEditor, { type CoverEditorHandle } from "@/components/CoverEditor";
 import { type ProjectStage } from "@/lib/types";
 import { useT } from "@/lib/i18n";
+import { useMoney } from "@/lib/money";
 import { useAuthStore } from "@/stores/authStore";
 import toast from "react-hot-toast";
 import { useRef, useState, useEffect } from "react";
@@ -74,6 +75,7 @@ const FLOW_STEPS: {
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const t = useT();
+  const { formatUsdCents } = useMoney();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [titlePageDirty, setTitlePageDirty] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
@@ -145,6 +147,13 @@ export default function ProjectDetail() {
   }
 
   const project = data;
+  // Price always in the CURRENT UI locale (zł for /pl, $ otherwise) — the
+  // stored priceFormatted is only PLN when the project was created in PL,
+  // so autopilot/USD-created books would otherwise show "$" on the PL page.
+  const priceStr =
+    project.priceUsdCents != null
+      ? formatUsdCents(project.priceUsdCents)
+      : (project.priceFormatted ?? project.priceUsdFormatted ?? "—");
   const isError = project.currentStage === "ERROR";
   const currentStepIdx = Math.max(
     0,
@@ -354,7 +363,7 @@ export default function ProjectDetail() {
             {t("projectDetail.payment")}
           </h3>
           <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 font-display mb-1">
-            {(project.priceFormatted ?? project.priceUsdFormatted) || "—"}
+            {priceStr}
           </div>
           <p className="text-sm text-gray-500 mb-4">
             {t("projectDetail.status")}{" "}
@@ -390,7 +399,7 @@ export default function ProjectDetail() {
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {t("projectDetail.paymentNotCompleted", {
-                  s: (project.priceFormatted ?? project.priceUsdFormatted),
+                  s: priceStr,
                 })}
               </p>
               <button
@@ -404,7 +413,7 @@ export default function ProjectDetail() {
                   <CreditCard className="w-5 h-5" />
                 )}
                 {t("projectDetail.completePayment", {
-                  s: (project.priceFormatted ?? project.priceUsdFormatted),
+                  s: priceStr,
                 })}
               </button>
               <p className="text-xs text-gray-500 mt-3">
@@ -465,6 +474,7 @@ export default function ProjectDetail() {
             targetPages={project.targetPages}
             bookTitle={project.title || project.topic}
             language={project.language}
+            generationStartedAt={project.generationStartedAt}
           />
         )}
 

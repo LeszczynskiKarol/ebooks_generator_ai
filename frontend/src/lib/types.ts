@@ -34,6 +34,7 @@ export interface ProjectSummary {
   currentStage: ProjectStage;
   generationStatus?: GenerationStatus;
   generationProgress: number;
+  generationStartedAt?: string | null;
   paymentStatus: PaymentStatus;
   priceUsdCents: number | null;
   priceUsdFormatted: string | null;

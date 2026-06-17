@@ -49,6 +49,8 @@ interface GenerationProgressProps {
   targetPages: number;
   bookTitle: string;
   language: string;
+  /** server-side run start (ISO) — anchors the elapsed timer across refreshes */
+  generationStartedAt?: string | null;
 }
 
 type Phase =
@@ -275,9 +277,18 @@ export default function GenerationProgress({
   targetPages,
   bookTitle,
   language,
+  generationStartedAt,
 }: GenerationProgressProps) {
   const t = useT();
-  const [elapsed, setElapsed] = useState(0);
+  // Seed from the server-side start time so a page refresh keeps the real
+  // elapsed instead of restarting from 0. Falls back to 0 if not provided.
+  const initialElapsed = useMemo(() => {
+    if (!generationStartedAt) return 0;
+    const startedMs = new Date(generationStartedAt).getTime();
+    if (Number.isNaN(startedMs)) return 0;
+    return Math.max(0, Math.floor((Date.now() - startedMs) / 1000));
+  }, [generationStartedAt]);
+  const [elapsed, setElapsed] = useState(initialElapsed);
   const [researchStep, setResearchStep] = useState(0);
   const [reviewStep, setReviewStep] = useState(0);
   const [compileStep, setCompileStep] = useState(0);
@@ -290,10 +301,13 @@ export default function GenerationProgress({
   );
 
   // ── Elapsed timer ──
+  // Re-seed when the run start changes (late-arriving prop / new run) so the
+  // counter snaps to the true server elapsed, then ticks once per second.
   useEffect(() => {
+    setElapsed(initialElapsed);
     const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [initialElapsed]);
 
   // ── Animated sub-steps for research phase ──
   useEffect(() => {

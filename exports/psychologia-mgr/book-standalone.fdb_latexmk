@@ -1,0 +1,9 @@
+# Fdb version 4
+["lualatex"] 0 "book-standalone.tex" "book-standalone.pdf" "book-standalone" 0 -1
+  "book-standalone.aux" 0 -1 0 "lualatex"
+  "book-standalone.tex" 0 -1 0 ""
+  (generated)
+  "book-standalone.aux"
+  "book-standalone.log"
+  "book-standalone.pdf"
+  (rewritten before read)

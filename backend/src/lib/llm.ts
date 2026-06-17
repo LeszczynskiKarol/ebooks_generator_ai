@@ -221,6 +221,22 @@ async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
   throw lastErr;
 }
 
+// Anthropic SDK rzuca SYNCHRONICZNIE (zanim cokolwiek poleci do API), gdy
+// max_tokens przekracza ~21333 w trybie non-streaming: szacuje czas jako
+// (60*60*max_tokens)/128000 [s] i jeśli > 600 s wyrzuca błąd
+// "Streaming is strongly recommended for operations that may take longer
+// than 10 minutes". Długie rozdziały (28k–32k tokenów) zawsze przekraczają
+// próg → wszystkie padały natychmiast. Streaming omija ten guard całkowicie,
+// a finalMessage() scala strumień w pełny Message, więc interfejs callerów
+// pozostaje bez zmian.
+async function anthropicCreate(
+  params: Anthropic.MessageCreateParamsNonStreaming,
+): Promise<Anthropic.Message> {
+  // `stream` nie należy do parametrów .stream(); usuń, gdyby wpadł z params.
+  const { stream: _drop, ...rest } = params as Anthropic.MessageCreateParams;
+  return anthropic().messages.stream(rest).finalMessage();
+}
+
 // ── Routing per-wywołanie wg bieżącego wyboru ──
 async function unifiedCreate(
   params: Anthropic.MessageCreateParamsNonStreaming,
@@ -232,19 +248,12 @@ async function unifiedCreate(
   if (opt?.provider === "ollama") return withRetry(() => ollamaCreate(params));
   if (opt?.provider === "anthropic" && opt.model) {
     const forcedModel = opt.model;
-    return withRetry(
-      async () =>
-        (await anthropic().messages.create({
-          ...params,
-          model: forcedModel,
-        })) as Anthropic.Message,
+    return withRetry(() =>
+      anthropicCreate({ ...params, model: forcedModel }),
     );
   }
   // auto / produkcja → model taki, jaki podał serwis
-  return withRetry(
-    async () =>
-      (await anthropic().messages.create(params)) as Anthropic.Message,
-  );
+  return withRetry(() => anthropicCreate(params));
 }
 
 let _client: Anthropic | null = null;
