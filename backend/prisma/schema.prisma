@@ -19,7 +19,7 @@ model User {
   authTokens    AuthToken[]
 
   stripeCustomerId     String? @unique
-  stripeCustomerIdTest String? @unique
+  stripeCustomerIdTest String?
   projects             Project[]
 
   createdAt DateTime @default(now())
