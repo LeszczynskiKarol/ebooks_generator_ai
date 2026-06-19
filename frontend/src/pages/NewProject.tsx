@@ -333,7 +333,10 @@ export default function NewProject() {
       if (selectedColors.length > 0) payload.customColors = selectedColors;
       const { data } = await apiClient.post("/admin/routine/run-book", payload);
       localStorage.removeItem(DRAFT_KEY);
-      const sessionUrl = data?.data?.session_url || data?.data?.url;
+      const sessionUrl =
+        data?.data?.claude_code_session_url ||
+        data?.data?.session_url ||
+        data?.data?.url;
       toast.success(
         "Rutyna odpalona (subskrypcja) — książka pojawi się po jej zakończeniu",
       );

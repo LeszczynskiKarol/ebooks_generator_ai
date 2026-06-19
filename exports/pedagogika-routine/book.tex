@@ -1,0 +1,750 @@
+\documentclass[11pt,a5paper,twoside,openany]{book}
+
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\usepackage[polish]{babel}
+
+\setmainfont{Libertinus Serif}
+\setsansfont{TeX Gyre Adventor}
+\newfontfamily\headingfont{TeX Gyre Adventor}
+
+\usepackage[
+  a5paper,
+  inner=20mm, outer=15mm,
+  top=25mm, bottom=25mm,
+  headheight=36pt
+]{geometry}
+
+\usepackage[dvipsnames,svgnames,x11names]{xcolor}
+
+\definecolor{chaptercolor}{HTML}{7C3AED}
+\definecolor{sectioncolor}{HTML}{374151}
+\definecolor{accent}{HTML}{7C3AED}
+\definecolor{rulecolor}{HTML}{DDD6FE}
+\definecolor{headergray}{HTML}{6B7280}
+\definecolor{quotegray}{HTML}{6B7280}
+\definecolor{captiongray}{HTML}{4B5563}
+\definecolor{subtitlegray}{HTML}{6B7280}
+\definecolor{linkcolor}{HTML}{7C3AED}
+\definecolor{titletextcolor}{HTML}{1F2937}
+\definecolor{tipbg}{HTML}{ECFDF5}
+\definecolor{tipframe}{HTML}{059669}
+\definecolor{keybg}{HTML}{EFF6FF}
+\definecolor{keyframe}{HTML}{2563EB}
+\definecolor{warnbg}{HTML}{FFFBEB}
+\definecolor{warnframe}{HTML}{D97706}
+\definecolor{exbg}{HTML}{FAF5FF}
+\definecolor{exframe}{HTML}{9333EA}
+\definecolor{tableheadbg}{HTML}{5B21B6}
+\definecolor{tableheadfg}{HTML}{FFFFFF}
+
+\usepackage{fancyhdr}
+\usepackage{truncate}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+\fancyhead[LE]{\footnotesize\sffamily\textcolor{headergray}{\truncate{0.9\headwidth}{\leftmark}}}
+\fancyhead[RO]{\footnotesize\sffamily\textcolor{headergray}{\truncate{0.9\headwidth}{\rightmark}}}
+\fancyfoot[C]{\small\sffamily\textcolor{headergray}{\thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{rulecolor}\leaders\hrule height \headrulewidth\hfill}}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\small\sffamily\textcolor{headergray}{\thepage}}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{\textcolor{chaptercolor}{\chaptertitlename\ \thechapter.}}{15pt}{\Huge\color{chaptercolor}}
+\titlespacing*{\chapter}{0pt}{-30pt}{30pt}
+\titleformat{name=\chapter,numberless}{\normalfont\headingfont\Huge\bfseries\color{chaptercolor}}{}{0pt}{}
+\titlespacing*{name=\chapter,numberless}{0pt}{30pt}{30pt}
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\textcolor{accent}{\thesection.}}{1em}{}
+  [\vspace{3pt}{\color{accent}\titlerule[0.8pt]}]
+\titleformat{\subsection}{\normalfont\large\bfseries\color{sectioncolor}}{\thesubsection.}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries\color{sectioncolor}}{\thesubsubsection.}{1em}{}
+
+\usepackage{needspace}
+\let\bforigsection\section
+\renewcommand{\section}{\needspace{4\baselineskip}\bforigsection}
+\makeatletter
+\renewcommand{\cleardoublepage}{\clearpage\if@twoside\ifodd\c@page\else\hbox{}\thispagestyle{empty}\newpage\fi\fi}
+\makeatother
+\widowpenalty=10000
+\clubpenalty=10000
+\displaywidowpenalty=10000
+
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+
+\usepackage{enumitem}
+\setlist[itemize]{
+  leftmargin=1.5em,
+  itemsep=3pt, parsep=0pt, topsep=6pt,
+  label=\textcolor{accent}{\textbullet}
+}
+\setlist[enumerate]{
+  leftmargin=1.5em,
+  itemsep=3pt, parsep=0pt, topsep=6pt,
+  label=\textcolor{accent}{\arabic*.}
+}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{float}
+
+\setlength{\heavyrulewidth}{1.2pt}
+\setlength{\lightrulewidth}{0.6pt}
+\setlength{\aboverulesep}{8pt}
+\setlength{\belowrulesep}{8pt}
+
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{pdfpages}
+\usepackage{lettrine}
+\setcounter{DefaultLines}{2}
+\renewcommand{\LettrineFontHook}{\color{chaptercolor}\headingfont}
+
+\usepackage{tikz}
+\usetikzlibrary{shadows.blur, chains, arrows.meta, positioning}
+\usepackage[skins,breakable]{tcolorbox}
+
+\newtcolorbox{tipbox}[1][]{
+  enhanced, breakable,
+  colback=tipbg, colframe=tipframe,
+  boxrule=0pt, leftrule=3.5pt,
+  arc=2pt, outer arc=2pt, drop fuzzy shadow={black!18},
+  left=10pt, right=10pt, top=14pt, bottom=8pt,
+  fonttitle=\bfseries\small\color{tipframe},
+  title={#1},
+  before upper={\parindent0pt\small},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={
+    colback=tipbg, colframe=tipbg,
+    boxrule=0pt, arc=0pt,
+    left=2pt, right=2pt, top=0.5pt, bottom=0.5pt
+  }
+}
+
+\newtcolorbox{keyinsight}[1][]{
+  enhanced, breakable,
+  colback=keybg, colframe=keyframe,
+  boxrule=0.8pt,
+  arc=4pt, outer arc=4pt, drop fuzzy shadow={black!18},
+  left=10pt, right=10pt, top=12pt, bottom=8pt,
+  fonttitle=\bfseries\small\color{white},
+  title={#1},
+  before upper={\parindent0pt\small},
+  attach boxed title to top left={yshift=-\tcboxedtitleheight/2, xshift=8mm},
+  boxed title style={
+    colback=keyframe, colframe=keyframe,
+    boxrule=0.8pt, arc=3pt,
+    left=4pt, right=4pt, top=2pt, bottom=2pt
+  }
+}
+
+\newtcolorbox{warningbox}[1][]{
+  enhanced, breakable,
+  colback=warnbg, colframe=warnframe,
+  boxrule=0pt, leftrule=3.5pt,
+  arc=2pt, outer arc=2pt, drop fuzzy shadow={black!18},
+  left=10pt, right=10pt, top=14pt, bottom=8pt,
+  fonttitle=\bfseries\small\color{warnframe},
+  title={#1},
+  before upper={\parindent0pt\small},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={
+    colback=warnbg, colframe=warnbg,
+    boxrule=0pt, arc=0pt,
+    left=2pt, right=2pt, top=0.5pt, bottom=0.5pt
+  }
+}
+
+\newtcolorbox{examplebox}[1][]{
+  enhanced, breakable,
+  colback=exbg, colframe=exframe,
+  boxrule=0.6pt,
+  arc=4pt, outer arc=4pt, drop fuzzy shadow={black!18},
+  left=10pt, right=10pt, top=14pt, bottom=8pt,
+  fonttitle=\bfseries\small\color{exframe!20!black},
+  title={#1},
+  before upper={\parindent0pt\small},
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={
+    colback=exbg, colframe=exbg,
+    boxrule=0pt, arc=0pt,
+    left=2pt, right=2pt, top=0.5pt, bottom=0.5pt
+  }
+}
+
+% \pullquote{text} — large elegant pull quote
+\newcommand{\pullquote}[1]{%
+  \par\vspace{12pt}\noindent
+  \begin{tcolorbox}[blanker, breakable, left=2.2em, right=1em, top=2pt, bottom=2pt,
+    borderline west={2.5pt}{0pt}{accent}]
+    {\color{chaptercolor}\Large\itshape #1}
+  \end{tcolorbox}\vspace{10pt}\par
+}
+
+% \bignumber{value}{label} — big statistic callout
+\newcommand{\bignumber}[2]{%
+  \par\vspace{8pt}\noindent\begin{minipage}{\linewidth}\centering
+  {\headingfont\bfseries\color{accent}\fontsize{40}{44}\selectfont #1}\\[3pt]
+  {\sffamily\small\color{sectioncolor}#2}
+  \end{minipage}\vspace{6pt}\par
+}
+
+% \stepflow{A, B, C, ...} — horizontal process flow (any number of steps)
+\newcommand{\stepflow}[1]{%
+  \par\vspace{10pt}\begin{center}
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[start chain=going right, node distance=7mm,
+    stepbox/.style={draw=accent, line width=0.6pt, fill=accent!8,
+      rounded corners=3pt, text width=2.0cm, align=center, minimum height=1.05cm,
+      inner sep=3pt, font=\footnotesize\sffamily, on chain,
+      join=by {-{Latex[length=2.2mm]}, accent, line width=0.7pt}}]
+    \foreach \stp in {#1} { \node[stepbox] {\stp}; }
+  \end{tikzpicture}}
+  \end{center}\vspace{8pt}\par
+}
+
+% \concept{title}{description} — definition / concept callout
+\newcommand{\concept}[2]{%
+  \par\vspace{6pt}
+  \begin{tcolorbox}[enhanced, breakable, colback=accent!6, colframe=accent,
+    boxrule=0pt, leftrule=3.5pt, arc=2pt, drop fuzzy shadow={black!15},
+    left=10pt, right=10pt, top=7pt, bottom=7pt, before upper={\parindent0pt}]
+    {\sffamily\bfseries\color{accent}#1}\par\vspace{2pt}\small #2
+  \end{tcolorbox}\par
+}
+
+\usepackage{csquotes}
+\renewenvironment{quote}{%
+  \list{}{%
+    \leftmargin=1.5em
+    \rightmargin=1.5em
+    \itshape
+    \color{quotegray}
+  }%
+  \item\relax
+  \hspace{-0.5em}\textcolor{accent}{\large\textbf{``}}%
+}{%
+  \endlist
+}
+
+\usepackage[hidelinks,unicode,
+  colorlinks=true,
+  linkcolor=linkcolor,
+  urlcolor=accent
+]{hyperref}
+
+\usepackage[
+  font={small},
+  labelfont={bf,color=accent},
+  textfont={color=captiongray},
+  skip=8pt
+]{caption}
+
+\usepackage{tocloft}
+\renewcommand{\cftchapfont}{\bfseries\color{black}}
+\renewcommand{\cftchappagefont}{\bfseries\color{black}}
+\renewcommand{\cftsecfont}{\color{black}}
+\renewcommand{\cftsecpagefont}{\color{black}}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftchapdotsep}}
+\renewcommand{\cftchapdotsep}{2.5}
+\setlength{\cftbeforechapskip}{6pt}
+
+% ── Trailing dots after section numbers (e.g. 1.2. instead of 1.2) ──
+\renewcommand{\cftchapaftersnum}{.}
+\renewcommand{\cftsecaftersnum}{.}
+\renewcommand{\cftsubsecaftersnum}{.}
+\makeatletter
+\renewcommand{\@seccntformat}[1]{\csname the#1\endcsname.\quad}
+\makeatother
+
+\graphicspath{{./images/}{./}}
+
+\begin{document}
+
+% ── Cover included natively (pdfunite/pdftk merging killed TOC links) ──
+\includepdf[pages=1]{cover.pdf}
+\null\thispagestyle{empty}\newpage
+\setcounter{page}{1}
+
+{
+  \hypersetup{linkcolor=black}
+  \tableofcontents
+}
+\clearpage
+
+\chapter{Zanim zaczniesz --- temat, promotor i~plan}
+
+\section{Jak wybrać temat, który da się obronić}
+
+Wybór tematu pracy magisterskiej to decyzja, która zaważy na kolejnych dwóch latach twojego życia akademickiego. Większość studentów podchodzi do niej odwrotnie niż powinna: zaczyna od szukania ,,czegoś interesującego'', zamiast sprawdzić, czy temat jest realnie wykonalny w~dostępnym czasie i~przy dostępnych zasobach.
+
+\concept{Temat pracy magisterskiej}{Precyzyjne sformułowanie problemu badawczego, który student zamierza zbadać metodami naukowymi. Dobry temat wyznacza jednocześnie zakres literatury, typ badań i~grupę badaną.}
+
+Dobry temat leży na przecięciu trzech obszarów: twojego autentycznego zainteresowania, dostępności materiałów źródłowych i~możliwości przeprowadzenia badań empirycznych. Jeśli planujesz ankietować nauczycieli, musisz mieć realny dostęp do szkół. Jeśli chcesz analizować dokumenty, musisz wiedzieć, gdzie je zdobędziesz. Temat pięknie brzmiący, ale wymagający dostępu do zamkniętych archiwów lub badania grupy, której nie znasz, to prosta droga do kryzysu w~połowie pisania.
+
+W~pedagogice wyjątkowo dobrze sprawdza się łączenie tematu z~własną praktyką zawodową. Nauczyciel może badać strategie radzenia sobie z~agresją rówieśniczą we własnej szkole po uzyskaniu zgody dyrekcji. Wychowawca w~placówce opiekuńczej ma naturalny dostęp do środowiska, do którego studenci bez kontaktów zawodowych nie dotrą. Wielu promotorów aktywnie zachęca do takiego powiązania, bo przekłada się ono na jakość zebranego materiału empirycznego.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijxo7w000.jpg}
+\caption{Nauczyciel prowadzący obserwację w~klasie — przykład badań empirycznych osadzonych we własnym środowisku zawodowym.}
+\end{figure}
+
+
+\begin{warningbox}[Najczęstszy błąd przy wyborze tematu]
+,,Agresja w~szkole'' to nie temat pracy magisterskiej, to dziedzina badań. ,,Strategie radzenia sobie z~agresją rówieśniczą wśród uczniów klas IV--VI szkół podstawowych w~środowisku miejskim'' to temat konkretny: ma określoną próbę badawczą, jasne pytanie i~dający się zrealizować plan zbierania danych. Im węższy temat, tym głębsza analiza.
+\end{warningbox}
+
+Unikaj tematów nadmiernie eksploatowanych, takich jak ogólne ,,metody aktywizujące'' czy ,,rola rodziny w~wychowaniu'', jeśli nie masz wyraźnego, oryginalnego kąta widzenia. Promotorzy przyjmują rocznie dziesiątki prac na te same zagadnienia i~oczekują, że student wniesie coś nowego: inne środowisko badań, inną grupę wiekową lub oryginalny instrument badawczy.
+
+\stepflow{Wybór obszaru, Zawężenie tematu, Weryfikacja źródeł, Konsultacja z~promotorem, Zatwierdzenie}
+
+\begin{tipbox}[Technika wyboru tematu w~trzech krokach]
+Wypisz dziesięć zagadnień z~pedagogiki, które cię interesują. Dla każdego sprawdź: czy istnieje co najmniej 10 polskich monografii na ten temat z~ostatnich 10~lat? Czy możesz przeprowadzić badania w~ciągu 3~miesięcy? Zostaw tylko te, które spełniają oba kryteria, i~wyślij shortlistę promotorowi przed pierwszym spotkaniem.
+\end{tipbox}
+
+Temat o~zbyt szerokim zakresie generuje pracę, która nigdzie nie dociera głębiej niż kilka akapitów. Temat zbyt wąski prowadzi do sytuacji, w~której student przeczytał całą literaturę po dwóch tygodniach i~nie wie, co robić dalej. Złoty środek to temat, który można opisać jednym zdaniem zawierającym: badaną grupę, środowisko, zjawisko i~aspekt zjawiska. Sprawdź, czy taki temat ma swojego precyzyjnego kuzyna w~bazie prac dyplomowych --- jeśli ktoś już go zbadał identycznie, zmień jedno ogniwo (inny wiek, inne województwo, inna zmienna moderująca).
+
+\section{Promotor --- jak wybrać i~jak współpracować}
+
+Promotor to nie tylko formalny opiekun. To osoba, która kształtuje sposób myślenia o~problemie badawczym, wskazuje braki w~argumentacji i~decyduje, czy praca trafi do obrony. Wybór promotora jest co najmniej tak ważny jak wybór tematu.
+
+Przy wyborze zwróć uwagę na trzy rzeczy. Sprawdź, w~jakich obszarach promotor prowadzi własne badania --- idealnie, żeby twój temat mieścił się w~jego specjalizacji. Zapytaj starszych studentów o~styl pracy: czy jest dostępny, czy odpowiada na maile w~rozsądnym czasie, czy wyznacza realne terminy. Przejrzyj jego dorobek w~bazie POL-on lub ORCID, bo promotor aktywny badawczo zazwyczaj lepiej oceni wartość twojej metodologii i~pomoże w~interpretacji wyników.
+
+\begin{examplebox}[Dwa modele współpracy ze studentami]
+Część promotorów preferuje model autonomiczny: student przesyła gotowe rozdziały co kilka tygodni, a~promotor odsyła komentarze mailem. Inni wolą model warsztatowy: regularne spotkania co dwa tygodnie z~omówieniem bieżących problemów. Oba działają, ale tylko wtedy, gdy student z~góry wie, czego oczekuje promotor. Zapytaj o~to wprost na pierwszym spotkaniu, zamiast odkrywać preferencje po miesiącach frustracji.
+\end{examplebox}
+
+Na pierwsze spotkanie przygotuj konspekt: wstępny temat, zarys problemu badawczego, trzy do pięciu pytań badawczych i~pomysł na metodę zbierania danych. Promotor nie oczekuje gotowego rozwiązania, ale chce zobaczyć, że student myśli samodzielnie. Przyjście z~pustymi rękami i~pytaniem ,,co mam robić?'' skutkuje zazwyczaj tym, że promotor narzuca temat z~własnych zainteresowań, niekoniecznie zbieżnych z~twoimi.
+
+W~trakcie pisania traktuj każde spotkanie z~promotorem jak konsultację projektową: przychodź z~konkretnym problemem lub pytaniem, nie po ogólną ocenę. ,,Mam wątpliwości, czy moja próba 80~osób jest wystarczająca do analizy regresji'' to pytanie, na które promotor może odpowiedzieć precyzyjnie. ,,Co pan sądzi o~moim rozdziale trzecim?'' to pytanie, które zajmuje godzinę i~rzadko daje konkretne wskazówki.
+
+\begin{keyinsight}[Zasada pierwszego spotkania]
+Pierwsze spotkanie z~promotorem to twoja jedyna szansa na negocjowanie tematu z~pozycji siły. Po zatwierdzeniu tematu zmiana wymagań jest trudna i~czasochłonna. Przyjdź z~konspektem, propozycją metody badań i~listą pytań --- to sygnał gotowości, który każdy promotor docenia.
+\end{keyinsight}
+
+\section{Harmonogram --- jak zaplanować rok pisania}
+
+Promotor nie będzie pilnował twojego kalendarza. To twoja odpowiedzialność. Studenci, którzy piszą na czas, mają jedno wspólne: traktują pisanie pracy jak projekt z~kamieniami milowymi, nie jak otwarty temat do kiedy indziej.
+
+\begin{table}[ht]
+\centering
+\caption{Przykładowy harmonogram pracy magisterskiej rozłożony na cztery semestry}
+\begin{tabularx}{\textwidth}{lXl}
+\toprule
+\rowcolor{tableheadbg} \textcolor{tableheadfg}{\textbf{Okres}} & \textcolor{tableheadfg}{\textbf{Główne zadania}} & \textcolor{tableheadfg}{\textbf{Efekt}} \\
+\midrule
+Semestr I & Wybór tematu i~promotora, kwerenda biblioteczna, konspekt & Zatwierdzony temat \\
+Semestr II & Pisanie rozdziałów teoretycznych, kompletowanie literatury & Gotowa teoria \\
+Semestr III & Metodologia, zbieranie danych, analiza wyników & Gotowe badania \\
+Semestr IV & Wnioski, korekta, formatowanie, złożenie pracy & Obroniona praca \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Najczęstszy błąd to kumulowanie wszystkiego na ostatni semestr. Badania empiryczne wymagają czasu, którego nie można skompresować: rekrutacja uczestników, zbieranie danych, analiza i~pisanie wniosków to etapy następujące po sobie. Jeśli zaczniesz zbierać ankiety w~czerwcu, a~termin złożenia pracy masz we wrześniu, nie zostaje żadnego buforu na problemy, które zawsze się pojawiają.
+
+\pullquote{Plan nie jest po to, żeby go przestrzegać co do dnia. Jest po to, żeby wiedzieć, kiedy jesteś za daleko w~tyle, żeby samemu to naprawić.}
+
+Wyznacz sobie tygodniowe minimalne limity pracy. Nawet 90~minut pisania trzy razy w~tygodniu da po sześciu miesiącach kilkadziesiąt stron solidnego tekstu. Praca pisana regularnie jest równa stylistycznie i~wymaga mniej poprawek niż tekst tworzony w~sesjach maratonowych raz na miesiąc. Pisanie codziennie przez godzinę jest wydajniejsze niż ośmiogodzinna sesja w~sobotę.
+
+\begin{tipbox}[Trzy narzędzia, które zastąpią stos wydrukowanych artykułów]
+Zotero automatycznie generuje bibliografię w~wybranym stylu i~importuje dane bibliograficzne z~baz naukowych jednym kliknięciem. Notion lub Obsidian służą do zarządzania notatkami i~strukturą rozdziałów. Google Docs lub Word Online umożliwiają promotorowi komentowanie bezpośrednio w~dokumencie. Połączenie tych trzech narzędzi eliminuje większość chaosu organizacyjnego.
+\end{tipbox}
+
+Kamień milowy to punkt, w~którym możesz realnie ocenić postępy i~ewentualnie przesunąć kolejne terminy, zanim sytuacja wymknie się spod kontroli.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijxu1f000.jpg}
+\caption{Kamienie milowe projektu jako fizyczne punkty orientacyjne — metafora planowania pracy magisterskiej w~czasie.}
+\end{figure}
+
+ Wyznacz cztery takie punkty: zatwierdzony temat, gotowa część teoretyczna, zebrane i~zanalizowane dane, złożona praca. Każdy kamień milowy wymaga formalnego potwierdzenia --- spotkania z~promotorem lub wiadomości mailowej z~jego akceptacją.
+
+\begin{keyinsight}[Cztery kamienie milowe magisterki]
+Zatwierdzony temat, gotowa część teoretyczna, zebrane i~zanalizowane dane, złożona praca --- każdy z~tych punktów to naturalny moment na ocenę postępów i~korektę kursu, jeśli coś poszło niezgodnie z~planem.
+\end{keyinsight}
+
+\clearpage
+
+\chapter{Architektura pracy --- co gdzie i~dlaczego}
+
+\section{Części składowe i~ich logika}
+
+Praca magisterska z~pedagogiki nie jest zbiorem rozdziałów napisanych po kolei. To argument naukowy, który ma wewnętrzną logikę: problem badawczy rodzi pytania, pytania wymagają metody, metoda dostarcza danych, dane prowadzą do wniosków. Każda część pracy służy tej logice lub jej przeszkadza.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijy79o000.jpg}
+\caption{Logika pracy naukowej opiera się na spójnym łańcuchu: od problemu badawczego przez metodę aż do wniosków.}
+\end{figure}
+
+
+\concept{Problem badawczy}{Centralne pytanie, na które praca ma odpowiedzieć. Dobrze sformułowany problem jest konkretny, ograniczony zakresowo i~realnie możliwy do zbadania w~ramach jednej pracy magisterskiej.}
+
+Standardowa struktura pracy magisterskiej z~pedagogiki obejmuje: stronę tytułową, oświadczenie o~samodzielności pisania, spis treści, wstęp, rozdziały teoretyczne (zwykle dwa), rozdział metodologiczny, rozdział empiryczny z~wynikami, zakończenie z~wnioskami i~bibliografię. Część uczelni wymaga dodatkowo aneksu z~narzędziami badawczymi oraz streszczenia w~języku obcym. Sprawdź w~regulaminie dyplomowania swojego wydziału, zanim zaczniesz formatować.
+
+\begin{table}[ht]
+\centering
+\caption{Typowa objętość poszczególnych części pracy magisterskiej z~pedagogiki}
+\begin{tabularx}{\textwidth}{lXr}
+\toprule
+\rowcolor{tableheadbg} \textcolor{tableheadfg}{\textbf{Część}} & \textcolor{tableheadfg}{\textbf{Zawartość}} & \textcolor{tableheadfg}{\textbf{Objętość}} \\
+\midrule
+Wstęp & Uzasadnienie tematu, cel, pytania badawcze & 3--5 stron \\
+Rozdział 1 (teoria) & Kluczowe pojęcia i~przegląd literatury & 20--30 stron \\
+Rozdział 2 (teoria) & Kontekst, teorie szczegółowe, stan badań & 15--25 stron \\
+Rozdział 3 (metodologia) & Metoda, narzędzia, próba, organizacja & 10--15 stron \\
+Rozdział 4 (empiria) & Wyniki badań i~analiza & 20--30 stron \\
+Zakończenie & Wnioski, ograniczenia, rekomendacje & 5--8 stron \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+W~pedagogice obowiązuje praktyczna zasada: praca musi mieć dwie nogi. Jedna to teoria (przegląd literatury i~ram pojęciowych), druga to empiria (własne badania). Czysto teoretyczne prace magisterskie, zbudowane wyłącznie na analizie literatury, są przez większość wydziałów pedagogicznych w~Polsce odrzucane już na etapie zatwierdzania tematu. Pytanie ,,gdzie są pana badania?'' zadane przez recenzenta to pytanie, którego nie chcesz usłyszeć.
+
+\stepflow{Wstęp, Teoria, Metodologia, Wyniki, Wnioski}
+
+\section{Rozdział teoretyczny --- jak budować fundament}
+
+Rozdział teoretyczny to nie streszczenie przeczytanych książek. To selektywna, krytyczna analiza literatury prowadząca czytelnika od ogółu do szczegółu, od szerokich teorii do konkretnego problemu badawczego twojej pracy. Różnica między dobrym a~słabym rozdziałem teoretycznym leży w~tym: czy autor prowadzi argument, czy tylko zbiera cytaty.
+
+Zacznij od pojęć. Zdefiniuj kluczowe terminy, powołując się na uznane autorytety w~dziedzinie. W~pedagogice terminy takie jak ,,socjalizacja'', ,,wychowanie'' czy ,,edukacja włączająca'' mają różne definicje u~różnych autorów. Twoim zadaniem jest pokazać tę różnorodność, a~następnie przyjąć jedną definicję operacyjną, z~którą będziesz pracować do końca pracy. Zmienianie definicji w~połowie to jeden z~najczęstszych błędów punktowanych przez recenzentów.
+
+\begin{warningbox}[Pułapka kopiowania definicji]
+Cytowanie definicji po sobie bez komentarza to nie analiza literatury. Każde zestawienie poglądów różnych autorów musi być opatrzone twoim komentarzem: gdzie poglądy są zbieżne, gdzie się różnią i~jakie ma to znaczenie dla twojego tematu. Promotorzy i~recenzenci czytają pracę pod kątem tego, czy student rozumie przeczytane teksty, nie tylko czy je znalazł.
+\end{warningbox}
+
+Przegląd stanu badań to oddzielna sekcja, w~której pokazujesz, co dotychczas zbadano w~twoim temacie i~jaką lukę wypełnia twoja praca. Nawet jeśli podobne badania były prowadzone, twoja praca może wnosić wartość przez inne środowisko badań, inną grupę wiekową lub nowszą perspektywę czasową. Luka badawcza to fundament uzasadnienia twojego projektu, bez niej praca wygląda na powtórzenie czegoś, co już zrobiono.
+
+\begin{tipbox}[Jak efektywnie przeszukiwać literaturę]
+Korzystaj z~polskich baz naukowych: BazHum dla humanistyki i~nauk społecznych, CEJSH (Central European Journal of Social Sciences and Humanities) oraz Repozytorium Cyfrowe Instytutów Naukowych. Google Scholar sprawdza się do poszukiwań anglojęzycznych i~do sprawdzania, kto cytuje dany artykuł. Unikaj Wikipedii jako źródła w~bibliografii, korzystaj z~niej najwyżej do orientacji w~temacie i~znalezienia pierwotnych źródeł.
+\end{tipbox}
+
+Struktura rozdziału teoretycznego powinna być odwrócona piramida: zacznij od szerokiego kontekstu, przejdź do węższego obszaru i~zakończ na konkretnym problemie. Taka struktura sprawia, że czytelnik naturalnie dochodzi do pytania badawczego razem z~autorem, zamiast czuć, że zostało ono wstawione bez uzasadnienia.
+
+\begin{examplebox}[Dobra i~zła struktura rozdziału teoretycznego]
+Wersja słaba: rozdział zaczyna się od definicji wychowania, potem omawia style wychowawcze, potem autorytet nauczyciela, potem klimat szkoły, bez wyraźnego powiązania między sekcjami. Wersja mocna: ten sam materiał ułożony tak, że każda sekcja wynika z~poprzedniej i~prowadzi do pytania: ,,Czy i~jak klimat szkoły mediuje wpływ stylu wychowawczego na relację uczeń -- nauczyciel?'' Różnicę robi plan, nie objętość przeczytanej literatury.
+\end{examplebox}
+
+\section{Wstęp i~zakończenie --- ramy, które decydują o~odbiorze}
+
+Wstęp i~zakończenie to jedyne części pracy, które prawie wszyscy czytają w~całości. Promotor, recenzent i~komisja zaczynają od wstępu, żeby ocenić, czy student rozumie, co robi. Zakończenie czytają, żeby sprawdzić, czy wyciągnął właściwe wnioski.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijyctp000.jpg}
+\caption{Promotor i~recenzent oceniają pracę przede wszystkim przez pryzmat wstępu i~zakończenia, które świadczą o~rozumieniu przez studenta logiki argumentu naukowego.}
+\end{figure}
+
+
+Wstęp powinien zawierać: uzasadnienie wyboru tematu (dlaczego ten problem jest ważny i~aktualny), cel pracy (co chcesz osiągnąć), pytania badawcze (na co konkretnie odpowie praca), hipotezy jeśli badania są ilościowe, oraz krótki opis struktury pracy. Wstęp piszesz ostatni, gdy wiesz już, co praca naprawdę zawiera.
+
+\bignumber{5--8}{stron powinno liczyć zakończenie pracy magisterskiej z~pedagogiki}
+
+\begin{warningbox}[Wstęp pisz ostatni, nie pierwszy]
+Najczęstszy błąd proceduralny: student pisze wstęp jako pierwsze, a~potem praca ewoluuje w~innym kierunku. Wstęp staje się wówczas opisem pracy, której już nie ma. Napisz roboczy zarys wstępu na początku (żeby mieć kotwicę), ale finalną wersję zostaw na koniec.
+\end{warningbox}
+
+Zakończenie to więcej niż streszczenie. Dobrze napisane zakończenie zawiera: odpowiedzi na pytania badawcze z~wyraźnym wskazaniem, czy hipotezy się potwierdziły, interpretację wyników w~kontekście literatury (co twoje wyniki dodają do dotychczasowego stanu wiedzy?), omówienie ograniczeń badań i~rekomendacje praktyczne lub dalsze kierunki badań. Zakończenie, w~którym widać, że student rozumie, co jego wyniki znaczą poza wąskim kontekstem pracy, zawsze dostaje wyższą ocenę.
+
+\pullquote{Praca naukowa zaczyna się pytaniem i~kończy nowym pytaniem --- tylko środek wypełniają odpowiedzi.}
+
+\begin{keyinsight}[Wstęp i~zakończenie jako nawigacja czytelnika]
+Wstęp mówi: ,,oto problem i~oto jak go zbadałem''. Zakończenie mówi: ,,oto co znalazłem i~co z~tego wynika''. Jeśli wstęp i~zakończenie są spójne i~odpowiadają na siebie nawzajem, komisja egzaminacyjna widzi, że student rozumie logikę argumentu naukowego.
+\end{keyinsight}
+
+\clearpage
+
+\chapter{Metodologia badań pedagogicznych}
+
+\section{Badania ilościowe --- ankieta i~statystyka}
+
+Badania ilościowe w~pedagogice opierają się na zbieraniu danych mierzalnych i~analizowaniu ich metodami statystycznymi. Ich celem jest uogólnienie wniosków na szerszą populację, odpowiedź na pytania ,,ile?'', ,,jak często?'' i~,,czy istnieje zależność między X i~Y?''. Najczęściej stosowanym narzędziem jest kwestionariusz ankiety, ale warto rozróżnić metodę (badanie sondażowe) od narzędzia (kwestionariusz), bo ten błąd pojawia się regularnie w~rozdziałach metodologicznych prac magisterskich.
+
+\concept{Badanie sondażowe}{Metoda badawcza polegająca na zbieraniu danych od wybranej próby respondentów za pomocą standaryzowanego narzędzia. Pozwala objąć dużą liczbę uczestników i~analizować statystycznie zależności między zmiennymi.}
+
+W~pracach magisterskich minimalna próba dla badań ilościowych wynosi zazwyczaj 100--150~osób, choć konkretna liczba zależy od planowanych analiz i~wymagań promotora. Jeśli planujesz użyć testów parametrycznych lub analizy regresji, potrzebujesz próby wystarczająco dużej, żeby mieć moc statystyczną do wykrycia zakładanego efektu. Zbyt mała próba to najczęstszy powód, dla którego wyniki badań ilościowych w~pracach magisterskich okazują się statystycznie nieistotne, co zmusza studenta do formułowania wniosków ,,mimo braku istotności''.
+
+\begin{table}[ht]
+\centering
+\caption{Porównanie głównych metod badawczych stosowanych w~pedagogice}
+\begin{tabularx}{\textwidth}{lXXr}
+\toprule
+\rowcolor{tableheadbg} \textcolor{tableheadfg}{\textbf{Metoda}} & \textcolor{tableheadfg}{\textbf{Cel}} & \textcolor{tableheadfg}{\textbf{Narzędzie}} & \textcolor{tableheadfg}{\textbf{Min. próba}} \\
+\midrule
+Ankieta & Uogólnienie statystyczne & Kwestionariusz & 100+ osób \\
+Wywiad & Rozumienie znaczeń & Scenariusz wywiadu & 8--15 osób \\
+Obserwacja & Analiza zachowań w~terenie & Karta obserwacji & 1--10 grup \\
+Analiza dokumentów & Kontekst, historia & Klucz kategoryzacyjny & bez limitu \\
+Studium przypadku & Pogłębiony opis & Mix metod & 1--5 przypadków \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Budując kwestionariusz, zacznij od operacjonalizacji zmiennych: każde abstrakcyjne pojęcie (np. ,,zaangażowanie ucznia'') musi być przełożone na konkretne, mierzalne wskaźniki (np. częstość zadawania pytań, regularność odrabiania pracy domowej). Pytania powinny być jednoznaczne, dotyczące tylko jednej kwestii naraz i~wolne od sugestii. Skale Likerta (1--5 lub 1--7) sprawdzają się do mierzenia postaw i~opinii. Pytania zamknięte ułatwiają analizę statystyczną; pytania otwarte wzbogacają obraz, ale wymagają kodowania przed analizą.
+
+\stepflow{Operacjonalizacja zmiennych, Budowa pytań, Pilotaż narzędzia, Zbieranie danych, Analiza statystyczna}
+
+\begin{tipbox}[Pilotaż kwestionariusza --- krok, którego nie wolno pominąć]
+Przed właściwym badaniem przetestuj kwestionariusz na grupie 5--10 osób podobnych do docelowej próby. Sprawdź, ile czasu zajmuje wypełnienie (powyżej 20~minut drastycznie obniża zwrotność), czy pytania są zrozumiałe i~czy nie pojawiają się nieoczekiwane interpretacje. Pilotaż kosztuje tydzień; pominięcie go może kosztować kilka miesięcy pracy nad błędnym narzędziem.
+\end{tipbox}
+
+\section{Badania jakościowe --- wywiad i~obserwacja}
+
+Badania jakościowe nie są ,,łatwiejszą'' alternatywą dla ilościowych. Są innym paradygmatem: zamiast pytać ,,ile?'' i~,,jak często?'', pytają ,,dlaczego?'' i~,,co to znaczy dla badanych?''. W~pedagogice badania jakościowe pozwalają zrozumieć subiektywne doświadczenia uczniów, nauczycieli i~rodziców w~sposób, którego żadna skala liczbowa nie odda.
+
+Najczęściej stosowane metody jakościowe w~pracach magisterskich z~pedagogiki to wywiad pogłębiony (indywidualny lub grupowy), obserwacja uczestnicząca i~analiza dokumentów. Wywiad pogłębiony prowadzony jest na podstawie scenariusza wywiadu, który zawiera główne pytania i~pytania pomocnicze. Liczba rozmówców w~badaniach jakościowych jest mała: od 8 do 15 osób w~przypadku wywiadów indywidualnych, bo celem jest nasycenie teoretyczne, a~nie reprezentatywność statystyczna.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijyqe4000.jpg}
+\caption{Badaczka prowadzi wywiad pogłębiony z~nauczycielem — metoda jakościowa pozwala uchwycić subiektywne doświadczenia, których nie zmierzą liczby.}
+\end{figure}
+
+
+\concept{Nasycenie teoretyczne}{Punkt, w~którym kolejne wywiady lub obserwacje nie przynoszą nowych kategorii ani wątków. W~badaniach jakościowych nasycenie, a~nie arbitralny limit liczby uczestników, wyznacza koniec zbierania danych.}
+
+\begin{examplebox}[Analiza tematyczna w~praktyce]
+Badaczka przeprowadziła 12~wywiadów pogłębionych z~nauczycielami mającymi uczniów z~orzeczeniem o~kształceniu specjalnym. Każdy wywiad trwał średnio 45~minut i~został nagrany (za zgodą rozmówcy), a~następnie transkrybowany słowo w~słowo. Materiał poddała analizie tematycznej: transkrypcja, kodowanie fragmentów, grupowanie kodów w~tematy, weryfikacja tematów. Wyniki ujawniły trzy główne napięcia doświadczane przez nauczycieli, których żaden kwestionariusz postaw nie wykryłby.
+\end{examplebox}
+
+Analiza danych jakościowych wymaga systematyczności. Popularna w~pedagogice analiza tematyczna przebiega w~sześciu krokach: zapoznanie się z~danymi (wielokrotne czytanie), wstępne kodowanie, wyszukiwanie tematów, przegląd tematów, definicja i~nazwanie tematów, produkcja raportu. Komputerowe programy do analizy danych jakościowych, takie jak MAXQDA lub Atlas.ti, ułatwiają zarządzanie dużą ilością materiału, ale nie zastępują analitycznego myślenia.
+
+\begin{warningbox}[Cytat to ilustracja, nie analiza]
+Najczęstszy błąd w~rozdziałach empirycznych prac jakościowych: student cytuje wypowiedzi rozmówców, ale ich nie interpretuje. Cytat to ilustracja twojej analizy, nie analiza sama w~sobie. Po każdym cytacie musi pojawić się twój komentarz: co ten fragment znaczy w~kontekście pytania badawczego, jak wpisuje się w~szerszy temat.
+\end{warningbox}
+
+\section{Kwestie etyczne i~RODO w~badaniach pedagogicznych}
+
+Badania pedagogiczne w~Polsce podlegają ogólnym wymogom etycznym nauki oraz przepisom rozporządzenia o~ochronie danych osobowych (RODO, Rozporządzenie UE 2016/679). Ignorowanie tych kwestii może nie tylko podważyć wartość pracy, ale w~skrajnych przypadkach uniemożliwić obronę.
+
+Podstawowym wymogiem jest świadoma zgoda uczestników. Przed badaniem każdy uczestnik powinien otrzymać informację o~celu badania, o~tym, że udział jest dobrowolny i~że może się wycofać w~dowolnym momencie bez żadnych konsekwencji. W~przypadku badań z~nieletnimi zgodę wyrażają rodzice lub opiekunowie prawni. Formularze zgody przechowuj przez cały czas pisania pracy i~dołącz wzór do aneksu.
+
+\begin{tipbox}[Jak uzyskać zgodę dyrekcji szkoły]
+Wystosuj oficjalne pismo z~pieczątką wydziału opisujące cel badania, metodę i~sposób ochrony danych. Dołącz wzór kwestionariusza lub scenariusz wywiadu. Proponuj termin, który nie koliduje z~ważnymi wydarzeniami szkolnymi (sprawdziany, wycieczki). Unikaj tygodnia przed i~po wakacjach. Odpowiedź uzyskasz szybciej, jeśli masz osobisty kontakt ze szkołą.
+\end{tipbox}
+
+RODO wymaga, żeby dane osobowe uczestników były zbierane i~przechowywane zgodnie z~zasadą minimalizacji: zbieraj tylko to, czego rzeczywiście potrzebujesz do analizy. Jeśli do odpowiedzi na pytanie badawcze nie potrzebujesz imion uczestników, nie zbieraj ich. Anonimizuj dane tak wcześnie, jak to możliwe.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijywgc000.jpg}
+\caption{Zasada minimalizacji danych i~anonimizacji to fundament etycznego prowadzenia badań pedagogicznych zgodnych z~RODO.}
+\end{figure}
+
+ W~pracy magisterskiej pseudonimizuj rozmówców (Nauczyciel~A, Respondent~3), a~nagrania usuń po transkrypcji, chyba że umowa z~uczestnikiem stanowi inaczej.
+
+\bignumber{100\%}{prac magisterskich w~Polsce musi przejść weryfikację w~JSA przed obroną}
+
+\begin{keyinsight}[Etyka badań jako element oceny pracy]
+Promotor i~recenzent oceniają nie tylko wyniki badań, ale i~sposób ich przeprowadzenia. Praca, w~której brakuje opisu procedury uzyskiwania zgód, anonimizacji danych lub refleksji nad ograniczeniami etycznymi, traci punkty za rzetelność metodologiczną niezależnie od jakości wyników.
+\end{keyinsight}
+
+\clearpage
+
+\chapter{Pisanie, formatowanie i~cytowania}
+
+\section{Styl akademicki --- jak pisać, żeby chciało się czytać}
+
+Akademicki styl pisania w~pedagogice to precyzja bez hermetyczności. Praca naukowa musi być zrozumiała dla wykształconego czytelnika spoza wąskiej specjalizacji, a~jednocześnie terminologicznie ścisła. Te dwa wymogi nie są sprzeczne, ale wymagają świadomej pracy nad językiem.
+
+Najważniejsza zasada: jedno zdanie, jedna myśl. Zdania wieloczłonowe, opatrzone kilkoma wtrąceniami i~rozwlekłymi kwalifikacjami, utrudniają czytelnikowi śledzenie argumentu. Jeśli masz kłopot z~rozbiciem zdania na dwa krótsze, to sygnał, że sama myśl nie jest jeszcze dość klarowna i~wymaga dopracowania, nie dłuższego zdania.
+
+\concept{Parafraza}{Samodzielne sformułowanie cudzej myśli własnymi słowami, z~obowiązkowym przypisem wskazującym źródło. Dobra parafraza nie tylko skraca oryginał, ale i~pokazuje, że autor rozumie przeczytany tekst.}
+
+\begin{warningbox}[Strona bierna jako ucieczka od odpowiedzialności]
+Zdania w~stronie biernej (,,zostały przeprowadzone badania'', ,,można zaobserwować'', ,,wykazano, że'') zacierają podmiotowość autora i~utrudniają ocenę, kto za danym twierdzeniem stoi. Pisz: ,,przeprowadziłem badania'', ,,zaobserwowałam'', ,,wyniki wskazują''. Aktywne zdania są krótsze, jaśniejsze i~bardziej przekonujące.
+\end{warningbox}
+
+Cytatów używaj jako wsparcia argumentu, nie jako jego zastępnika. Jeśli jakiś autor mówi dokładnie to, co chcesz powiedzieć i~formuła jest kluczowa, zacytuj go dosłownie. Jeśli chcesz jedynie przywołać jego pogląd, zrób to przez parafrazę z~przypisem. Praca, w~której co drugi akapit to blok cudzego tekstu, nie jest syntezą literatury, lecz antologią cytatów, co recenzenci oceniają jako brak własnego głosu.
+
+\begin{examplebox}[Cytat kontra parafraza w~praktyce]
+Cytat dosłowny: ,,Wychowanie jest procesem intencjonalnego kształtowania osobowości człowieka zgodnie z~przyjętymi wzorcami i~wartościami'' (Nowak, 2018, s.~45). Dobry wybór, gdy ta konkretna formuła jest ważna dla twojego argumentu. Parafraza: Nowak (2018) definiuje wychowanie jako celowe kształtowanie osobowości według określonych wzorców aksjologicznych. Lepszy wybór, gdy liczy się treść, nie brzmienie.
+\end{examplebox}
+
+Spójność terminologiczna to podstawa pracy naukowej. Jeśli w~rozdziale pierwszym używasz terminu ,,zaangażowanie szkolne'', nie możesz w~rozdziale trzecim pisać ,,motywacja ucznia'' i~,,aktywność w~szkole'', mając na myśli to samo zjawisko. Recenzenci wyłapują takie niespójności i~zadają o~nie pytania podczas obrony. Zrób listę kluczowych terminów ze swoimi definicjami i~trzymaj ją przy sobie podczas całego pisania.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijz7ja001.jpg}
+\caption{Odręczne notatki z~kluczowymi terminami pomagają zachować spójność terminologiczną przez cały proces pisania pracy.}
+\end{figure}
+
+
+\pullquote{Pisanie jest myśleniem. Jeśli nie możesz napisać zdania, nie masz jeszcze myśli --- masz tylko wrażenie myśli.}
+
+\section{Normy edytorskie --- jak sformatować pracę}
+
+Formatowanie pracy magisterskiej nie jest kwestią estetyki, ale wymogiem formalnym. Praca niespełniająca norm edytorskich może zostać odesłana do poprawy jeszcze przed recenzją, co w~praktyce oznacza utratę tygodni i~stresu.
+
+Większość wydziałów pedagogicznych w~Polsce wymaga: czcionki Times New Roman 12~pt dla tekstu głównego, interlinii 1,5, justowania tekstu, marginesu wewnętrznego 3~cm (na oprawę) i~zewnętrznego 1,5~cm, górnego i~dolnego po 2,5~cm. Tytuły rozdziałów zazwyczaj 16~pt pogrubione, tytuły podrozdziałów 13--14~pt pogrubione. Sprawdź konkretne wymogi w~regulaminie dyplomowania swojego wydziału lub u~promotora, bo uczelnie różnią się między sobą.
+
+\begin{table}[ht]
+\centering
+\caption{Typowe parametry edytorskie pracy magisterskiej z~pedagogiki}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\rowcolor{tableheadbg} \textcolor{tableheadfg}{\textbf{Element}} & \textcolor{tableheadfg}{\textbf{Standard}} \\
+\midrule
+Czcionka tekstu & Times New Roman 12~pt \\
+Interlinia & 1,5 \\
+Margines wewnętrzny & 3~cm (na oprawę) \\
+Margines zewnętrzny & 1,5~cm \\
+Margines górny i~dolny & 2,5~cm \\
+Wyrównanie tekstu & Justowanie (obustronne) \\
+Numeracja stron & Dolna, wyśrodkowana lub zewnętrzna \\
+Wcięcie akapitowe & 1,25~cm lub odstęp 6~pt między akapitami \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Numeracja stron zaczyna się zwykle od wstępu lub od pierwszego rozdziału. Strona tytułowa, oświadczenie i~spis treści nie są numerowane lub mają numerację rzymską. Każdy rozdział zaczyna się na nowej stronie. Ryciny i~tabele mają podpis i~numer i~są wymienione w~spisie tabel i~rycin na końcu pracy.
+
+\begin{tipbox}[Jak używać szablonu Worda bez frustracji]
+Ustaw style nagłówków od razu na początku pracy, nie próbuj formatować ,,ręcznie'' każdego tytułu rozdziału. Styl ,,Nagłówek 1'' generuje automatyczny spis treści. Używaj podziału strony (Ctrl+Enter) zamiast wielokrotnego wciskania Enter, żeby zacząć nowy rozdział. Numerację stron wstaw przez sekcje, żeby móc stosować różne formaty na różnych częściach pracy.
+\end{tipbox}
+
+\section{Bibliografia i~cytowania --- APA i~normy polskie}
+
+Styl cytowania to jedna z~najczęstszych przyczyn poprawek wymaganych przez recenzentów. W~pedagogice najczęściej stosowany jest styl APA (Publication Manual of the American Psychological Association, 7. edycja), choć część uczelni używa stylu Chicago lub własnych norm. Zawsze uzgodnij styl z~promotorem przed napisaniem pierwszego rozdziału.
+
+W~stylu APA~7 cytowanie w~tekście wygląda następująco: (Kowalski, 2020, s.~45) lub Kowalski (2020) twierdzi, że\ldots W~bibliografii pozycje ustawia się alfabetycznie według nazwiska pierwszego autora z~wcięciem wiszącym drugiego i~kolejnych wierszy. Przykład dla książki: Kowalski, J. (2020). \textit{Metodologia badań pedagogicznych}. Wydawnictwo Naukowe PWN.
+
+\stepflow{Zbieranie źródeł, Import do Zotero, Cytowanie w~tekście, Generowanie bibliografii, Korekta}
+
+\begin{tipbox}[Zotero --- zarządzanie bibliografią bez wklejania ręcznie]
+Zotero to darmowe narzędzie, które importuje dane bibliograficzne z~baz naukowych jednym kliknięciem, automatycznie generuje cytowania i~bibliografię w~wybranym stylu oraz synchronizuje bibliotekę między urządzeniami. Wtyczka do przeglądarki zapisuje artykuł z~JSTOR, BazHum lub Google Scholar w~ciągu kilku sekund. Zainstaluj Zotero przed napisaniem pierwszego cytowania.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijzdib001.jpg}
+\caption{Systematyczne zarządzanie źródłami bibliograficznymi to podstawa sprawnego pisania pracy naukowej.}
+\end{figure}
+
+
+\end{tipbox}
+
+Najczęstsze błędy w~bibliografiach: brak konsekwencji w~stosowanym stylu (mieszanie APA z~Chicago), cytowanie stron internetowych bez daty dostępu, pomijanie numeru DOI w~artykułach naukowych, niespójne podawanie inicjałów imion. Recenzent z~doświadczeniem znajdzie te błędy w~kilka minut.
+
+Cytowania internetowe wymagają zawsze: autora lub nazwy instytucji, tytułu strony lub dokumentu, daty publikacji lub ostatniej aktualizacji i~daty dostępu. Unikaj cytowania Wikipedii jako źródła naukowego; użyj jej wyłącznie jako punktu wyjścia do znalezienia pierwotnych źródeł.
+
+\bignumber{APA 7}{edycja stylu cytowania najczęściej wymagana na kierunkach pedagogicznych w~Polsce}
+
+\begin{keyinsight}[Jedna zasada bibliografii]
+Każde źródło wymienione w~bibliografii musi być przywołane w~tekście pracy. Każde przywołanie w~tekście musi mieć odpowiedni wpis w~bibliografii. Niezgodność tych dwóch list to błąd formalny, który recenzent zawsze sprawdza jako jedno z~pierwszych.
+\end{keyinsight}
+
+\clearpage
+
+\chapter{Antyplagiat, obrona i~życie po magisterium}
+
+\section{JSA --- jak działa system antyplagiatowy}
+
+Każda praca magisterska składana na polskiej uczelni musi przejść weryfikację w~Jednolitym Systemie Antyplagiatowym (JSA). Obowiązek ten wynika z~art.~76 ust.~4 ustawy Prawo o~szkolnictwie wyższym i~nauce. System jest bezpłatny, wspólny dla wszystkich uczelni w~Polsce i~dostępny promotorowi od 2019~roku.
+
+\concept{JSA (Jednolity System Antyplagiatowy)}{Ogólnopolska platforma weryfikacyjna porównująca tekst pracy z~bazami polskich i~zagranicznych tekstów naukowych, prac dyplomowych oraz zasobów internetowych. Używana przez wszystkie uczelnie w~Polsce przed każdą obroną dyplomową.}
+
+JSA analizuje pracę na kilku poziomach. Wykrywa dosłowne zapożyczenia (klony), podobieństwa semantyczne (parafrazy bez przypisu), manipulacje typograficzne (mikrospacje, zmiana czcionki w~środku słowa, ukryte znaki specjalne) oraz zmiany w~stylu pisania (analiza stylometryczna). Od lutego 2024~roku system umożliwia dodatkowo weryfikację, czy tekst mógł być wygenerowany przez sztuczną inteligencję, w~tym przez modele językowe takie jak ChatGPT.
+
+\begin{warningbox}[Co JSA wykrywa lepiej niż myślisz]
+Studenci często sądzą, że parafraza wystarczy, żeby ominąć antyplagiat. JSA zawiera moduł podobieństw semantycznych, który wykrywa przepisane fragmenty nawet po zmianie słów. Mikrospacje między literami, zmiana koloru czcionki na biały lub podmiana polskich liter na podobne znaki z~innego alfabetu są wykrywane automatycznie. Oryginalne pisanie to jedyna skuteczna strategia.
+\end{warningbox}
+
+Wynik raportu JSA to nie prosta decyzja ,,plagiat / nie plagiat''. Promotor otrzymuje raport z~procentowym wskaźnikiem podobieństwa i~decyduje, czy jest on akceptowalny. Cytowania z~przypisem, tytuły ustaw i~oficjalne definicje mogą generować podobieństwa, które są zupełnie zasadne. Wysoki wskaźnik podobieństwa nie jest automatycznie dyskwalifikujący, ale niski wskaźnik daje komfort przed obroną.
+
+\begin{tipbox}[Jak pisać, żeby JSA nie stanowił problemu]
+Cytuj zawsze z~przypisem. Parafrazuj aktywnie: przeczytaj fragment, zamknij książkę, napisz go własnym językiem. Nie kopiuj ze swoich wcześniejszych prac (autoplagiat jest traktowany tak samo jak plagiat). Nie korzystaj z~serwisów generujących tekst akademicki. Używaj Zotero, żeby każde cytowanie miało źródło.
+\end{tipbox}
+
+\bignumber{2024}{rok wprowadzenia w~JSA wykrywania tekstów generowanych przez AI}
+
+\section{Przygotowanie do obrony}
+
+Obrona pracy magisterskiej to egzamin przed komisją, nie rozmowa z~promotorem. W~komisji zasiada przewodniczący (zazwyczaj dziekan, kierownik kierunku lub wyznaczony pracownik), promotor i~recenzent. Obrona trwa od 40~minut do godziny. Jest obowiązkowa na każdej uczelni w~Polsce i~żaden wydział nie ma prawa z~niej zrezygnować.
+
+\stepflow{Przeczytaj recenzję, Przygotuj prezentację, Ćwicz odpowiedzi, Sprawdź salę i~sprzęt, Obrona}
+
+Pierwszym krokiem do obrony jest dokładne przeczytanie recenzji. Recenzent zazwyczaj zadaje podczas obrony pytania powiązane ze swoimi uwagami z~recenzji. Jeśli recenzent napisał, że ,,próba badawcza jest niereprezentacyjna'', przygotuj odpowiedź wyjaśniającą, dlaczego przyjęty dobór próby był adekwatny do celu badań i~jak wyniki mogłyby się zmienić przy próbie losowej.
+
+\begin{table}[ht]
+\centering
+\caption{Elementy składowe oceny końcowej na egzaminie dyplomowym}
+\begin{tabularx}{\textwidth}{lXr}
+\toprule
+\rowcolor{tableheadbg} \textcolor{tableheadfg}{\textbf{Element}} & \textcolor{tableheadfg}{\textbf{Co ocenia komisja}} & \textcolor{tableheadfg}{\textbf{Waga}} \\
+\midrule
+Ocena pracy (promotor) & Jakość merytoryczna, samodzielność, oryginalność & wysoka \\
+Ocena pracy (recenzent) & Poprawność metodologiczna, forma, bibliografia & wysoka \\
+Egzamin dyplomowy & Odpowiedzi na pytania komisji & średnia \\
+Średnia ze studiów & Wyniki z~całego toku kształcenia & zmienna \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{tipbox}[Prezentacja na obronę --- ile slajdów, co pokazać]
+Optymalna liczba slajdów to 8--12. Zacznij od tematu i~celu pracy (1~slajd), omów główne tezy teoretyczne (2--3 slajdy), przedstaw metodologię (1--2 slajdy), pokaż najważniejsze wyniki wizualnie (3--4 slajdy), zakończ wnioskami i~rekomendacjami (1--2 slajdy). Nie czytaj ze slajdów. Slajdy to twoja nawigacja, nie skrypt.
+\end{tipbox}
+
+Pytania komisji dzielą się na dwie kategorie. Pierwsza to pytania o~samą pracę: dlaczego wybrałeś taką metodę, jak interpretujesz wyniki, jakie są ograniczenia badań. Druga to pytania z~zakresu dyscypliny: ogólne zagadnienia z~pedagogiki niezwiązane bezpośrednio z~tematem pracy. Wiele uczelni udostępnia studentom listę zagadnień do obrony; część komisji zadaje pytania spoza tej listy.
+
+\begin{examplebox}[Jak komisja ocenia odpowiedzi]
+Student, który nie pamięta liczby z~własnej pracy, ale potrafi wytłumaczyć, dlaczego taka a~nie inna metoda była adekwatna do pytania badawczego, zostanie oceniony lepiej niż student, który recytuje liczby, ale nie rozumie ich znaczenia. Komisja szuka dowodu, że student rozumie swoje badania w~całości i~potrafi je umieścić w~szerszym kontekście pedagogicznym.
+\end{examplebox}
+
+\section{Dzień obrony i~co dalej}
+
+W~dniu obrony przybądź co najmniej 15~minut wcześniej. Sprawdź, czy laptop lub pendrive z~prezentacją działa z~projektorem w~sali. Ubierz się formalnie. Stres jest normalny, ale fizycznie objawia się tylko przez pierwsze minuty; potem mechanizm wypowiedzi uruchamia się samoczynnie.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijzqan001.jpg}
+\caption{Student podczas obrony pracy magisterskiej prezentuje wyniki badań przed komisją egzaminacyjną.}
+\end{figure}
+
+ Komisja nie chce cię oblać, chce zobaczyć, że jesteś gotowy na tytuł.
+
+Po obronie komisja obraduje bez studenta i~ogłasza wynik końcowy: łączną ocenę uwzględniającą ocenę pracy, ocenę z~egzaminu i~średnią ze studiów według przelicznika obowiązującego na uczelni.
+
+\pullquote{Obrona to nie koniec nauki. To pierwszy moment, w~którym wykazałeś, że potrafisz prowadzić badania samodzielnie.}
+
+Dyplom fizyczny odbiera się zazwyczaj kilka tygodni po obronie, po dopełnieniu formalności w~dziekanacie. Upewnij się, że złożyłeś wszystkie wymagane dokumenty: egzemplarz pracy do archiwum, oświadczenie o~samodzielności pisania, zdjęcia do dyplomu, rozliczenie z~biblioteką. Brak jednego dokumentu potrafi opóźnić wydanie dyplomu o~miesiące.
+
+\begin{warningbox}[Nie znikaj po obronie]
+Sprawdź listę dokumentów do złożenia w~dziekanacie natychmiast po ogłoszeniu wyników, zanim opuścisz budynek uczelni. Zbierz wszystkie podpisy i~pieczątki tego samego dnia, jeśli to możliwe. Lista formalności jest dłuższa, niż większość studentów zakłada.
+\end{warningbox}
+
+Tytuł magistra pedagogiki otwiera drogę do kariery w~edukacji, instytucjach kultury, pomocy społecznej, poradnictwie zawodowym i~zarządzaniu oświatą. Osoby z~wynikiem bardzo dobrym mogą rozważyć kontynuację w~szkole doktorskiej; nabór odbywa się zazwyczaj we wrześniu, a~rekrutacja wymaga projektu badawczego i~wstępnego kontaktu z~potencjalnym promotorem.
+
+\begin{tipbox}[Jak zaktualizować CV po obronie]
+Wpisz: ,,Magister pedagogiki, [nazwa uczelni], [rok]'', z~tematem pracy lub specjalizacją w~nawiasie. Jeśli prowadziłeś badania empiryczne, zaznacz to osobno jako doświadczenie badawcze. Temat pracy magisterskiej otwiera rozmowę na wielu rozmowach kwalifikacyjnych w~sektorze edukacyjnym i~publicznym.
+\end{tipbox}
+
+\begin{keyinsight}[Najważniejsza lekcja z~pisania magisterki]
+Praca magisterska uczy przede wszystkim jednej umiejętności: doprowadzania złożonego projektu do końca mimo niepewności, zmęczenia i~mnóstwa drobnych przeszkód. Ta umiejętność jest bardziej wartościowa niż jakikolwiek konkretny wynik twoich badań.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{images/img-cmqijzwkv001.jpg}
+\caption{Ukończenie magisterium symbolizuje opanowanie sztuki prowadzenia złożonego projektu badawczego od początku do końca.}
+\end{figure}
+
+
+\end{keyinsight}
+
+\clearpage
+
+\end{document}
