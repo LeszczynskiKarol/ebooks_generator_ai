@@ -100,7 +100,9 @@ export const en: Record<string, string> = {
   "newProject.settings": "Settings",
   "newProject.languageLabel": "Language",
   "newProject.pageFormatLabel": "Page Format",
-  "newProject.visualStyleLabel": "Visual Style",
+  "newProject.visualStyleLabel": "Book Style",
+  "newProject.visualStyleHelp":
+    "Shapes both the design (fonts, colors) and the writing voice — fine-tuned to your topic and guidelines.",
   "newProject.footnotesLabel": "Footnotes & sources",
   "newProject.footnoteAutoLabel": "Auto",
   "newProject.footnoteAutoDesc":
@@ -122,11 +124,11 @@ export const en: Record<string, string> = {
   "newProject.langNl": "Dutch",
 
   // Styles
-  "newProject.styleModern": "Modern — Clean, contemporary",
-  "newProject.styleAcademic": "Academic — Formal, scholarly",
-  "newProject.styleMinimal": "Minimal — Simple, elegant",
-  "newProject.styleCreative": "Creative — Bold, expressive",
-  "newProject.styleBusiness": "Business — Professional, corporate",
+  "newProject.styleModern": "Modern — clean design, direct contemporary writing",
+  "newProject.styleAcademic": "Academic — scholarly layout, precise formal prose",
+  "newProject.styleMinimal": "Minimal — elegant simplicity, spare calm prose",
+  "newProject.styleCreative": "Creative — bold design, narrative storytelling voice",
+  "newProject.styleBusiness": "Business — professional look, results-driven writing",
 
   // Style names (for order summary)
   "newProject.styleNameModern": "Modern",
@@ -273,7 +275,9 @@ export const pl: Record<string, string> = {
   "newProject.settings": "Ustawienia",
   "newProject.languageLabel": "Język",
   "newProject.pageFormatLabel": "Format strony",
-  "newProject.visualStyleLabel": "Styl wizualny",
+  "newProject.visualStyleLabel": "Styl książki",
+  "newProject.visualStyleHelp":
+    "Wpływa na wygląd (fonty, kolory) oraz sposób pisania — dostrajany do tematu i Twoich wytycznych.",
   "newProject.footnotesLabel": "Przypisy i źródła",
   "newProject.footnoteAutoLabel": "Automatycznie",
   "newProject.footnoteAutoDesc":
@@ -296,11 +300,11 @@ export const pl: Record<string, string> = {
   "newProject.langNl": "Holenderski",
 
   // Styles
-  "newProject.styleModern": "Nowoczesny — Czysty, współczesny",
-  "newProject.styleAcademic": "Akademicki — Formalny, naukowy",
-  "newProject.styleMinimal": "Minimalistyczny — Prosty, elegancki",
-  "newProject.styleCreative": "Kreatywny — Śmiały, ekspresyjny",
-  "newProject.styleBusiness": "Biznesowy — Profesjonalny, korporacyjny",
+  "newProject.styleModern": "Nowoczesny — czysty design, bezpośredni współczesny język",
+  "newProject.styleAcademic": "Akademicki — naukowy skład, precyzyjna formalna proza",
+  "newProject.styleMinimal": "Minimalistyczny — elegancka prostota, oszczędny spokojny styl",
+  "newProject.styleCreative": "Kreatywny — śmiały design, narracyjny język opowieści",
+  "newProject.styleBusiness": "Biznesowy — profesjonalny wygląd, konkretny styl nastawiony na rezultaty",
 
   // Style names (for order summary)
   "newProject.styleNameModern": "Nowoczesny",

@@ -906,6 +906,9 @@ export default function NewProject() {
 
           <div>
             <label className={labelCls}>{t("newProject.visualStyleLabel")}</label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              {t("newProject.visualStyleHelp")}
+            </p>
             <div className="grid gap-2">
               {Object.entries(STYLE_KEYS).map(([k, vKey]) => (
                 <label

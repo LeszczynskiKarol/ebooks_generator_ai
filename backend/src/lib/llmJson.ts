@@ -153,6 +153,27 @@ export const BookStructureSchema = z
   })
   .passthrough();
 
+/**
+ * Author brief — the creative contract for one book, decided by the LLM
+ * before structure generation (genre, voice, evidence policy, visual
+ * apparatus). Drives structure + content prompts instead of one-size-fits-all
+ * rules. All values in English (they are injected into English prompts).
+ */
+export const BookBriefSchema = z
+  .object({
+    genre: z.string().min(1),
+    audience: z.string().default(""),
+    voice: z.string().min(1),
+    readerAddress: z.string().default(""),
+    narrativeStrategy: z.string().default(""),
+    evidencePolicy: z.string().min(1),
+    visualStrategy: z.string().min(1),
+    avoid: z.array(z.string()).default([]),
+  })
+  .passthrough();
+
+export type BookBrief = z.infer<typeof BookBriefSchema>;
+
 /** Per-chapter content registry (dedup context between chapters). */
 export const ChapterRegistrySchema = z
   .object({

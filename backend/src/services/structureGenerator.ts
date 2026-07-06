@@ -9,6 +9,11 @@ import { getWordsPerPage, getPageSizeTier } from "../lib/types";
 import { createPipelineLogger } from "../lib/logger";
 import { conductResearch, formatSourcesForPrompt } from "./researchService";
 import {
+  getOrCreateAuthorBrief,
+  formatBriefForPrompt,
+  BookBrief,
+} from "./briefGenerator";
+import {
   parseLLMJson,
   repairTruncatedJson,
   BookStructureSchema,
@@ -52,6 +57,16 @@ export async function generateStructure(projectId: string) {
     );
   }
 
+  // ━━━ Phase 1.5: Author brief — the creative contract for this book ━━━
+  log.phase(1.5, "Author Brief");
+  const briefTimer = log.timer();
+  const brief = await getOrCreateAuthorBrief(
+    project,
+    formatSourcesForPrompt(research, 8000),
+    log,
+  );
+  log.ok(`Author brief ready (${briefTimer()})`);
+
   // ━━━ Phase 2: Generate structure ━━━
   log.phase(2, "Claude Structure Generation");
 
@@ -80,6 +95,7 @@ export async function generateStructure(projectId: string) {
     wpp,
     sourcesText,
     hasResearch,
+    brief,
   });
 
   log.data("Prompt length", `${prompt.length.toLocaleString()} chars`);
@@ -250,6 +266,7 @@ interface StructurePromptParams {
   wpp: number;
   sourcesText: string;
   hasResearch: boolean;
+  brief: BookBrief;
 }
 
 /**
@@ -269,7 +286,7 @@ function getCapitalizationRule(lang: string): string {
 function buildStructurePrompt(p: StructurePromptParams): string {
   const langInstruction = getLangInstruction(p.language);
 
-  return `You are an expert book editor planning a professional, data-rich eBook. Your job is to create a structure that will FORCE the writer to produce expert-level content — not generic AI filler.
+  return `You are an expert book editor planning a professional eBook. Your job is to create a structure that will FORCE the writer to produce expert-level content true to the author brief below — not generic AI filler.
 
 BOOK SPECS:
 Topic: ${p.topic}
@@ -278,19 +295,27 @@ Target: ${p.targetPages} pages (${p.bookFormat.toUpperCase()}, ~${p.wpp} words/p
 Language: ${p.language} | Style: ${p.stylePreset}
 ${p.guidelines ? `Author guidelines: ${p.guidelines}` : ""}
 
+${formatBriefForPrompt(p.brief)}
+
+The structure must SERVE this brief: chapter angles, section topics and the kind of
+material each section promises must match the genre, evidence policy and narrative
+strategy above. Do not plan data-analysis sections for a narrative book, and do not
+plan mood pieces for a data-driven guide.
+
 ${
   p.hasResearch
     ? `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-RESEARCH SOURCES — USE THESE TO BUILD A DATA-DRIVEN STRUCTURE
+RESEARCH SOURCES — GROUND THE STRUCTURE IN REALITY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Your structure MUST be grounded in what the research reveals:
 - Identify the most substantive topics covered across sources
-- Note specific tools, companies, regulations, and case studies mentioned
+- Note the specific material the sources offer (tools, regulations, case studies,
+  techniques, recipes, stories — whatever the genre calls for)
 - Build chapters around REAL findings, not hypothetical topics
-- If sources reveal industry data/stats, plan sections that analyze them
 - Prioritize topics where sources provide enough depth for expert-level writing
+- Use the sources in the way the EVIDENCE POLICY above prescribes
 
 ${p.sourcesText}
 `
@@ -306,7 +331,7 @@ STRUCTURE QUALITY RULES
 
 CHAPTER DESIGN PRINCIPLES:
 - Each chapter should have a CLEAR THESIS or argument, not just "about topic X"
-- BAD chapter: "Introduction to AI Tools" → GOOD: "Why 80% of AI Tool Adoption Fails — And What the 20% Do Differently"
+- BAD chapter: "Introduction to AI Tools" → GOOD: "Why 80% of AI Tool Adoption Fails — And What the 20% Do Differently" (adapt this pattern to the book's genre — a cookbook's "clear thesis" is a culinary idea, not a business claim)
 - Chapters should BUILD on each other: foundational → applied → advanced → strategic
 - Avoid the trap of Chapter 1 = "What is X" / Chapter 2 = "Why X matters" — readers know what they bought
 
@@ -316,6 +341,7 @@ SECTION DESCRIPTIONS — short writing briefs, NOT essays:
 - BAD (too vague): "Overview of popular AI writing tools"
 - BAD (too long): a multi-sentence plan with "Poziom 1/2/3", decision matrices, benchmark citations
 - GOOD: "Compare GPT-4, Claude i Gemini do długich tekstów: cena za 1M tokenów, okno kontekstu, jakość po polsku. Wskaż, kiedy użyć którego."
+- The "1-3 specific things" must fit the EVIDENCE POLICY: in a data-driven guide name tools/data; in a cookbook name ingredients/techniques/dishes; in a narrative book name scenes/stories/questions
 
 WHAT TO AVOID IN STRUCTURE:
 - Generic "introduction" chapters that waste 25% of the book on basics

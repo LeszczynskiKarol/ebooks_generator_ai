@@ -17,6 +17,11 @@ import {
   mergeResearchForPrompt,
   ChapterResearchResult,
 } from "./researchService";
+import {
+  getOrCreateAuthorBrief,
+  formatBriefForPrompt,
+  BookBrief,
+} from "./briefGenerator";
 import { parseLLMJson, ChapterRegistrySchema } from "../lib/llmJson";
 import {
   repairControlCharLatex,
@@ -323,6 +328,14 @@ export async function generateContent(
     log.warn("No global research data available");
   }
 
+  // ── Phase 1.5: Author brief (normally created at structure time;
+  //    generated here as a safety net for pre-brief projects) ──
+  const brief = await getOrCreateAuthorBrief(
+    project,
+    mergeResearchForPrompt(globalResearch, null, 8000).text,
+    log,
+  );
+
   // ── Phase 2: Per-chapter research ──
   log.phase(2, "Per-Chapter Research");
 
@@ -528,6 +541,7 @@ export async function generateContent(
         language: project.language,
         stylePreset: project.stylePreset,
         guidelines: project.guidelines || "",
+        brief,
         bookFormat: project.bookFormat,
         chapter,
         chapterIndex: i,
@@ -816,9 +830,10 @@ ${sample}
 
 ═══ END STYLE SAMPLE ═══
 
-Match the VOICE: same register, directness, and way of using data and examples, so the
-reader feels ONE consistent author. But do NOT copy punctuation manierisms from this sample
-(em-dashes, colon-continuations, aphorism closers, "nie tylko... lecz"). The RHYTHM &
+This sample shows how the AUTHOR BRIEF's voice sounds in practice — the brief remains the
+master definition. Match the VOICE: same register, directness, and way of using evidence,
+so the reader feels ONE consistent author. But do NOT copy punctuation manierisms from this
+sample (em-dashes, colon-continuations, aphorism closers, "nie tylko... lecz"). The RHYTHM &
 PUNCTUATION rules below OVERRIDE this sample — even if Chapter 1 overused dashes, you keep
 them rare.`);
   }
@@ -891,6 +906,7 @@ interface GenParams {
   language: string;
   stylePreset: string;
   guidelines: string;
+  brief: BookBrief;
   bookFormat: string;
   chapter: ChapterStructure;
   chapterIndex: number;
@@ -960,6 +976,8 @@ Book: "${p.bookTitle}" | Topic: ${p.bookTopic} | Language: ${lang} | Style: ${p.
 Format: ${p.bookFormat.toUpperCase()} (~${p.wpp} words/page with onehalfspacing)
 ${p.guidelines ? `Author guidelines: ${p.guidelines}` : ""}
 
+${formatBriefForPrompt(p.brief)}
+
 ${
   p.hasResearch
     ? `
@@ -970,10 +988,12 @@ ${p.sourcesText}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 HOW TO USE SOURCES:
 - PRIORITIZE ★ CHAPTER-SPECIFIC sources — they were found specifically for this chapter
-- Extract SPECIFIC facts: names, numbers, dates, percentages, tool names, pricing
-- Build arguments AROUND source data — don't just mention it, ANALYZE it
+- Extract the SPECIFIC material the brief's EVIDENCE POLICY calls for: in a data-driven
+  book that's names, numbers, dates, pricing; in other genres it's techniques, recipes,
+  stories, regulations — whatever the sources actually offer
+- Build the chapter AROUND source material — don't just mention it, USE it
 - Contrast different sources when they disagree
-- Cite companies, products, regulations BY NAME with specifics
+- Name real things (companies, products, institutions, works) only with specifics from sources
 - DO NOT copy verbatim — synthesize, compare, and add your expert interpretation
 - Book-level sources provide broader context; chapter-specific sources drive the core content
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -987,16 +1007,16 @@ WRITING QUALITY RULES — READ CAREFULLY
 ═══════════════════════════════════════════════════════════════
 
 VOICE & TONE:
-- Write as a confident practitioner sharing hard-won knowledge, NOT as a lecturer
+- Embody the VOICE and READER ADDRESS from the AUTHOR BRIEF above — that persona, that register, consistently
 - Use direct, concise sentences. Prefer "X does Y" over "It is worth noting that X has the capability to do Y"
 - Vary sentence length: mix short punchy statements with longer analytical ones
-- Address the reader directly with "you" when giving advice
-- Show opinions and take positions — experts have viewpoints, not just summaries${
+- Have a point of view where the genre allows one — an author is not a neutral summarizer${
     hasPreviousChapters
       ? `
-- CRITICAL: You have your previously written chapters above. Match that EXACT writing style.
-  Same sentence rhythm. Same level of directness. Same way you use examples.
-  The reader must not detect any style shift between chapters.`
+- CRITICAL: stay consistent with the voice defined in the brief; your previously
+  written chapters above show how that voice sounds in practice. Same register,
+  same directness, same way of using examples — the reader must not detect any
+  author shift between chapters.`
       : ""
   }
 
@@ -1017,26 +1037,35 @@ BANNED PATTERNS — NEVER use these AI-typical phrases:
 - "Warto zauważyć" / "Należy podkreślić" / "szeroki wybór" / "najwyższa jakość"
 
 CONTENT DEPTH — what separates expert content from filler:
-- Every claim must have a SPECIFIC example, number, or case study backing it
-- BAD: "AI can significantly improve productivity" → GOOD: "Teams using Cursor report 40\\% faster code reviews, with junior developers seeing the biggest gains"
-- BAD: "Many companies are adopting AI" → GOOD: "Shopify cut its workforce by 20\\% in 2023, with CEO Tobi Lütke stating AI would replace roles, not just assist them"
-- When listing tools/methods: include PRICING, LIMITATIONS, and WHEN NOT to use them
-- Minimum 3 concrete data points per section (numbers, percentages, company names, dates)
-- When describing a process, include a realistic scenario with specific numbers
+- Every claim must be backed by something CONCRETE — and what counts as "concrete"
+  is defined by the EVIDENCE POLICY in the author brief. In a data-driven guide that
+  means numbers, named tools, dates; in a cookbook it means techniques, ingredients,
+  temperatures, sensory detail; in a narrative book it means scenes and specifics of
+  lived experience. Never a vague generality in any genre.
+- BAD (any genre): "AI can significantly improve productivity" / "wiele osób uważa, że..."
+  GOOD: the genre-appropriate specific ("Teams using Cursor report 40\\% faster code
+  reviews" / "ciasto odpocznie 30 minut w lodówce, inaczej się kurczy przy pieczeniu")
+- Follow the evidence policy's stated data density — do NOT force statistics into a
+  book (or a section) whose evidence policy doesn't call for them, and do NOT go
+  vague in a book whose policy demands hard data
+- When you compare tools/methods in a data-driven book: include pricing, limitations,
+  and when NOT to use them
+- NEVER invent a statistic to satisfy density — a concrete example always beats a
+  fabricated number
 
 STRUCTURE WITHIN SECTIONS:
-- Open each section with a specific insight, stat, or contrarian take — NOT a definition
-- Close each major section with a \\begin{keyinsight} box summarizing the actionable takeaway
-- Use \\begin{tipbox} for practical "how-to" advice within sections
-- Use \\begin{warningbox} when discussing common mistakes or counterintuitive pitfalls
-- Use \\begin{examplebox} for detailed case studies with company names and numbers
-- Use tables (booktabs) when comparing 3+ items, tools, approaches, or data points
+- Open each section the way the brief's NARRATIVE STRATEGY prescribes — with something
+  specific (an insight, a scene, a problem, a number), NEVER with a dictionary definition
+- Deploy visual elements per the brief's VISUAL APPARATUS — where content calls for
+  them, not on a quota (element catalog + syntax below)
 - Use \\begin{itemize} sparingly — prefer flowing prose with embedded specifics
 - NEVER pad content with long lists of example prompts, templates, or filler
 
 ANTI-FILLER RULES:
-- Every paragraph must contain at least one SPECIFIC fact, number, or named example
-- Do NOT write "There are many tools available" — instead, compare their trade-offs in a TABLE
+- Every paragraph must contain something the reader can USE or visualize — a fact,
+  an example, a step, a scene — per the evidence policy; never generic filler prose
+- Do NOT write "there are many options available" — show the actual options in the
+  form the genre calls for (table, worked example, story)
 - Do NOT repeat the same point in different words across paragraphs
 - Information density: a reader should learn something new in every paragraph${
     hasPreviousChapters
@@ -1118,7 +1147,7 @@ ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "
 - NEVER leave an environment unclosed — this causes fatal compilation errors
 - Double-check ALL environments are properly closed before finishing output
 
-═══ COLORED BOXES — use 3-5 per chapter, mixing types ═══
+═══ COLORED BOXES — element catalog (usage intensity: per the brief's VISUAL APPARATUS) ═══
 
 Practical tip or actionable advice (green left-border):
 \\begin{tipbox}{Title of Practical Tip}
@@ -1141,7 +1170,7 @@ Real-world example with specific numbers, timeline, and measurable outcomes.
 What they did, what happened, what the reader can learn from it.
 \\end{examplebox}
 
-═══ TABLES — use 1-2 per chapter for data comparisons ═══
+═══ TABLES — for structured comparisons (only if the brief's visual apparatus calls for them) ═══
 
 Use booktabs tables for comparing tools, approaches, statistics, or any structured data.
 Tables make data easier to scan than prose and look professional.
@@ -1197,21 +1226,19 @@ MACRO RULES:
 - NEVER use \\includegraphics or reference image files (rysunek.pdf, schemat.pdf, wykres.png, etc.) —
   you have NO external images. Visualize processes with \\stepflow and concepts with \\concept.
 
-═══ VISUAL ELEMENT MINIMUMS PER CHAPTER ═══
+═══ VISUAL ELEMENT USAGE — the brief decides, not a quota ═══
 
-MANDATORY — every chapter MUST include:
-□ At least 1 booktabs table with real comparative data
-□ At least 1 keyinsight box (ideally one per \\section{})
-□ At least 1 tipbox OR warningbox with actionable advice
-□ At least 1 examplebox with a named case study
-□ At least 1 \\stepflow diagram visualizing a process or sequence
-□ At least 1 \\pullquote OR \\bignumber for visual emphasis
-□ At least 1 \\concept box defining an important term
-□ Total: 3-5 colored boxes + 1-2 tables + 2-3 macros per chapter
-
-These visual elements should feel NATURAL — placed where the content demands them,
-not forced. A comparison section NEEDS a table. A practical advice section NEEDS a tipbox.
-A section about mistakes NEEDS a warningbox.`;
+The AUTHOR BRIEF's VISUAL APPARATUS section defines which elements fit THIS book and
+roughly how many per chapter. Follow it. Universal rules on top of it:
+- Place an element ONLY where the content genuinely calls for it: a comparison of 3+
+  real items wants a table; practical advice wants a tipbox; a common mistake wants a
+  warningbox; a real process wants a \\stepflow. Never insert one to fill a quota.
+- NEVER use \\bignumber without a REAL figure from the research material — if the brief
+  calls for visual emphasis but no real number exists, use \\pullquote instead
+- Do NOT give every chapter the identical apparatus (same box count, same macro mix) —
+  uniform apparatus across chapters is a machine-generation tell; let each chapter's
+  content decide
+- If the brief says an element does not fit this book, do not use it at all`;
 
   // ━━━ User prompt ━━━
   let userPrompt = `Write Chapter ${p.chapter.number}/${p.totalChapters}: "${p.chapter.title}"
@@ -1229,15 +1256,12 @@ WORD COUNT TARGET: ${targetWords} words (±10%) = ${p.chapter.targetPages} pages
 ⚠️ COMPLETE every section and sentence. NEVER stop mid-sentence or leave a section unfinished.
 
 QUALITY CHECKLIST — verify before finishing:
-□ Does every section open with a specific fact/insight (not a definition)?
-□ Are there 3+ concrete data points per section?
+□ Does every section open with something specific, per the brief's narrative strategy (never a definition)?
+□ Is every claim grounded the way the brief's EVIDENCE POLICY requires (and NO statistic invented to fill space)?
+□ Does the whole chapter sustain the VOICE and reader address from the brief?
 □ Did you avoid ALL banned AI phrases from the system prompt?
-□ Is there at least one real company/product name per section?
-□ Did you include at least 1 booktabs table with real comparative data?
-□ Did you include 3-5 colored boxes (keyinsight, tipbox, warningbox, examplebox)?
-□ Did you include at least 1 \\stepflow diagram + 1 \\concept box + 1 \\pullquote or \\bignumber?
+□ Do the visual elements match the brief's VISUAL APPARATUS — used where content calls for them, no quota-filling, not the same apparatus as other chapters?
 □ Did you AVOID \\includegraphics and any external image references entirely?
-□ Does every major \\section{} end with a keyinsight box?
 □ Did you avoid long lists of examples/templates that pad word count?
 □ Does the chapter read like a professionally typeset book — not a text dump?
 □ Is EVERY opened environment properly closed (no missing end-tags)?`;
@@ -1249,12 +1273,13 @@ QUALITY CHECKLIST — verify before finishing:
     userPrompt += `
 
 ⚠️ CONTINUITY — your previous ${p.previousChaptersContent.length} chapter(s) are in the system prompt above:
-- Match your established writing style EXACTLY — the reader must feel one consistent author
+- Keep the voice from the AUTHOR BRIEF — the reader must feel one consistent author across chapters
 - Transition naturally from Chapter ${lastChNum} — don't repeat its closing points
 - Reference earlier chapters when building on concepts: "As we discussed in Chapter ${lastChNum}..."
 - Do NOT reuse any examples, statistics, or case studies from previous chapters
 - Maintain the same terminology — if you called something "X" before, call it "X" again
-- Use the same ratio of visual elements (tables, boxes) as your previous chapters`;
+- Stay within the brief's visual apparatus, but do NOT clone the previous chapters'
+  exact element mix — this chapter's content decides its own apparatus`;
   }
 
   // ── Last chapter closing instruction ──
@@ -1270,7 +1295,7 @@ QUALITY CHECKLIST — verify before finishing:
 - Do NOT end with a generic "the future is bright" statement — end with something actionable and specific`;
   }
 
-  userPrompt += `\n\nBegin LaTeX output now. Start with \\chapter{${p.chapter.title}}. Write exactly ${targetWords} words (±10%), entirely in ${lang}. Remember: expert voice, concrete data, no AI filler, RICH visual formatting (tables, colored boxes, AND macros: \\stepflow, \\concept, \\pullquote, \\bignumber). NO \\includegraphics. Close every opened environment properly.`;
+  userPrompt += `\n\nBegin LaTeX output now. Start with \\chapter{${p.chapter.title}}. Write exactly ${targetWords} words (±10%), entirely in ${lang}. Remember: the voice and evidence policy from the AUTHOR BRIEF, no AI filler, visual elements where the brief and the content call for them. NO \\includegraphics. Close every opened environment properly.`;
 
   // ── Logging ──
   const ts = () => new Date().toISOString();

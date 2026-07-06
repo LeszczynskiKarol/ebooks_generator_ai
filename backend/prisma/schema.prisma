@@ -77,6 +77,11 @@ model Project {
   structure         ProjectStructure?
   structureRedoUsed Boolean @default(false)
 
+  // Author brief — JSON decided by the LLM before structure generation:
+  // genre, voice, reader address, narrative strategy, evidence policy,
+  // visual apparatus. Drives structure + content prompts per book.
+  authorBrief String? @db.Text
+
   images      ProjectImage[]
   useAiImages Boolean        @default(false)
   imageGuidelines String?    @db.Text // optional user steering for AI illustrations
