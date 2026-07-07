@@ -166,7 +166,9 @@ export async function generateAuthorBrief(p: BriefParams): Promise<BookBrief> {
 
     const response = await anthropic.messages.create({
       model: BRIEF_MODEL,
-      max_tokens: 1500,
+      // 2026-07: 1500 truncated a real brief mid-"avoid" (verbose briefs run
+      // ~2k tokens); repair salvaged it but lost content — keep headroom.
+      max_tokens: 3000,
       temperature: 0.7,
       messages: [{ role: "user", content: prompt }],
     });
