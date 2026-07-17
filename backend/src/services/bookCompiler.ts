@@ -499,7 +499,6 @@ export function assembleLatexDocument(p: AssembleParams): string {
   const paperSize = PAPER_SIZE[p.format] || "a5paper";
   const isPolish = p.language === "pl";
   const styleConfig = getStyleConfig(p.stylePreset, paperSize);
-  const isPremium = p.stylePreset === "premium";
   const year = new Date().getFullYear();
   const title = escapeLatex(p.title);
 
@@ -797,10 +796,13 @@ export function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
-  // ━━━ PREMIUM restyle: flat boxes with icon tabs, branded footer, styled TOC ━━━
+  // ━━━ Premium visual layer — ALL presets, palette-driven ━━━
+  // Flat boxes with icon tabs, branded footer, styled TOC, tight rhythm.
   // Visual layer only — environment NAMES are unchanged, so contentGenerator
-  // output and the EPUB converter keep working for every preset.
-  if (isPremium) {
+  // output and the EPUB converter keep working for every preset. Colors come
+  // from the preset palette (tipframe/bandcolor/accentgold/...), so each
+  // preset keeps its own character.
+  {
     add(
       "\\usepackage{fontawesome5}",
       "\\usepackage{titletoc}",
@@ -2295,31 +2297,33 @@ function getStyleConfig(preset: string, paperSize = "a5paper"): StyleConfig {
   const band = isA4
     ? { h: "54", rule: "55.2", numSize: "44", numY: "-8", titleY: "-25", titleSize: "18", titleLead: "23", titleW: "165", after: "36" }
     : { h: "50", rule: "51.2", numSize: "40", numY: "-7", titleY: "-22", titleSize: "15.5", titleLead: "20", titleW: "112", after: "32" };
+  // Full-bleed chapter band — shared by EVERY preset (palette-driven via
+  // bandcolor/bandnum/accentgold, so each preset renders it in its own hues).
+  const bandChapterStyle = [
+    "\\makeatletter",
+    "\\newcommand{\\PremiumChapterOpener}[1]{%",
+    "  \\begin{tikzpicture}[remember picture,overlay]",
+    `    \\fill[bandcolor] (current page.north west) rectangle ([yshift=-${band.h}mm]current page.north east);`,
+    `    \\fill[accentgold] ([yshift=-${band.h}mm]current page.north west) rectangle ([yshift=-${band.rule}mm]current page.north east);`,
+    `    \\node[anchor=north west, text=bandnum, font=\\headingfont\\bfseries\\fontsize{${band.numSize}}{${band.numSize}}\\selectfont]`,
+    `      at ([xshift=18mm,yshift=${band.numY}mm]current page.north west) {\\two@digits{\\value{chapter}}};`,
+    "    \\node[anchor=north west, text=white, align=left,",
+    `          font=\\headingfont\\bfseries\\fontsize{${band.titleSize}}{${band.titleLead}}\\selectfont, text width=${band.titleW}mm]`,
+    `      at ([xshift=18mm,yshift=${band.titleY}mm]current page.north west)`,
+    "      {\\hyphenpenalty=10000\\exhyphenpenalty=10000\\raggedright #1\\par};",
+    "  \\end{tikzpicture}%",
+    `  \\vspace*{${band.after}mm}}`,
+    "\\makeatother",
+    "\\titleformat{\\chapter}[block]{}{}{0pt}{\\PremiumChapterOpener}",
+    "\\titlespacing*{\\chapter}{0pt}{-25mm}{12mm}",
+  ].join("\n");
   switch (preset) {
-    // Premium: full-bleed chapter band with an oversized two-digit number,
-    // gold accents, flat icon-tab boxes (restyled in assembleLatexDocument).
-    // Palette here is the DEFAULT (deep indigo); customColors override it.
+    // Premium: the original of the shared visual layer — deep indigo + gold.
+    // Palette here is the DEFAULT; customColors override it.
     case "premium":
       return {
         fontPackages: "",
-        chapterStyle: [
-          "\\makeatletter",
-          "\\newcommand{\\PremiumChapterOpener}[1]{%",
-          "  \\begin{tikzpicture}[remember picture,overlay]",
-          `    \\fill[bandcolor] (current page.north west) rectangle ([yshift=-${band.h}mm]current page.north east);`,
-          `    \\fill[accentgold] ([yshift=-${band.h}mm]current page.north west) rectangle ([yshift=-${band.rule}mm]current page.north east);`,
-          `    \\node[anchor=north west, text=bandnum, font=\\headingfont\\bfseries\\fontsize{${band.numSize}}{${band.numSize}}\\selectfont]`,
-          `      at ([xshift=18mm,yshift=${band.numY}mm]current page.north west) {\\two@digits{\\value{chapter}}};`,
-          "    \\node[anchor=north west, text=white, align=left,",
-          `          font=\\headingfont\\bfseries\\fontsize{${band.titleSize}}{${band.titleLead}}\\selectfont, text width=${band.titleW}mm]`,
-          `      at ([xshift=18mm,yshift=${band.titleY}mm]current page.north west)`,
-          "      {\\hyphenpenalty=10000\\exhyphenpenalty=10000\\raggedright #1\\par};",
-          "  \\end{tikzpicture}%",
-          `  \\vspace*{${band.after}mm}}`,
-          "\\makeatother",
-          "\\titleformat{\\chapter}[block]{}{}{0pt}{\\PremiumChapterOpener}",
-          "\\titlespacing*{\\chapter}{0pt}{-25mm}{12mm}",
-        ].join("\n"),
+        chapterStyle: bandChapterStyle,
         sectionStyle: [
           "\\titleformat{\\section}",
           "  {\\headingfont\\bfseries\\large\\color{sectioncolor}}{\\textcolor{accentgold}{\\thesection}}{0.7em}{}",
@@ -2353,38 +2357,38 @@ function getStyleConfig(preset: string, paperSize = "a5paper"): StyleConfig {
     case "academic":
       return {
         fontPackages: "\\usepackage{times}",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\Large\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter.}}{10pt}{\\LARGE\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-10pt}{25pt}`,
+        chapterStyle: bandChapterStyle,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\large\\bfseries\\color{sectioncolor}}{\\thesection}{1em}{}\n  [\\vspace{2pt}{\\color{rulecolor}\\titlerule[0.5pt]}]\n\\titleformat{\\subsection}{\\normalfont\\normalsize\\bfseries\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
-        colors: `\n\\definecolor{chaptercolor}{HTML}{1A365D}\n\\definecolor{sectioncolor}{HTML}{2D3748}\n\\definecolor{accent}{HTML}{2B6CB0}\n\\definecolor{rulecolor}{HTML}{CBD5E0}\n\\definecolor{headergray}{HTML}{718096}\n\\definecolor{quotegray}{HTML}{4A5568}\n\\definecolor{captiongray}{HTML}{4A5568}\n\\definecolor{subtitlegray}{HTML}{718096}\n\\definecolor{linkcolor}{HTML}{2B6CB0}\n\\definecolor{titletextcolor}{HTML}{1A202C}\n\\definecolor{tipbg}{HTML}{F0FFF4}\n\\definecolor{tipframe}{HTML}{276749}\n\\definecolor{keybg}{HTML}{EBF8FF}\n\\definecolor{keyframe}{HTML}{2B6CB0}\n\\definecolor{warnbg}{HTML}{FFFAF0}\n\\definecolor{warnframe}{HTML}{C05621}\n\\definecolor{exbg}{HTML}{F7FAFC}\n\\definecolor{exframe}{HTML}{4A5568}\n\\definecolor{tableheadbg}{HTML}{2D3748}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
+        colors: `\n\\definecolor{bandcolor}{HTML}{1A365D}\n\\definecolor{bandnum}{HTML}{7E93B8}\n\\definecolor{accentgold}{HTML}{B68D40}\n\\definecolor{chaptercolor}{HTML}{1A365D}\n\\definecolor{sectioncolor}{HTML}{2D3748}\n\\definecolor{accent}{HTML}{2B6CB0}\n\\definecolor{rulecolor}{HTML}{CBD5E0}\n\\definecolor{headergray}{HTML}{718096}\n\\definecolor{quotegray}{HTML}{4A5568}\n\\definecolor{captiongray}{HTML}{4A5568}\n\\definecolor{subtitlegray}{HTML}{718096}\n\\definecolor{linkcolor}{HTML}{2B6CB0}\n\\definecolor{titletextcolor}{HTML}{1A202C}\n\\definecolor{tipbg}{HTML}{F0FFF4}\n\\definecolor{tipframe}{HTML}{276749}\n\\definecolor{keybg}{HTML}{EBF8FF}\n\\definecolor{keyframe}{HTML}{2B6CB0}\n\\definecolor{warnbg}{HTML}{FFFAF0}\n\\definecolor{warnframe}{HTML}{C05621}\n\\definecolor{exbg}{HTML}{F7FAFC}\n\\definecolor{exframe}{HTML}{4A5568}\n\\definecolor{tableheadbg}{HTML}{2D3748}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
     case "creative":
       return {
         fontPackages: "\\usepackage{palatino}",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\huge\\itshape}{\\textcolor{chaptercolor}{\\Large\\chaptertitlename\\ \\thechapter.}}{0pt}{\\Huge\\bfseries\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-20pt}{30pt}`,
+        chapterStyle: bandChapterStyle,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\Large\\bfseries\\color{sectioncolor}}{\\textcolor{accent}{\\thesection}}{1em}{}\n  [\\vspace{3pt}{\\color{accent}\\titlerule[1pt]}]\n\\titleformat{\\subsection}{\\normalfont\\large\\itshape\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
-        colors: `\n\\definecolor{chaptercolor}{HTML}{7C3AED}\n\\definecolor{sectioncolor}{HTML}{2D3748}\n\\definecolor{accent}{HTML}{8B5CF6}\n\\definecolor{rulecolor}{HTML}{DDD6FE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{6B21A8}\n\\definecolor{captiongray}{HTML}{4A5568}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{7C3AED}\n\\definecolor{titletextcolor}{HTML}{1F2937}\n\\definecolor{tipbg}{HTML}{ECFDF5}\n\\definecolor{tipframe}{HTML}{059669}\n\\definecolor{keybg}{HTML}{F5F3FF}\n\\definecolor{keyframe}{HTML}{7C3AED}\n\\definecolor{warnbg}{HTML}{FFF7ED}\n\\definecolor{warnframe}{HTML}{EA580C}\n\\definecolor{exbg}{HTML}{FDF4FF}\n\\definecolor{exframe}{HTML}{A855F7}\n\\definecolor{tableheadbg}{HTML}{6D28D9}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
+        colors: `\n\\definecolor{bandcolor}{HTML}{5B21B6}\n\\definecolor{bandnum}{HTML}{B39DDB}\n\\definecolor{accentgold}{HTML}{B68D40}\n\\definecolor{chaptercolor}{HTML}{7C3AED}\n\\definecolor{sectioncolor}{HTML}{2D3748}\n\\definecolor{accent}{HTML}{8B5CF6}\n\\definecolor{rulecolor}{HTML}{DDD6FE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{6B21A8}\n\\definecolor{captiongray}{HTML}{4A5568}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{7C3AED}\n\\definecolor{titletextcolor}{HTML}{1F2937}\n\\definecolor{tipbg}{HTML}{ECFDF5}\n\\definecolor{tipframe}{HTML}{059669}\n\\definecolor{keybg}{HTML}{F5F3FF}\n\\definecolor{keyframe}{HTML}{7C3AED}\n\\definecolor{warnbg}{HTML}{FFF7ED}\n\\definecolor{warnframe}{HTML}{EA580C}\n\\definecolor{exbg}{HTML}{FDF4FF}\n\\definecolor{exframe}{HTML}{A855F7}\n\\definecolor{tableheadbg}{HTML}{6D28D9}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
     case "business":
       return {
         fontPackages:
           "\\usepackage{helvet}\\renewcommand{\\familydefault}{\\sfdefault}",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\sffamily\\huge\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter.}}{15pt}{\\Huge\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-20pt}{30pt}`,
+        chapterStyle: bandChapterStyle,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\sffamily\\Large\\bfseries}{\\textcolor{accent}{\\thesection}}{1em}{}\n  [\\vspace{2pt}{\\color{rulecolor}\\titlerule[0.8pt]}]\n\\titleformat{\\subsection}{\\normalfont\\sffamily\\large\\bfseries\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
-        colors: `\n\\definecolor{chaptercolor}{HTML}{1E40AF}\n\\definecolor{sectioncolor}{HTML}{1F2937}\n\\definecolor{accent}{HTML}{2563EB}\n\\definecolor{rulecolor}{HTML}{BFDBFE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{4B5563}\n\\definecolor{captiongray}{HTML}{4B5563}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{1E40AF}\n\\definecolor{titletextcolor}{HTML}{111827}\n\\definecolor{tipbg}{HTML}{F0FDF4}\n\\definecolor{tipframe}{HTML}{16A34A}\n\\definecolor{keybg}{HTML}{EFF6FF}\n\\definecolor{keyframe}{HTML}{2563EB}\n\\definecolor{warnbg}{HTML}{FFFBEB}\n\\definecolor{warnframe}{HTML}{D97706}\n\\definecolor{exbg}{HTML}{F8FAFC}\n\\definecolor{exframe}{HTML}{475569}\n\\definecolor{tableheadbg}{HTML}{1E3A5F}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
+        colors: `\n\\definecolor{bandcolor}{HTML}{1E3A5F}\n\\definecolor{bandnum}{HTML}{8CA3C7}\n\\definecolor{accentgold}{HTML}{B68D40}\n\\definecolor{chaptercolor}{HTML}{1E40AF}\n\\definecolor{sectioncolor}{HTML}{1F2937}\n\\definecolor{accent}{HTML}{2563EB}\n\\definecolor{rulecolor}{HTML}{BFDBFE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{4B5563}\n\\definecolor{captiongray}{HTML}{4B5563}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{1E40AF}\n\\definecolor{titletextcolor}{HTML}{111827}\n\\definecolor{tipbg}{HTML}{F0FDF4}\n\\definecolor{tipframe}{HTML}{16A34A}\n\\definecolor{keybg}{HTML}{EFF6FF}\n\\definecolor{keyframe}{HTML}{2563EB}\n\\definecolor{warnbg}{HTML}{FFFBEB}\n\\definecolor{warnframe}{HTML}{D97706}\n\\definecolor{exbg}{HTML}{F8FAFC}\n\\definecolor{exframe}{HTML}{475569}\n\\definecolor{tableheadbg}{HTML}{1E3A5F}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
     case "minimal":
       return {
         fontPackages: "",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\Large}{\\textcolor{chaptercolor}{\\chaptername\\ \\thechapter.}}{8pt}{\\LARGE\\bfseries\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-10pt}{20pt}`,
+        chapterStyle: bandChapterStyle,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\large\\bfseries\\color{sectioncolor}}{\\thesection}{1em}{}\n\\titleformat{\\subsection}{\\normalfont\\normalsize\\bfseries\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
-        colors: `\n\\definecolor{chaptercolor}{HTML}{374151}\n\\definecolor{sectioncolor}{HTML}{4B5563}\n\\definecolor{accent}{HTML}{6B7280}\n\\definecolor{rulecolor}{HTML}{D1D5DB}\n\\definecolor{headergray}{HTML}{9CA3AF}\n\\definecolor{quotegray}{HTML}{6B7280}\n\\definecolor{captiongray}{HTML}{6B7280}\n\\definecolor{subtitlegray}{HTML}{9CA3AF}\n\\definecolor{linkcolor}{HTML}{4B5563}\n\\definecolor{titletextcolor}{HTML}{111827}\n\\definecolor{tipbg}{HTML}{F9FAFB}\n\\definecolor{tipframe}{HTML}{6B7280}\n\\definecolor{keybg}{HTML}{F3F4F6}\n\\definecolor{keyframe}{HTML}{4B5563}\n\\definecolor{warnbg}{HTML}{FEF9EF}\n\\definecolor{warnframe}{HTML}{92400E}\n\\definecolor{exbg}{HTML}{F9FAFB}\n\\definecolor{exframe}{HTML}{9CA3AF}\n\\definecolor{tableheadbg}{HTML}{374151}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
+        colors: `\n\\definecolor{bandcolor}{HTML}{374151}\n\\definecolor{bandnum}{HTML}{9CA3AF}\n\\definecolor{accentgold}{HTML}{B68D40}\n\\definecolor{chaptercolor}{HTML}{374151}\n\\definecolor{sectioncolor}{HTML}{4B5563}\n\\definecolor{accent}{HTML}{6B7280}\n\\definecolor{rulecolor}{HTML}{D1D5DB}\n\\definecolor{headergray}{HTML}{9CA3AF}\n\\definecolor{quotegray}{HTML}{6B7280}\n\\definecolor{captiongray}{HTML}{6B7280}\n\\definecolor{subtitlegray}{HTML}{9CA3AF}\n\\definecolor{linkcolor}{HTML}{4B5563}\n\\definecolor{titletextcolor}{HTML}{111827}\n\\definecolor{tipbg}{HTML}{F9FAFB}\n\\definecolor{tipframe}{HTML}{6B7280}\n\\definecolor{keybg}{HTML}{F3F4F6}\n\\definecolor{keyframe}{HTML}{4B5563}\n\\definecolor{warnbg}{HTML}{FEF9EF}\n\\definecolor{warnframe}{HTML}{92400E}\n\\definecolor{exbg}{HTML}{F9FAFB}\n\\definecolor{exframe}{HTML}{9CA3AF}\n\\definecolor{tableheadbg}{HTML}{374151}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
     default:
       return {
         fontPackages: "\\usepackage{palatino}",
-        chapterStyle: `\\titleformat{\\chapter}[display]\n  {\\normalfont\\huge\\bfseries}{\\textcolor{chaptercolor}{\\chaptertitlename\\ \\thechapter.}}{15pt}{\\Huge\\color{chaptercolor}}\n\\titlespacing*{\\chapter}{0pt}{-30pt}{30pt}`,
+        chapterStyle: bandChapterStyle,
         sectionStyle: `\\titleformat{\\section}\n  {\\normalfont\\Large\\bfseries}{\\textcolor{accent}{\\thesection}}{1em}{}\n  [\\vspace{3pt}{\\color{accent}\\titlerule[0.8pt]}]\n\\titleformat{\\subsection}{\\normalfont\\large\\bfseries\\color{sectioncolor}}{\\thesubsection}{1em}{}`,
-        colors: `\n\\definecolor{chaptercolor}{HTML}{7C3AED}\n\\definecolor{sectioncolor}{HTML}{374151}\n\\definecolor{accent}{HTML}{7C3AED}\n\\definecolor{rulecolor}{HTML}{DDD6FE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{6B7280}\n\\definecolor{captiongray}{HTML}{4B5563}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{7C3AED}\n\\definecolor{titletextcolor}{HTML}{1F2937}\n\\definecolor{tipbg}{HTML}{ECFDF5}\n\\definecolor{tipframe}{HTML}{059669}\n\\definecolor{keybg}{HTML}{EFF6FF}\n\\definecolor{keyframe}{HTML}{2563EB}\n\\definecolor{warnbg}{HTML}{FFFBEB}\n\\definecolor{warnframe}{HTML}{D97706}\n\\definecolor{exbg}{HTML}{FAF5FF}\n\\definecolor{exframe}{HTML}{9333EA}\n\\definecolor{tableheadbg}{HTML}{5B21B6}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
+        colors: `\n\\definecolor{bandcolor}{HTML}{5B21B6}\n\\definecolor{bandnum}{HTML}{B39DDB}\n\\definecolor{accentgold}{HTML}{B68D40}\n\\definecolor{chaptercolor}{HTML}{7C3AED}\n\\definecolor{sectioncolor}{HTML}{374151}\n\\definecolor{accent}{HTML}{7C3AED}\n\\definecolor{rulecolor}{HTML}{DDD6FE}\n\\definecolor{headergray}{HTML}{6B7280}\n\\definecolor{quotegray}{HTML}{6B7280}\n\\definecolor{captiongray}{HTML}{4B5563}\n\\definecolor{subtitlegray}{HTML}{6B7280}\n\\definecolor{linkcolor}{HTML}{7C3AED}\n\\definecolor{titletextcolor}{HTML}{1F2937}\n\\definecolor{tipbg}{HTML}{ECFDF5}\n\\definecolor{tipframe}{HTML}{059669}\n\\definecolor{keybg}{HTML}{EFF6FF}\n\\definecolor{keyframe}{HTML}{2563EB}\n\\definecolor{warnbg}{HTML}{FFFBEB}\n\\definecolor{warnframe}{HTML}{D97706}\n\\definecolor{exbg}{HTML}{FAF5FF}\n\\definecolor{exframe}{HTML}{9333EA}\n\\definecolor{tableheadbg}{HTML}{5B21B6}\n\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
       };
   }
 }
