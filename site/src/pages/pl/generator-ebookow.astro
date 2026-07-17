@@ -3,8 +3,8 @@ import ArticleLayout from "../../layouts/ArticleLayout.astro";
 import { Image } from "astro:assets";
 import { siteConfig } from "../../config/site";
 import exOkladka from "../../assets/psy-mgr/01-okladka.webp";
-import exRozdzial from "../../assets/psy-mgr/03-rozdzial.webp";
-import exStat from "../../assets/psy-mgr/07-statystyka.webp";
+import exOpener from "../../assets/psy-mgr/03-opener.webp";
+import exMapa from "../../assets/psy-mgr/07-mapa-testow.webp";
 
 const title = "Generator ebooków AI — prawdziwe książki";
 const description =
@@ -115,8 +115,8 @@ const jsonLd = [
   <figure>
     <div class="grid grid-cols-3 gap-3">
       <Image src={exOkladka} alt="Okładka polskiej książki wygenerowanej w InkMagnet" width={400} />
-      <Image src={exRozdzial} alt="Otwarcie rozdziału z inicjałem i ilustracją AI" width={400} />
-      <Image src={exStat} alt="Strona z typografią danych w wygenerowanej książce" width={400} />
+      <Image src={exOpener} alt="Pełnostronicowe otwarcie rozdziału w wygenerowanej książce" width={400} />
+      <Image src={exMapa} alt="Tabela z mapą testów statystycznych w wygenerowanej książce" width={400} />
     </div>
     <figcaption>
       Surowe strony z polskiej książki wygenerowanej w InkMagnet —

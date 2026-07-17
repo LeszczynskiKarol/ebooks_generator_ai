@@ -9,30 +9,30 @@ import { siteConfig } from "../../config/site";
 
 import pOkladka from "../../assets/psy-mgr/01-okladka.webp";
 import pSpis from "../../assets/psy-mgr/02-spis-tresci.webp";
-import pRozdzial from "../../assets/psy-mgr/03-rozdzial.webp";
-import pTabela from "../../assets/psy-mgr/04-tabela.webp";
-import pFoto from "../../assets/psy-mgr/05-foto-schemat.webp";
-import pDiagram from "../../assets/psy-mgr/06-diagram.webp";
-import pStat from "../../assets/psy-mgr/07-statystyka.webp";
-import pApa from "../../assets/psy-mgr/08-apa7.webp";
-import pPlagiat from "../../assets/psy-mgr/09-antyplagiat.webp";
+import pOpener from "../../assets/psy-mgr/03-opener.webp";
+import pTabela from "../../assets/psy-mgr/04-tabela-apa.webp";
+import pDiagram from "../../assets/psy-mgr/05-diagram.webp";
+import pHipotezy from "../../assets/psy-mgr/06-hipotezy.webp";
+import pMapa from "../../assets/psy-mgr/07-mapa-testow.webp";
+import pTabeleApa from "../../assets/psy-mgr/08-tabele-apa.webp";
+import pObrona from "../../assets/psy-mgr/09-opener-obrona.webp";
 
 const title = "Przykład ebooka — surowe strony z książki wygenerowanej przez AI";
 const description =
-  "Nieretuszowane strony z 62-stronicowego przewodnika wygenerowanego w InkMagnet: okładka AI, spis treści, tabele, diagramy, fotografie i pełny skład typograficzny.";
+  "Nieretuszowane strony z 40-stronicowego przewodnika wygenerowanego w InkMagnet: autorska okładka, pełnostronicowe otwarcia rozdziałów, tabele APA, diagramy i checklisty.";
 
 const registerUrl = `${siteConfig.appUrl}/auth/register?lang=pl`;
 
 const gallery = [
-  { img: pOkladka, cap: "Okładka zaprojektowana przez AI dla tej konkretnej książki" },
-  { img: pSpis, cap: "Klikalny spis treści — cztery rozdziały z numeracją do trzeciego poziomu" },
-  { img: pRozdzial, cap: "Otwarcie rozdziału: inicjał i ilustracja AI z podpisem" },
-  { img: pTabela, cap: "Tabela obszarów badawczych i wyróżniony cytat w kolorze palety" },
-  { img: pFoto, cap: "Fotografia AI i schemat od problemu badawczego do analizy danych" },
-  { img: pDiagram, cap: "Diagram weryfikacji tematu i ramki z praktycznymi wskazówkami" },
-  { img: pStat, cap: "Typografia danych: liczebność próby wyliczona pod konkretny test" },
-  { img: pApa, cap: "Wyróżnione standardy redakcyjne i fotografie dopasowane do treści" },
-  { img: pPlagiat, cap: "Duże liczby z danych źródłowych i ramki ostrzeżeń" },
+  { img: pOkladka, cap: "Okładka zaprojektowana pod paletę kolorów tej książki" },
+  { img: pSpis, cap: "Spis treści — 16 rozdziałów z numeracją do trzeciego poziomu" },
+  { img: pOpener, cap: "Pełnostronicowe otwarcie rozdziału z numerem na pasie" },
+  { img: pTabela, cap: "Tabele w konwencji APA i checklisty na koniec sekcji" },
+  { img: pDiagram, cap: "Rycina modelu badania i tabela operacjonalizacji" },
+  { img: pHipotezy, cap: "Ramki ostrzeżeń i checklisty kontrolne przy hipotezach" },
+  { img: pMapa, cap: "Mapa „hipoteza → test statystyczny” w przejrzystej tabeli" },
+  { img: pTabeleApa, cap: "Rozdział o tabelach i rycinach według standardu APA" },
+  { img: pObrona, cap: "Finał: pytania komisji i przygotowanie do obrony" },
 ];
 
 const jsonLd = [
@@ -71,13 +71,14 @@ const jsonLd = [
 
     <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
       <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
-        „Jak napisać pracę magisterską z psychologii" — 62 strony, styl akademicki
+        „Jak napisać pracę magisterską z psychologii" — 40 stron, 16 rozdziałów
       </h2>
       <p class="mt-3 max-w-3xl text-ink-600">
-        Kompletny przewodnik wygenerowany w jednym przebiegu: research w polskich
-        źródłach, autorska okładka, ilustracje i fotografie AI przy konkretnych
-        fragmentach, tabele, diagramy procesów i skład typograficzny, którego nie da
-        się uzyskać eksportem z edytora tekstu.
+        To nie jest demo — to komercyjny przewodnik sprzedawany na
+        praca-magisterska.pl, wygenerowany w jednym przebiegu: autorska okładka z
+        paletą kolorów, pełnostronicowe otwarcia rozdziałów, tabele w konwencji APA,
+        ryciny modeli badania, checklisty kontrolne i skład typograficzny, którego
+        nie da się uzyskać eksportem z edytora tekstu.
       </p>
       <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {
