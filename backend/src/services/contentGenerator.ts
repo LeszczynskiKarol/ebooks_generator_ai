@@ -1133,6 +1133,7 @@ ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "
 - Use --- for em-dash, -- for en-dash
 ${lang === "Polish" ? '- Polish typography: quotations ALWAYS as „..." (U+201E/U+201D) — NEVER "..." or “...”' : ""}
 - NO \\usepackage, NO custom command definitions
+- NO decorative comment separators (lines like "% ────") — they leak into print
 - ALL text in ${lang}
 - NEVER leave a section or sentence unfinished
 

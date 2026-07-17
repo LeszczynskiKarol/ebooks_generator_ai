@@ -1018,7 +1018,7 @@ export function assembleLatexDocument(p: AssembleParams): string {
     "  % ── Title block (centered, upper area) ──",
     "  \\node[anchor=center, text width=0.82\\paperwidth, align=center]",
     "    at ([yshift=-0.33\\paperheight]current page.north) {",
-    "      {\\fontsize{28}{34}\\selectfont\\bfseries\\color{black}" +
+    "      {\\fontsize{28}{34}\\selectfont\\bfseries\\color{black}\\hyphenpenalty=10000\\exhyphenpenalty=10000 " +
       title +
       "\\par}",
     "      \\vspace{0.7cm}",
@@ -1518,6 +1518,13 @@ function removeFootnotes(latex: string): string {
 function sanitizeChapterLatex(latex: string, language: string = "en"): string {
   let result = repairControlCharLatex(latex);
   result = mergeSplitTableHeaders(result);
+
+  // ━━━ FIX 0: Decorative comment-separator lines ━━━
+  // The model sometimes emits "% ─────" section separators. Upstream escaping
+  // turns them into "\% ─────" which PRINTS (and the box-drawing glyphs are
+  // missing from the text font → tofu boxes on the page). Drop such lines
+  // entirely — both the escaped and the raw-comment form.
+  result = result.replace(/^[ \t]*(?:\\%|%)[ \t]*[─━═—-]{3,}[ \t]*$\n?/gm, "");
   // Roundtrip corruption: \begin{tipbox}\n\textbackslash{}\{Title\textbackslash{}\}
   // Should be: \begin{tipbox}{Title}
   for (const box of [
