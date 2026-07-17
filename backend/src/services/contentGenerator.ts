@@ -1131,6 +1131,7 @@ BASE RULES:
 ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "- \\footnote{} is FORBIDDEN in this book — weave any attribution into the sentence itself"}
 - Escape special chars: \\%, \\&, \\#, \\$, \\_, \\{, \\}
 - Use --- for em-dash, -- for en-dash
+${lang === "Polish" ? '- Polish typography: quotations ALWAYS as „..." (U+201E/U+201D) — NEVER "..." or “...”' : ""}
 - NO \\usepackage, NO custom command definitions
 - ALL text in ${lang}
 - NEVER leave a section or sentence unfinished
