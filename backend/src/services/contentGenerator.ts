@@ -1140,6 +1140,7 @@ ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "
 - EVERY \\begin{keyinsight} MUST have a matching \\end{keyinsight}
 - EVERY \\begin{warningbox} MUST have a matching \\end{warningbox}
 - EVERY \\begin{examplebox} MUST have a matching \\end{examplebox}
+- EVERY \\begin{checklistbox} MUST have a matching \\end{checklistbox}
 - EVERY \\begin{table} MUST have a matching \\end{table}
 - EVERY \\begin{tabularx} MUST have a matching \\end{tabularx}
 - EVERY \\begin{itemize} MUST have a matching \\end{itemize}
@@ -1170,28 +1171,55 @@ Real-world example with specific numbers, timeline, and measurable outcomes.
 What they did, what happened, what the reader can learn from it.
 \\end{examplebox}
 
+Action checklist — place exactly ONE at the very END of each chapter (checkbox list):
+\\begin{checklistbox}{Checklist: Short Chapter Topic}
+\\begin{itemize}
+\\item First concrete, verifiable action item from this chapter
+\\item Second action item — imperative mood, one line each
+\\item 4-6 items total, each something the reader can tick off
+\\end{itemize}
+\\end{checklistbox}
+
 ═══ TABLES — for structured comparisons (only if the brief's visual apparatus calls for them) ═══
 
 Use booktabs tables for comparing tools, approaches, statistics, or any structured data.
 Tables make data easier to scan than prose and look professional.
 
-EXACT SYNTAX — follow precisely:
-\\begin{table}[ht]
+EXACT SYNTAX — a table with one long-text column (tabularx, full width):
+\\begin{table}[!htbp]
 \\centering
 \\caption{Descriptive caption explaining what this table shows}
 \\begin{tabularx}{\\textwidth}{lXr}
 \\toprule
 \\rowcolor{tableheadbg} \\textcolor{tableheadfg}{\\textbf{Column 1}} & \\textcolor{tableheadfg}{\\textbf{Column 2}} & \\textcolor{tableheadfg}{\\textbf{Column 3}} \\\\
 \\midrule
-Row 1 data & Description text & 95\\% \\\\
-Row 2 data & Description text & 72\\% \\\\
-Row 3 data & Description text & 48\\% \\\\
+Row 1 data & Longer description text that wraps & 95\\% \\\\
+Row 2 data & Longer description text that wraps & 72\\% \\\\
 \\bottomrule
 \\end{tabularx}
 \\end{table}
 
-CRITICAL TABLE RULES:
-- Column spec must use X (flexible) for text-heavy columns: {lXr}, {lXXr}, {Xlr}
+A compact table where NO column has long text (plain tabular — natural width, not stretched):
+\\begin{table}[!htbp]
+\\centering
+\\caption{Descriptive caption}
+\\begin{tabular}{lcr}
+\\toprule
+\\rowcolor{tableheadbg} \\textcolor{tableheadfg}{\\textbf{Etap}} & \\textcolor{tableheadfg}{\\textbf{Czas}} & \\textcolor{tableheadfg}{\\textbf{Punkty}} \\\\
+\\midrule
+Test & 60 min & 10 \\\\
+Wypracowanie & 180 min & 35 \\\\
+\\bottomrule
+\\end{tabular}
+\\end{table}
+
+CRITICAL TABLE RULES — column widths must follow content:
+- X columns ONLY for cells with genuinely long text (sentences, descriptions) — X columns
+  split the leftover width EQUALLY, so a numbers column typed as X becomes absurdly wide
+- Short-content columns (numbers, points, dates, single words, names) = l/c/r — they stay narrow
+- NEVER make every column X; typical good specs: {lXr}, {lX}, {lXc} — at most 2 X columns
+- If NO column carries long text, use plain tabular (second example) — the table takes its
+  natural width instead of being stretched across the whole page with gaping columns
 - ALWAYS include \\caption{} — it appears with styled formatting
 - Fill tables with REAL data from sources or expert knowledge — NEVER placeholder text
 - Use tables when comparing 3+ items instead of writing them as prose

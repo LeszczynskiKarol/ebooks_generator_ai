@@ -28,6 +28,18 @@ import { footnotesEnabled } from "../lib/types";
 const execAsync = promisify(exec);
 
 const BUILD_DIR = path.join(process.cwd(), "tmp", "builds");
+
+// Bundled premium fonts (Source Serif 4 + Be Vietnam Pro) — resolved to an
+// absolute path with forward slashes for fontspec's Path= option. Overridable
+// via env for non-standard deployments.
+const FONTS_DIR = (
+  process.env.INKMAGNET_FONTS_DIR ||
+  [
+    path.resolve(__dirname, "../../assets/fonts"),
+    path.resolve(process.cwd(), "assets/fonts"),
+  ].find((d) => fs.existsSync(d)) ||
+  path.resolve(process.cwd(), "assets/fonts")
+).replace(/\\/g, "/");
 const BABEL_LANG: Record<string, string> = {
   en: "english",
   pl: "polish",
@@ -481,12 +493,13 @@ interface AssembleParams {
   }[];
 }
 
-function assembleLatexDocument(p: AssembleParams): string {
+export function assembleLatexDocument(p: AssembleParams): string {
   const babel = BABEL_LANG[p.language] || "english";
   const fontSize = FONT_SIZE[p.format] || "11pt";
   const paperSize = PAPER_SIZE[p.format] || "a5paper";
   const isPolish = p.language === "pl";
   const styleConfig = getStyleConfig(p.stylePreset);
+  const isPremium = p.stylePreset === "premium";
   const year = new Date().getFullYear();
   const title = escapeLatex(p.title);
 
@@ -626,18 +639,34 @@ function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
-  // ── Tables (unchanged) ──
+  // ── Tables ──
   add(
     "\\usepackage{booktabs}",
     "\\usepackage{tabularx}",
     "\\usepackage{array}",
     "\\usepackage{colortbl}",
     "\\usepackage{float}",
+    "\\usepackage{etoolbox}",
     "",
     "\\setlength{\\heavyrulewidth}{1.2pt}",
     "\\setlength{\\lightrulewidth}{0.6pt}",
     "\\setlength{\\aboverulesep}{8pt}",
     "\\setlength{\\belowrulesep}{8pt}",
+    "",
+    // Breathing room inside cells — default arraystretch/tabcolsep read as cramped
+    "\\renewcommand{\\arraystretch}{1.35}",
+    "\\setlength{\\tabcolsep}{7pt}",
+    // X columns left-aligned: full justification in narrow columns creates
+    // rivers of whitespace and the \"squeezed\" look
+    "\\renewcommand{\\tabularxcolumn}[1]{>{\\raggedright\\arraybackslash}p{#1}}",
+    // Slightly smaller table font — standard book typography
+    "\\AtBeginEnvironment{table}{\\small}",
+    // Eager float placement — without this an unbreakable table defers to the
+    // next page and leaves a mostly-empty page behind it
+    "\\renewcommand{\\topfraction}{0.9}",
+    "\\renewcommand{\\bottomfraction}{0.6}",
+    "\\renewcommand{\\textfraction}{0.07}",
+    "\\renewcommand{\\floatpagefraction}{0.85}",
     "",
   );
 
@@ -744,6 +773,108 @@ function assembleLatexDocument(p: AssembleParams): string {
     "}",
     "",
   );
+
+  // ── checklistbox: end-of-chapter action checklist (ALL presets) ──
+  // Defined with the same optional-title signature as the other boxes so the
+  // brace→bracket fixer and the content prompt treat it identically.
+  add(
+    "\\newtcolorbox{checklistbox}[1][]{",
+    "  enhanced, breakable,",
+    "  colback=tipbg, colframe=tipframe,",
+    "  boxrule=0pt, leftrule=3.5pt,",
+    "  arc=2pt, outer arc=2pt,",
+    "  left=10pt, right=10pt, top=14pt, bottom=8pt,",
+    "  fonttitle=\\bfseries\\small\\color{tipframe},",
+    "  title={#1},",
+    "  before upper={\\parindent0pt\\small},",
+    "  attach boxed title to top left={yshift=-2mm, xshift=4mm},",
+    "  boxed title style={",
+    "    colback=tipbg, colframe=tipbg,",
+    "    boxrule=0pt, arc=0pt,",
+    "    left=2pt, right=2pt, top=0.5pt, bottom=0.5pt",
+    "  }",
+    "}",
+    "",
+  );
+
+  // ━━━ PREMIUM restyle: flat boxes with icon tabs, branded footer, styled TOC ━━━
+  // Visual layer only — environment NAMES are unchanged, so contentGenerator
+  // output and the EPUB converter keep working for every preset.
+  if (isPremium) {
+    add(
+      "\\usepackage{fontawesome5}",
+      "\\usepackage{titletoc}",
+      "",
+    );
+    const premiumBox = (
+      env: string,
+      bg: string,
+      frame: string,
+      icon: string,
+      extraUpper = "",
+    ) =>
+      [
+        `\\renewtcolorbox{${env}}[1][]{`,
+        "  enhanced, breakable,",
+        `  colback=${bg}, colframe=${frame},`,
+        "  boxrule=0pt,",
+        `  borderline west={1.1mm}{0pt}{${frame}},`,
+        "  arc=1.2mm, outer arc=1.2mm,",
+        "  left=3.2mm, right=3.2mm, top=5.5mm, bottom=3.2mm,",
+        "  before skip=5mm, after skip=5mm,",
+        `  before upper={\\parindent0pt\\small${extraUpper}},`,
+        "  overlay unbroken and first={",
+        `    \\node[anchor=west, fill=${frame}, text=white,`,
+        "          font=\\headingfont\\bfseries\\scriptsize, inner xsep=2.4mm, inner ysep=1.5mm]",
+        `      at ([xshift=4mm]frame.north west) {${icon}\\; #1};}`,
+        "}",
+        "",
+      ].join("\n");
+    add(
+      premiumBox("tipbox", "tipbg", "tipframe", "\\faLightbulb"),
+      premiumBox("keyinsight", "keybg", "keyframe", "\\faBookOpen"),
+      premiumBox("warningbox", "warnbg", "warnframe", "\\faExclamationTriangle"),
+      premiumBox("examplebox", "exbg", "exframe", "\\faComment"),
+      premiumBox(
+        "checklistbox",
+        "tipbg",
+        "tipframe",
+        "\\faCheckSquare",
+        // enumitem's global label= wins over \labelitemi — override locally
+        "\\setlist[itemize]{label=\\textcolor{tipframe}{\\faSquare[regular]}, leftmargin=5.5mm, itemsep=1.5pt, topsep=2.5pt}",
+      ),
+    );
+    // Branded page tag in the outer footer corner + no header on plain pages
+    add(
+      "\\newcommand{\\PageTag}{\\begin{tikzpicture}[baseline=-2pt]",
+      "  \\node[fill=bandcolor, text=white, font=\\headingfont\\bfseries\\scriptsize,",
+      "        minimum width=8mm, minimum height=5mm, inner sep=0pt] {\\thepage};",
+      "\\end{tikzpicture}}",
+      "\\fancyfoot[C]{}",
+      "\\fancyfoot[LE]{\\PageTag}",
+      "\\fancyfoot[RO]{\\PageTag}",
+      "\\renewcommand{\\headrulewidth}{0pt}",
+      "\\fancypagestyle{plain}{",
+      "  \\fancyhf{}",
+      "  \\fancyfoot[LE]{\\PageTag}",
+      "  \\fancyfoot[RO]{\\PageTag}",
+      "  \\renewcommand{\\headrulewidth}{0pt}",
+      "}",
+      "",
+    );
+    // Styled table of contents: bold chapter rows, gold numbers, dotted leaders
+    add(
+      "\\titlecontents{chapter}[0mm]",
+      "  {\\addvspace{3mm}\\headingfont\\bfseries\\small\\color{sectioncolor}}",
+      "  {\\makebox[8mm][l]{\\textcolor{accentgold}{\\thecontentslabel}}}",
+      "  {}{\\titlerule*[6pt]{\\textcolor{rulecolor}{.}}\\makebox[7mm][r]{\\thecontentspage}}",
+      "\\titlecontents{section}[8mm]",
+      "  {\\addvspace{0.8mm}\\sffamily\\footnotesize\\color{quotegray}}",
+      "  {\\makebox[8mm][l]{\\thecontentslabel}}",
+      "  {}{\\titlerule*[6pt]{\\textcolor{rulecolor}{.}}\\makebox[7mm][r]{\\thecontentspage}}",
+      "",
+    );
+  }
 
   // ━━━ Rich visual MACROS — model supplies only data, never raw TikZ ━━━
   // These live in the template (written once, always compile), giving rich
@@ -1291,6 +1422,75 @@ export function fixTableRowTerminators(latex: string): string {
     .replace(/\\\\\s*(?=\s*\\end\{tabularx?\})/g, "");
 }
 
+/**
+ * Normalize table float placement. Model-emitted [h]/[ht]/[H] often defers an
+ * unbreakable table to the next page and leaves a near-empty page behind it.
+ * [!htbp] lets LaTeX place the float at the first spot it fits.
+ */
+export function normalizeTablePlacement(latex: string): string {
+  return latex.replace(
+    /\\begin\{table\}(\[[^\]]*\])?/g,
+    "\\begin{table}[!htbp]",
+  );
+}
+
+/**
+ * Wrap naked tabular(x) blocks (emitted outside a \begin{table} float) in a
+ * [!htbp] float. A bare tabularx cannot break across pages, so when it doesn't
+ * fit the remaining space it is pushed whole to the next page — leaving the
+ * previous page mostly empty.
+ */
+export function wrapNakedTables(latex: string): string {
+  const re = /\\(begin|end)\{(table|tabularx|tabular)\}/g;
+  let tableDepth = 0; // depth of \begin{table} floats
+  let nakedDepth = 0; // depth of tabular(x) envs inside an injected wrapper
+  let wrapped = false;
+  let out = "";
+  let last = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = re.exec(latex)) !== null) {
+    const [full, action, env] = m;
+    out += latex.substring(last, m.index);
+    last = m.index + full.length;
+
+    if (env === "table") {
+      tableDepth += action === "begin" ? 1 : -1;
+      out += full;
+      continue;
+    }
+    // tabular / tabularx
+    if (tableDepth > 0) {
+      out += full; // already inside a proper float
+    } else if (action === "begin") {
+      if (!wrapped) {
+        out += "\\begin{table}[!htbp]\n\\centering\n" + full;
+        wrapped = true;
+        nakedDepth = 1;
+      } else {
+        nakedDepth++;
+        out += full;
+      }
+    } else {
+      // end of tabular kind outside a float
+      if (wrapped) {
+        nakedDepth--;
+        if (nakedDepth === 0) {
+          out += full + "\n\\end{table}";
+          wrapped = false;
+        } else {
+          out += full;
+        }
+      } else {
+        out += full;
+      }
+    }
+  }
+  out += latex.substring(last);
+  if (wrapped) out += "\n\\end{table}"; // unbalanced input — close defensively
+  return out;
+}
+
 /** Remove \footnote{...} with balanced-brace matching (footnotes may nest braces). */
 function removeFootnotes(latex: string): string {
   let out = "";
@@ -1320,7 +1520,13 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
   result = mergeSplitTableHeaders(result);
   // Roundtrip corruption: \begin{tipbox}\n\textbackslash{}\{Title\textbackslash{}\}
   // Should be: \begin{tipbox}{Title}
-  for (const box of ["tipbox", "keyinsight", "warningbox", "examplebox"]) {
+  for (const box of [
+    "tipbox",
+    "keyinsight",
+    "warningbox",
+    "examplebox",
+    "checklistbox",
+  ]) {
     result = result.replace(
       new RegExp(
         `(\\\\begin\\{${box}\\})\\s*\\n\\s*(?:\\\\textbackslash\\{\\})*\\\\\\{(.+?)(?:\\\\textbackslash\\{\\})*\\\\\\}`,
@@ -1341,7 +1547,13 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
   // i.e. the title is an OPTIONAL [arg]. The model (and the EPUB converter)
   // use \begin{tipbox}{Title} — in PDF that brace group rendered as plain body
   // text glued to the first sentence. Convert for LaTeX only.
-  for (const box of ["tipbox", "keyinsight", "warningbox", "examplebox"]) {
+  for (const box of [
+    "tipbox",
+    "keyinsight",
+    "warningbox",
+    "examplebox",
+    "checklistbox",
+  ]) {
     result = result.replace(
       new RegExp(
         `\\\\begin\\{${box}\\}\\{((?:[^{}]|\\{[^{}]*\\})*)\\}`,
@@ -1425,13 +1637,17 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
   result = result.replace(/(?<!,)"([^"\n]{1,300}?)"(?!')/g, ",,$1''");
 
   // ━━━ FIX 6b: Table & meta-commentary hardening (compile-survival) ━━━
-  // The biggest source of fatal compile errors. Three robust passes:
+  // The biggest source of fatal compile errors. Robust passes:
   //   1) strip model self-talk that leaked into the book (e.g. continuation prose)
   //   2) drop tables with unbalanced braces (truncated/garbled — better gone than fatal)
   //   3) remove phantom row terminators that cause "Missing \cr before \end{tabularx}"
+  //   4) wrap naked tabular(x) in a float + normalize placement to [!htbp]
+  //      (prevents near-empty pages when an unbreakable table defers)
   result = stripModelMeta(result);
   result = dropBrokenTables(result);
   result = fixTableRowTerminators(result);
+  result = wrapNakedTables(result);
+  result = normalizeTablePlacement(result);
   result = addDropCap(result);
 
   // ── Escape unescaped % signs — in LaTeX % starts a comment ──
@@ -1995,6 +2211,11 @@ function deriveColorsFromCustom(colors: string[]): string {
     "\\definecolor{exframe}{HTML}{" + stripHash(sec) + "}",
     "\\definecolor{tableheadbg}{HTML}{" + stripHash(shade(ink, 0.15)) + "}",
     "\\definecolor{tableheadfg}{HTML}{FFFFFF}",
+    // Premium-layer extras (harmless for other presets): full-bleed chapter
+    // band, muted number tint on the band, fixed warm-gold accent.
+    "\\definecolor{bandcolor}{HTML}{" + stripHash(ink) + "}",
+    "\\definecolor{bandnum}{HTML}{" + stripHash(tint(ink, 0.45)) + "}",
+    "\\definecolor{accentgold}{HTML}{B68D40}",
   ].join("\n");
 }
 
@@ -2017,6 +2238,22 @@ interface StyleConfig {
  */
 function getFontSetup(preset: string): string {
   const setups: Record<string, string> = {
+    // Premium: bundled Source Serif 4 body + Be Vietnam Pro display —
+    // loaded by file path so no system font installation is required.
+    premium: [
+      "\\setmainfont{SourceSerif4}[",
+      `  Path = ${FONTS_DIR}/, Extension = .otf,`,
+      "  UprightFont = *-Regular, ItalicFont = *-It,",
+      "  BoldFont = *-Semibold, BoldItalicFont = *-SemiboldIt ]",
+      "\\setsansfont{BeVietnamPro}[",
+      `  Path = ${FONTS_DIR}/, Extension = .ttf,`,
+      "  UprightFont = *-Regular, ItalicFont = *-Italic,",
+      "  BoldFont = *-SemiBold, BoldItalicFont = *-SemiBoldItalic ]",
+      "\\newfontfamily\\headingfont{BeVietnamPro}[",
+      `  Path = ${FONTS_DIR}/, Extension = .ttf,`,
+      "  UprightFont = *-SemiBold, BoldFont = *-ExtraBold,",
+      "  ItalicFont = *-SemiBoldItalic ]",
+    ].join("\n"),
     // Formal scholarly: Times-like serif body, clean sans headings
     academic:
       "\\setmainfont{TeX Gyre Termes}\n\\setsansfont{TeX Gyre Heros}\n\\newfontfamily\\headingfont{TeX Gyre Heros}",
@@ -2038,6 +2275,60 @@ function getFontSetup(preset: string): string {
 
 function getStyleConfig(preset: string): StyleConfig {
   switch (preset) {
+    // Premium: full-bleed chapter band with an oversized two-digit number,
+    // gold accents, flat icon-tab boxes (restyled in assembleLatexDocument).
+    // Palette here is the DEFAULT (deep indigo); customColors override it.
+    case "premium":
+      return {
+        fontPackages: "",
+        chapterStyle: [
+          "\\makeatletter",
+          "\\newcommand{\\PremiumChapterOpener}[1]{%",
+          "  \\begin{tikzpicture}[remember picture,overlay]",
+          "    \\fill[bandcolor] (current page.north west) rectangle ([yshift=-46mm]current page.north east);",
+          "    \\fill[accentgold] ([yshift=-46mm]current page.north west) rectangle ([yshift=-47.2mm]current page.north east);",
+          "    \\node[anchor=north west, text=bandnum, font=\\headingfont\\bfseries\\fontsize{42}{42}\\selectfont]",
+          "      at ([xshift=18mm,yshift=-8mm]current page.north west) {\\two@digits{\\value{chapter}}};",
+          "    \\node[anchor=north west, text=white, align=left,",
+          "          font=\\headingfont\\bfseries\\fontsize{16.5}{21}\\selectfont, text width=112mm]",
+          "      at ([xshift=18mm,yshift=-24mm]current page.north west)",
+          "      {\\hyphenpenalty=10000\\exhyphenpenalty=10000\\raggedright #1\\par};",
+          "  \\end{tikzpicture}%",
+          "  \\vspace*{28mm}}",
+          "\\makeatother",
+          "\\titleformat{\\chapter}[block]{}{}{0pt}{\\PremiumChapterOpener}",
+          "\\titlespacing*{\\chapter}{0pt}{-25mm}{12mm}",
+        ].join("\n"),
+        sectionStyle: [
+          "\\titleformat{\\section}",
+          "  {\\headingfont\\bfseries\\large\\color{sectioncolor}}{\\textcolor{accentgold}{\\thesection}}{0.7em}{}",
+          "\\titleformat{\\subsection}{\\headingfont\\bfseries\\normalsize\\color{sectioncolor}}{\\textcolor{accentgold}{\\thesubsection}}{0.6em}{}",
+        ].join("\n"),
+        colors: `
+\\definecolor{bandcolor}{HTML}{2E3456}
+\\definecolor{bandnum}{HTML}{8B90B5}
+\\definecolor{accentgold}{HTML}{B68D40}
+\\definecolor{chaptercolor}{HTML}{2E3456}
+\\definecolor{sectioncolor}{HTML}{23283F}
+\\definecolor{accent}{HTML}{3D4573}
+\\definecolor{rulecolor}{HTML}{C9CCE0}
+\\definecolor{headergray}{HTML}{6B7280}
+\\definecolor{quotegray}{HTML}{4A5568}
+\\definecolor{captiongray}{HTML}{4A5568}
+\\definecolor{subtitlegray}{HTML}{6B7280}
+\\definecolor{linkcolor}{HTML}{3D4573}
+\\definecolor{titletextcolor}{HTML}{1F2937}
+\\definecolor{tipbg}{HTML}{EEF4F0}
+\\definecolor{tipframe}{HTML}{38664E}
+\\definecolor{keybg}{HTML}{EFF0F8}
+\\definecolor{keyframe}{HTML}{3D4573}
+\\definecolor{warnbg}{HTML}{F9F0F0}
+\\definecolor{warnframe}{HTML}{883A3A}
+\\definecolor{exbg}{HTML}{FAF5EB}
+\\definecolor{exframe}{HTML}{B68D40}
+\\definecolor{tableheadbg}{HTML}{2E3456}
+\\definecolor{tableheadfg}{HTML}{FFFFFF}`,
+      };
     case "academic":
       return {
         fontPackages: "\\usepackage{times}",
