@@ -44,6 +44,15 @@ const legalLinks =
         <h3 class="text-sm font-semibold text-white">{t.footer.product}</h3>
         <ul class="mt-4 space-y-2.5 text-sm">
           <li><a href={`${p}/#how`} class="transition-colors hover:text-white">{t.nav.how}</a></li>
+          {
+            lang === "pl" && (
+              <li>
+                <a href="/pl/przyklady/" class="transition-colors hover:text-white">
+                  {t.nav.examples}
+                </a>
+              </li>
+            )
+          }
           <li>
             <a href={`${p}/#pricing`} class="transition-colors hover:text-white">{t.nav.pricing}</a>
           </li>

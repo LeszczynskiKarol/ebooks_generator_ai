@@ -1,0 +1,110 @@
+---
+// PL-only examples page built around one recent book (screens, no PDF download).
+// The EN /examples/ page stays removed until strong English samples exist.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import { Image } from "astro:assets";
+import { siteConfig } from "../../config/site";
+
+import pOkladka from "../../assets/psy-mgr/01-okladka.webp";
+import pSpis from "../../assets/psy-mgr/02-spis-tresci.webp";
+import pRozdzial from "../../assets/psy-mgr/03-rozdzial.webp";
+import pTabela from "../../assets/psy-mgr/04-tabela.webp";
+import pFoto from "../../assets/psy-mgr/05-foto-schemat.webp";
+import pDiagram from "../../assets/psy-mgr/06-diagram.webp";
+import pStat from "../../assets/psy-mgr/07-statystyka.webp";
+import pApa from "../../assets/psy-mgr/08-apa7.webp";
+import pPlagiat from "../../assets/psy-mgr/09-antyplagiat.webp";
+
+const title = "Przykład ebooka — surowe strony z książki wygenerowanej przez AI";
+const description =
+  "Nieretuszowane strony z 62-stronicowego przewodnika wygenerowanego w InkMagnet: okładka AI, spis treści, tabele, diagramy, fotografie i pełny skład typograficzny.";
+
+const registerUrl = `${siteConfig.appUrl}/auth/register?lang=pl`;
+
+const gallery = [
+  { img: pOkladka, cap: "Okładka zaprojektowana przez AI dla tej konkretnej książki" },
+  { img: pSpis, cap: "Klikalny spis treści — cztery rozdziały z numeracją do trzeciego poziomu" },
+  { img: pRozdzial, cap: "Otwarcie rozdziału: inicjał i ilustracja AI z podpisem" },
+  { img: pTabela, cap: "Tabela obszarów badawczych i wyróżniony cytat w kolorze palety" },
+  { img: pFoto, cap: "Fotografia AI i schemat od problemu badawczego do analizy danych" },
+  { img: pDiagram, cap: "Diagram weryfikacji tematu i ramki z praktycznymi wskazówkami" },
+  { img: pStat, cap: "Typografia danych: liczebność próby wyliczona pod konkretny test" },
+  { img: pApa, cap: "Wyróżnione standardy redakcyjne i fotografie dopasowane do treści" },
+  { img: pPlagiat, cap: "Duże liczby z danych źródłowych i ramki ostrzeżeń" },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "InkMagnet", item: `${siteConfig.url}/pl/` },
+      { "@type": "ListItem", position: 2, name: "Przykłady", item: `${siteConfig.url}/pl/przyklady/` },
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: title,
+    description,
+    url: `${siteConfig.url}/pl/przyklady/`,
+    inLanguage: "pl",
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd} translated={false}>
+  <Header lang="pl" />
+  <main class="pt-16">
+    <div class="mx-auto max-w-7xl px-4 pb-4 pt-14 text-center sm:px-6 lg:px-8">
+      <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-5xl">
+        Prawdziwa książka. Surowe strony. Zero mockupów.
+      </h1>
+      <p class="mx-auto mt-5 max-w-2xl text-lg text-ink-600">
+        Każde narzędzie obiecuje „profesjonalne ebooki". Poniżej strony z prawdziwej
+        książki wygenerowanej w InkMagnet — dokładnie tak, jak wyszły z generatora,
+        bez retuszu.
+      </p>
+    </div>
+
+    <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
+      <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
+        „Jak napisać pracę magisterską z psychologii" — 62 strony, styl akademicki
+      </h2>
+      <p class="mt-3 max-w-3xl text-ink-600">
+        Kompletny przewodnik wygenerowany w jednym przebiegu: research w polskich
+        źródłach, autorska okładka, ilustracje i fotografie AI przy konkretnych
+        fragmentach, tabele, diagramy procesów i skład typograficzny, którego nie da
+        się uzyskać eksportem z edytora tekstu.
+      </p>
+      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          gallery.map((g, i) => (
+            <figure>
+              <div class="overflow-hidden rounded-xl border border-ink-200 shadow-md shadow-ink-900/5">
+                <Image src={g.img} alt={g.cap} width={640} class="w-full" loading={i < 3 ? "eager" : "lazy"} />
+              </div>
+              <figcaption class="mt-2.5 text-center text-sm text-ink-600">{g.cap}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+
+      <p class="mt-10 text-center text-sm text-ink-400">
+        Wszystkie strony powyżej to surowe rendery z finalnego PDF-a. Niczego nie
+        poprawialiśmy w Photoshopie.
+      </p>
+      <div class="mt-8 pb-16 text-center">
+        <a
+          href={registerUrl}
+          class="inline-block rounded-xl bg-brand-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700"
+        >
+          Wygeneruj własną książkę
+        </a>
+      </div>
+    </section>
+  </main>
+  <Footer lang="pl" />
+</BaseLayout>

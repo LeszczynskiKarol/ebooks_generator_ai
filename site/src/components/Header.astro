@@ -19,6 +19,8 @@ const appQ = lang === "pl" ? "?lang=pl" : "";
 
 const navItems = [
   { href: `${p}/#how`, label: t.nav.how },
+  // examples page exists only in Polish until strong English samples are ready
+  ...(lang === "pl" ? [{ href: "/pl/przyklady/", label: t.nav.examples }] : []),
   { href: `${p}/#pricing`, label: t.nav.pricing },
   { href: lang === "pl" ? "/pl/blog/" : "/blog/", label: t.nav.blog },
 ];

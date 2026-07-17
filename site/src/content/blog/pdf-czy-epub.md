@@ -27,7 +27,7 @@ Każda praktyczna konsekwencja bierze się z tego podziału.
 
 **Lead magnety wysyłane mailem.** PDF otwiera się identycznie wszędzie, czysto się załącza i nie wymaga od subskrybenta żadnych decyzji o aplikacjach. Dlatego świat lead magnetów ustandaryzował się właśnie na nim.
 
-**Kontrolowane doświadczenie lektury.** Gdy typografia jest częścią produktu (inicjały, wyróżnione cytaty, świadomy rytm strony), zachowa ją tylko format stały. Tu zresztą przebiega widoczna granica jakości: PDF wyeksportowany z edytora tekstu wygląda jak dokument, a PDF złożony silnikiem typograficznym wygląda jak książka. Różnicę robi skład, nie format.
+**Kontrolowane doświadczenie lektury.** Gdy typografia jest częścią produktu (inicjały, wyróżnione cytaty, świadomy rytm strony), zachowa ją tylko format stały. Tu zresztą przebiega widoczna granica jakości: PDF wyeksportowany z edytora tekstu wygląda jak dokument, a PDF złożony silnikiem typograficznym wygląda jak książka. Różnicę robi skład, nie format. [Surowe przykłady tej różnicy są tutaj](/pl/przyklady/).
 
 ## Kiedy EPUB jest nienegocjowalny
 

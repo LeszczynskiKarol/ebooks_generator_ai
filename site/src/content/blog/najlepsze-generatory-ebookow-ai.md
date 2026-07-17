@@ -76,6 +76,6 @@ Przestań sortować po słowie „AI" i sortuj po tym, co dostajesz na wyjściu:
 - **Chcę tekst, resztę ogarnę** → generator szkiców (Youbooks, Squibler).
 - **Chcę przerobić swoje istniejące treści** → Designrr.
 - **Mam napisany manuskrypt, chcę go złożyć** → Atticus albo Vellum.
-- **Chcę gotową, zbadaną książkę z tematu, płacąc raz** → to luka, pod którą powstał [InkMagnet](/pl/#pricing).
+- **Chcę gotową, zbadaną książkę z tematu, płacąc raz** → to luka, pod którą powstał [InkMagnet](/pl/#pricing). Zobacz [surowe przykładowe strony](/pl/przyklady/) z wygenerowanej książki.
 
 Jeśli startujesz od zera, nasz [kompletny poradnik tworzenia ebooka](/pl/blog/jak-stworzyc-ebooka/) rozpisuje każdą ścieżkę — także te, które nas nie dotyczą — z realnymi liczbami.
