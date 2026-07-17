@@ -498,7 +498,7 @@ export function assembleLatexDocument(p: AssembleParams): string {
   const fontSize = FONT_SIZE[p.format] || "11pt";
   const paperSize = PAPER_SIZE[p.format] || "a5paper";
   const isPolish = p.language === "pl";
-  const styleConfig = getStyleConfig(p.stylePreset);
+  const styleConfig = getStyleConfig(p.stylePreset, paperSize);
   const isPremium = p.stylePreset === "premium";
   const year = new Date().getFullYear();
   const title = escapeLatex(p.title);
@@ -843,6 +843,13 @@ export function assembleLatexDocument(p: AssembleParams): string {
         // enumitem's global label= wins over \labelitemi — override locally
         "\\setlist[itemize]{label=\\textcolor{tipframe}{\\faSquare[regular]}, leftmargin=5.5mm, itemsep=1.5pt, topsep=2.5pt}",
       ),
+    );
+    // Tighter book rhythm: full parskip + 6pt list topsep read as loose on A4.
+    add(
+      "\\setlength{\\parskip}{5pt plus 2pt minus 1pt}",
+      "\\setlist[itemize]{topsep=3pt, itemsep=2pt}",
+      "\\setlist[enumerate]{topsep=3pt, itemsep=2pt}",
+      "",
     );
     // Branded page tag in the outer footer corner + no header on plain pages
     add(
@@ -2280,7 +2287,14 @@ function getFontSetup(preset: string): string {
   return setups[preset] || setups.modern;
 }
 
-function getStyleConfig(preset: string): StyleConfig {
+function getStyleConfig(preset: string, paperSize = "a5paper"): StyleConfig {
+  // Premium chapter-opener geometry depends on the page size: the band must
+  // fit up to THREE title lines (long Polish titles wrap) — a fixed-height
+  // band clipped the third line against the gold rule on a4.
+  const isA4 = paperSize === "a4paper";
+  const band = isA4
+    ? { h: "54", rule: "55.2", numSize: "44", numY: "-8", titleY: "-25", titleSize: "18", titleLead: "23", titleW: "165", after: "36" }
+    : { h: "50", rule: "51.2", numSize: "40", numY: "-7", titleY: "-22", titleSize: "15.5", titleLead: "20", titleW: "112", after: "32" };
   switch (preset) {
     // Premium: full-bleed chapter band with an oversized two-digit number,
     // gold accents, flat icon-tab boxes (restyled in assembleLatexDocument).
@@ -2292,16 +2306,16 @@ function getStyleConfig(preset: string): StyleConfig {
           "\\makeatletter",
           "\\newcommand{\\PremiumChapterOpener}[1]{%",
           "  \\begin{tikzpicture}[remember picture,overlay]",
-          "    \\fill[bandcolor] (current page.north west) rectangle ([yshift=-46mm]current page.north east);",
-          "    \\fill[accentgold] ([yshift=-46mm]current page.north west) rectangle ([yshift=-47.2mm]current page.north east);",
-          "    \\node[anchor=north west, text=bandnum, font=\\headingfont\\bfseries\\fontsize{42}{42}\\selectfont]",
-          "      at ([xshift=18mm,yshift=-8mm]current page.north west) {\\two@digits{\\value{chapter}}};",
+          `    \\fill[bandcolor] (current page.north west) rectangle ([yshift=-${band.h}mm]current page.north east);`,
+          `    \\fill[accentgold] ([yshift=-${band.h}mm]current page.north west) rectangle ([yshift=-${band.rule}mm]current page.north east);`,
+          `    \\node[anchor=north west, text=bandnum, font=\\headingfont\\bfseries\\fontsize{${band.numSize}}{${band.numSize}}\\selectfont]`,
+          `      at ([xshift=18mm,yshift=${band.numY}mm]current page.north west) {\\two@digits{\\value{chapter}}};`,
           "    \\node[anchor=north west, text=white, align=left,",
-          "          font=\\headingfont\\bfseries\\fontsize{16.5}{21}\\selectfont, text width=112mm]",
-          "      at ([xshift=18mm,yshift=-24mm]current page.north west)",
+          `          font=\\headingfont\\bfseries\\fontsize{${band.titleSize}}{${band.titleLead}}\\selectfont, text width=${band.titleW}mm]`,
+          `      at ([xshift=18mm,yshift=${band.titleY}mm]current page.north west)`,
           "      {\\hyphenpenalty=10000\\exhyphenpenalty=10000\\raggedright #1\\par};",
           "  \\end{tikzpicture}%",
-          "  \\vspace*{28mm}}",
+          `  \\vspace*{${band.after}mm}}`,
           "\\makeatother",
           "\\titleformat{\\chapter}[block]{}{}{0pt}{\\PremiumChapterOpener}",
           "\\titlespacing*{\\chapter}{0pt}{-25mm}{12mm}",
