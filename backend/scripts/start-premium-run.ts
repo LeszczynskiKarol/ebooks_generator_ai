@@ -19,7 +19,8 @@ import { enqueueGeneration } from "../src/lib/jobQueue";
       language: "pl",
       targetPages: 60,
       stylePreset: "premium",
-      bookFormat: "a5",
+      // A4 = standard serii kierunkowej (A5 to default SaaS — „zupełnie inny format")
+      bookFormat: "a4",
       customColors: JSON.stringify(["#165D50"]),
       guidelines: [
         "Książka ściśle o PRACY LICENCJACKIEJ z pielęgniarstwa w polskich realiach — zero ogólników o pracach dyplomowych w ogóle.",

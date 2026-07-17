@@ -121,6 +121,8 @@ Szukaj:
 - broken_table: rozjechane kolumny, tabela wychodzi poza stronę, puste/zlane komórki.
 - blank_page: strona pusta lub prawie pusta (poza celową stroną tytułową/przerywnikiem).
 - overlap: nakładające się elementy, tekst na tekście, nagłówek/stopka zlane z treścią.
+- clipped_heading: tytuł rozdziału na kolorowym pasie otwierającym UCIĘTY dolną krawędzią pasa lub złotą linią (widać obcięte litery / brak dolnej części ostatniego wiersza tytułu) — to ZAWSZE high.
+- loose_spacing: rażąco nadmierne odstępy pionowe (pół strony pustki między akapitami/listami w środku sekcji).
 
 Dla KAŻDEGO problemu podaj: numer strony, type (jeden z powyższych), severity ("high" psuje odbiór / "low" kosmetyka), quote = DOKŁADNY fragment tekstu widoczny na stronie przy problemie (kilka słów — posłuży do odnalezienia w źródle; pusty gdy nie dotyczy), description (po polsku, zwięźle).
 
