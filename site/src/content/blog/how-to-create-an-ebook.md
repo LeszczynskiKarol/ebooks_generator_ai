@@ -39,7 +39,7 @@ A useful outline assigns length, not just order. For the standard lead-magnet ra
 
 Readers cannot name kerning, but they feel it. The visible differences between a document and a book: justified text with proper hyphenation (Word's justification creates rivers of white space), running heads, page numbers that match the table of contents, drop caps or other chapter-opening conventions, consistent spacing around headings, and no orphaned single lines at page tops.
 
-Your options, in ascending order of quality: export from Google Docs or Word (fast, looks like a document), design in Canva (better, looks like a marketing PDF), hire a designer at [$30–45 per hour](https://www.upwork.com/hire/book-designers/cost/), or use software built on a real typesetting engine. We use LaTeX — the system academic publishers run — under the hood; [these raw pages](/examples/) show what that buys.
+Your options, in ascending order of quality: export from Google Docs or Word (fast, looks like a document), design in Canva (better, looks like a marketing PDF), hire a designer at [$30–45 per hour](https://www.upwork.com/hire/book-designers/cost/), or use software built on a real typesetting engine. We use LaTeX — the system academic publishers run — under the hood.
 
 ## You need two files, not one
 

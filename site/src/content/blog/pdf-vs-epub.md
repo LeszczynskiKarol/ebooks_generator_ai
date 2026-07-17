@@ -27,7 +27,7 @@ Every practical consequence follows from this split.
 
 **Lead magnets delivered by email.** A PDF opens identically everywhere, attaches cleanly, and needs no app decisions from a subscriber whose attention you hold for seconds. This is why the lead magnet world standardized on it.
 
-**Controlled reading experience.** If typography is part of the product — drop caps, pull quotes, deliberate page rhythm — only a fixed format preserves it. This is also where quality splits visibly: a PDF exported from a word processor looks like a document, while a typeset PDF looks like a book. The difference is the typesetting engine, not the format. ([Raw examples of the difference here](/examples/).)
+**Controlled reading experience.** If typography is part of the product — drop caps, pull quotes, deliberate page rhythm — only a fixed format preserves it. This is also where quality splits visibly: a PDF exported from a word processor looks like a document, while a typeset PDF looks like a book. The difference is the typesetting engine, not the format.
 
 ## When EPUB is non-negotiable
 

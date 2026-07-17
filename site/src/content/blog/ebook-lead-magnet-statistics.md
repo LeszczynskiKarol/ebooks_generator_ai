@@ -57,7 +57,7 @@ Credibility requires the other side of the ledger.
 
 The traditional math kept good ebooks rare. At [Reedsy's published marketplace rates](https://reedsy.com/blog/cost-to-hire-a-ghostwriter/), ghostwriting runs $1,000–10,000 for the 5,000–10,000 words a lead magnet needs; specialist nonfiction projects average $24,000–48,000. Book designers bill around [$30–45 an hour on Upwork](https://www.upwork.com/hire/book-designers/cost/). Add two to six weeks of calendar time.
 
-That math is why the typical funnel still runs on a thin template PDF: the real thing cost four figures. AI generation collapsed the equation — a researched, typeset, illustrated book now costs less than the ad clicks that deliver a single subscriber. (That is the product [we build](/lead-magnet-generator/); judge our output on [raw pages](/examples/), not promises.)
+That math is why the typical funnel still runs on a thin template PDF: the real thing cost four figures. AI generation collapsed the equation — a researched, typeset, illustrated book now costs less than the ad clicks that deliver a single subscriber. (That is the product [we build](/lead-magnet-generator/).)
 
 ## What to do with these numbers
 

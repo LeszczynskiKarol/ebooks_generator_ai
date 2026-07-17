@@ -44,7 +44,7 @@ Zastrzeżenie o płytkim sygnale: żaden z tych formatów cię nie wyróżnia. K
 
 ## Przy produkcie: gdy coś sprzedajesz
 
-19. **Przykładowy rozdział** — jeśli sprzedajesz książkę albo kurs, pierwszy rozdział sam jest magnesem. My z tego powodu publikujemy [kompletną 38-stronicową książkę przykładową](/pl/przyklady/).
+19. **Przykładowy rozdział** — jeśli sprzedajesz książkę albo kurs, pierwszy rozdział sam jest magnesem.
 20. **Darmowy wariant narzędzia** — wzorzec freemium w miniaturze.
 21. **Rabat za adres** — konwertuje na 7,65% w [danych OptiMonk](https://www.optimonk.com/popup-statistics), ale uczy czekania na obniżki. Używaj głęboko w lejku, nie jako drzwi wejściowych.
 22. **Wczesny dostęp / lista oczekujących** — niedobór bez rabatowania.

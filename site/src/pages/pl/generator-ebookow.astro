@@ -1,10 +1,6 @@
 ---
 import ArticleLayout from "../../layouts/ArticleLayout.astro";
-import { Image } from "astro:assets";
 import { siteConfig } from "../../config/site";
-import exCover from "../../assets/ex-cover-kuchnia.png";
-import exPhoto1 from "../../assets/ex-kuchnia-photo1.png";
-import exChapter from "../../assets/ex-kuchnia-chapter.png";
 
 const title = "Generator ebooków AI — prawdziwe książki";
 const description =
@@ -111,18 +107,6 @@ const jsonLd = [
       akademickich) i EPUB na czytniki. Oba bez znaków wodnych, z pełnymi prawami.
     </li>
   </ol>
-
-  <figure>
-    <div class="grid grid-cols-3 gap-3">
-      <Image src={exCover} alt="Okładka polskiej książki wygenerowanej w InkMagnet" width={400} />
-      <Image src={exPhoto1} alt="Strona wygenerowanej książki z fotografią AI przy przepisie" width={400} />
-      <Image src={exChapter} alt="Otwarcie rozdziału z inicjałem w wygenerowanej książce" width={400} />
-    </div>
-    <figcaption>
-      Surowe strony z polskiej książki wygenerowanej w InkMagnet —
-      <a href="/pl/przyklady/">więcej przykładów i pełny PDF do pobrania</a>.
-    </figcaption>
-  </figure>
 
   <h2>Polski traktujemy poważnie</h2>
   <p>

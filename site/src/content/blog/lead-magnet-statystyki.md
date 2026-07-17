@@ -55,7 +55,7 @@ Jeszcze ciekawszy jest mail powitalny, czyli ten, który zwykle dostarcza lead m
 
 Dobry ebook był rzadkością z prostego powodu: kosztował jak mały remont. [Stawki z marketplace'u Reedsy](https://reedsy.com/blog/cost-to-hire-a-ghostwriter/) pokazują ghostwriting w przedziale 1 000–10 000 dolarów za tekst długości typowego lead magnetu, a specjalistyczne książki poradnikowe średnio 24–48 tysięcy. Projektant składu na Upworku liczy [około 30–45 dolarów za godzinę](https://www.upwork.com/hire/book-designers/cost/). Do tego dochodziły tygodnie czekania.
 
-Generowanie przez AI wywróciło ten rachunek. Zbadana w źródłach, złożona typograficznie i zilustrowana książka kosztuje dziś mniej niż kliknięcia reklamowe potrzebne do zdobycia jednego subskrybenta. Tak działa [nasz generator](/pl/); efekty oceniaj po [surowych stronach z prawdziwych książek](/pl/przyklady/), nie po obietnicach.
+Generowanie przez AI wywróciło ten rachunek. Zbadana w źródłach, złożona typograficznie i zilustrowana książka kosztuje dziś mniej niż kliknięcia reklamowe potrzebne do zdobycia jednego subskrybenta. Tak działa [nasz generator](/pl/).
 
 ## Co z tym zrobić w praktyce
 

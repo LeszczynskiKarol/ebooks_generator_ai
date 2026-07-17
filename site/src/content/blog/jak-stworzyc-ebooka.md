@@ -39,7 +39,7 @@ Użyteczny konspekt przydziela rozdziałom objętość, a nie tylko kolejność.
 
 Czytelnik nie zna słowa „kerning", ale je czuje. Widoczne różnice między dokumentem a książką: wyjustowany tekst z poprawnym dzieleniem wyrazów (justowanie Worda zostawia rzeki światła między słowami), żywa pagina, numeracja zgodna ze spisem treści, inicjały lub inna konwencja otwarcia rozdziału, równe odstępy wokół nagłówków i brak pojedynczych wierszy osieroconych na górze strony. Po polsku dochodzi jeszcze jedno: sieroty, czyli samotne „i", „w", „z" na końcach wierszy, które profesjonalny skład przenosi do następnej linii twardą spacją.
 
-Możliwości, od najsłabszej: eksport z Worda lub Dokumentów Google (wygląda jak dokument), projekt w Canvie (wygląda jak PDF marketingowy), projektant za [30–45 dolarów za godzinę](https://www.upwork.com/hire/book-designers/cost/), albo oprogramowanie zbudowane na prawdziwym silniku składu. My używamy pod spodem LaTeX-a, systemu wydawnictw akademickich; [surowe strony w galerii przykładów](/pl/przyklady/) pokazują, co to daje w praktyce.
+Możliwości, od najsłabszej: eksport z Worda lub Dokumentów Google (wygląda jak dokument), projekt w Canvie (wygląda jak PDF marketingowy), projektant za [30–45 dolarów za godzinę](https://www.upwork.com/hire/book-designers/cost/), albo oprogramowanie zbudowane na prawdziwym silniku składu. My używamy pod spodem LaTeX-a, systemu wydawnictw akademickich.
 
 ## Potrzebujesz dwóch plików, nie jednego
 

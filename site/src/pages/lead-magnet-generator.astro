@@ -1,10 +1,6 @@
 ---
 import ArticleLayout from "../layouts/ArticleLayout.astro";
-import { Image } from "astro:assets";
 import { siteConfig } from "../config/site";
-import exCover from "../assets/ex-cover-kuchnia.png";
-import exPhoto1 from "../assets/ex-kuchnia-photo1.png";
-import psyChapter from "../assets/page-chapter.png";
 
 const title = "AI Lead Magnet Generator — real ebooks";
 const description =
@@ -123,18 +119,6 @@ const jsonLd = [
     The deliverable is a print-quality PDF and a store-ready EPUB, downloadable,
     watermark-free, with full commercial rights.
   </p>
-
-  <figure>
-    <div class="grid grid-cols-3 gap-3">
-      <Image src={exCover} alt="AI-designed cover of a generated cookbook" width={400} />
-      <Image src={exPhoto1} alt="Generated book page with AI food photography" width={400} />
-      <Image src={psyChapter} alt="Chapter opening with drop cap from a generated book" width={400} />
-    </div>
-    <figcaption>
-      Unretouched pages from customer books — <a href="/examples/">more in the examples gallery</a>,
-      including a complete 38-page sample PDF.
-    </figcaption>
-  </figure>
 
   <h2>The math against doing it the old way</h2>
   <p>

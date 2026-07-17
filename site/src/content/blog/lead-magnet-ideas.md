@@ -44,7 +44,7 @@ The shallow-signal caveat: none of these distinguishes you. Every competitor can
 
 ## Product-adjacent: for when you sell something
 
-19. **Sample chapter** — if you sell a book or course, the first chapter is the magnet writing itself. We publish [a complete 38-page sample book](/examples/) for exactly this reason.
+19. **Sample chapter** — if you sell a book or course, the first chapter is the magnet writing itself.
 20. **Free tool tier** — the freemium pattern miniaturized.
 21. **Discount in exchange for email** — converts at 7.65% in [OptiMonk's data](https://www.optimonk.com/popup-statistics), but trains price-waiting. Use late in the funnel, not as the front door.
 22. **Early access / waitlist** — scarcity without discounting.

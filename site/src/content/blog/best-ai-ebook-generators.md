@@ -78,6 +78,6 @@ Stop sorting by the word "AI" and sort by the output:
 - **I want text and I'll handle the rest** → a draft generator (Youbooks, Squibler).
 - **I want to recycle my existing content** → Designrr.
 - **I've written the manuscript, I want it laid out** → Atticus or Vellum.
-- **I want a finished, researched book from a topic, paying once** → that's the gap [InkMagnet](/#pricing) was built for. See [unretouched example pages](/examples/), including a full sample PDF.
+- **I want a finished, researched book from a topic, paying once** → that's the gap [InkMagnet](/#pricing) was built for.
 
 If you're starting from zero, our [complete guide to creating an ebook](/blog/how-to-create-an-ebook/) walks every path — including the ones that don't involve us — with the real numbers attached.
