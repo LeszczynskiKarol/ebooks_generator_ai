@@ -338,9 +338,11 @@ export default function NewProject() {
         data?.data?.session_url ||
         data?.data?.url;
       toast.success(
-        "Rutyna odpalona (subskrypcja) — książka pojawi się po jej zakończeniu",
+        "Rutyna odpalona (subskrypcja) — książka pojawi się na liście po jej zakończeniu",
+        { duration: 8000 },
       );
       if (sessionUrl) window.open(sessionUrl, "_blank");
+      navigate("/dashboard");
     } catch (err: any) {
       toast.error(err.response?.data?.error || t("newProject.failed"));
     } finally {

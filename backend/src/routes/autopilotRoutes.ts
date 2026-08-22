@@ -185,13 +185,46 @@ export async function autopilotRoutes(app: FastifyInstance) {
         .send({ success: false, error: "Topic must be at least 5 characters" });
     }
     // The routine reads its runtime input from the `text` param (JSON string).
+    // Forward the FULL form — the routine (an agent) uses whatever is present;
+    // dropping fields here silently loses what the admin typed (title,
+    // guidelines, colors...), so pass everything the paid flow would.
     const text = JSON.stringify({
       topic,
+      title: typeof b.title === "string" && b.title.trim() ? b.title.trim() : undefined,
+      subtitle:
+        typeof b.subtitle === "string" && b.subtitle.trim() ? b.subtitle.trim() : undefined,
+      authorName:
+        typeof b.authorName === "string" && b.authorName.trim()
+          ? b.authorName.trim()
+          : undefined,
+      guidelines:
+        typeof b.guidelines === "string" && b.guidelines.trim()
+          ? b.guidelines.slice(0, 5000)
+          : undefined,
       targetPages: parseInt(b.targetPages) || 60,
       language: b.language || "pl",
       stylePreset: b.stylePreset || "modern",
       bookFormat: b.bookFormat || "a5",
       withImages: b.withImages !== false,
+      customColors:
+        Array.isArray(b.customColors) && b.customColors.length > 0
+          ? b.customColors
+              .slice(0, 3)
+              .filter(
+                (c: any) => typeof c === "string" && /^#[0-9A-Fa-f]{6}$/.test(c),
+              )
+          : undefined,
+      coverOption: typeof b.coverOption === "string" ? b.coverOption : undefined,
+      imageDensity: ["standard", "rich"].includes(b.imageDensity)
+        ? b.imageDensity
+        : undefined,
+      imageGuidelines:
+        typeof b.imageGuidelines === "string" && b.imageGuidelines.trim()
+          ? b.imageGuidelines.slice(0, 1000)
+          : undefined,
+      footnoteMode: ["auto", "always", "never"].includes(b.footnoteMode)
+        ? b.footnoteMode
+        : undefined,
     });
     try {
       const r = await fetch(url, {
