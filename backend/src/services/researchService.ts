@@ -9,9 +9,17 @@ import { prisma } from "../lib/prisma";
 import { createPipelineLogger } from "../lib/logger";
 import { createLLMClient } from "../lib/llm";
 import { parseLLMJson } from "../lib/llmJson";
+import {
+  cytadoEnabled,
+  cytadoLangs,
+  classifySourceMode,
+  fetchAcademicSources,
+  type SourceMode,
+} from "./cytadoService";
 
 const anthropic = createLLMClient();
 
+const SERPER_API_KEY = process.env.SERPER_API_KEY || "";
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || "";
 const GOOGLE_CX = process.env.GOOGLE_CX || "";
 const SCRAPER_URL = process.env.SCRAPER_URL || "";
@@ -68,9 +76,12 @@ export interface ResearchResult {
     text: string;
     length: number;
     lang: string;
+    academic?: boolean;
   }>;
   totalSourcesLength: number;
   selectionReasoning?: string;
+  /** Decyzja LLM: skąd źródła — academic (cytado), web, hybrid (oba). */
+  sourceMode?: SourceMode;
   researchedAt: string;
 }
 
@@ -109,6 +120,65 @@ export async function conductResearch(
     Guidelines: (project.guidelines || "none").substring(0, 100),
   });
 
+  // PHASE 0: cytado — LLM decyduje, czy temat wymaga źródeł naukowych.
+  // academic → tylko cytado (jak smart-copy); hybrid → cytado + web;
+  // web → dotychczasowy research. Fail-open na każdym kroku.
+  let sourceMode: SourceMode = "web";
+  let academicSources: Array<{
+    url: string;
+    text: string;
+    length: number;
+    lang: string;
+    academic: true;
+  }> = [];
+  if (cytadoEnabled()) {
+    sourceMode = await classifySourceMode(project.topic, project.guidelines);
+    log.ok(`Source mode (LLM): ${sourceMode}`);
+    if (sourceMode !== "web") {
+      const cytTimer = log.timer();
+      academicSources = await fetchAcademicSources(
+        project.guidelines
+          ? `${project.topic}\n${project.guidelines}`
+          : project.topic,
+        cytadoLangs(project.language),
+      );
+      log.ok(
+        `Cytado: ${academicSources.length} academic sources (${cytTimer()})`,
+      );
+      if (sourceMode === "academic" && academicSources.length === 0) {
+        log.warn("Academic mode, cytado empty — falling back to hybrid/web");
+        sourceMode = "hybrid";
+      }
+    }
+  }
+
+  // Czysto akademicki research — bez fazy webowej.
+  if (sourceMode === "academic" && academicSources.length > 0) {
+    const selectedSources = academicSources.map((s) => ({
+      ...s,
+      text: sanitizeText(s.text),
+    }));
+    const totalLength = selectedSources.reduce((sum, s) => sum + s.length, 0);
+    const result: ResearchResult = {
+      googleQuery: "",
+      searchResults: [],
+      allScraped: [],
+      selectedSources,
+      totalSourcesLength: totalLength,
+      sourceMode,
+      researchedAt: new Date().toISOString(),
+    };
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { researchData: JSON.stringify(result) },
+    });
+    log.footer(
+      "SUCCESS",
+      `${selectedSources.length} academic sources, ${totalLength.toLocaleString()} chars (cytado only)`,
+    );
+    return result;
+  }
+
   if (!hasApiKeys()) {
     log.warn(`Research SKIPPED — missing env vars`);
     log.footer("SUCCESS", "Skipped — no API keys");
@@ -129,7 +199,7 @@ export async function conductResearch(
     // PHASE 2: Google search + scrape ALL
     log.phase(2, "Search & Scrape (target language)");
     const searchTimer = log.timer();
-    const searchResults = await searchGoogle(
+    const searchResults = await webSearch(
       googleQuery,
       project.language,
       log,
@@ -187,7 +257,7 @@ export async function conductResearch(
     if (!selection.sufficient && project.language !== "en") {
       log.phase(4, "English Supplement Search");
       englishQuery = await generateSimpleQuery(project.topic, "en", log);
-      const enSearchResults = await searchGoogle(englishQuery, "en", log);
+      const enSearchResults = await webSearch(englishQuery, "en", log);
 
       if (enSearchResults.length > 0) {
         englishSearchResults = enSearchResults;
@@ -220,8 +290,23 @@ export async function conductResearch(
       }
     }
 
-    // FINALIZE
-    const totalLength = selectedSources.reduce((sum, s) => sum + s.length, 0);
+    // FINALIZE — źródła naukowe (cytado) na początku, potem webowe
+    const finalSources = [
+      ...academicSources.map((s) => ({
+        url: s.url,
+        text: sanitizeText(s.text),
+        length: s.length,
+        lang: s.lang,
+        academic: true as const,
+      })),
+      ...selectedSources.map((s) => ({
+        url: s.url,
+        text: sanitizeText(s.text),
+        length: s.length,
+        lang: s.lang,
+      })),
+    ];
+    const totalLength = finalSources.reduce((sum, s) => sum + s.length, 0);
     const result: ResearchResult = {
       googleQuery,
       englishQuery,
@@ -233,14 +318,10 @@ export async function conductResearch(
         length: r.length,
         status: r.status,
       })),
-      selectedSources: selectedSources.map((s) => ({
-        url: s.url,
-        text: sanitizeText(s.text),
-        length: s.length,
-        lang: s.lang,
-      })),
+      selectedSources: finalSources,
       totalSourcesLength: totalLength,
       selectionReasoning: selection.reasoning,
+      sourceMode,
       researchedAt: new Date().toISOString(),
     };
 
@@ -256,6 +337,31 @@ export async function conductResearch(
     return result;
   } catch (error: any) {
     log.err("Research pipeline failed", error);
+    // Faza webowa padła, ale źródła naukowe z cytado już są — nie gub ich.
+    if (academicSources.length > 0) {
+      const selectedSources = academicSources.map((s) => ({
+        ...s,
+        text: sanitizeText(s.text),
+      }));
+      const totalLength = selectedSources.reduce((sum, s) => sum + s.length, 0);
+      const result: ResearchResult = {
+        googleQuery: "",
+        searchResults: [],
+        allScraped: [],
+        selectedSources,
+        totalSourcesLength: totalLength,
+        sourceMode,
+        researchedAt: new Date().toISOString(),
+      };
+      await prisma.project
+        .update({
+          where: { id: projectId },
+          data: { researchData: JSON.stringify(result) },
+        })
+        .catch(() => {});
+      log.footer("SUCCESS", "Web research failed — cytado sources only");
+      return result;
+    }
     log.footer("ERROR", error.message);
     return emptyResearch();
   }
@@ -335,7 +441,7 @@ export async function conductChapterResearch(
     }> = [];
 
     for (const query of queries) {
-      const searchResults = await searchGoogle(query, language, chLog);
+      const searchResults = await webSearch(query, language, chLog);
       chLog.step(`"${query}" → ${searchResults.length} results`);
 
       // Filter out URLs already used globally or in this chapter
@@ -392,7 +498,7 @@ export async function conductChapterResearch(
         "en",
         chLog,
       );
-      const enResults = await searchGoogle(enQuery, "en", chLog);
+      const enResults = await webSearch(enQuery, "en", chLog);
       const enNewUrls = enResults
         .map((r) => r.link)
         .filter((u) => !globalUrls.has(u));
@@ -653,7 +759,8 @@ export function formatSourcesForPrompt(
           ? s.text.substring(0, maxCharsPerSource) + "\n[... TRUNCATED ...]"
           : s.text;
       const langTag = s.lang ? ` [${s.lang.toUpperCase()}]` : "";
-      return `\n═══ SOURCE ${i + 1}${langTag}: ${s.url} (${s.length.toLocaleString()} chars) ═══\n\n${text}\n\n═══ END SOURCE ${i + 1} ═══`;
+      const academicTag = (s as any).academic ? " 🎓 ACADEMIC" : "";
+      return `\n═══ SOURCE ${i + 1}${langTag}${academicTag}: ${s.url} (${s.length.toLocaleString()} chars) ═══\n\n${text}\n\n═══ END SOURCE ${i + 1} ═══`;
     })
     .join("\n\n");
 
@@ -725,7 +832,8 @@ export function mergeResearchForPrompt(
       const langTag = s.lang ? ` [${s.lang.toUpperCase()}]` : "";
       const priorityTag =
         s.priority === "CHAPTER-SPECIFIC" ? " ★ CHAPTER-SPECIFIC" : "";
-      return `\n═══ SOURCE ${i + 1}${langTag}${priorityTag}: ${s.url} (${s.length.toLocaleString()} chars) ═══\n\n${text}\n\n═══ END SOURCE ${i + 1} ═══`;
+      const academicTag = (s as any).academic ? " 🎓 ACADEMIC" : "";
+      return `\n═══ SOURCE ${i + 1}${langTag}${priorityTag}${academicTag}: ${s.url} (${s.length.toLocaleString()} chars) ═══\n\n${text}\n\n═══ END SOURCE ${i + 1} ═══`;
     })
     .filter(Boolean)
     .join("\n\n");
@@ -806,8 +914,56 @@ Query:`;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// Internal: Google search
+// Internal: web search — Serper.dev primary (jak smart-copy), Google CSE fallback
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+async function searchSerper(
+  query: string,
+  language: string,
+  log: any,
+): Promise<Array<{ title: string; link: string; snippet: string }>> {
+  const langCode = LANGUAGE_CODES[language] || "en";
+  log.step?.(`  Serper: gl=${langCode === "pl" ? "pl" : "us"}, hl=${langCode}, q="${query}"`);
+  const res = await axios.post(
+    "https://google.serper.dev/search",
+    {
+      q: query,
+      gl: langCode === "pl" ? "pl" : "us",
+      hl: langCode,
+      num: 15,
+    },
+    {
+      headers: { "X-API-KEY": SERPER_API_KEY, "Content-Type": "application/json" },
+      timeout: 15000,
+    },
+  );
+  const organic: any[] = res.data?.organic || [];
+  log.step?.(`  → ${organic.length} results (serper)`);
+  return organic.slice(0, 15).map((item: any) => ({
+    title: item.title || "",
+    link: item.link || "",
+    snippet: item.snippet || "",
+  }));
+}
+
+/** Serper jeśli jest klucz; błąd lub brak klucza → Google CSE. */
+async function webSearch(
+  query: string,
+  language: string,
+  log: any,
+): Promise<Array<{ title: string; link: string; snippet: string }>> {
+  if (SERPER_API_KEY) {
+    try {
+      return await searchSerper(query, language, log);
+    } catch (error: any) {
+      log.warn?.(`Serper failed (${error.message}) — falling back to Google CSE`);
+    }
+  }
+  if (GOOGLE_API_KEY && GOOGLE_CX) {
+    return searchGoogle(query, language, log);
+  }
+  return [];
+}
 
 async function searchGoogle(
   query: string,
@@ -1125,7 +1281,8 @@ Pick 1-3 sources. If none add value, respond with: []`;
 // ━━━ Helpers ━━━
 
 function hasApiKeys(): boolean {
-  return !!GOOGLE_API_KEY && !!GOOGLE_CX && !!SCRAPER_URL;
+  const hasSearch = !!SERPER_API_KEY || (!!GOOGLE_API_KEY && !!GOOGLE_CX);
+  return hasSearch && !!SCRAPER_URL;
 }
 
 function fallbackSelection(scraped: Array<{ length: number }>): number[] {

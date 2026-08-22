@@ -42,13 +42,15 @@ async function authorize(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<boolean> {
-  const serviceToken = process.env.INTERNAL_API_TOKEN;
+  // INTERNAL_API_TOKEN_PREVIOUS: grace period przy rotacji — rutyna, która
+  // pobrała stary token na starcie biegu, może jeszcze dokończyć ingest/revise.
+  // Po zakończeniu biegu usunąć PREVIOUS z .env.
+  const serviceTokens = [
+    process.env.INTERNAL_API_TOKEN,
+    process.env.INTERNAL_API_TOKEN_PREVIOUS,
+  ].filter(Boolean);
   const header = request.headers.authorization;
-  if (
-    serviceToken &&
-    header &&
-    header === `Bearer ${serviceToken}`
-  ) {
+  if (header && serviceTokens.some((t) => header === `Bearer ${t}`)) {
     return true; // unattended caller (routine) with the shared service token
   }
 
