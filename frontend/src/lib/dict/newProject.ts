@@ -22,6 +22,16 @@ export const en: Record<string, string> = {
   "newProject.bookSize": "Book Size",
   "newProject.popular": "Popular",
   "newProject.perPage": "/page",
+  "newProject.tierLabel.compact": "Compact",
+  "newProject.tierLabel.standard": "Standard",
+  "newProject.tierLabel.extended": "Extended",
+  "newProject.tierLabel.comprehensive": "Comprehensive",
+  "newProject.tierLabel.complete": "Complete",
+  "newProject.tierDesc.compact": "30–40 pages · 3 chapters",
+  "newProject.tierDesc.standard": "50–70 pages · 4 chapters",
+  "newProject.tierDesc.extended": "80–100 pages · 6 chapters",
+  "newProject.tierDesc.comprehensive": "130–150 pages · 8 chapters",
+  "newProject.tierDesc.complete": "170–200 pages · 10 chapters",
 
   // Section: Color Scheme
   "newProject.colorScheme": "Color Scheme",
@@ -195,6 +205,16 @@ export const pl: Record<string, string> = {
   "newProject.bookSize": "Rozmiar książki",
   "newProject.popular": "Popularne",
   "newProject.perPage": "/strona",
+  "newProject.tierLabel.compact": "Kompaktowa",
+  "newProject.tierLabel.standard": "Standardowa",
+  "newProject.tierLabel.extended": "Rozszerzona",
+  "newProject.tierLabel.comprehensive": "Obszerna",
+  "newProject.tierLabel.complete": "Kompletna",
+  "newProject.tierDesc.compact": "30–40 stron · 3 rozdziały",
+  "newProject.tierDesc.standard": "50–70 stron · 4 rozdziały",
+  "newProject.tierDesc.extended": "80–100 stron · 6 rozdziałów",
+  "newProject.tierDesc.comprehensive": "130–150 stron · 8 rozdziałów",
+  "newProject.tierDesc.complete": "170–200 stron · 10 rozdziałów",
 
   // Section: Color Scheme
   "newProject.colorScheme": "Kolorystyka",

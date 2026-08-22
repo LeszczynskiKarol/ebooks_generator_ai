@@ -474,10 +474,10 @@ export default function NewProject() {
                       <p
                         className={`font-semibold ${isSelected ? "text-primary-700 dark:text-primary-400" : "text-gray-900 dark:text-white"}`}
                       >
-                        {tier.label}
+                        {t(`newProject.tierLabel.${tier.id}`)}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {tier.description}
+                        {t(`newProject.tierDesc.${tier.id}`)}
                       </p>
                     </div>
                   </div>
@@ -976,7 +976,7 @@ export default function NewProject() {
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                {PAGE_SIZE_TIERS[selectedTierIdx].label} ·{" "}
+                {t(`newProject.tierLabel.${PAGE_SIZE_TIERS[selectedTierIdx].id}`)} ·{" "}
                 {t("newProject.pages", {
                   s: PAGE_SIZE_TIERS[selectedTierIdx].targetPages,
                 })}
