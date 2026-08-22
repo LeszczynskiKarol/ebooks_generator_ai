@@ -823,7 +823,10 @@ export function assembleLatexDocument(p: AssembleParams): string {
         `  borderline west={1.1mm}{0pt}{${frame}},`,
         "  arc=1.2mm, outer arc=1.2mm,",
         "  left=3.2mm, right=3.2mm, top=5.5mm, bottom=3.2mm,",
-        "  before skip=5mm, after skip=5mm,",
+        // Chip tytułowy stoi okrakiem na górnej krawędzi (wystaje ~2mm ponad
+        // ramkę), więc odstęp PRZED musi być większy niż PO — przy 5/5 chip
+        // niemal dotykał tekstu powyżej.
+        "  before skip=8.5mm, after skip=5mm,",
         `  before upper={\\parindent0pt\\small${extraUpper}},`,
         "  overlay unbroken and first={",
         `    \\node[anchor=west, fill=${frame}, text=white,`,
