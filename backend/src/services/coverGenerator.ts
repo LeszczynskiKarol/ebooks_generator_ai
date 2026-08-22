@@ -1353,9 +1353,15 @@ ${(() => {
 % page edge-to-edge without the old +5mm paper hack, and unlike an eso-pic
 % shipout hook it keeps TikZ transparency working (opacity dies in shipout BG).
 \\thispagestyle{empty}%
+% Layouty rysują w logicznych mm A4 (210×297). xscale/yscale + transform shape
+% skalują CAŁOŚĆ — geometrię, fonty i text width węzłów — do realnego formatu.
+% Samo skalowanie jednostek x/y (poprzednia wersja) zostawiało tekst w pełnym
+% rozmiarze: na A5 tytuł i pillar boxy wyjeżdżały poza prawą krawędź strony.
 \\begin{tikzpicture}[remember picture, overlay,
   shift={(current page.south west)},
-  x=${(dims.w / 210).toFixed(5)}mm, y=${(dims.h / 297).toFixed(5)}mm]
+  xscale=${(dims.w / 210).toFixed(5)}, yscale=${(dims.h / 297).toFixed(5)},
+  transform shape,
+  x=1mm, y=1mm]
 \\clip (0,0) rectangle (210,297);
 
 ${tikzBody}
