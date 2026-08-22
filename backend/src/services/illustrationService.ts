@@ -446,7 +446,16 @@ export async function illustrateChapters(
       });
 
       const figureBlock = `\n\n\\begin{figure}[h]\n\\centering\n\\includegraphics[width=0.85\\linewidth]{${s3Url}}\n\\caption{${escCaption(brief.caption)}}\n\\end{figure}\n\n`;
-      latex = latex.replace(brief.anchor, brief.anchor + figureBlock);
+      // Model MA kończyć anchor na końcu zdania, ale bywa, że urywa go w
+      // środku — wstawienie figury tam rozcina zdanie na dwa akapity (reszta
+      // zaczyna się od ", na przykład..."). Dlatego punkt wstawienia zawsze
+      // przesuwamy do końca BIEŻĄCEGO akapitu (najbliższe "\n\n") — figura
+      // między akapitami nigdy nie tnie zdania.
+      const anchorIdx = latex.indexOf(brief.anchor);
+      let insertAt = anchorIdx + brief.anchor.length;
+      const paraEnd = latex.indexOf("\n\n", insertAt);
+      insertAt = paraEnd === -1 ? latex.length : paraEnd;
+      latex = latex.slice(0, insertAt) + figureBlock + latex.slice(insertAt);
 
       chapterAdded++;
       bookBudget--;
