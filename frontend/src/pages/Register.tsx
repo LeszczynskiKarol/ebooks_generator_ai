@@ -3,15 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { BookOpen, Loader2, Moon, Sun } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { useThemeStore } from "@/stores/themeStore";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { getRecaptchaToken, warmRecaptcha } from "@/lib/recaptcha";
 import { uiLang } from "@/lib/locale";
 import { useT, useLangStore, translate } from "@/lib/i18n";
-import LangToggle from "@/components/LangToggle";
+import AuthShell from "@/components/AuthShell";
 import VerifyCodeForm from "@/components/VerifyCodeForm";
 import GoogleButton from "@/components/GoogleButton";
 import RecaptchaNotice from "@/components/RecaptchaNotice";
@@ -21,7 +20,6 @@ type RegisterForm = { name: string; email: string; password: string };
 export default function Register() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
-  const { dark, toggle } = useThemeStore();
   const t = useT();
   const lang = useLangStore((s) => s.lang);
   const [loading, setLoading] = useState(false);
@@ -69,89 +67,78 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 transition-colors">
-      <LangToggle />
-      <button onClick={toggle} className="fixed top-4 right-4 p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
-        {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-      </button>
-
-      <div className="w-full max-w-md animate-fade-in">
-        <div className="text-center mb-8">
-          <a href="https://inkmagnet.com" className="inline-flex items-center gap-2 mb-6">
-            <BookOpen className="w-8 h-8 text-primary-600" />
-            <span className="text-2xl font-bold font-display text-gray-900 dark:text-white">InkMagnet</span>
-          </a>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {pendingEmail ? t("verifyTitle") : t("createAccountTitle")}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {pendingEmail ? t("oneLastStep") : t("startCreating")}
-          </p>
-        </div>
-
-        {pendingEmail ? (
-          <VerifyCodeForm
-            email={pendingEmail}
-            onBack={() => setPendingEmail(null)}
-            onVerified={(user, accessToken, refreshToken) => {
-              setAuth(user, accessToken, refreshToken);
-              toast.success(t("accountCreatedToast"));
-              navigate("/dashboard");
-            }}
-          />
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("fullName")}</label>
-              <input type="text" {...register("name")} placeholder={t("namePlaceholder")}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("email")}</label>
-              <input type="email" {...register("email")} placeholder="you@example.com"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("password")}</label>
-              <input type="password" {...register("password")} placeholder={t("passwordMinPlaceholder")}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
-            </div>
-
-            {/* Honeypot — keep off-screen, not display:none (some bots skip hidden inputs) */}
-            <div aria-hidden="true" className="absolute -left-[9999px] top-0 h-0 overflow-hidden">
-              <label>
-                Company
-                <input
-                  type="text"
-                  name="company"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                />
-              </label>
-            </div>
-
-            <button type="submit" disabled={loading}
-              className="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2">
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />} {t("createAccountBtn")}
-            </button>
-
-            <GoogleButton />
-          </form>
-        )}
-
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-          {t("haveAccount")}{" "}
-          <Link to="/auth/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">{t("signIn")}</Link>
+    <AuthShell>
+      <div className="mb-7">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          {pendingEmail ? t("verifyTitle") : t("createAccountTitle")}
+        </h1>
+        <p className="mt-1.5 text-gray-600 dark:text-gray-400">
+          {pendingEmail ? t("oneLastStep") : t("startCreating")}
         </p>
-        <RecaptchaNotice />
       </div>
-    </div>
+
+      {pendingEmail ? (
+        <VerifyCodeForm
+          email={pendingEmail}
+          onBack={() => setPendingEmail(null)}
+          onVerified={(user, accessToken, refreshToken) => {
+            setAuth(user, accessToken, refreshToken);
+            toast.success(t("accountCreatedToast"));
+            navigate("/dashboard");
+          }}
+        />
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)} className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-7 space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("fullName")}</label>
+            <input type="text" {...register("name")} placeholder={t("namePlaceholder")}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("email")}</label>
+            <input type="email" {...register("email")} placeholder="you@example.com"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("password")}</label>
+            <input type="password" {...register("password")} placeholder={t("passwordMinPlaceholder")}
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all" />
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+          </div>
+
+          {/* Honeypot — keep off-screen, not display:none (some bots skip hidden inputs) */}
+          <div aria-hidden="true" className="absolute -left-[9999px] top-0 h-0 overflow-hidden">
+            <label>
+              Company
+              <input
+                type="text"
+                name="company"
+                tabIndex={-1}
+                autoComplete="off"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <button type="submit" disabled={loading}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-primary-600 to-fuchsia-600 hover:from-primary-700 hover:to-fuchsia-700 text-white font-semibold shadow-lg shadow-primary-600/25 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+            {loading && <Loader2 className="w-4 h-4 animate-spin" />} {t("createAccountBtn")}
+          </button>
+
+          <GoogleButton />
+        </form>
+      )}
+
+      <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
+        {t("haveAccount")}{" "}
+        <Link to="/auth/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-medium">{t("signIn")}</Link>
+      </p>
+      <RecaptchaNotice />
+    </AuthShell>
   );
 }
