@@ -1276,6 +1276,61 @@ const LAYOUT_FN: Record<CoverLayout, (p: CoverParams, c: ColorSet) => string> =
     monolith: layoutMonolith,
   };
 
+// ── Fotograficzny wariant okładki: overlay typograficzny na tle z FLUX ──
+// Rysowany w logicznych mm A4 jak pozostałe layouty (skaluje go ten sam
+// wrapper). Dolna scrim-rampa + tytuł/podtytuł/autor + akcent.
+function layoutPhotoOverlay(p: CoverParams, _c: ColorSet): string {
+  const yr = p.year || new Date().getFullYear();
+  const fit = fitTitleSize(p.title, 34);
+  // Scrim: schodkowa rampa półprzezroczystych pasów (TikZ bez fadings — mniej
+  // zależności, identyczny efekt co gradient przy 10 krokach).
+  let scrim = "";
+  for (let i = 0; i < 10; i++) {
+    const y0 = 130 - i * 13;
+    const op = 0.08 + i * 0.075;
+    scrim += `\\fill[black, opacity=${op.toFixed(3)}] (0, ${y0 - 13}) rectangle (210, ${y0});\n`;
+  }
+  return `
+% === Scrim dolny (czytelność typografii na zdjęciu) ===
+${scrim}
+\\fill[black, opacity=0.82] (0, 0) rectangle (210, 13);
+
+% === Akcent ===
+${accentBar(15, 108, 40)}
+
+% === Tytuł ===
+\\node[anchor=south west, text width=180mm] at (15, ${100 - (fit.leading * 0.35)}) {%
+  \\fontsize{${fit.size}}{${fit.leading}}\\selectfont\\bfseries\\sffamily\\color{covtextbright}%
+  ${escTitle(p.title)}%
+};
+${
+  p.subtitle
+    ? `
+\\node[anchor=north west, text width=175mm] at (15, ${96 - fit.leading * 0.35}) {%
+  \\fontsize{13}{17}\\selectfont\\sffamily\\color{covtextbright!85}%
+  ${esc(p.subtitle)}%
+};`
+    : ""
+}
+
+% === Separator + autor / rok ===
+\\fill[covprimary, opacity=0.55] (15, 24) rectangle (195, 24.3);
+${
+  p.authorName
+    ? `
+\\node[anchor=north west] at (15, 20) {%
+  \\fontsize{12}{12}\\selectfont\\sffamily\\color{covtextbright}%
+  ${esc(p.authorName)}%
+};`
+    : ""
+}
+\\node[anchor=north east] at (195, 20) {%
+  \\fontsize{11}{11}\\selectfont\\sffamily\\color{covprimarylight}%
+  ${yr}%
+};
+`;
+}
+
 export function generateCoverLatex(
   params: CoverParams,
   bookFormat: string,
@@ -1287,6 +1342,7 @@ export function generateCoverLatex(
   const dims = PAPER_DIMS[bookFormat] || PAPER_DIMS.a5;
   const layoutFn = LAYOUT_FN[params.layout] || layoutTechgrid;
   const tikzBody = layoutFn(params, colors);
+  const photoOverlay = layoutPhotoOverlay(params, colors);
 
   return `% ============================================================
 % BookForge — Generated Book Cover
@@ -1297,6 +1353,7 @@ export function generateCoverLatex(
 \\usepackage{tikz}
 \\usetikzlibrary{calc,positioning}
 \\usepackage{eso-pic}
+\\usepackage{graphicx}
 
 % ── Font setup (xelatex preferred, pdflatex fallback) ──
 \\usepackage{ifxetex}
@@ -1348,15 +1405,31 @@ ${(() => {
 })()}
 
 \\begin{document}%
-% [remember picture, overlay] anchors the artwork at the exact page corner
-% (needs the 2nd compile pass — compileCover always runs two). This fills the
-% page edge-to-edge without the old +5mm paper hack, and unlike an eso-pic
-% shipout hook it keeps TikZ transparency working (opacity dies in shipout BG).
+% INKMAGNET-PHOTO-COVER — compileCover dorabia cover-bg.jpg (FLUX ultra raw +
+% recenzja Sonneta, config: backend/shared/cover-style.json). Brak pliku =>
+% automatyczny fallback do pełnego deterministycznego layoutu TikZ niżej.
 \\thispagestyle{empty}%
-% Layouty rysują w logicznych mm A4 (210×297). xscale/yscale + transform shape
-% skalują CAŁOŚĆ — geometrię, fonty i text width węzłów — do realnego formatu.
-% Samo skalowanie jednostek x/y (poprzednia wersja) zostawiało tekst w pełnym
-% rozmiarze: na A5 tytuł i pillar boxy wyjeżdżały poza prawą krawędź strony.
+% [remember picture, overlay] anchors the artwork at the exact page corner
+% (needs the 2nd compile pass — compileCover always runs two).
+% Layouty rysują w logicznych mm A4 (210×297); xscale/yscale + transform shape
+% skalują CAŁOŚĆ (geometrię, fonty, text width) do realnego formatu.
+\\IfFileExists{cover-bg.jpg}{%
+\\begin{tikzpicture}[remember picture, overlay]
+\\clip (current page.south west) rectangle (current page.north east);
+\\node[anchor=center, inner sep=0] at (current page.center)
+  {\\includegraphics[width=\\paperwidth]{cover-bg.jpg}};
+\\end{tikzpicture}%
+\\begin{tikzpicture}[remember picture, overlay,
+  shift={(current page.south west)},
+  xscale=${(dims.w / 210).toFixed(5)}, yscale=${(dims.h / 297).toFixed(5)},
+  transform shape,
+  x=1mm, y=1mm]
+\\clip (0,0) rectangle (210,297);
+
+${photoOverlay}
+
+\\end{tikzpicture}%
+}{%
 \\begin{tikzpicture}[remember picture, overlay,
   shift={(current page.south west)},
   xscale=${(dims.w / 210).toFixed(5)}, yscale=${(dims.h / 297).toFixed(5)},
@@ -1367,6 +1440,7 @@ ${(() => {
 ${tikzBody}
 
 \\end{tikzpicture}%
+}%
 \\end{document}
 `;
 }
@@ -1417,6 +1491,43 @@ export async function compileCover(projectId: string): Promise<{
   const texPath = path.join(coverDir, "cover.tex");
   const pdfPath = path.join(coverDir, "cover.pdf");
   fs.writeFileSync(texPath, (project as any).coverLatex, "utf-8");
+
+  // ── Tło fotograficzne (FLUX ultra raw + recenzja Sonneta) ──
+  // coverLatex z markerem INKMAGNET-PHOTO-COVER renderuje zdjęcie, gdy
+  // cover-bg.jpg istnieje; każda porażka tutaj jest NIEfatalna — \IfFileExists
+  // w dokumencie sam cofa się do pełnego layoutu TikZ. Plik raz wygenerowany
+  // jest cache'owany w katalogu builda (recompile go nie płaci drugi raz).
+  const bgPath = path.join(coverDir, "cover-bg.jpg");
+  if (
+    (project as any).coverLatex.includes("INKMAGNET-PHOTO-COVER") &&
+    !fs.existsSync(bgPath)
+  ) {
+    try {
+      const { buildBookCoverScene, generateReviewedPhoto, loadCoverStyle } =
+        await import("./coverPhoto");
+      const cfg = loadCoverStyle();
+      const scene = await buildBookCoverScene(
+        (project as any).topic,
+        (project as any).title,
+      );
+      console.log(`  🎨 Cover scene: ${scene.slice(0, 100)}...`);
+      const photo = await generateReviewedPhoto(
+        scene,
+        { aspectRatio: cfg.book.aspect_ratio, styleTail: cfg.book.style_tail },
+        (m) => console.log(m),
+      );
+      if (photo) {
+        fs.writeFileSync(bgPath, photo.buffer);
+        console.log(
+          `  🖼️  Cover photo: ${(photo.buffer.length / 1024).toFixed(0)} KB (próby: ${photo.attempts}, recenzja: ${photo.review})`,
+        );
+      } else {
+        console.warn("  ⚠️ Tło okładki odrzucone/nieudane — fallback do layoutu TikZ");
+      }
+    } catch (e: any) {
+      console.warn(`  ⚠️ Generacja tła okładki padła (${e.message}) — fallback do TikZ`);
+    }
+  }
 
   console.log(`  📕 Compiling cover for ${projectId}...`);
 

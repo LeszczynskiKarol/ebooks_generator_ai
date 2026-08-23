@@ -115,6 +115,7 @@ export async function generateFluxImage(
   prompt: string,
   raw: boolean,
   log?: any,
+  opts?: { aspectRatio?: string },
 ): Promise<{ buffer: Buffer; seed: number | null } | null> {
   if (!REPLICATE_TOKEN) {
     log?.warn?.("FLUX_API not set — skipping illustration");
@@ -133,7 +134,7 @@ export async function generateFluxImage(
       body: JSON.stringify({
         input: {
           prompt,
-          aspect_ratio: "3:2",
+          aspect_ratio: opts?.aspectRatio || "3:2",
           raw,
           output_format: "jpg",
           safety_tolerance: 2,

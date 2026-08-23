@@ -6,6 +6,15 @@
   "output_format": "jpg",
   "safety_tolerance": 2,
   "style_tail": ", candid editorial still life photograph, natural window daylight, bright airy exposure, realistic paper and fabric textures, muted warm tones with a single deep indigo object as the only strong color, shallow depth of field, subject matter weighted to the right side of the frame with generous empty space on the left third, shot on 35mm film, subtle natural grain, no people, all paper sheets completely blank, all book covers and spines plain and unmarked with no printing, no text, no words, no letters, no labels, no typography anywhere, no watermark",
+  "book": {
+    "_comment": "Tla fotograficzne OKLADEK KSIAZEK (compileCover). Ten sam model/raw/recenzja co blog; rozni sie proporcja i sufiksem (pion, spokojne strefy na typografie).",
+    "aspect_ratio": "2:3",
+    "style_tail": ", cinematic editorial book cover background photograph, real photographic scene, natural light, rich but muted color grading, strong simple composition with calm negative space in the lower third for large title typography, shot on medium format, subtle natural grain, no people's faces, all visible paper and covers blank and unmarked, no text, no words, no letters, no labels, no typography anywhere, no watermark",
+    "scene_builder": {
+      "model": "claude-haiku-4-5-20251001",
+      "instruction": "Napisz JEDNO zdanie po angielsku opisujace fotograficzna scene na TLO okladki ksiazki o podanym temacie: konkretne przedmioty lub miejsce metaforycznie oddajace temat, bez ludzi z widoczna twarza, bez tekstu i napisow w kadrze. Zwroc WYLACZNIE to zdanie."
+    }
+  },
   "review": {
     "model": "claude-sonnet-5",
     "max_attempts": 4,
