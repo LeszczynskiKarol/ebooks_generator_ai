@@ -1,8 +1,8 @@
 // CI: generuje BRAKUJĄCE okładki bloga (wzorzec sitario gen-missing-covers,
 // 2026-08-23). Dla każdego md w src/content/blog, którego plik heroImage nie
-// istnieje, a frontmatter ma coverPrompt: zdjęcie z Replicate
-// (flux-1.1-pro-ultra, raw:false — polished editorial wg DESIGN-BOOK §4-6,
-// martwa natura świata druku z JEDNYM przedmiotem deep indigo) + kompozycja:
+// istnieje, a frontmatter ma coverPrompt: zdjęcie z Replicate (model/raw/sufiks
+// z backend/shared/cover-style.json — wspólne z backendowym /api/admin/blog/hero;
+// martwa natura świata druku wg DESIGN-BOOK §4-6, recenzja Sonneta) + kompozycja:
 // scrim, logo InkMagnet (otwarta książka), eyebrow, tytuł w Interze
 // (wektorowo przez fontkit — pełne polskie znaki), ostatnia linia w gradiencie.
 // Para PL+EN ma IDENTYCZNY coverPrompt → jedno zdjęcie, dwa panele.
@@ -72,16 +72,18 @@ async function compose(photoBuf, { eyebrow, title, out }) {
   await sharp(bg).composite([{ input: Buffer.from(overlay) }]).jpeg({ quality: 86, mozjpeg: true }).toFile(out);
 }
 
-// DESIGN-BOOK §4 (stały sufiks) + kompozycja z pustką po lewej pod panel.
-const STYLE_TAIL = ", editorial still life photography, soft directional window light, bright airy daylight exposure, shallow depth of field, muted warm paper tones with a single deep indigo accent, matte textures, clean balanced composition, subject matter weighted to the right side of the frame with generous empty space on the left third, no text, no words, no letters, no labels, no watermark";
+// JEDNO źródło prawdy dla parametrów FLUX, sufiksu stylu i kryteriów recenzji —
+// współdzielone z backendowym /api/admin/blog/hero, żeby oba flow szły równo.
+const CFG = JSON.parse(readFileSync("../backend/shared/cover-style.json", "utf8"));
+const STYLE_TAIL = CFG.style_tail;
 
 const sleep = (ms) => new Promise((s) => setTimeout(s, ms));
-const API = "https://api.replicate.com/v1/models/black-forest-labs/flux-1.1-pro-ultra/predictions";
+const API = `https://api.replicate.com/v1/models/${CFG.model}/predictions`;
 
 // Backoff jak w sitario — Replicate umie odrzucić 429 zaraz po poprzedniej
 // predykcji; bez tego job padał na drugim zdjęciu i braki rosły z dnia na dzień.
 async function replicateCreate(prompt, token) {
-  const body = JSON.stringify({ input: { prompt, aspect_ratio: "3:2", raw: false, output_format: "jpg", safety_tolerance: 2 } });
+  const body = JSON.stringify({ input: { prompt, aspect_ratio: CFG.aspect_ratio, raw: CFG.raw, output_format: CFG.output_format, safety_tolerance: CFG.safety_tolerance } });
   for (let attempt = 1; ; attempt++) {
     const res = await fetch(API, {
       method: "POST",
@@ -104,6 +106,52 @@ async function genPhoto(prompt, token) {
   const out = Array.isArray(r.output) ? r.output[0] : r.output;
   if (r.status !== "succeeded" || !out) throw new Error(`replicate ${r.status}: ${JSON.stringify(r.error ?? r.detail ?? r).slice(0, 300)}`);
   return Buffer.from(await (await fetch(out)).arrayBuffer());
+}
+
+// Recenzja surowego zdjęcia przez Sonneta (wizja) — akceptacja PRZED nałożeniem
+// panelu. Kryteria w cover-style.json (wspólne z backendem). Zwraca {accept, reason}.
+async function reviewPhoto(photoBuf, scenePrompt) {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error("BRAK ANTHROPIC_API_KEY — recenzja okładek jest obowiązkowa");
+  // Recenzent nie potrzebuje pełnej rozdzielczości ultra — a pełny jpg umie
+  // przekroczyć limit obrazu API (puste content w odpowiedzi). 1024 px starcza.
+  const small = await sharp(photoBuf).resize(1024).jpeg({ quality: 80 }).toBuffer();
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: CFG.review.model,
+      max_tokens: 300,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: "image/jpeg", data: small.toString("base64") } },
+          { type: "text", text: `${CFG.review.criteria}\n\nZadany prompt sceny: "${scenePrompt}"\n\nOdpowiedz WYŁĄCZNIE JSON-em: {"accept": true|false, "reason": "krótko"}` },
+        ],
+      }],
+    }),
+  });
+  if (!res.ok) throw new Error(`anthropic HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const data = await res.json();
+  const txt = (data.content || []).map((c) => c.text || "").join(" ").trim();
+  const m = txt.match(/\{[\s\S]*\}/);
+  if (!m) return { accept: false, reason: `nieparsowalna odpowiedź recenzenta (stop=${data.stop_reason}): ${txt.slice(0, 120)}` };
+  try { const v = JSON.parse(m[0]); return { accept: v.accept === true, reason: String(v.reason || "") }; }
+  catch { return { accept: false, reason: "nieparsowalny JSON recenzenta" }; }
+}
+
+// Generuj + recenzuj w pętli (max_attempts z konfiguracji). Każda próba to nowy
+// seed FLUX-a; wszystkie odrzucone → wyjątek (fail-closed jak reszta skryptu).
+async function genApprovedPhoto(prompt, scenePrompt, token) {
+  let lastReason = "";
+  for (let a = 1; a <= CFG.review.max_attempts; a++) {
+    if (a > 1) console.log(`  ponawiam generację (próba ${a}/${CFG.review.max_attempts}) — powód odrzutu: ${lastReason}`);
+    const photo = await genPhoto(prompt, token);
+    const verdict = await reviewPhoto(photo, scenePrompt);
+    if (verdict.accept) { console.log(`  recenzja Sonneta: OK${verdict.reason ? ` (${verdict.reason})` : ""}`); return photo; }
+    lastReason = verdict.reason;
+  }
+  throw new Error(`recenzent odrzucił ${CFG.review.max_attempts}× — ostatni powód: ${lastReason}`);
 }
 
 function front(txt) {
@@ -149,7 +197,7 @@ for (const items of groups.values()) {
   try {
     console.log(`generuję zdjęcie dla: ${label} …`);
     if (calls++) await sleep(5000);
-    const photo = await genPhoto(items[0].coverPrompt + STYLE_TAIL, token);
+    const photo = await genApprovedPhoto(items[0].coverPrompt + STYLE_TAIL, items[0].coverPrompt, token);
     for (const it of items) {
       await compose(photo, { eyebrow: it.eyebrow || "INKMAGNET", title: it.title, out: it.out });
       console.log(`  ✓ ${it.slug}`);

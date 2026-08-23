@@ -415,33 +415,95 @@ export async function autopilotRoutes(app: FastifyInstance) {
   });
 
   // ━━━ POST /api/admin/blog/hero ━━━
-  // Autoblog routine: generate a blog hero image via FLUX (DESIGN-BOOK §4-6 —
-  // the ROUTINE builds the prompt per the book's rules; backend only executes).
-  // Returns base64 jpg (3:2, polished) the routine writes into the repo as
-  // site/src/assets/blog/{slug}-hero.jpg before committing the post.
+  // Blog hero via FLUX. Parametry, sufiks stylu i kryteria recenzji z
+  // backend/shared/cover-style.json — WSPÓLNE z CI (site/scripts/
+  // gen-missing-covers.mjs), żeby oba flow generowały identycznie.
+  // Body: {prompt: "<scena wg DESIGN-BOOK §6, bez sufiksu>"}.
+  // Zwraca base64 jpg zaakceptowany przez recenzenta (Sonnet, wizja).
   app.post("/api/admin/blog/hero", async (request, reply) => {
     if (!(await authorize(request, reply))) return;
     const b = (request.body ?? {}) as any;
-    const prompt = typeof b.prompt === "string" ? b.prompt.trim() : "";
-    if (prompt.length < 20) {
+    const scene = typeof b.prompt === "string" ? b.prompt.trim() : "";
+    if (scene.length < 20) {
       return reply
         .status(400)
         .send({ success: false, error: "prompt must be at least 20 characters" });
     }
+    const fs = await import("fs");
+    const path = await import("path");
+    const cfg = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, "../../shared/cover-style.json"),
+        "utf8",
+      ),
+    );
     const { generateFluxImage } = await import("../services/illustrationService");
-    const image = await generateFluxImage(prompt, false);
-    if (!image) {
-      return reply
-        .status(502)
-        .send({ success: false, error: "FLUX generation failed" });
+
+    const reviewPhoto = async (buffer: Buffer) => {
+      const key = process.env.ANTHROPIC_API_KEY;
+      if (!key) return { accept: true, reason: "brak ANTHROPIC_API_KEY — recenzja pominięta" };
+      // Downscale do recenzji — pełny jpg z ultra umie przekroczyć limit obrazu
+      // API (identyczna logika w site/scripts/gen-missing-covers.mjs).
+      const sharpMod = (await import("sharp")).default;
+      const small = await sharpMod(buffer).resize(1024).jpeg({ quality: 80 }).toBuffer();
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: cfg.review.model,
+          max_tokens: 300,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "image", source: { type: "base64", media_type: "image/jpeg", data: small.toString("base64") } },
+                { type: "text", text: `${cfg.review.criteria}\n\nZadany prompt sceny: "${scene}"\n\nOdpowiedz WYŁĄCZNIE JSON-em: {"accept": true|false, "reason": "krótko"}` },
+              ],
+            },
+          ],
+        }),
+      });
+      if (!res.ok) throw new Error(`anthropic HTTP ${res.status}`);
+      const data: any = await res.json();
+      const m = (data.content?.[0]?.text || "").match(/\{[\s\S]*\}/);
+      try {
+        const v = JSON.parse(m?.[0] || "");
+        return { accept: v.accept === true, reason: String(v.reason || "") };
+      } catch {
+        return { accept: false, reason: "nieparsowalna odpowiedź recenzenta" };
+      }
+    };
+
+    let lastReason = "";
+    for (let attempt = 1; attempt <= cfg.review.max_attempts; attempt++) {
+      const image = await generateFluxImage(scene + cfg.style_tail, cfg.raw);
+      if (!image) {
+        return reply
+          .status(502)
+          .send({ success: false, error: "FLUX generation failed" });
+      }
+      const verdict = await reviewPhoto(image.buffer);
+      if (verdict.accept) {
+        return reply.send({
+          success: true,
+          data: {
+            imageBase64: image.buffer.toString("base64"),
+            bytes: image.buffer.length,
+            seed: image.seed,
+            attempts: attempt,
+            review: verdict.reason,
+          },
+        });
+      }
+      lastReason = verdict.reason;
     }
-    return reply.send({
-      success: true,
-      data: {
-        imageBase64: image.buffer.toString("base64"),
-        bytes: image.buffer.length,
-        seed: image.seed,
-      },
+    return reply.status(502).send({
+      success: false,
+      error: `Recenzent odrzucił ${cfg.review.max_attempts}× — ostatni powód: ${lastReason}`,
     });
   });
 

@@ -92,6 +92,8 @@ jobs:
         if: needs.detect-changes.outputs.site == 'true'
         env:
           FLUX_API: ${{ secrets.FLUX_API }}
+          # recenzja każdego zdjęcia przez Sonneta (kryteria: backend/shared/cover-style.json)
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           cd site
           npm install --no-audit --no-fund

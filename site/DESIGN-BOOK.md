@@ -66,8 +66,11 @@ deep indigo (#4f46e5↔#3730a3) — wymieniony wprost w prompcie
 | OG ogólne | 1200×630 (generowane 3:2, kadr CSS) | fallback social |
 | Ilustracja inline | 3:2 | sekcje długich stron |
 
-Raw=false (polished editorial), output jpg, safety_tolerance 2,
-model: black-forest-labs/flux-1.1-pro-ultra.
+Model: black-forest-labs/flux-1.1-pro-ultra, **raw=true** (fotograficzny
+realizm; decyzja 2026-08-23), output jpg, safety_tolerance 2. Każde zdjęcie
+przechodzi automatyczną recenzję Sonneta (wizja) PRZED użyciem — kryteria
+akceptacji i wszystkie parametry w `backend/shared/cover-style.json`
+(JEDNO źródło prawdy dla CI i backendu; zmiany stylu robić TAM, nie w kodzie).
 
 ## 6. Szablon promptu
 

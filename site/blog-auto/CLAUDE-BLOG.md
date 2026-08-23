@@ -62,7 +62,10 @@ description: "..."          # ≤170 znaków
 lang: pl | en
 pubDate: YYYY-MM-DD         # dzisiejsza data
 translationOf: <slug-drugiej-wersji>   # OBA wpisy wskazują na siebie nawzajem
-heroImage: ../../assets/blog/<własny-slug>-hero.jpg   # plik zrobi CI
+heroImage: ../../assets/blog/<własny-slug>-hero.jpg   # plik zrobi CI.
+# KAŻDY wpis wskazuje plik ze SWOIM slugiem — NIE współdziel pliku z parą
+# (panel na okładce niesie tytuł w języku wpisu; zdjęcie pod spodem i tak
+# jest wspólne, bo para dzieli coverPrompt).
 heroAlt: "opisowy alt sceny po języku wpisu"
 coverPrompt: "<scena EN wg DESIGN-BOOK §6 — IDENTYCZNA w PL i EN>"
 eyebrow: "KOSZTY" / "PORÓWNANIE" / "WARSZTAT" / "PRZYPADKI" / "PORADNIK" (PL)

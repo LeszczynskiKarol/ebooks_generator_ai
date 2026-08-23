@@ -5,7 +5,7 @@ description: "Ghostwriter, oprogramowanie do składu, projekt okładki i formato
 lang: pl
 pubDate: 2026-08-23
 translationOf: cost-to-create-an-ebook
-heroImage: ../../assets/blog/cost-to-create-an-ebook-hero.jpg
+heroImage: ../../assets/blog/ile-kosztuje-stworzenie-ebooka-hero.jpg
 heroAlt: "Mosiężna waga na biurku pisarza: jedna szala pełna luźnych rachunków i monet, druga z małą oprawioną w płótno książką w kolorze głębokiego indygo"
 coverPrompt: "A brass balance scale on a wood writer's desk: one weighing pan piled with loose invoice papers, receipts and coins, the other pan holding a single small deep indigo clothbound book that tips it level, stacked manuscript pages and a fountain pen resting nearby"
 eyebrow: "KOSZTY"
