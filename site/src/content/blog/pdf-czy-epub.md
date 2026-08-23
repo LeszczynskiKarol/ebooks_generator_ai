@@ -5,8 +5,10 @@ description: "Stały układ kontra płynący tekst, wymagania sklepów, dostępn
 lang: pl
 pubDate: 2026-06-11
 translationOf: pdf-vs-epub
-heroImage: ../../assets/blog/ebook-formats-hero.jpg
-heroAlt: "Czytnik z pustym ekranem oparty o zamkniętą książkę w indygo płótnie na lnianej tkaninie"
+heroImage: ../../assets/blog/pdf-czy-epub-hero.jpg
+heroAlt: "Czytnik ebooków obok otwartej drukowanej książki z indygo wstążką-zakładką"
+coverPrompt: "An e-reader lying beside an open printed book on a warm wooden desk, a deep indigo ribbon bookmark across the printed page"
+eyebrow: "FORMATY"
 ---
 
 Pytanie „PDF czy EPUB" pada zwykle tak, jakby któryś format miał wygrać. Uczciwa odpowiedź brzmi inaczej: rozwiązują różne problemy, koszty złego wyboru są niesymetryczne, a dla większości wydawców właściwa liczba formatów to dwa. Poniżej logika decyzji, bez ciekawostek o strukturze plików.

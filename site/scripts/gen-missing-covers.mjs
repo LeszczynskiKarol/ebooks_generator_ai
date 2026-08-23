@@ -121,12 +121,12 @@ async function reviewPhoto(photoBuf, scenePrompt) {
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
     body: JSON.stringify({
       model: CFG.review.model,
-      max_tokens: 300,
+      max_tokens: 500,
       messages: [{
         role: "user",
         content: [
           { type: "image", source: { type: "base64", media_type: "image/jpeg", data: small.toString("base64") } },
-          { type: "text", text: `${CFG.review.criteria}\n\nZadany prompt sceny: "${scenePrompt}"\n\nOdpowiedz WYŁĄCZNIE JSON-em: {"accept": true|false, "reason": "krótko"}` },
+          { type: "text", text: `${CFG.review.criteria}\n\nZadany prompt sceny: "${scenePrompt}"\n\nOdpowiedz WYŁĄCZNIE JSON-em: {"accept": true|false, "reason": "maksymalnie 10 słów"}` },
         ],
       }],
     }),
@@ -134,10 +134,12 @@ async function reviewPhoto(photoBuf, scenePrompt) {
   if (!res.ok) throw new Error(`anthropic HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
   const txt = (data.content || []).map((c) => c.text || "").join(" ").trim();
-  const m = txt.match(/\{[\s\S]*\}/);
-  if (!m) return { accept: false, reason: `nieparsowalna odpowiedź recenzenta (stop=${data.stop_reason}): ${txt.slice(0, 120)}` };
-  try { const v = JSON.parse(m[0]); return { accept: v.accept === true, reason: String(v.reason || "") }; }
-  catch { return { accept: false, reason: "nieparsowalny JSON recenzenta" }; }
+  // Parser odporny na ucięty JSON (stop=max_tokens): verdykt czytamy regexem,
+  // reason jest tylko diagnostyczny. Ucięta akceptacja NIE może być odrzutem.
+  const acc = txt.match(/"accept"\s*:\s*(true|false)/);
+  if (!acc) return { accept: false, reason: `brak werdyktu w odpowiedzi (stop=${data.stop_reason}): ${txt.slice(0, 120)}` };
+  const reason = (txt.match(/"reason"\s*:\s*"([^"]*)/) || [])[1] || "";
+  return { accept: acc[1] === "true", reason };
 }
 
 // Generuj + recenzuj w pętli (max_attempts z konfiguracji). Każda próba to nowy
@@ -155,6 +157,9 @@ async function genApprovedPhoto(prompt, scenePrompt, token) {
 }
 
 function front(txt) {
+  // CRLF z checkoutu na Windows łamie ^---\n — normalizuj, inaczej wpis jest
+  // po cichu pomijany (brak heroImage w parsie => continue).
+  txt = txt.replace(/\r\n/g, "\n");
   const fm = (txt.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
   const g = (k) => {
     const m = fm.match(new RegExp(`^${k}:\\s*(.+)$`, "m"));

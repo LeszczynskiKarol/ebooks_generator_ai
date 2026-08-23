@@ -5,8 +5,10 @@ description: "Fixed layout vs reflowable text, store requirements, accessibility
 lang: en
 pubDate: 2026-06-11
 translationOf: pdf-czy-epub
-heroImage: ../../assets/blog/ebook-formats-hero.jpg
-heroAlt: "An e-reader with a blank screen leaning against a closed indigo clothbound hardcover on linen"
+heroImage: ../../assets/blog/pdf-vs-epub-hero.jpg
+heroAlt: "E-reader beside an open printed book with a deep indigo ribbon bookmark"
+coverPrompt: "An e-reader lying beside an open printed book on a warm wooden desk, a deep indigo ribbon bookmark across the printed page"
+eyebrow: "FORMATS"
 ---
 
 The PDF-versus-EPUB question gets asked as if one format should win. The honest answer is that they solve different problems, the costs of choosing wrong are asymmetric, and for most publishers the correct number of formats is two. Here is the decision logic without the file-format trivia.

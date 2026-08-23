@@ -5,8 +5,10 @@ description: "Registration shares, popup conversion lifts, the consumption gap �
 lang: en
 pubDate: 2026-06-10
 translationOf: lead-magnet-statystyki
-heroImage: ../../assets/blog/lead-magnet-statistics-hero.jpg
-heroAlt: "Indigo clothbound booklets beside a brass letter scale weighing a folded sheet of paper"
+heroImage: ../../assets/blog/ebook-lead-magnet-statistics-hero.jpg
+heroAlt: "Printed bar charts on cream paper with a brass ruler and a deep indigo notebook"
+coverPrompt: "Printed bar charts and data tables on cream paper spread on a desk with a brass ruler and a deep indigo notebook"
+eyebrow: "STATISTICS"
 ---
 
 Most lead magnet advice is recycled opinion. This article is the opposite: every number below traces to a named study with a link, including the uncomfortable ones. If you are deciding whether an ebook belongs in your funnel — and how much to invest in it — these are the figures worth knowing.

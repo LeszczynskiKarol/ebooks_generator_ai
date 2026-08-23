@@ -5,8 +5,10 @@ description: "Od pomysłu do PDF i EPUB: research, konspekt, trzy ścieżki pisa
 lang: pl
 pubDate: 2026-06-10
 translationOf: how-to-create-an-ebook
-heroImage: ../../assets/blog/how-to-create-an-ebook-hero.jpg
+heroImage: ../../assets/blog/jak-stworzyc-ebooka-hero.jpg
 heroAlt: "Biurko pisarza z góry: wachlarz stron rękopisu, wieczne pióro i kałamarz z atramentem indygo"
+coverPrompt: "Overhead view of a writer's desk with fanned manuscript pages, a fountain pen and a bottle of deep indigo ink on warm oak wood"
+eyebrow: "PORADNIK"
 ---
 
 Ten poradnik opisuje pełny proces tworzenia ebooka razem z kosztami każdej ścieżki. Piszemy go z pozycji ludzi budujących oprogramowanie do składu książek, więc trudne etapy nazywamy po imieniu zamiast udawać, że ich nie ma.

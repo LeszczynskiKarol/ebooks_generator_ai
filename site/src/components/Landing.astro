@@ -10,6 +10,7 @@ import { getUsdPlnRate, formatZl } from "../lib/rate.ts";
 import EditorMock from "./mock/EditorMock.astro";
 import ReaderMock from "./mock/ReaderMock.astro";
 import Lightbox from "./Lightbox.astro";
+import BlogTeasers from "./BlogTeasers.astro";
 
 interface Props {
   lang: Lang;
@@ -560,6 +561,9 @@ const useCaseIcons = [
       </div>
     </div>
   </section>
+
+  <!-- ━━━ Z bloga / From the blog ━━━ -->
+  <BlogTeasers lang={lang} />
 
   <!-- ━━━ FAQ ━━━ -->
   <section id="faq" class="scroll-mt-20 border-t border-ink-100 bg-ink-50">

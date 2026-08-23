@@ -5,8 +5,10 @@ description: "Royalty math, format requirements, the exclusivity question and th
 lang: en
 pubDate: 2026-06-11
 translationOf: jak-wydac-ebooka-self-publishing
-heroImage: ../../assets/blog/self-publishing-hero.jpg
-heroAlt: "Freshly bound paperback books on a bookbinding workbench, one wrapped in indigo cloth"
+heroImage: ../../assets/blog/how-to-self-publish-an-ebook-hero.jpg
+heroAlt: "Stack of printed books next to an e-reader and kraft envelopes, top book in deep indigo cloth"
+coverPrompt: "A stack of freshly printed paperback books beside an e-reader and kraft shipping envelopes, the top book bound in deep indigo cloth"
+eyebrow: "SELF-PUBLISHING"
 ---
 
 Self-publishing advice splits into two genres: get-rich screenshots and 40-step checklists that make a Tuesday upload feel like a moon landing. This guide is the third genre — what actually happens between a finished manuscript and a published ebook, with the numbers that drive the decisions.

@@ -5,8 +5,10 @@ description: "39,5% rejestracji B2B, +47% konwersji popupów, luka konsumpcji 31
 lang: pl
 pubDate: 2026-06-10
 translationOf: ebook-lead-magnet-statistics
-heroImage: ../../assets/blog/lead-magnet-statistics-hero.jpg
-heroAlt: "Broszury oprawione w indygo płótno obok mosiężnej wagi listowej ważącej złożony arkusz papieru"
+heroImage: ../../assets/blog/lead-magnet-statystyki-hero.jpg
+heroAlt: "Wydrukowane wykresy na kremowym papierze, mosiężna linijka i notes w kolorze indygo"
+coverPrompt: "Printed bar charts and data tables on cream paper spread on a desk with a brass ruler and a deep indigo notebook"
+eyebrow: "STATYSTYKI"
 ---
 
 Większość porad o lead magnetach to opinie przepisywane z bloga na blog. Ten artykuł działa inaczej: każda liczba prowadzi do nazwanego badania z linkiem. Są tu też dane niewygodne dla narzędzi takich jak nasze, bo bez nich reszta nie byłaby wiarygodna.

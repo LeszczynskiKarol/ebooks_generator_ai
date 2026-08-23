@@ -6,7 +6,9 @@ lang: en
 pubDate: 2026-06-11
 translationOf: pomysly-na-lead-magnet
 heroImage: ../../assets/blog/lead-magnet-ideas-hero.jpg
-heroAlt: "An orderly grid of printed booklets, pamphlets and cards on grey felt, one with an indigo spine"
+heroAlt: "Desk with small printed booklets and checklist cards, one deep indigo booklet standing out"
+coverPrompt: "A desk covered with small printed booklets, checklists and cards arranged loosely, one slim deep indigo booklet standing out among cream paper"
+eyebrow: "LEAD MAGNETS"
 ---
 
 Lists of "101 lead magnet ideas" optimize for scroll depth, not decisions. This one is shorter and organized around the question that actually matters: what does each format make your subscriber believe about you? A coupon says you compete on price. A checklist says you are organized. A book says you are the expert. Pick the signal first; the format follows.

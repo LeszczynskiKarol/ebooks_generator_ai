@@ -5,8 +5,10 @@ description: "Matematyka tantiem, wymagania formatów, pytanie o wyłączność 
 lang: pl
 pubDate: 2026-06-11
 translationOf: how-to-self-publish-an-ebook
-heroImage: ../../assets/blog/self-publishing-hero.jpg
-heroAlt: "Świeżo oprawione książki na stole introligatorskim, jedna owinięta indygo płótnem"
+heroImage: ../../assets/blog/jak-wydac-ebooka-self-publishing-hero.jpg
+heroAlt: "Stos wydrukowanych książek obok czytnika i kopert, wierzchnia książka w indygo płótnie"
+coverPrompt: "A stack of freshly printed paperback books beside an e-reader and kraft shipping envelopes, the top book bound in deep indigo cloth"
+eyebrow: "SELF-PUBLISHING"
 ---
 
 Porady o self-publishingu dzielą się na dwa gatunki: zrzuty ekranu z zarobkami i czterdziestopunktowe checklisty, po których zwykły upload wygląda jak start rakiety. Ten tekst należy do trzeciego gatunku. Opisuje, co naprawdę dzieje się między gotowym rękopisem a opublikowanym ebookiem, razem z liczbami, które sterują decyzjami.

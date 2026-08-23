@@ -455,13 +455,13 @@ export async function autopilotRoutes(app: FastifyInstance) {
         },
         body: JSON.stringify({
           model: cfg.review.model,
-          max_tokens: 300,
+          max_tokens: 500,
           messages: [
             {
               role: "user",
               content: [
                 { type: "image", source: { type: "base64", media_type: "image/jpeg", data: small.toString("base64") } },
-                { type: "text", text: `${cfg.review.criteria}\n\nZadany prompt sceny: "${scene}"\n\nOdpowiedz WYŁĄCZNIE JSON-em: {"accept": true|false, "reason": "krótko"}` },
+                { type: "text", text: `${cfg.review.criteria}\n\nZadany prompt sceny: "${scene}"\n\nOdpowiedz WYŁĄCZNIE JSON-em: {"accept": true|false, "reason": "maksymalnie 10 słów"}` },
               ],
             },
           ],

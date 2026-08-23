@@ -5,8 +5,10 @@ description: "Checklisty wygrywają szybkością, ebooki autorytetem, narzędzia
 lang: pl
 pubDate: 2026-06-11
 translationOf: lead-magnet-ideas
-heroImage: ../../assets/blog/lead-magnet-ideas-hero.jpg
-heroAlt: "Uporządkowana siatka drukowanych broszur i kart na szarym filcu, jedna z indygo grzbietem"
+heroImage: ../../assets/blog/pomysly-na-lead-magnet-hero.jpg
+heroAlt: "Biurko z małymi drukowanymi broszurami i checklistami, wyróżnia się jedna broszura w indygo"
+coverPrompt: "A desk covered with small printed booklets, checklists and cards arranged loosely, one slim deep indigo booklet standing out among cream paper"
+eyebrow: "LEAD MAGNETY"
 ---
 
 Listy „101 pomysłów na lead magnet" optymalizują głębokość scrolla, a nie decyzję. Ta lista jest krótsza i ułożona wokół pytania, które naprawdę coś rozstrzyga: w co każdy format każe uwierzyć twojemu subskrybentowi? Kupon mówi, że konkurujesz ceną. Checklista mówi, że jesteś zorganizowany. Książka mówi, że jesteś ekspertem. Najpierw wybierz sygnał, format przyjdzie sam.

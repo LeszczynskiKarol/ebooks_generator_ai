@@ -6,7 +6,9 @@ lang: en
 pubDate: 2026-06-10
 translationOf: jak-stworzyc-ebooka
 heroImage: ../../assets/blog/how-to-create-an-ebook-hero.jpg
-heroAlt: "Writer's desk from above with fanned manuscript pages, a fountain pen and a bottle of indigo ink"
+heroAlt: "Writer's desk from above: fanned manuscript pages, fountain pen and a bottle of deep indigo ink"
+coverPrompt: "Overhead view of a writer's desk with fanned manuscript pages, a fountain pen and a bottle of deep indigo ink on warm oak wood"
+eyebrow: "GUIDE"
 ---
 
 This is the process guide we wish existed when we started building book software: every step of creating an ebook, with honest costs for each path and no pretending the hard parts are easy.
