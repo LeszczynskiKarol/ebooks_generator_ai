@@ -1287,13 +1287,15 @@ function layoutPhotoOverlay(p: CoverParams, _c: ColorSet): string {
   let scrim = "";
   for (let i = 0; i < 10; i++) {
     const y0 = 130 - i * 13;
-    const op = 0.08 + i * 0.075;
+    // Głębsza rampa niż pierwotnie (0.08+0.075i) — na jasnych zdjęciach biały
+    // tytuł w strefie ~100mm miał za mały kontrast.
+    const op = 0.14 + i * 0.082;
     scrim += `\\fill[black, opacity=${op.toFixed(3)}] (0, ${y0 - 13}) rectangle (210, ${y0});\n`;
   }
   return `
 % === Scrim dolny (czytelność typografii na zdjęciu) ===
 ${scrim}
-\\fill[black, opacity=0.82] (0, 0) rectangle (210, 13);
+\\fill[black, opacity=0.88] (0, 0) rectangle (210, 13);
 
 % === Akcent ===
 ${accentBar(15, 108, 40)}
