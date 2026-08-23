@@ -414,6 +414,37 @@ export async function autopilotRoutes(app: FastifyInstance) {
     });
   });
 
+  // ━━━ POST /api/admin/blog/hero ━━━
+  // Autoblog routine: generate a blog hero image via FLUX (DESIGN-BOOK §4-6 —
+  // the ROUTINE builds the prompt per the book's rules; backend only executes).
+  // Returns base64 jpg (3:2, polished) the routine writes into the repo as
+  // site/src/assets/blog/{slug}-hero.jpg before committing the post.
+  app.post("/api/admin/blog/hero", async (request, reply) => {
+    if (!(await authorize(request, reply))) return;
+    const b = (request.body ?? {}) as any;
+    const prompt = typeof b.prompt === "string" ? b.prompt.trim() : "";
+    if (prompt.length < 20) {
+      return reply
+        .status(400)
+        .send({ success: false, error: "prompt must be at least 20 characters" });
+    }
+    const { generateFluxImage } = await import("../services/illustrationService");
+    const image = await generateFluxImage(prompt, false);
+    if (!image) {
+      return reply
+        .status(502)
+        .send({ success: false, error: "FLUX generation failed" });
+    }
+    return reply.send({
+      success: true,
+      data: {
+        imageBase64: image.buffer.toString("base64"),
+        bytes: image.buffer.length,
+        seed: image.seed,
+      },
+    });
+  });
+
   // ━━━ POST /api/admin/books/:id/revise ━━━
   // Agent's visual-QA fixes: surgical find/replace patches against chapter
   // LaTeX, then recompile (no re-illustration). Body: {patches:[{chapterNumber,

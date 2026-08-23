@@ -17,6 +17,12 @@ const blog = defineCollection({
       /** hero per DESIGN-BOOK.md §4-6 — also becomes the article's og:image */
       heroImage: image().optional(),
       heroAlt: z.string().optional(),
+      /** FLUX scene (DESIGN-BOOK §6, EN, no style tail) — CI generates the
+       *  missing hero from it (scripts/gen-missing-covers.mjs). The PL and EN
+       *  versions of one topic MUST share the exact same coverPrompt. */
+      coverPrompt: z.string().optional(),
+      /** short uppercase category label printed on the generated cover */
+      eyebrow: z.string().optional(),
       draft: z.boolean().default(false),
     }),
 });

@@ -110,7 +110,8 @@ function escCaption(text: string): string {
 }
 
 // ── Replicate call (sync via Prefer: wait, fallback poll) ──
-async function generateFluxImage(
+// Exported: blog-hero endpoint (autopilotRoutes) reuses the same generator.
+export async function generateFluxImage(
   prompt: string,
   raw: boolean,
   log?: any,

@@ -66,6 +66,10 @@ jobs:
     needs: detect-changes
     runs-on: ubuntu-latest
     if: needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.site == 'true' || needs.detect-changes.outputs.app == 'true'
+    # contents: write — krok "Commit generated covers" pushuje wygenerowane
+    # okładki bloga z powrotem do repo ([skip ci], więc bez pętli deployów).
+    permissions:
+      contents: write
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -81,11 +85,33 @@ jobs:
           echo "backend: ${{ needs.detect-changes.outputs.backend }} | site: ${{ needs.detect-changes.outputs.site }} | deps: ${{ needs.detect-changes.outputs.deps }}"
 
       # ─── Site (Astro landing) → S3 + CloudFront ──────────────────────
+      # Autoblog: rutyna commituje wpisy z coverPrompt, a CI dorabia brakujące
+      # hero (FLUX + panel brandowy) PRZED buildem — fail-closed: brak okładki
+      # ubija job (build i tak by padł na astro:assets bez pliku).
+      - name: Generate missing blog covers
+        if: needs.detect-changes.outputs.site == 'true'
+        env:
+          FLUX_API: ${{ secrets.FLUX_API }}
+        run: |
+          cd site
+          npm install --no-audit --no-fund
+          node scripts/gen-missing-covers.mjs
+
+      - name: Commit generated covers back
+        if: always() && needs.detect-changes.outputs.site == 'true'
+        run: |
+          if [ -n "$(git status --porcelain site/src/assets/blog)" ]; then
+            git config user.name "inkmagnet-blog-bot"
+            git config user.email "bot@inkmagnet.com"
+            git add site/src/assets/blog
+            git commit -m "blog: wygenerowane okladki hero [skip ci]"
+            git push
+          fi
+
       - name: Build & deploy site
         if: needs.detect-changes.outputs.site == 'true'
         run: |
           cd site
-          npm install --no-audit --no-fund
           npm run build
           [ -f dist/index.html ] || { echo "::error::astro build produced no dist/index.html"; exit 1; }
           # Hashed assets are content-addressed → cache forever (immutable).
