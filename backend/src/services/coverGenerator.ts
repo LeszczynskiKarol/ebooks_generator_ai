@@ -1278,56 +1278,98 @@ const LAYOUT_FN: Record<CoverLayout, (p: CoverParams, c: ColorSet) => string> =
 
 // ── Fotograficzny wariant okładki: overlay typograficzny na tle z FLUX ──
 // Rysowany w logicznych mm A4 jak pozostałe layouty (skaluje go ten sam
-// wrapper). Dolna scrim-rampa + tytuł/podtytuł/autor + akcent.
+// wrapper). Typografia jak w layoutach TikZ: dwulinijkowy tytuł z drugą
+// linią w jasnym akcencie, DUŻY (bazowo 44pt), na mocnym panelu scrimu —
+// pojedyncza słaba rampa dawała mały, ginący w zdjęciu tytuł (feedback
+// właściciela 2026-08-23).
 function layoutPhotoOverlay(p: CoverParams, _c: ColorSet): string {
   const yr = p.year || new Date().getFullYear();
-  const fit = fitTitleSize(p.title, 34);
-  // Scrim: schodkowa rampa półprzezroczystych pasów (TikZ bez fadings — mniej
-  // zależności, identyczny efekt co gradient przy 10 krokach).
-  let scrim = "";
-  for (let i = 0; i < 10; i++) {
-    const y0 = 130 - i * 13;
-    // Głębsza rampa niż pierwotnie (0.08+0.075i) — na jasnych zdjęciach biały
-    // tytuł w strefie ~100mm miał za mały kontrast.
-    const op = 0.14 + i * 0.082;
-    scrim += `\\fill[black, opacity=${op.toFixed(3)}] (0, ${y0 - 13}) rectangle (210, ${y0});\n`;
+
+  // Tytuł ZAWSZE jako 1–3 balansowane linie displayowe (bez auto-wrapu
+  // TikZ-a, który łamał brzydko i zbijał rozmiar). Ostatnia linia w jasnym
+  // akcencie — jak w okładkach TikZ i na blogu.
+  const clean = p.title.replace(/\s+/g, " ").trim();
+  const nLines = clean.length > 52 ? 3 : clean.length > 26 ? 2 : 1;
+  const words = clean.split(" ");
+  const ideal = Math.ceil(clean.length / nLines);
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    const t = cur ? cur + " " + w : w;
+    if (cur && t.length > ideal && lines.length < nLines - 1) {
+      lines.push(cur);
+      cur = w;
+    } else cur = t;
   }
+  if (cur) lines.push(cur);
+  const maxLen = Math.max(...lines.map((l) => l.length));
+  // 500pt ≈ 176mm szerokości; bold sans ≈ 0.58em/znak. Widełki 26–46pt.
+  const size = Math.max(26, Math.min(46, Math.floor(500 / (0.58 * maxLen))));
+  const gapMm = Math.round(size * 0.42); // interlinia w mm (1pt ≈ 0.35mm ×1.2)
+
+  // Geometria od dołu strony (mm logicznego A4):
+  const yFooter = 22; // baseline autor/rok
+  const yDivider = 30;
+  const subLines = p.subtitle ? Math.ceil(Math.min(p.subtitle.length, 150) / 70) : 0;
+  const ySubtitleBase = 38; // south anchor podtytułu
+  const yTitleBase = ySubtitleBase + (p.subtitle ? subLines * 7 + 8 : 4); // south OSTATNIEJ linii
+  const yTitleTop = yTitleBase + (lines.length - 1) * gapMm + Math.round(size * 0.4);
+  const yAccent = yTitleTop + 10;
+  const yPanelTop = yAccent + 14;
+
+  // Panel: solidna baza + 4 pasy fade w górę — kontrast niezależny od zdjęcia.
+  const panel = `
+\\fill[black, opacity=0.66] (0, 0) rectangle (210, ${yPanelTop});
+\\fill[black, opacity=0.30] (0, ${yPanelTop}) rectangle (210, ${yPanelTop + 10});
+\\fill[black, opacity=0.20] (0, ${yPanelTop + 10}) rectangle (210, ${yPanelTop + 20});
+\\fill[black, opacity=0.12] (0, ${yPanelTop + 20}) rectangle (210, ${yPanelTop + 32});
+\\fill[black, opacity=0.05] (0, ${yPanelTop + 32}) rectangle (210, ${yPanelTop + 46});`;
+
+  const sub = p.subtitle ? String(p.subtitle).slice(0, 150) : null;
+
   return `
-% === Scrim dolny (czytelność typografii na zdjęciu) ===
-${scrim}
-\\fill[black, opacity=0.88] (0, 0) rectangle (210, 13);
+% === Panel scrimu pod blokiem tytułowym ===
+${panel}
 
 % === Akcent ===
-${accentBar(15, 108, 40)}
+${accentBar(15, yAccent, 46)}
 
-% === Tytuł ===
-\\node[anchor=south west, text width=180mm] at (15, ${100 - (fit.leading * 0.35)}) {%
-  \\fontsize{${fit.size}}{${fit.leading}}\\selectfont\\bfseries\\sffamily\\color{covtextbright}%
-  ${escTitle(p.title)}%
-};
+% === Tytuł (display, 1–3 balansowane linie; ostatnia w akcencie) ===
+${lines
+  .map((ln, i) => {
+    const y = yTitleBase + (lines.length - 1 - i) * gapMm;
+    const color =
+      i === lines.length - 1 && lines.length > 1 ? "covprimarylight" : "covtextbright";
+    return `\\node[anchor=south west] at (15, ${y}) {%
+  \\fontsize{${size}}{${Math.round(size * 1.1)}}\\selectfont\\bfseries\\sffamily\\color{${color}}%
+  ${escTitle(ln)}%
+};`;
+  })
+  .join("\n")}
 ${
-  p.subtitle
+  sub
     ? `
-\\node[anchor=north west, text width=175mm] at (15, ${96 - fit.leading * 0.35}) {%
-  \\fontsize{13}{17}\\selectfont\\sffamily\\color{covtextbright!85}%
-  ${esc(p.subtitle)}%
+% === Podtytuł ===
+\\node[anchor=south west, text width=172mm] at (15, ${ySubtitleBase}) {%
+  \\fontsize{14}{19}\\selectfont\\sffamily\\color{covtextbright!88}%
+  ${esc(sub)}%
 };`
     : ""
 }
 
 % === Separator + autor / rok ===
-\\fill[covprimary, opacity=0.55] (15, 24) rectangle (195, 24.3);
+\\fill[covprimarylight, opacity=0.65] (15, ${yDivider}) rectangle (195, ${yDivider + 0.4});
 ${
   p.authorName
     ? `
-\\node[anchor=north west] at (15, 20) {%
-  \\fontsize{12}{12}\\selectfont\\sffamily\\color{covtextbright}%
+\\node[anchor=south west] at (15, ${yFooter - 4}) {%
+  \\fontsize{13}{13}\\selectfont\\sffamily\\color{covtextbright}%
   ${esc(p.authorName)}%
 };`
     : ""
 }
-\\node[anchor=north east] at (195, 20) {%
-  \\fontsize{11}{11}\\selectfont\\sffamily\\color{covprimarylight}%
+\\node[anchor=south east] at (195, ${yFooter - 4}) {%
+  \\fontsize{12}{12}\\selectfont\\sffamily\\color{covprimarylight}%
   ${yr}%
 };
 `;

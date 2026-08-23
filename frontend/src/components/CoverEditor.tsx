@@ -232,8 +232,10 @@ const CoverEditor = forwardRef<CoverEditorHandle, Props>(function CoverEditor(
   }
 
   const hasCover = coverData?.coverType !== "NONE";
+  // #view=Fit + toolbar=0: wbudowany viewer PDF nie dokleja paska narzędzi
+  // ani letterboxu (białe/czarne pasy wokół strony w szerokim kontenerze).
   const previewUrl = coverData?.previewUrl
-    ? `${coverData.previewUrl}?token=${token}&t=${previewKey}`
+    ? `${coverData.previewUrl}?token=${token}&t=${previewKey}#toolbar=0&navpanes=0&scrollbar=0&view=Fit`
     : null;
 
   return (
