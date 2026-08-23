@@ -12,7 +12,7 @@
     "style_tail": ", cinematic editorial book cover background photograph, real photographic scene, natural light, rich but muted color grading, strong simple composition with calm negative space in the lower third for large title typography, shot on medium format, subtle natural grain, no people's faces, all visible paper and covers blank and unmarked, no text, no words, no letters, no labels, no typography anywhere, no watermark",
     "scene_builder": {
       "model": "claude-haiku-4-5-20251001",
-      "instruction": "Napisz JEDNO zdanie po angielsku opisujace fotograficzna scene na TLO okladki ksiazki o podanym temacie: konkretne przedmioty lub miejsce metaforycznie oddajace temat, bez ludzi z widoczna twarza, bez tekstu i napisow w kadrze. Zwroc WYLACZNIE to zdanie."
+      "instruction": "Napisz JEDNO zdanie po angielsku opisujace fotograficzna scene na TLO okladki ksiazki o podanym temacie: konkretne przedmioty lub miejsce metaforycznie oddajace temat, bez ludzi z widoczna twarza. ZAKAZ opisywania czegokolwiek z pismem: zadnych zapisanych kartek, notatek, odrecznego pisma, zadrukowanych stron, napisow, etykiet ani ekranow z trescia — papier i okladki w scenie sa ZAWSZE czyste/niezapisane (FLUX renderuje belkotliwy pseudo-tekst, ktory recenzent odrzuca). Zwroc WYLACZNIE to zdanie."
     }
   },
   "review": {
