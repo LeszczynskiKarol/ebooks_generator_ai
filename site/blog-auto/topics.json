@@ -2,7 +2,7 @@
   "_schema": "Agent (routine) czyta, wybiera pending po priority (2=P1, 1=P2), pisze OBA teksty (PL+EN, chyba że pl_only) wg site/blog-auto/CLAUDE-BLOG.md, ustawia done + completed_at, pushuje na main. Okładki i deploy robi GitHub Action (deploy.yml, krok Generate missing blog covers). Szczegółowe angle/keyword każdego tematu są w site/BLOG-PLAN.md pod tym samym numerem. Gdy pending <= 2: agent NAJPIERW dokłada 6-8 nowych tematów (added_by_writer, dedup slug + semantyczny).",
   "topics": [
     { "id": "a1", "plan_ref": 1, "priority": 2, "cluster": "vs", "status": "done", "slug_en": "best-ai-ebook-generators", "slug_pl": "najlepsze-generatory-ebookow-ai", "title_en": "Best AI ebook generators in 2026 (honest comparison)", "completed_at": "2026-06-11" },
-    { "id": "a2", "plan_ref": 2, "priority": 2, "cluster": "vs", "status": "pending", "title_en": "InkMagnet vs Designrr: generating a book vs repurposing your content" },
+    { "id": "a2", "plan_ref": 2, "priority": 2, "cluster": "vs", "status": "done", "slug_en": "inkmagnet-vs-designrr", "slug_pl": "inkmagnet-czy-designrr", "title_en": "InkMagnet vs Designrr: generating a book vs repurposing your content", "completed_at": "2026-08-27" },
     { "id": "a3", "plan_ref": 3, "priority": 2, "cluster": "vs", "status": "pending", "title_en": "InkMagnet vs Sqribble: template filler vs a real written book" },
     { "id": "a4", "plan_ref": 4, "priority": 2, "cluster": "vs", "status": "pending", "title_en": "Atticus & Vellum are $147-250 - and they don't write a single word" },
     { "id": "a5", "plan_ref": 5, "priority": 2, "cluster": "vs", "status": "pending", "title_en": "Can't I just use ChatGPT or Claude to write an ebook?" },
