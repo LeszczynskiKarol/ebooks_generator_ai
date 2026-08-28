@@ -27,6 +27,16 @@ import { footnotesEnabled } from "../lib/types";
 
 const execAsync = promisify(exec);
 
+const LATEX_MAX_PASSES = 4;
+
+// True when the last lualatex run no longer asks for another pass
+// (cross-refs, TOC and tikz `remember picture` positions are all stable).
+function latexConverged(logPath: string): boolean {
+  if (!fs.existsSync(logPath)) return false;
+  const log = fs.readFileSync(logPath, "utf-8");
+  return !/Rerun to get|Rerun LaTeX|rerun LaTeX/i.test(log);
+}
+
 const BUILD_DIR = path.join(process.cwd(), "tmp", "builds");
 
 // Bundled premium fonts (Source Serif 4 + Be Vietnam Pro) — resolved to an
@@ -185,15 +195,23 @@ export async function compileBook(projectId: string) {
     );
 
     // ── 2. Run pdflatex with retry + auto-fix ──
+    // Passes run until the log stops asking for a rerun (min 2, max
+    // LATEX_MAX_PASSES). Two fixed passes were NOT enough: the TOC is empty in
+    // pass 1, so every chapter sits on an earlier page than in the final
+    // layout; the tikz chapter band (remember picture/overlay) is placed from
+    // the PREVIOUS pass's page positions, so in pass 2 it was drawn for the
+    // wrong page and silently vanished — every prod book shipped with a blank
+    // 50 mm gap where the chapter opener should be (Thermomix book, 2026-08-28).
     const pdfPath = path.join(buildDir, "book.pdf");
     const logPath = path.join(buildDir, "book.log");
     const MAX_ATTEMPTS = 3;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      for (let pass = 1; pass <= 2; pass++) {
+      for (let pass = 1; pass <= LATEX_MAX_PASSES; pass++) {
         console.log(
-          `  🔄 pdflatex attempt ${attempt}/${MAX_ATTEMPTS}, pass ${pass}/2...`,
+          `  🔄 pdflatex attempt ${attempt}/${MAX_ATTEMPTS}, pass ${pass}/${LATEX_MAX_PASSES}...`,
         );
+        let passFailed = false;
         try {
           await execAsync(
             `lualatex -interaction=nonstopmode -output-directory="${buildDir}" "${texPath}"`,
@@ -203,7 +221,8 @@ export async function compileBook(projectId: string) {
             { timeout: 180000, maxBuffer: 10 * 1024 * 1024, cwd: buildDir },
           );
         } catch (err: any) {
-          if (pass === 2 && !fs.existsSync(pdfPath)) {
+          passFailed = true;
+          if (pass >= 2 && !fs.existsSync(pdfPath)) {
             if (attempt < MAX_ATTEMPTS) {
               const didFix = attemptLatexAutoFix(texPath, logPath);
               if (didFix) {
@@ -221,6 +240,7 @@ export async function compileBook(projectId: string) {
             }
           }
         }
+        if (!passFailed && pass >= 2 && latexConverged(logPath)) break;
       }
 
       if (fs.existsSync(pdfPath)) {
@@ -293,7 +313,7 @@ export async function compileBook(projectId: string) {
             chapters: freshReady,
           });
           fs.writeFileSync(texPath, tex, "utf-8");
-          for (let pass = 1; pass <= 2; pass++) {
+          for (let pass = 1; pass <= LATEX_MAX_PASSES; pass++) {
             try {
               await execAsync(
                 `lualatex -interaction=nonstopmode -output-directory="${buildDir}" "${texPath}"`,
@@ -302,6 +322,7 @@ export async function compileBook(projectId: string) {
             } catch {
               /* judge by the PDF, like the main loop */
             }
+            if (pass >= 2 && latexConverged(logPath)) break;
           }
         };
         const vr = await visualReviewAndFix(projectId, buildDir, recompile, {
