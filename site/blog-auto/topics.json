@@ -16,7 +16,7 @@
     { "id": "c13", "plan_ref": 13, "priority": 1, "cluster": "howto", "status": "pending", "title_en": "Your edits are sacred: editing an AI book without losing your changes" },
     { "id": "c14", "plan_ref": 14, "priority": 1, "cluster": "howto", "status": "pending", "title_en": "AI book covers that don't look AI-generated" },
     { "id": "d15", "plan_ref": 15, "priority": 2, "cluster": "usecase", "status": "done", "slug_en": "ebook-as-your-best-lead-magnet", "slug_pl": "ebook-jako-najlepszy-lead-magnet", "title_en": "Turn one ebook into your best lead magnet (and why a 2-page checklist doesn't convert)", "completed_at": "2026-08-25" },
-    { "id": "d16", "plan_ref": 16, "priority": 2, "cluster": "usecase", "status": "pending", "title_en": "How agencies deliver client ebooks in days, not weeks" },
+    { "id": "d16", "plan_ref": 16, "priority": 2, "cluster": "usecase", "status": "done", "slug_en": "white-label-ebooks-for-clients", "slug_pl": "ebooki-white-label-dla-klientow", "title_en": "How agencies deliver client ebooks in days, not weeks", "completed_at": "2026-08-28" },
     { "id": "d17", "plan_ref": 17, "priority": 1, "cluster": "usecase", "status": "pending", "title_en": "A companion book for your online course (that students actually keep)" },
     { "id": "d18", "plan_ref": 18, "priority": 1, "cluster": "usecase", "status": "pending", "title_en": "Self-publish on Amazon KDP with an AI-written, typeset book" },
     { "id": "e19", "plan_ref": 19, "priority": 2, "cluster": "pl", "status": "done", "pl_only": true, "title_pl": "Generator ebooków AI - czy warto i ile kosztuje? (porównanie 2026)", "slug_pl": "generator-ebookow-ai-ile-kosztuje", "completed_at": "2026-08-26" },
