@@ -3,6 +3,7 @@ import "../styles/global.css";
 import { siteConfig } from "../config/site";
 import { getLangFromUrl, type Lang } from "../i18n/ui";
 import Analytics from "../components/Analytics.astro";
+import AppLinkAttribution from "../components/AppLinkAttribution.astro";
 import CookieConsent from "../components/CookieConsent.astro";
 
 interface Props {
@@ -133,5 +134,6 @@ const altPl = new URL(plPath, siteConfig.url).href;
   <body class="bg-white font-sans text-ink-900 antialiased">
     <slot />
     <CookieConsent />
+    <AppLinkAttribution />
   </body>
 </html>

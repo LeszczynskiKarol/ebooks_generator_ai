@@ -4,7 +4,9 @@ import { authenticate } from "../middleware/auth";
 import { getSelection, setSelection } from "../lib/llm";
 
 // Human-readable traffic source for the users table: utm_source from the
-// landing URL wins, then the referrer host, else "direct".
+// landing URL wins, then `ref` (original referrer host forwarded by
+// inkmagnet.com, see site/src/components/AppLinkAttribution.astro), then the
+// app's own referrer host, else "direct".
 function signupSource(referrer: string | null, landing: string | null): string | null {
   if (!referrer && !landing) return null;
   try {
@@ -15,6 +17,8 @@ function signupSource(referrer: string | null, landing: string | null): string |
         const med = u.searchParams.get("utm_medium");
         return med ? `${src}/${med}` : src;
       }
+      const ref = u.searchParams.get("ref");
+      if (ref) return ref.replace(/^www\./, "");
     }
   } catch {}
   try {

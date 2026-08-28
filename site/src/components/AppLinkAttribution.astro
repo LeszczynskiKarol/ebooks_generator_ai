@@ -1,0 +1,49 @@
+---
+// First-touch attribution handoff inkmagnet.com → app.inkmagnet.com.
+// On the first pageview we remember where the visitor came from (referrer,
+// utm_*, landing path) in localStorage, then every link to the app gets those
+// values appended as query params. The app stores its landing URL on signup
+// (frontend/src/lib/attribution.ts → User.signupLanding), so the ORIGINAL
+// source survives the cross-domain hop. Runs after DOMContentLoaded and
+// re-decorates on click (covers links injected later). Raw JS on purpose —
+// is:inline is not preprocessed (see Analytics.astro).
+import { siteConfig } from "../config/site";
+const appHost = new URL(siteConfig.appUrl).host;
+---
+
+<script is:inline define:vars={{ appHost }}>
+  (function () {
+    var KEY = "ink_ft";
+    var UTM = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
+    var ft = null;
+    try { ft = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+    if (!ft) {
+      ft = { lp: location.pathname, ts: Date.now() };
+      var q = new URLSearchParams(location.search);
+      UTM.forEach(function (k) { var v = q.get(k); if (v) ft[k] = v.slice(0, 120); });
+      try {
+        var rh = document.referrer ? new URL(document.referrer).host : "";
+        if (rh && rh !== location.host) ft.ref = rh;
+      } catch (e) {}
+      try { localStorage.setItem(KEY, JSON.stringify(ft)); } catch (e) {}
+    }
+    function decorate(a) {
+      var href = a.getAttribute("href");
+      if (!href || a.dataset.attrib) return;
+      var u;
+      try { u = new URL(href, location.href); } catch (e) { return; }
+      if (u.host !== appHost) return;
+      UTM.forEach(function (k) { if (ft[k] && !u.searchParams.has(k)) u.searchParams.set(k, ft[k]); });
+      if (ft.ref && !u.searchParams.has("ref")) u.searchParams.set("ref", ft.ref);
+      if (ft.lp && !u.searchParams.has("lp")) u.searchParams.set("lp", ft.lp);
+      a.href = u.toString();
+      a.dataset.attrib = "1";
+    }
+    function all() { document.querySelectorAll("a[href]").forEach(decorate); }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", all); else all();
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest ? e.target.closest("a[href]") : null;
+      if (a) decorate(a);
+    }, true);
+  })();
+</script>
