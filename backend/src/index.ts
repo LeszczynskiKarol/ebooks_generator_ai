@@ -43,6 +43,8 @@ async function start() {
     },
     bodyLimit: 50 * 1024 * 1024,
     disableRequestLogging: true,
+    // nginx + CloudFront sit in front: without this request.ip is 127.0.0.1.
+    trustProxy: true,
   });
 
   // ── Plugins ──

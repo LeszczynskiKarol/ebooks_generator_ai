@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import api from "@/lib/api";
+import { getAttribution, track } from "@/lib/attribution";
 import toast from "react-hot-toast";
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
@@ -38,7 +39,11 @@ export default function GoogleButton() {
         client_id: CLIENT_ID,
         callback: async (resp: { credential: string }) => {
           try {
-            const { data } = await api.post("/auth/google", { credential: resp.credential });
+            const { data } = await api.post("/auth/google", {
+              credential: resp.credential,
+              attribution: getAttribution(),
+            });
+            if (data.data?.isNew) track("sign_up", { method: "google" });
             setAuth(data.data.user, data.data.accessToken, data.data.refreshToken);
             navigate("/dashboard");
           } catch (err: any) {

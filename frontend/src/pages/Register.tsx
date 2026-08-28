@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import api from "@/lib/api";
+import { getAttribution, track } from "@/lib/attribution";
 import toast from "react-hot-toast";
 import { getRecaptchaToken, warmRecaptcha } from "@/lib/recaptcha";
 import { uiLang } from "@/lib/locale";
@@ -55,8 +56,10 @@ export default function Register() {
         company,
         recaptchaToken,
         lang: uiLang(),
+        attribution: getAttribution(),
       });
       if (data.data?.requiresVerification) {
+        track("sign_up", { method: "email" });
         setPendingEmail(form.email);
       }
     } catch (err: any) {

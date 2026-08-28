@@ -16,6 +16,7 @@ import {
 } from "../lib/email";
 import { verifyRecaptcha } from "../lib/recaptcha";
 import { emailLooksValid, isDisposableEmail } from "../lib/emailGuards";
+import { signupMeta } from "../lib/signupMeta";
 
 const RESEND_COOLDOWN_S = parseInt(process.env.EMAIL_RESEND_COOLDOWN || "60");
 const APP_URL = process.env.PUBLIC_APP_URL || "http://localhost:5173";
@@ -85,7 +86,12 @@ export async function authRoutes(app: FastifyInstance) {
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
-      data: { email, passwordHash, name: name || null },
+      data: {
+        email,
+        passwordHash,
+        name: name || null,
+        ...signupMeta(request, (request.body as any)?.attribution),
+      },
     });
     const code = await issueAuthToken(user.id, "EMAIL_VERIFY");
     sendVerificationCodeEmail(email, code, normLang(lang));
@@ -307,7 +313,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   // ━━━ POST /api/auth/google ━━━
   app.post("/api/auth/google", async (request, reply) => {
-    const { credential } = request.body as any;
+    const { credential, attribution } = request.body as any;
     if (!credential) {
       return reply
         .status(400)
@@ -332,7 +338,9 @@ export async function authRoutes(app: FastifyInstance) {
         where: { OR: [{ googleId: payload.sub }, { email: payload.email }] },
       });
 
+      let isNew = false;
       if (!user) {
+        isNew = true;
         user = await prisma.user.create({
           data: {
             email: payload.email,
@@ -340,6 +348,7 @@ export async function authRoutes(app: FastifyInstance) {
             googleId: payload.sub,
             avatarUrl: payload.picture || null,
             emailVerified: new Date(), // Google already verified the address
+            ...signupMeta(request, attribution),
           },
         });
       } else if (!user.googleId) {
@@ -372,6 +381,7 @@ export async function authRoutes(app: FastifyInstance) {
             name: user.name,
             avatarUrl: user.avatarUrl,
           },
+          isNew,
           ...tokens,
         },
       });

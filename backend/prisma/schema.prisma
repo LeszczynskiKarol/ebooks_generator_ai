@@ -22,6 +22,16 @@ model User {
   stripeCustomerIdTest String?
   projects             Project[]
 
+  // Signup attribution (set once at account creation, never updated).
+  // ip/country come from CloudFront (X-Forwarded-For, CloudFront-Viewer-Country);
+  // referrer/landing are captured client-side on the FIRST app pageview
+  // (document.referrer + full landing URL incl. utm_*), see frontend/src/lib/attribution.ts
+  signupIp        String?
+  signupCountry   String? // ISO-3166 alpha-2 from CloudFront-Viewer-Country
+  signupUserAgent String?
+  signupReferrer  String?
+  signupLanding   String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

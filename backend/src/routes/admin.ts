@@ -3,6 +3,26 @@ import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 import { getSelection, setSelection } from "../lib/llm";
 
+// Human-readable traffic source for the users table: utm_source from the
+// landing URL wins, then the referrer host, else "direct".
+function signupSource(referrer: string | null, landing: string | null): string | null {
+  if (!referrer && !landing) return null;
+  try {
+    if (landing) {
+      const u = new URL(landing);
+      const src = u.searchParams.get("utm_source");
+      if (src) {
+        const med = u.searchParams.get("utm_medium");
+        return med ? `${src}/${med}` : src;
+      }
+    }
+  } catch {}
+  try {
+    if (referrer) return new URL(referrer).hostname.replace(/^www\./, "");
+  } catch {}
+  return "direct";
+}
+
 export async function adminRoutes(app: FastifyInstance) {
   app.addHook("preHandler", async (request, reply) => {
     // ?token= is accepted ONLY for the GET download link opened directly in
@@ -531,6 +551,9 @@ export async function adminRoutes(app: FastifyInstance) {
         emailVerified: true,
         googleId: true,
         stripeCustomerId: true,
+        signupCountry: true,
+        signupReferrer: true,
+        signupLanding: true,
         _count: { select: { projects: true } },
       },
     });
@@ -545,6 +568,8 @@ export async function adminRoutes(app: FastifyInstance) {
         google: !!u.googleId,
         hasStripe: !!u.stripeCustomerId,
         projectCount: u._count.projects,
+        country: u.signupCountry,
+        source: signupSource(u.signupReferrer, u.signupLanding),
       })),
     });
   });
@@ -563,6 +588,11 @@ export async function adminRoutes(app: FastifyInstance) {
         emailVerified: true,
         googleId: true,
         stripeCustomerId: true,
+        signupIp: true,
+        signupCountry: true,
+        signupUserAgent: true,
+        signupReferrer: true,
+        signupLanding: true,
         projects: {
           orderBy: { createdAt: "desc" },
           take: 200,
