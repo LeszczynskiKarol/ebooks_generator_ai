@@ -7,6 +7,23 @@ import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { ImageBlock } from "./ImageBlockNode";
 import StarterKit from "@tiptap/starter-kit";
+import Heading from "@tiptap/extension-heading";
+import { type NumberingSpec } from "@/lib/numbering";
+
+// Heading that remembers which LaTeX command it came from (chapter /
+// section / itemsection) so the round trip back to LaTeX is lossless.
+const LatexHeading = Heading.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      latex: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("data-latex"),
+        renderHTML: (attrs) => (attrs.latex ? { "data-latex": attrs.latex } : {}),
+      },
+    };
+  },
+});
 import Underline from "@tiptap/extension-underline";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
@@ -56,6 +73,11 @@ interface WysiwygEditorProps {
   minHeight?: string;
   maxHeight?: string;
   className?: string;
+  /** Heading numbering shown via CSS counters (mirrors the PDF) */
+  numbering?: NumberingSpec;
+  chapterNumber?: number;
+  /** Items in earlier chapters — continuous item counter across the book */
+  itemOffset?: number;
 }
 
 export default function WysiwygEditor({
@@ -63,6 +85,9 @@ export default function WysiwygEditor({
   onChange,
   editorRef,
   readOnly = false,
+  numbering,
+  chapterNumber = 1,
+  itemOffset = 0,
   minHeight = "300px",
   maxHeight = "600px",
   className = "",
@@ -77,10 +102,11 @@ export default function WysiwygEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: { levels: [2, 3, 4] },
+        heading: false,
         bulletList: { keepMarks: true },
         orderedList: { keepMarks: true },
       }),
+      LatexHeading.configure({ levels: [2, 3, 4] }),
       ImageBlock,
       Underline,
       Table.configure({
@@ -105,7 +131,9 @@ export default function WysiwygEditor({
     editorProps: {
       attributes: {
         class: "wysiwyg-content focus:outline-none",
-        style: `min-height: ${minHeight}; max-height: ${maxHeight}; overflow-y: auto; padding: 1rem;`,
+        "data-numbering": numbering?.mode || "hierarchical",
+        "data-item-label": numbering?.itemLabel || "",
+        style: `min-height: ${minHeight}; max-height: ${maxHeight}; overflow-y: auto; padding: 1rem; counter-reset: chap ${chapterNumber} sec 0 subsec 0 item ${itemOffset}; --item-label: "${(numbering?.itemLabel || "Item").replace(/"/g, "")}";`,
       },
     },
   });
@@ -387,6 +415,28 @@ export default function WysiwygEditor({
 
       {/* ── Inline styles ── */}
       <style>{`
+        /* ── Heading numbers: pure CSS counters, identical to the PDF scheme ── */
+        .wysiwyg-content[data-numbering="hierarchical"] h3 { counter-increment: sec; counter-reset: subsec; }
+        .wysiwyg-content[data-numbering="hierarchical"] h3::before {
+          content: counter(chap) "." counter(sec) ". ";
+          color: #7c3aed;
+        }
+        .wysiwyg-content[data-numbering="hierarchical"] h4:not([data-latex="itemsection"]) { counter-increment: subsec; }
+        .wysiwyg-content[data-numbering="hierarchical"] h4:not([data-latex="itemsection"])::before {
+          content: counter(chap) "." counter(sec) "." counter(subsec) ". ";
+          color: #7c3aed;
+        }
+        .wysiwyg-content h4[data-latex="itemsection"] { counter-increment: item; }
+        .wysiwyg-content h4[data-latex="itemsection"]::before {
+          content: var(--item-label) " " counter(item);
+          display: block;
+          font-size: 0.7rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #7c3aed;
+          margin-bottom: 0.15rem;
+        }
         .wysiwyg-content h2 {
           font-size: 1.5rem;
           font-weight: 700;

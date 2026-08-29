@@ -34,6 +34,11 @@ import { Image as ImageIcon } from "lucide-react";
 import ImageLibrary, {
   type ImageInsertPayload,
 } from "@/components/ImageLibrary";
+import {
+  countItems,
+  DEFAULT_NUMBERING,
+  type NumberingSpec,
+} from "@/lib/numbering";
 
 // ── Types ──
 
@@ -61,6 +66,8 @@ interface Props {
   projectId: string;
   /** Called whenever the dirty count changes (0 = all saved) */
   onDirtyChange?: (count: number) => void;
+  /** Effective heading numbering (from the project API) */
+  numbering?: NumberingSpec;
 }
 
 // ── Mode config ──
@@ -84,7 +91,7 @@ const MODE_CONFIG: Record<
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
-  { projectId, onDirtyChange },
+  { projectId, onDirtyChange, numbering },
   ref,
 ) {
   const t = useT();
@@ -651,6 +658,11 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                     <WysiwygEditor
                       key={`wysiwyg-${chapter.chapterNumber}-${editorKey}`}
                       editorRef={wysiwygRef}
+                      numbering={numbering || DEFAULT_NUMBERING}
+                      chapterNumber={chapter.chapterNumber}
+                      itemOffset={chapters
+                        .filter((c) => c.chapterNumber < chapter.chapterNumber)
+                        .reduce((n, c) => n + countItems(c.latexContent), 0)}
                       content={
                         htmlCache.current[chapter.chapterNumber] ||
                         latexToHtml(chapter.latexContent, toDisplay.current)

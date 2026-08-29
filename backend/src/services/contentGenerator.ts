@@ -22,6 +22,11 @@ import {
   formatBriefForPrompt,
   BookBrief,
 } from "./briefGenerator";
+import {
+  resolveNumbering,
+  formatNumberingForPrompt,
+  NumberingSpec,
+} from "../lib/numbering";
 import { parseLLMJson, ChapterRegistrySchema } from "../lib/llmJson";
 import {
   repairControlCharLatex,
@@ -538,6 +543,7 @@ export async function generateContent(
       const result = await generateChapterLatex({
         bookTitle,
         bookTopic: project.topic,
+        numbering: resolveNumbering(project),
         language: project.language,
         stylePreset: project.stylePreset,
         guidelines: project.guidelines || "",
@@ -924,6 +930,7 @@ interface GenParams {
   wpp: number;
   /** false → popular book: facts stay grounded but NO footnote apparatus */
   allowFootnotes: boolean;
+  numbering: NumberingSpec;
   log: any;
 }
 
@@ -1126,7 +1133,14 @@ LATEX OUTPUT & VISUAL ELEMENTS
 BASE RULES:
 - Output ONLY the chapter body — NO preamble, NO \\documentclass, NO \\begin{document}
 - Start with \\chapter{${p.chapter.title}}
-- Use \\section{} for main sections, \\subsection{} for subsections
+${
+  p.numbering.mode === "items"
+    ? `- ${formatNumberingForPrompt(p.numbering)}
+- EVERY item planned for this chapter (each section of the structure that is not marked [intro]) = exactly one \\itemsection{Item title} heading, in the planned order, with the item's full content under it. \\itemsection takes ONE brace argument and is NEVER starred, NEVER nested in another heading.
+- \\section{} only for a non-item intro/technique passage; do NOT use \\subsection{} at all in this book`
+    : `- Use \\section{} for main sections, \\subsection{} for subsections
+- ${formatNumberingForPrompt(p.numbering)}`
+}
 - Use \\textbf{}, \\textit{}, \\emph{} for emphasis (sparingly)
 ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "- \\footnote{} is FORBIDDEN in this book — weave any attribution into the sentence itself"}
 - Escape special chars: \\%, \\&, \\#, \\$, \\_, \\{, \\}

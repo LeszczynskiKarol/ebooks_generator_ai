@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
 import Stripe from "stripe";
 import { prisma } from "../lib/prisma";
+import { resolveNumbering, isNumberingMode } from "../lib/numbering";
 import { authenticate } from "../middleware/auth";
 import {
   calculatePrice,
@@ -535,6 +536,16 @@ export async function projectRoutes(app: FastifyInstance) {
     }
     if (body.colophonEnabled !== undefined)
       data.colophonEnabled = !!body.colophonEnabled;
+    // Heading numbering override (null/"" = back to the brief's decision)
+    if (body.numberingMode !== undefined) {
+      data.numberingMode = isNumberingMode(body.numberingMode)
+        ? body.numberingMode
+        : null;
+    }
+    if (body.numberingLabel !== undefined) {
+      const label = String(body.numberingLabel || "").trim().slice(0, 40);
+      data.numberingLabel = label || null;
+    }
     const updated = await prisma.project.update({ where: { id }, data });
     console.log("[TITLE-PAGE PATCH] Updated fields:", {
       title: updated.title,
@@ -686,6 +697,9 @@ function formatProject(p: any) {
     ...p,
     priceUsdFormatted,
     priceFormatted,
+    // Effective heading numbering (brief decision + owner override) so the
+    // editor can show the same numbers the PDF will print.
+    numbering: resolveNumbering(p),
     // Parse customColors back to array for frontend
     customColors: p.customColors ? JSON.parse(p.customColors) : null,
   };

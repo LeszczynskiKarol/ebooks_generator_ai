@@ -27,6 +27,8 @@ import { footnotesEnabled } from "../lib/types";
 
 const execAsync = promisify(exec);
 
+import { resolveNumbering, NumberingSpec } from "../lib/numbering";
+
 const LATEX_MAX_PASSES = 4;
 
 // Snapshot of the auxiliary files a pass reads from the previous one. The
@@ -195,6 +197,7 @@ export async function compileBook(projectId: string) {
       format: project.bookFormat,
       imageMap,
       stylePreset: project.stylePreset,
+      numbering: resolveNumbering(project),
       customColors,
       colophonText: project.colophonText,
       colophonFontSize: project.colophonFontSize,
@@ -535,6 +538,8 @@ interface AssembleParams {
   /** popular books (footnoteMode off) — remove any \footnote the model emitted anyway */
   stripFootnotes?: boolean;
   coverPdfFile?: string; // pre-compiled cover PDF (relative to build dir) — included via pdfpages
+  /** Heading numbering scheme (lib/numbering.ts). Defaults to hierarchical. */
+  numbering?: NumberingSpec;
   chapters: {
     chapterNumber: number;
     title: string;
@@ -644,6 +649,58 @@ export function assembleLatexDocument(p: AssembleParams): string {
   add(
     "\\titleformat{\\subsubsection}{\\normalfont\\normalsize\\bfseries\\color{sectioncolor}}{\\thesubsubsection.}{1em}{}",
   );
+  add("");
+
+  // ── Heading numbering scheme (per book — see lib/numbering.ts) ──
+  const numbering = p.numbering || {
+    mode: "hierarchical",
+    itemLabel: null,
+    itemCount: null,
+    source: "default",
+  };
+  add(`% ── Numbering scheme: ${numbering.mode} (${numbering.source}) ──`);
+  switch (numbering.mode) {
+    case "chapters":
+      // chapters keep their number (the band), sections/subsections don't
+      add("\\setcounter{secnumdepth}{0}", "\\setcounter{tocdepth}{1}");
+      break;
+    case "none":
+      // Keep secnumdepth at 0 so \chapter still takes the NUMBERED titlesec
+      // path (= the full-bleed band); the number itself is hidden in the band
+      // (\numberedchaptersfalse), blanked in running heads (\thechapter empty)
+      // and dropped from the TOC (zero-width number column).
+      add(
+        "\\setcounter{secnumdepth}{0}",
+        "\\setcounter{tocdepth}{1}",
+        "\\numberedchaptersfalse",
+        "\\renewcommand{\\thechapter}{}",
+      );
+      break;
+    case "items":
+      add(
+        "\\setcounter{secnumdepth}{0}",
+        "\\setcounter{tocdepth}{2}",
+        "\\newcounter{bookitem}",
+        `\\newcommand{\\itemlabel}{${escapeLatex(numbering.itemLabel || "Item")}}`,
+        // One item = eyebrow line "PRZEPIS 52" in the section colour + an
+        // unnumbered subsection title; TOC gets "52. Title".
+        "\\newcommand{\\itemsection}[1]{%",
+        "  \\par\\needspace{6\\baselineskip}%",
+        "  \\refstepcounter{bookitem}%",
+        "  \\vspace{1.6em}{\\noindent\\sffamily\\bfseries\\footnotesize\\color{sectioncolor}\\MakeUppercase{\\itemlabel}~\\thebookitem\\par}%",
+        "  \\vspace{-1.5em}\\subsection*{#1}%",
+        "  \\addcontentsline{toc}{subsection}{\\protect\\numberline{\\thebookitem}#1}}",
+      );
+      break;
+    default:
+      // hierarchical: book.cls defaults (secnumdepth 2)
+      break;
+  }
+  if (numbering.mode !== "items") {
+    // The model may still emit \itemsection in a non-items book (or the
+    // owner switched the scheme after generation): degrade to a subsection.
+    add("\\providecommand{\\itemsection}[1]{\\subsection{#1}}");
+  }
   add("");
 
   // ── Page-break hygiene ──
@@ -1038,6 +1095,21 @@ export function assembleLatexDocument(p: AssembleParams): string {
     "\\renewcommand{\\cftchapaftersnum}{.}",
     "\\renewcommand{\\cftsecaftersnum}{.}",
     "\\renewcommand{\\cftsubsecaftersnum}{.}",
+    // items scheme: the TOC subsection number is the item number ("52.") —
+    // wider column, and items sit at section depth (they ARE the content)
+    ...(numbering.mode === "items"
+      ? [
+          "\\setlength{\\cftsubsecnumwidth}{2.6em}",
+          "\\setlength{\\cftsubsecindent}{\\cftsecindent}",
+        ]
+      : []),
+    // none scheme: no chapter numbers in the TOC either
+    ...(numbering.mode === "none"
+      ? [
+          "\\renewcommand{\\cftchapaftersnum}{}",
+          "\\setlength{\\cftchapnumwidth}{0pt}",
+        ]
+      : []),
     "\\makeatletter",
     "\\renewcommand{\\@seccntformat}[1]{\\csname the#1\\endcsname.\\quad}",
     "\\makeatother",
@@ -2353,12 +2425,15 @@ function getStyleConfig(preset: string, paperSize = "a5paper"): StyleConfig {
   // bandcolor/bandnum/accentgold, so each preset renders it in its own hues).
   const bandChapterStyle = [
     "\\makeatletter",
+    "\\newif\\ifnumberedchapters\\numberedchapterstrue",
     "\\newcommand{\\PremiumChapterOpener}[1]{%",
     "  \\begin{tikzpicture}[remember picture,overlay]",
     `    \\fill[bandcolor] (current page.north west) rectangle ([yshift=-${band.h}mm]current page.north east);`,
     `    \\fill[accentgold] ([yshift=-${band.h}mm]current page.north west) rectangle ([yshift=-${band.rule}mm]current page.north east);`,
+    "    \\ifnumberedchapters",
     `    \\node[anchor=north west, text=bandnum, font=\\headingfont\\bfseries\\fontsize{${band.numSize}}{${band.numSize}}\\selectfont]`,
     `      at ([xshift=18mm,yshift=${band.numY}mm]current page.north west) {\\two@digits{\\value{chapter}}};`,
+    "    \\fi",
     "    \\node[anchor=north west, text=white, align=left,",
     `          font=\\headingfont\\bfseries\\fontsize{${band.titleSize}}{${band.titleLead}}\\selectfont, text width=${band.titleW}mm]`,
     `      at ([xshift=18mm,yshift=${band.titleY}mm]current page.north west)`,

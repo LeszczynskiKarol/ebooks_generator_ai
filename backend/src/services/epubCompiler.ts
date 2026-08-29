@@ -9,6 +9,7 @@ import * as path from "path";
 import archiver from "archiver";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { latexToXhtml, escapeXml } from "../lib/latexHtml";
+import { resolveNumbering } from "../lib/numbering";
 import { downloadProjectImages, rewriteImageUrls } from "../lib/projectImages";
 
 const BUILD_DIR = path.join(process.cwd(), "tmp", "builds");
@@ -72,9 +73,14 @@ export async function compileEpub(projectId: string): Promise<{
     // ── 1. Convert chapters to XHTML ──
     const chapterFiles: { filename: string; title: string; id: string }[] = [];
 
+    const numbering = resolveNumbering(project);
+    const itemNumbering =
+      numbering.mode === "items"
+        ? { itemLabel: numbering.itemLabel || "Item", counter: { n: 0 } }
+        : undefined;
     for (const ch of readyChapters) {
       const latexLocal = rewriteImageUrls(ch.latexContent!, imageMap);
-      const xhtml = latexToXhtml(latexLocal, ch.title, bookLang);
+      const xhtml = latexToXhtml(latexLocal, ch.title, bookLang, itemNumbering);
       const filename = `chapter-${ch.chapterNumber}.xhtml`;
       const chId = `ch${ch.chapterNumber}`;
 
@@ -241,6 +247,15 @@ h2.section-title {
   border-bottom: 1px solid ${colors.rule};
 }
 
+h3.item-title .item-label {
+  display: block;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-bottom: 0.2em;
+}
 h3.subsection-title {
   color: ${colors.section};
   font-size: 1.15em;

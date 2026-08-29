@@ -92,6 +92,11 @@ model Project {
   // visual apparatus. Drives structure + content prompts per book.
   authorBrief String? @db.Text
 
+  // Heading numbering override (null = use the author brief's decision).
+  // See src/lib/numbering.ts — hierarchical | chapters | none | items.
+  numberingMode  String?
+  numberingLabel String? // item label for `items` ("Przepis", "Project"...)
+
   images      ProjectImage[]
   useAiImages Boolean        @default(false)
   imageGuidelines String?    @db.Text // optional user steering for AI illustrations

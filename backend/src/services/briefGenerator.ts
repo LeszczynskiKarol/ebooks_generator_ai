@@ -98,7 +98,14 @@ YOUR TASK — decide, for THIS specific book:
 
 7. visualStrategy — the writer has this fixed LaTeX toolbox: booktabs tables, tipbox (practical tip), keyinsight (takeaway), warningbox (pitfall), examplebox (case study/example), \\stepflow (process diagram), \\concept (term definition box), \\pullquote (large quote), \\bignumber (highlighted statistic — requires a REAL number). Decide which elements fit this book and roughly how often (per chapter), and which to use rarely or NEVER. A data-driven guide can carry 4-6 boxes and 1-2 tables per chapter; a narrative book maybe 1-2 boxes and no tables. Do NOT prescribe identical apparatus for every chapter — give a range and let content decide.
 
-8. avoid — 3-6 genre-specific traps for this particular book (e.g. for a cookbook: "nutrition statistics forced into every section"; for an academic guide: "startup case studies"; for a narrative book: "bullet-point listicles").
+8. numbering — how headings are numbered in THIS book. Pick ONE:
+   - "hierarchical": 1. / 1.1. / 1.1.1. — textbooks, technical and academic guides, anything readers cross-reference by number.
+   - "chapters": numbered chapters, unnumbered sections — most practical handbooks, self-help, career, parenting, business books.
+   - "none": no numbers at all — essays, narrative non-fiction, short lead magnets.
+   - "items": numbered chapters PLUS one continuous counter for the individual items the book is made of — cookbooks ("Recipe 52"), craft/pattern books ("Project 7"), workbooks ("Exercise 14"), template collections. Choose this whenever the book is essentially a numbered collection, and ESPECIALLY when the topic/title promises a count ("60 recipes", "20 projects").
+   For "items" also give itemLabel — the singular noun for one item IN THE BOOK'S LANGUAGE, capitalized as it will print before the number (Polish: "Przepis", "Projekt", "Ćwiczenie", "Wzór"; English: "Recipe", "Project", "Exercise") — and itemCount: the number promised by the topic/title if there is one, else null.
+
+9. avoid — 3-6 genre-specific traps for this particular book (e.g. for a cookbook: "nutrition statistics forced into every section"; for an academic guide: "startup case studies"; for a narrative book: "bullet-point listicles").
 
 RULES:
 - Customer guidelines ALWAYS win over the preset prior and over your own taste.
@@ -115,7 +122,8 @@ Respond with RAW JSON ONLY — no markdown fences, no commentary:
   "narrativeStrategy": "...",
   "evidencePolicy": "...",
   "visualStrategy": "...",
-  "avoid": ["...", "..."]
+  "avoid": ["...", "..."],
+  "numbering": { "mode": "hierarchical | chapters | none | items", "itemLabel": "... or null", "itemCount": 60, "reason": "one line" }
 }`;
 }
 
@@ -151,6 +159,12 @@ function fallbackBrief(p: BriefParams): BookBrief {
       "identical visual apparatus in every chapter",
       "statistics invented to fill a quota",
     ],
+    numbering: {
+      mode: "hierarchical",
+      itemLabel: null,
+      itemCount: null,
+      reason: "fallback brief — platform default",
+    },
   };
 }
 

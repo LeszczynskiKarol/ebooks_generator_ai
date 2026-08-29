@@ -32,6 +32,7 @@ import toast from "react-hot-toast";
 import { useRef, useState, useEffect } from "react";
 import StructureEditor from "@/components/StructureEditor";
 import BookEditor, { type BookEditorHandle } from "@/components/BookEditor";
+import NumberingSettings from "@/components/NumberingSettings";
 
 // Visual flow steps — several backend stages collapse into one user-facing
 // step (the legacy IMAGES stage maps onto "Writing").
@@ -557,6 +558,21 @@ export default function ProjectDetail() {
               }}
             />
 
+            {/* ★★★ Heading numbering ★★★ */}
+            <div className="border-t border-gray-200 dark:border-gray-700 my-6" />
+            {project.numbering && (
+              <NumberingSettings
+                projectId={id!}
+                numbering={project.numbering}
+                numberingMode={project.numberingMode}
+                numberingLabel={project.numberingLabel}
+                onSaved={() => {
+                  refetch();
+                  setTitlePageDirty(true);
+                }}
+              />
+            )}
+
             <div className="border-t border-gray-200 dark:border-gray-700 my-6" />
 
             {!showEditor ? (
@@ -575,6 +591,7 @@ export default function ProjectDetail() {
               <BookEditor
                 ref={editorRef}
                 projectId={id!}
+                numbering={project.numbering}
                 onDirtyChange={setUnsavedCount}
               />
             )}

@@ -14,6 +14,11 @@ import {
   BookBrief,
 } from "./briefGenerator";
 import {
+  resolveNumbering,
+  formatNumberingForPrompt,
+  NumberingSpec,
+} from "../lib/numbering";
+import {
   parseLLMJson,
   repairTruncatedJson,
   BookStructureSchema,
@@ -66,6 +71,13 @@ export async function generateStructure(projectId: string) {
     log,
   );
   log.ok(`Author brief ready (${briefTimer()})`);
+  // The brief was just (re)generated or loaded — resolve numbering against
+  // the persisted JSON so a project-level override still wins.
+  const numbering = resolveNumbering({
+    ...project,
+    authorBrief: project.authorBrief || JSON.stringify(brief),
+  });
+  log.data("Numbering", `${numbering.mode}${numbering.itemLabel ? ` (${numbering.itemLabel}${numbering.itemCount ? ` × ${numbering.itemCount}` : ""})` : ""} — from ${numbering.source}`);
 
   // ━━━ Phase 2: Generate structure ━━━
   log.phase(2, "Claude Structure Generation");
@@ -96,6 +108,7 @@ export async function generateStructure(projectId: string) {
     sourcesText,
     hasResearch,
     brief,
+    numbering,
   });
 
   log.data("Prompt length", `${prompt.length.toLocaleString()} chars`);
@@ -267,6 +280,7 @@ interface StructurePromptParams {
   sourcesText: string;
   hasResearch: boolean;
   brief: BookBrief;
+  numbering: NumberingSpec;
 }
 
 /**
@@ -296,6 +310,17 @@ Language: ${p.language} | Style: ${p.stylePreset}
 ${p.guidelines ? `Author guidelines: ${p.guidelines}` : ""}
 
 ${formatBriefForPrompt(p.brief)}
+
+${formatNumberingForPrompt(p.numbering)}
+${
+  p.numbering.mode === "items"
+    ? `STRUCTURE RULE FOR A COLLECTION BOOK: every "section" you plan below is ONE item (one recipe / project / exercise) — its title is the item's name, its description says what makes it distinct. Group items into chapters by theme. ${
+        p.numbering.itemCount
+          ? `Plan EXACTLY ${p.numbering.itemCount} item-sections in total across all chapters (the title promises that number) — distribute them across the ${p.chapters} chapters; the "${p.sectionsPerChapter} sections per chapter" guideline is overridden by this total.`
+          : "Plan as many item-sections as the page budget allows (roughly one per 1-1.5 pages)."
+      } A chapter may additionally open with at most ONE short non-item section (technique, ingredients, tools) — mark it by starting its description with "[intro]".`
+    : ""
+}
 
 The structure must SERVE this brief: chapter angles, section topics and the kind of
 material each section promises must match the genre, evidence policy and narrative

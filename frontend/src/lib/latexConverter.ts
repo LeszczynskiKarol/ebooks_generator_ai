@@ -165,6 +165,12 @@ export function latexToHtml(
   );
 
   // ── Headings ──
+  // Collection item (\itemsection) — must precede the generic passes; the
+  // number is rendered by CSS counters in the editor, never stored in text.
+  html = html.replace(
+    /\\itemsection\{([^}]*)\}/g,
+    '<h4 data-latex="itemsection">$1</h4>',
+  );
   html = html.replace(
     /\\chapter\*?\{([^}]*)\}/g,
     '<h2 data-latex="chapter">$1</h2>',
@@ -416,6 +422,8 @@ function nodeToLatex(node: Node): string {
     case "h3":
       return `\n\\section{${stripLatexEsc(children())}}\n\n`;
     case "h4":
+      if (el.dataset.latex === "itemsection")
+        return `\n\\itemsection{${stripLatexEsc(children())}}\n\n`;
       return `\n\\subsection{${stripLatexEsc(children())}}\n\n`;
     case "h5":
       return `\n\\subsection{${stripLatexEsc(children())}}\n\n`;

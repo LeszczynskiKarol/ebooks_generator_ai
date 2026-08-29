@@ -21,12 +21,30 @@ export function escapeXml(text: string): string {
     .replace(/'/g, "&apos;");
 }
 
+export interface XhtmlNumbering {
+  /** Item label ("Przepis") for \itemsection headings */
+  itemLabel: string;
+  /** Mutable counter shared across chapters so numbering is continuous */
+  counter: { n: number };
+}
+
 export function latexToXhtml(
   latex: string,
   chapterTitle: string,
   lang: string,
+  numbering?: XhtmlNumbering,
 ): string {
   let html = repairControlCharLatex(latex);
+
+  // ── Collection items: \itemsection{Title} → numbered item heading ──
+  // Must run before the generic heading pass (which would not match it).
+  html = html.replace(/\\itemsection\{([^}]*)\}/g, (_m, title) => {
+    if (numbering) {
+      numbering.counter.n += 1;
+      return `<h3 class="subsection-title item-title"><span class="item-label">${escapeXml(numbering.itemLabel)} ${numbering.counter.n}</span>${title}</h3>`;
+    }
+    return `<h3 class="subsection-title">${title}</h3>`;
+  });
 
   // ── Strip preamble/postamble ──
   html = html.replace(/\\documentclass[^]*?\\begin\{document\}/g, "");

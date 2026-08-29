@@ -169,6 +169,18 @@ export const BookBriefSchema = z
     evidencePolicy: z.string().min(1),
     visualStrategy: z.string().min(1),
     avoid: z.array(z.string()).default([]),
+    // Heading numbering scheme — see lib/numbering.ts
+    numbering: z
+      .object({
+        mode: z
+          .enum(["hierarchical", "chapters", "none", "items"])
+          .default("hierarchical"),
+        itemLabel: z.string().nullable().default(null),
+        itemCount: z.number().int().positive().nullable().default(null),
+        reason: z.string().default(""),
+      })
+      .passthrough()
+      .default({ mode: "hierarchical", itemLabel: null, itemCount: null, reason: "" }),
   })
   .passthrough();
 
