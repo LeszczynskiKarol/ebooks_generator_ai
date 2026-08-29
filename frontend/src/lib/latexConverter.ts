@@ -50,20 +50,63 @@ export function latexToHtml(
   html = html.replace(/\\medskip/g, "");
   html = html.replace(/\\smallskip/g, "");
   html = html.replace(/\\par\b/g, "\n\n");
+  html = html.replace(/\\(vfill|hfill|centering|raggedright|raggedleft|frenchspacing)\b/g, "");
+  html = html.replace(/\\LaTeX\{\}/g, "LaTeX");
+
+  // ── Non-breaking ties: "w~poprzek" → plain space (the generator sprinkles
+  //    them for typography; in the WYSIWYG they must never show as "~") ──
+  html = html.replace(/(^|[^\\])~/g, "$1 ");
 
   // ── Callout boxes → HTML divs ──
-  const calloutTypes = ["tipbox", "keyinsight", "warningbox", "examplebox"];
+  // Title may come as [Title] (tcolorbox optional arg, what the compiler
+  // normalises to) OR {Title} (what the content generator actually emits —
+  // see contentGenerator's box catalog). Both must parse, otherwise the raw
+  // "{Title}" leaks into the editor as body text.
+  const calloutTypes = [
+    "tipbox",
+    "keyinsight",
+    "warningbox",
+    "examplebox",
+    "checklistbox",
+  ];
+  const wrapCalloutBody = (content: string): string => {
+    const body = convertInlineLatex(content.trim());
+    // Lists inside (checklistbox) are converted by the list pass below —
+    // don't wrap them in <p>, ProseMirror would have to split it anyway.
+    return /\\begin\{(itemize|enumerate)\}/.test(body) ? body : `<p>${body}</p>`;
+  };
   for (const boxType of calloutTypes) {
     const re = new RegExp(
-      `\\\\begin\\{${boxType}\\}(?:\\[([^\\]]*)\\])?([\\s\\S]*?)\\\\end\\{${boxType}\\}`,
+      `\\\\begin\\{${boxType}\\}(?:\\[([^\\]]*)\\]|\\{((?:[^{}]|\\{[^{}]*\\})*)\\})?([\\s\\S]*?)\\\\end\\{${boxType}\\}`,
       "g",
     );
-    html = html.replace(re, (_match, title, content) => {
-      const cleanContent = convertInlineLatex(content.trim());
+    html = html.replace(re, (_match, t1, t2, content) => {
+      const title = (t1 ?? t2 ?? "").trim();
       const titleAttr = title ? ` data-title="${escHtml(title)}"` : "";
-      return `<div data-callout="${boxType}"${titleAttr}><p>${cleanContent}</p></div>`;
+      return `<div data-callout="${boxType}"${titleAttr}>${wrapCalloutBody(content)}</div>`;
     });
   }
+
+  // ── Rich visual macros → callout-style blocks (round-trip in nodeToLatex) ──
+  const BAL = "((?:[^{}]|\\{[^{}]*\\})*)"; // one level of nested braces
+  html = html.replace(
+    new RegExp(`\\\\concept\\{${BAL}\\}\\{${BAL}\\}`, "g"),
+    (_m, term, def) =>
+      `<div data-callout="concept" data-title="${escHtml(term.trim())}"><p>${convertInlineLatex(def.trim())}</p></div>`,
+  );
+  html = html.replace(
+    new RegExp(`\\\\bignumber\\{${BAL}\\}\\{${BAL}\\}`, "g"),
+    (_m, value, label) =>
+      `<div data-callout="bignumber" data-title="${escHtml(value.trim())}"><p>${convertInlineLatex(label.trim())}</p></div>`,
+  );
+  html = html.replace(
+    new RegExp(`\\\\pullquote\\{${BAL}\\}`, "g"),
+    (_m, q) => `<div data-callout="pullquote"><p>${convertInlineLatex(q.trim())}</p></div>`,
+  );
+  html = html.replace(/\\stepflow\{([^}]*)\}/g, (_m, steps: string) => {
+    const parts = steps.split(",").map((x) => x.trim()).filter(Boolean);
+    return `<div data-callout="stepflow"><p>${escHtml(parts.join(" → "))}</p></div>`;
+  });
 
   // ── Tables ──
   html = html.replace(
@@ -428,6 +471,23 @@ function nodeToLatex(node: Node): string {
       if (calloutType) {
         const title = el.dataset.title || "";
         const content = children().trim();
+        // Single-argument macros: collapse the body to one paragraph
+        const inline = content.replace(/\s*\n+\s*/g, " ").trim();
+        switch (calloutType) {
+          case "concept":
+            return `\n\\concept{${title}}{${inline}}\n\n`;
+          case "bignumber":
+            return `\n\\bignumber{${title}}{${inline}}\n\n`;
+          case "pullquote":
+            return `\n\\pullquote{${inline}}\n\n`;
+          case "stepflow": {
+            const steps = inline
+              .split(/\s*(?:→|->)\s*/)
+              .map((x) => x.replace(/,/g, ";").trim())
+              .filter(Boolean);
+            return `\n\\stepflow{${steps.join(", ")}}\n\n`;
+          }
+        }
         const titlePart = title ? `[${title}]` : "";
         return `\n\\begin{${calloutType}}${titlePart}\n${content}\n\\end{${calloutType}}\n\n`;
       }

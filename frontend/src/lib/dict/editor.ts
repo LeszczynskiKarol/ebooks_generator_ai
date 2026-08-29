@@ -63,6 +63,11 @@ export const en: Record<string, string> = {
   "editor.calloutKeyinsight": "Key Insight",
   "editor.calloutWarningbox": "Warning",
   "editor.calloutExamplebox": "Example",
+  "editor.calloutChecklistbox": "Checklist",
+  "editor.calloutConcept": "Concept",
+  "editor.calloutStepflow": "Process",
+  "editor.calloutPullquote": "Pull quote",
+  "editor.calloutBignumber": "Key number",
 
   // ImageBlock — controls
   "editor.wrapLeft": "Wrap left",
@@ -136,6 +141,11 @@ export const pl: Record<string, string> = {
   "editor.calloutKeyinsight": "Kluczowy wniosek",
   "editor.calloutWarningbox": "Uwaga",
   "editor.calloutExamplebox": "Przykład",
+  "editor.calloutChecklistbox": "Checklista",
+  "editor.calloutConcept": "Pojęcie",
+  "editor.calloutStepflow": "Proces",
+  "editor.calloutPullquote": "Cytat",
+  "editor.calloutBignumber": "Kluczowa liczba",
 
   // ImageBlock — controls
   "editor.wrapLeft": "Oblewanie z lewej",

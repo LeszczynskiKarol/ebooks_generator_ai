@@ -31,7 +31,7 @@ import {
   Trash2,
   Plus,
 } from "lucide-react";
-import { Callout, CALLOUT_STYLES } from "./CalloutNode";
+import { Callout, CALLOUT_STYLES, INSERTABLE_CALLOUTS } from "./CalloutNode";
 import { useT } from "@/lib/i18n";
 
 // Map callout type → i18n key for the user-visible label
@@ -40,6 +40,11 @@ const CALLOUT_LABEL_KEY: Record<string, string> = {
   keyinsight: "editor.calloutKeyinsight",
   warningbox: "editor.calloutWarningbox",
   examplebox: "editor.calloutExamplebox",
+  checklistbox: "editor.calloutChecklistbox",
+  concept: "editor.calloutConcept",
+  stepflow: "editor.calloutStepflow",
+  pullquote: "editor.calloutPullquote",
+  bignumber: "editor.calloutBignumber",
 };
 
 // ── Props ──
@@ -325,7 +330,9 @@ export default function WysiwygEditor({
 
             {showCalloutMenu && (
               <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl py-1 w-48">
-                {Object.entries(CALLOUT_STYLES).map(([type, style]) => (
+                {Object.entries(CALLOUT_STYLES)
+                  .filter(([type]) => INSERTABLE_CALLOUTS.includes(type))
+                  .map(([type, style]) => (
                   <button
                     key={type}
                     onClick={() => insertCallout(type)}
@@ -518,6 +525,48 @@ export default function WysiwygEditor({
           border-left-color: #93c5fd;
         }
         .dark .wysiwyg-content div[data-callout="examplebox"]::before { color: #93c5fd; }
+
+        .wysiwyg-content div[data-callout="checklistbox"] {
+          background: #f0fdfa;
+          border-left-color: #0d9488;
+        }
+        .wysiwyg-content div[data-callout="checklistbox"]::before { color: #0d9488; }
+        .dark .wysiwyg-content div[data-callout="checklistbox"] {
+          background: rgba(13, 148, 136, 0.1);
+          border-left-color: #2dd4bf;
+        }
+        .dark .wysiwyg-content div[data-callout="checklistbox"]::before { color: #2dd4bf; }
+
+        .wysiwyg-content div[data-callout="concept"] {
+          background: #f5f3ff;
+          border-left-color: #7c3aed;
+        }
+        .wysiwyg-content div[data-callout="concept"]::before { color: #7c3aed; }
+        .dark .wysiwyg-content div[data-callout="concept"] {
+          background: rgba(124, 58, 237, 0.1);
+          border-left-color: #a78bfa;
+        }
+        .dark .wysiwyg-content div[data-callout="concept"]::before { color: #a78bfa; }
+
+        /* Visual macros from generated LaTeX: neutral, editable in place */
+        .wysiwyg-content div[data-callout="stepflow"],
+        .wysiwyg-content div[data-callout="pullquote"],
+        .wysiwyg-content div[data-callout="bignumber"] {
+          background: #f9fafb;
+          border-left-color: #9ca3af;
+        }
+        .wysiwyg-content div[data-callout="stepflow"]::before,
+        .wysiwyg-content div[data-callout="pullquote"]::before,
+        .wysiwyg-content div[data-callout="bignumber"]::before { color: #6b7280; }
+        .wysiwyg-content div[data-callout="stepflow"] p { font-weight: 600; letter-spacing: 0.01em; }
+        .wysiwyg-content div[data-callout="pullquote"] p { font-style: italic; font-size: 1.1em; }
+        .wysiwyg-content div[data-callout="bignumber"]::before { font-size: 1.6em; font-weight: 800; }
+        .dark .wysiwyg-content div[data-callout="stepflow"],
+        .dark .wysiwyg-content div[data-callout="pullquote"],
+        .dark .wysiwyg-content div[data-callout="bignumber"] {
+          background: rgba(156, 163, 175, 0.08);
+          border-left-color: #6b7280;
+        }
 
         /* ── Tables ── */
         .wysiwyg-table {

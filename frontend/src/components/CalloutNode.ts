@@ -1,6 +1,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // InkMagnet — TipTap Custom Node: Callout Box
-// Renders tipbox, keyinsight, warningbox, examplebox
+// Renders tipbox, keyinsight, warningbox, examplebox, checklistbox, concept
+// (+ read-only visual macros: stepflow, pullquote, bignumber)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { Node, mergeAttributes } from "@tiptap/core";
@@ -76,6 +77,17 @@ export const Callout = Node.create<CalloutOptions>({
   },
 });
 
+// Types offered in the editor's "insert callout" menu (the rest only come
+// from generated LaTeX and are edited in place, not inserted).
+export const INSERTABLE_CALLOUTS = [
+  "tipbox",
+  "keyinsight",
+  "warningbox",
+  "examplebox",
+  "checklistbox",
+  "concept",
+];
+
 // ── Callout styling config (used by WysiwygEditor for rendering) ──
 
 export const CALLOUT_STYLES: Record<
@@ -130,5 +142,56 @@ export const CALLOUT_STYLES: Record<
     borderDark: "dark:border-l-blue-400",
     titleLight: "text-blue-700",
     titleDark: "dark:text-blue-400",
+  },
+  checklistbox: {
+    label: "Checklist",
+    emoji: "☑️",
+    bgLight: "bg-teal-50",
+    bgDark: "dark:bg-teal-950/30",
+    borderLight: "border-l-teal-500",
+    borderDark: "dark:border-l-teal-400",
+    titleLight: "text-teal-700",
+    titleDark: "dark:text-teal-400",
+  },
+  concept: {
+    label: "Concept",
+    emoji: "📖",
+    bgLight: "bg-violet-50",
+    bgDark: "dark:bg-violet-950/30",
+    borderLight: "border-l-violet-500",
+    borderDark: "dark:border-l-violet-400",
+    titleLight: "text-violet-700",
+    titleDark: "dark:text-violet-400",
+  },
+  // Rendered-only types (come from generated LaTeX, not inserted from the menu)
+  stepflow: {
+    label: "Process",
+    emoji: "➡️",
+    bgLight: "bg-gray-50",
+    bgDark: "dark:bg-gray-900/40",
+    borderLight: "border-l-gray-400",
+    borderDark: "dark:border-l-gray-500",
+    titleLight: "text-gray-600",
+    titleDark: "dark:text-gray-300",
+  },
+  pullquote: {
+    label: "Pull quote",
+    emoji: "❝",
+    bgLight: "bg-gray-50",
+    bgDark: "dark:bg-gray-900/40",
+    borderLight: "border-l-gray-400",
+    borderDark: "dark:border-l-gray-500",
+    titleLight: "text-gray-600",
+    titleDark: "dark:text-gray-300",
+  },
+  bignumber: {
+    label: "Big number",
+    emoji: "🔢",
+    bgLight: "bg-gray-50",
+    bgDark: "dark:bg-gray-900/40",
+    borderLight: "border-l-gray-400",
+    borderDark: "dark:border-l-gray-500",
+    titleLight: "text-gray-600",
+    titleDark: "dark:text-gray-300",
   },
 };
