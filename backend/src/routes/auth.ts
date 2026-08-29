@@ -54,9 +54,21 @@ export async function authRoutes(app: FastifyInstance) {
         .send({ success: false, error: "Password must be at least 8 characters" });
     }
 
-    const captcha = await verifyRecaptcha(recaptchaToken, "register", {
-      strict: true,
-    });
+    // The mobile app cannot run reCAPTCHA Enterprise (web). It identifies
+    // itself with an app key instead; the key is a shared secret in the app
+    // binary (MOBILE_APP_KEY) — not bulletproof, but on par with the
+    // honeypot + disposable-email guards above, and Play-signed builds
+    // are the only ones that get it.
+    const appKey = request.headers["x-app-key"];
+    const mobileOk =
+      typeof appKey === "string" &&
+      !!process.env.MOBILE_APP_KEY &&
+      appKey === process.env.MOBILE_APP_KEY;
+    const captcha = mobileOk
+      ? { ok: true, reason: "mobile_app_key" }
+      : await verifyRecaptcha(recaptchaToken, "register", {
+          strict: true,
+        });
     if (!captcha.ok) {
       return reply
         .status(400)

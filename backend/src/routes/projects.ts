@@ -117,6 +117,7 @@ export async function projectRoutes(app: FastifyInstance) {
       subtitle,
       coverOption,
       currency: reqCurrency,
+      paymentProvider,
     } = request.body as any;
 
     if (!topic || topic.length < 5) {
@@ -125,13 +126,15 @@ export async function projectRoutes(app: FastifyInstance) {
         .send({ success: false, error: "Topic must be at least 5 characters" });
     }
 
-    const stripeConfig = getStripeConfig(request);
-    if (!stripeConfig) {
+    // Mobile app pays through Google Play (POST /api/play/verify) — no Stripe
+    // session is created; the app gets the SKU to buy instead.
+    const viaPlay = paymentProvider === "play";
+    const stripeConfig = viaPlay ? null : getStripeConfig(request);
+    if (!viaPlay && !stripeConfig) {
       return reply
         .status(500)
         .send({ success: false, error: "Stripe not configured" });
     }
-    const { stripe, testMode } = stripeConfig;
 
     // Snap to nearest tier
     const rawPages = Math.max(
@@ -196,7 +199,20 @@ export async function projectRoutes(app: FastifyInstance) {
       },
     });
 
+    if (viaPlay) {
+      const { skuForPages } = await import("../lib/playBilling");
+      return reply.status(201).send({
+        success: true,
+        data: {
+          project: formatProject(project),
+          pricing: { ...pricing, tierLabel: pricing.tier.label },
+          playSku: skuForPages(pages),
+        },
+      });
+    }
+
     // ── Create Stripe session immediately ──
+    const { stripe, testMode } = stripeConfig!;
     const customerId = await ensureStripeCustomer(
       stripe,
       request.user.userId,

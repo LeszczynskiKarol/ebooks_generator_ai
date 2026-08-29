@@ -182,6 +182,30 @@ model BookVersion {
   @@index([projectId])
 }
 
+// Google Play one-time purchase (mobile app). One row per purchaseToken —
+// see src/lib/playBilling.ts. `granted` = the project was marked PAID.
+model PlayPurchase {
+  id            String   @id @default(cuid())
+  purchaseToken String   @unique
+  productId     String
+  packageName   String
+  orderId       String?
+  userId        String
+  projectId     String?
+  purchaseState Int      @default(-1) // 0 purchased, 1 canceled, 2 pending
+  acknowledged  Boolean  @default(false)
+  isTest        Boolean  @default(false)
+  granted       Boolean  @default(false)
+  grantedAt     DateTime?
+  voidedAt      DateTime?
+  raw           Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+}
+
 enum CoverType {
   NONE
   GENERATED
