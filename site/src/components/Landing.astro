@@ -404,6 +404,75 @@ const useCaseIcons = [
     </div>
   </section>
 
+  <!-- ━━━ Real app screens (PL only — the screenshots show the Polish UI) ━━━ -->
+  {
+    isPL && (
+      <section class="border-t border-ink-100 bg-ink-50">
+        <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+          <div class="mx-auto max-w-2xl text-center">
+            <h2 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
+              {t.realApp.title}
+            </h2>
+            <p class="mt-4 text-lg text-ink-600">{t.realApp.sub}</p>
+          </div>
+
+          <!-- book page: full width -->
+          <figure class="mt-14">
+            <div class="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-2xl shadow-ink-900/10">
+              <img
+                src="/app/pl-book-page.webp"
+                alt={t.realApp.items[0].alt}
+                width="1100"
+                height="515"
+                loading="lazy"
+                decoding="async"
+                data-zoom
+                data-zoom-src="/app/pl-book-page-lg.webp"
+                class="block w-full cursor-zoom-in"
+              />
+            </div>
+            <figcaption class="mx-auto mt-6 max-w-3xl text-center">
+              <h3 class="font-display text-xl font-bold text-ink-900">{t.realApp.items[0].title}</h3>
+              <p class="mt-2 text-[15px] leading-relaxed text-ink-600">{t.realApp.items[0].text}</p>
+            </figcaption>
+          </figure>
+
+          <!-- chapters + editor: two columns -->
+          <div class="mt-16 grid gap-10 lg:grid-cols-2 lg:gap-12">
+            {
+              [1, 2].map((i) => {
+                const src = i === 1 ? "/app/pl-chapters" : "/app/pl-editor";
+                const h = i === 1 ? 604 : 706;
+                return (
+                  <figure>
+                    <div class="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-xl shadow-ink-900/10">
+                      <img
+                        src={`${src}.webp`}
+                        alt={t.realApp.items[i].alt}
+                        width="1100"
+                        height={h}
+                        loading="lazy"
+                        decoding="async"
+                        data-zoom
+                        data-zoom-src={`${src}-lg.webp`}
+                        class="block w-full cursor-zoom-in"
+                      />
+                    </div>
+                    <figcaption class="mt-5">
+                      <h3 class="font-display text-lg font-bold text-ink-900">{t.realApp.items[i].title}</h3>
+                      <p class="mt-2 text-[15px] leading-relaxed text-ink-600">{t.realApp.items[i].text}</p>
+                    </figcaption>
+                  </figure>
+                );
+              })
+            }
+          </div>
+          <p class="mt-10 text-center text-xs text-ink-400">{t.realApp.note}</p>
+        </div>
+      </section>
+    )
+  }
+
   <!-- ━━━ Editor ━━━ -->
   <section class="border-t border-ink-100">
     <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-24">

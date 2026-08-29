@@ -182,6 +182,28 @@ export const ui = {
       ],
       note: "Real pages from a book generated with InkMagnet — exported to PDF and EPUB.",
     },
+    realApp: {
+      title: "This is what working in InkMagnet looks like",
+      sub: "Real screens from a finished book — no mock-ups.",
+      note: "Screens from the Polish edition of the app. The interface is fully available in English.",
+      items: [
+        {
+          title: "Every book has its own page",
+          text: "Cover, page count, language, style and a six-step progress bar: payment, structure, review, writing, typesetting, done. You always know what stage your book is at.",
+          alt: "InkMagnet book page with cover and progress bar",
+        },
+        {
+          title: "Chapters you can open one by one",
+          text: "The finished book is a list of chapters with word counts. Open any of them, read, fix a sentence, add a paragraph.",
+          alt: "List of chapters in the InkMagnet editor",
+        },
+        {
+          title: "A visual editor, like a word processor",
+          text: "Headings, bold, lists, callout boxes, tables and images — you edit the text as in Word and the book is re-typeset for you. A raw LaTeX mode is one click away for the curious.",
+          alt: "InkMagnet visual chapter editor",
+        },
+      ],
+    },
     appShowcase: {
       title: "One panel for every book you make",
       sub: "Covers, generation progress and downloads — your whole library in one place.",
@@ -724,6 +746,28 @@ export const ui = {
         },
       ],
       note: "Każda książka jest składana w tym standardzie i eksportowana do PDF i EPUB.",
+    },
+    realApp: {
+      title: "Tak wygląda praca z InkMagnet",
+      sub: "Prawdziwe ekrany z gotowej książki — bez makiet.",
+      note: "Ekrany z książki „Thermomix — proste obiady dla zabieganych”, wygenerowanej w InkMagnet.",
+      items: [
+        {
+          title: "Każda książka ma własną stronę",
+          text: "Okładka, liczba stron, język, styl i pasek postępu w sześciu krokach: płatność, struktura, przegląd, pisanie, składanie, gotowe. Zawsze wiesz, na jakim etapie jest Twoja książka.",
+          alt: "Strona książki w InkMagnet z okładką i paskiem postępu",
+        },
+        {
+          title: "Rozdziały otwierasz jeden po drugim",
+          text: "Gotowa książka to lista rozdziałów z liczbą słów. Otwierasz dowolny, czytasz, poprawiasz zdanie, dopisujesz akapit.",
+          alt: "Lista rozdziałów w edytorze InkMagnet",
+        },
+        {
+          title: "Edytor wizualny — jak w Wordzie",
+          text: "Nagłówki, pogrubienia, listy, ramki, tabele i obrazy — edytujesz tekst jak w edytorze tekstu, a książka składa się na nowo sama. Dla ciekawych jest też tryb surowego LaTeX-a, jedno kliknięcie dalej.",
+          alt: "Wizualny edytor rozdziału w InkMagnet",
+        },
+      ],
     },
     appShowcase: {
       title: "Jeden panel na wszystkie Twoje książki",
