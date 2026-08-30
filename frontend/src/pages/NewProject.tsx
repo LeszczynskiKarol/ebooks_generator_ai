@@ -29,15 +29,11 @@ import { useT, useLangStore, translate, type AppLang } from "@/lib/i18n";
 import { useMoney } from "@/lib/money";
 
 // Language keys → i18n label keys (the select VALUES en/pl/de… stay code)
+// Only the two languages the product is edited/proofread in. Default follows
+// the UI locale (EN site → en, /pl → pl) — see defaultValues below.
 const LANGUAGE_KEYS: Record<string, string> = {
   en: "newProject.langEn",
   pl: "newProject.langPl",
-  de: "newProject.langDe",
-  es: "newProject.langEs",
-  fr: "newProject.langFr",
-  it: "newProject.langIt",
-  pt: "newProject.langPt",
-  nl: "newProject.langNl",
 };
 const STYLE_KEYS: Record<string, string> = {
   modern: "newProject.styleModern",
