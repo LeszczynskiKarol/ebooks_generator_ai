@@ -1,7 +1,7 @@
 ---
 title: "Atticus i Vellum kosztują 147–250 dolarów, a żadne z nich nie napisze ani słowa Twojej książki"
 seoTitle: "Atticus i Vellum: 147–250$, zero słów"
-description: "Atticus (147 $) i Vellum (199,99–249,99 $) składają rękopis, który już napisałeś. InkMagnet bada temat i pisze książkę, PDF i EPUB w cenie, od 14,99 $."
+description: "Atticus (147 $) i Vellum (199,99–249,99 $) składają rękopis, który już napisałeś. InkMagnet bada temat i pisze książkę, PDF i EPUB w cenie, od 9,99 $."
 lang: pl
 pubDate: 2026-08-30
 translationOf: inkmagnet-vs-atticus-vellum
@@ -31,9 +31,9 @@ To jest część, którą porównania cenowe pomijają. Atticus w ogóle nie ma 
 
 InkMagnet zaczyna o jeden etap wcześniej: opisujesz temat, nie rękopis. System bada go na podstawie aktualnych źródeł w internecie, planuje strukturę rozdziałów, pisze każdy rozdział w oparciu o ten research, przechodzi automatyczną recenzję sprawdzającą pokrycie tematu i poprawiającą słabsze fragmenty, generuje dopasowane obrazy do treści i składa wynik tym samym systemem opartym na LuaLaTeX, który stoi za publikacjami naukowymi. Klikalny spis treści, inicjały na otwarciach rozdziałów, żywa pagina i konsekwentne dzielenie wyrazów są obsługiwane automatycznie, czyli dokładnie to, za co płaci się w Atticusie i Vellum, tylko o etap dalej w procesie. Na koniec eksportuje gotowy do druku PDF i poprawny plik EPUB. Nie ma tu ekranu importu czekającego na rękopis, bo rękopis nie istnieje, dopóki nie istnieje research pod nim.
 
-## Prawdziwy rachunek: 147–250 dolarów kontra 14,99–59,99 dolara
+## Prawdziwy rachunek: 147–250 dolarów kontra 9,99–34,99 dolara
 
-Nawet pomijając brak pisania, matematyka i tak nie działa na korzyść samych narzędzi do składu. Atticus to sztywne 147 dolarów. Vellum to 199,99 dolara za sam ebook albo 249,99 dolara za pakiet z drukiem, za licencję, z nielimitowaną liczbą książek, ale tylko na Macu i z opłatą za każdy eksport. InkMagnet wycenia gotową, zbadaną, zilustrowaną i złożoną książkę od 14,99 dolara (ok. 56 zł) za 30–45 stron do 59,99 dolara (ok. 225 zł) za 161–200 stron, jednorazowo, z pełnymi prawami komercyjnymi i nieograniczoną liczbą edycji oraz ponownych składów w tej jednej kwocie. Zestaw Vellum Press z choćby skromnym ghostwriterem freelancerem dla jednej książki przebija 1000 dolarów (ok. 3750 zł), zanim jeszcze osobno zamówisz projekt okładki; jedna płatność za InkMagnet zawiera już research, pisanie, obrazy, okładkę, PDF i EPUB, za mniej niż samo narzędzie do składu liczy sobie osobno.
+Nawet pomijając brak pisania, matematyka i tak nie działa na korzyść samych narzędzi do składu. Atticus to sztywne 147 dolarów. Vellum to 199,99 dolara za sam ebook albo 249,99 dolara za pakiet z drukiem, za licencję, z nielimitowaną liczbą książek, ale tylko na Macu i z opłatą za każdy eksport. InkMagnet wycenia gotową, zbadaną, zilustrowaną i złożoną książkę od 9,99 dolara (ok. 37 zł) za 30–45 stron do 34,99 dolara (ok. 130 zł) za 161–200 stron, jednorazowo, z pełnymi prawami komercyjnymi i nieograniczoną liczbą edycji oraz ponownych składów w tej jednej kwocie. Zestaw Vellum Press z choćby skromnym ghostwriterem freelancerem dla jednej książki przebija 1000 dolarów (ok. 3750 zł), zanim jeszcze osobno zamówisz projekt okładki; jedna płatność za InkMagnet zawiera już research, pisanie, obrazy, okładkę, PDF i EPUB, za mniej niż samo narzędzie do składu liczy sobie osobno.
 
 ## Kiedy Atticus albo Vellum to właściwy wybór
 

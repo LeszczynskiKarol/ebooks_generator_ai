@@ -55,7 +55,7 @@ Tych używają poważni self-publisherzy do złożenia manuskryptu. Są świetne
 
 ## Gdzie jest InkMagnet — i dlaczego to osobna kategoria
 
-[InkMagnet](/pl/) to jedyne narzędzie z tej listy, które wykonuje całą robotę w jednej **jednorazowej opłacie za książkę**: bada temat w aktualnych źródłach internetowych, planuje strukturę, pisze i recenzuje każdy rozdział, składa całość LaTeX-em (systemem wydawnictw akademickich — klikalny spis treści, inicjały, dzielenie wyrazów, stylizowane tabele), generuje dopasowane ilustracje, projektuje okładkę i oddaje PDF jakości drukarskiej oraz EPUB na sklepy, z **pełnymi prawami komercyjnymi**. Cena to **od 14,99 do 59,99 dolara za książkę** zależnie od objętości — bez abonamentu.
+[InkMagnet](/pl/) to jedyne narzędzie z tej listy, które wykonuje całą robotę w jednej **jednorazowej opłacie za książkę**: bada temat w aktualnych źródłach internetowych, planuje strukturę, pisze i recenzuje każdy rozdział, składa całość LaTeX-em (systemem wydawnictw akademickich — klikalny spis treści, inicjały, dzielenie wyrazów, stylizowane tabele), generuje dopasowane ilustracje, projektuje okładkę i oddaje PDF jakości drukarskiej oraz EPUB na sklepy, z **pełnymi prawami komercyjnymi**. Cena to **od 9,99 do 34,99 dolara za książkę** zależnie od objętości — bez abonamentu.
 
 Ujmując to wprost na tle kategorii powyżej: generatory tekstu zatrzymują się na pierwszym kroku i liczą sobie miesięcznie; narzędzia do składu zaczynają tam, gdzie InkMagnet *kończy*, i kosztują 147–250 $, zanim napiszesz choć słowo. InkMagnet jako jedyny przechodzi całą tę drogę w jednym zakupie.
 

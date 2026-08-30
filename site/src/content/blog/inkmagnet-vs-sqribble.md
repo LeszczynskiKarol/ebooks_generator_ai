@@ -1,7 +1,7 @@
 ---
 title: "InkMagnet vs Sqribble: template filler vs a real written book"
 seoTitle: "InkMagnet vs Sqribble (2026)"
-description: "Sqribble sells $67 templates you fill yourself, PDF only. InkMagnet researches and writes the book, PDF and EPUB included, from $14.99."
+description: "Sqribble sells $67 templates you fill yourself, PDF only. InkMagnet researches and writes the book, PDF and EPUB included, from $9.99."
 lang: en
 pubDate: 2026-08-29
 translationOf: inkmagnet-czy-sqribble
@@ -35,7 +35,7 @@ InkMagnet ships a print-quality PDF and a valid EPUB with every book, no upgrade
 
 The headline price is real: $67 one-time, no subscription, and Sqribble deserves credit for stating it plainly at checkout. What the sticker doesn't show is the upsell chain documented by independent reviewers behind it: Professional at $97, Prime at $47, Fantasia 3D for flipbooks and 3D cover mockups at $77, and an Auto Job Finder add-on at $197. Add all four to the base price and the real total lands near $485 for the feature set shown in the demo video, not $67.
 
-InkMagnet charges once per book, scaled to length: $14.99 for a 30–45 page book, $24.99 for 46–75 pages, $29.99 for 76–115 pages, $44.99 for 116–160 pages, and $59.99 for the largest 161–200 page tier. Research, writing, illustrations, cover design, PDF and EPUB all sit inside that single number, with full commercial rights and unlimited edits and recompiles on top of every book bought. There's no second screen selling you the export format you assumed was already included, a pattern [we've broken down against the wider ghostwriting and formatting market](/blog/cost-to-create-an-ebook/) too.
+InkMagnet charges once per book, scaled to length: $9.99 for a 30–45 page book, $14.99 for 46–75 pages, $19.99 for 76–115 pages, $27.99 for 116–160 pages, and $34.99 for the largest 161–200 page tier. Research, writing, illustrations, cover design, PDF and EPUB all sit inside that single number, with full commercial rights and unlimited edits and recompiles on top of every book bought. There's no second screen selling you the export format you assumed was already included, a pattern [we've broken down against the wider ghostwriting and formatting market](/blog/cost-to-create-an-ebook/) too.
 
 ## When Sqribble is the right tool
 

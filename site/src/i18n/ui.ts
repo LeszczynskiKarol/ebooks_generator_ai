@@ -512,16 +512,16 @@ export const ui = {
       perBook: "per book",
       pages: "pages",
       tiers: [
-        { label: "Compact", pages: "30–45", price: "$14.99", usd: 14.99 },
-        { label: "Standard", pages: "46–75", price: "$24.99", usd: 24.99 },
-        { label: "Extended", pages: "76–115", price: "$29.99", usd: 29.99 },
+        { label: "Compact", pages: "30–45", price: "$9.99", usd: 9.99 },
+        { label: "Standard", pages: "46–75", price: "$14.99", usd: 14.99 },
+        { label: "Extended", pages: "76–115", price: "$19.99", usd: 19.99 },
         {
           label: "Comprehensive",
           pages: "116–160",
-          price: "$44.99",
-          usd: 44.99,
+          price: "$27.99",
+          usd: 27.99,
         },
-        { label: "Complete", pages: "161–200", price: "$59.99", usd: 59.99 },
+        { label: "Complete", pages: "161–200", price: "$34.99", usd: 34.99 },
       ],
       note: "Full commercial rights. Unlimited edits and recompiles of every book you've bought.",
       cta: "Create your first book",
@@ -570,7 +570,7 @@ export const ui = {
     finalCta: {
       title: "Your book is one form away",
       sub: "Describe the topic today, download the finished ebook within the hour.",
-      cta: "Start writing — from $14.99",
+      cta: "Start writing — from $9.99",
     },
     footer: {
       tagline: "Professional AI-written ebooks with real typesetting.",
@@ -1072,16 +1072,16 @@ export const ui = {
       perBook: "za książkę",
       pages: "stron",
       tiers: [
-        { label: "Compact", pages: "30–45", price: "$14.99", usd: 14.99 },
-        { label: "Standard", pages: "46–75", price: "$24.99", usd: 24.99 },
-        { label: "Extended", pages: "76–115", price: "$29.99", usd: 29.99 },
+        { label: "Compact", pages: "30–45", price: "$9.99", usd: 9.99 },
+        { label: "Standard", pages: "46–75", price: "$14.99", usd: 14.99 },
+        { label: "Extended", pages: "76–115", price: "$19.99", usd: 19.99 },
         {
           label: "Comprehensive",
           pages: "116–160",
-          price: "$44.99",
-          usd: 44.99,
+          price: "$27.99",
+          usd: 27.99,
         },
-        { label: "Complete", pages: "161–200", price: "$59.99", usd: 59.99 },
+        { label: "Complete", pages: "161–200", price: "$34.99", usd: 34.99 },
       ],
       note: "Pełne prawa komercyjne. Edycje i ponowne kompilacje kupionych książek bez limitu.",
       cta: "Stwórz pierwszą książkę",
@@ -1130,7 +1130,7 @@ export const ui = {
     finalCta: {
       title: "Od Twojej książki dzieli Cię jeden formularz",
       sub: "Opisz temat dzisiaj, a gotowego ebooka pobierzesz w ciągu godziny.",
-      cta: "Zacznij pisać — od $14.99",
+      cta: "Zacznij pisać — od $9.99",
     },
     footer: {
       tagline: "Profesjonalne ebooki pisane przez AI, z prawdziwym składem.",

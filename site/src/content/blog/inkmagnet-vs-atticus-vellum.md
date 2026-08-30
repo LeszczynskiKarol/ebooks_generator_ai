@@ -1,7 +1,7 @@
 ---
 title: "Atticus and Vellum cost $147–250 — and neither writes a single word of your book"
 seoTitle: "Atticus & Vellum: $147–250, No Words Written"
-description: "Atticus ($147) and Vellum ($199.99–249.99) format a manuscript you already wrote. InkMagnet researches and writes the book too, PDF and EPUB included, from $14.99."
+description: "Atticus ($147) and Vellum ($199.99–249.99) format a manuscript you already wrote. InkMagnet researches and writes the book too, PDF and EPUB included, from $9.99."
 lang: en
 pubDate: 2026-08-30
 translationOf: inkmagnet-czy-atticus-vellum
@@ -31,9 +31,9 @@ Neither tool is hiding this; it's the deliberate scope of a formatting product. 
 
 InkMagnet starts one stage earlier: you describe a topic, not a manuscript. The pipeline researches it against live web sources, plans a chapter structure, drafts every chapter against that research, runs an automated review pass that checks coverage and rewrites weak sections, generates matched imagery for the content, and typesets the result with the same LuaLaTeX-based system behind academic publishing. Clickable table of contents, drop caps, running headers and consistent hyphenation are all handled automatically, the same job Atticus and Vellum charge for, just one stage later in the process. It then exports a print-quality PDF and a valid EPUB. There's no import screen waiting for a manuscript, because there's no manuscript until the research is done.
 
-## The real math: $147–250 versus $14.99–59.99
+## The real math: $147–250 versus $9.99–34.99
 
-Even ignoring the writing gap, the arithmetic doesn't favor the formatting-only tools. Atticus is $147 flat. Vellum is $199.99 for ebook-only or $249.99 for the print bundle, per license, unlimited books, but Mac-only and paid per export. InkMagnet prices a finished, researched, illustrated and typeset book from $14.99 for a 30–45 page book up to $59.99 for a 161–200 page one, one-time, with full commercial rights and unlimited edits and recompiles included in that single number. Pair Vellum Press with even a modest freelance ghostwriter for one book and the total clears $1,000 before a cover design gets ordered separately; buy InkMagnet once and the research, writing, images, cover, PDF and EPUB are already inside the number you saw at checkout, for less than either formatting tool charges on its own.
+Even ignoring the writing gap, the arithmetic doesn't favor the formatting-only tools. Atticus is $147 flat. Vellum is $199.99 for ebook-only or $249.99 for the print bundle, per license, unlimited books, but Mac-only and paid per export. InkMagnet prices a finished, researched, illustrated and typeset book from $9.99 for a 30–45 page book up to $34.99 for a 161–200 page one, one-time, with full commercial rights and unlimited edits and recompiles included in that single number. Pair Vellum Press with even a modest freelance ghostwriter for one book and the total clears $1,000 before a cover design gets ordered separately; buy InkMagnet once and the research, writing, images, cover, PDF and EPUB are already inside the number you saw at checkout, for less than either formatting tool charges on its own.
 
 ## When Atticus or Vellum is the right call
 

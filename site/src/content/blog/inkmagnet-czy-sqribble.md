@@ -1,7 +1,7 @@
 ---
 title: "InkMagnet czy Sqribble: wypełniasz szablon, czy dostajesz naprawdę napisaną książkę"
 seoTitle: "InkMagnet czy Sqribble (2026)"
-description: "Sqribble sprzedaje szablony za 67 dolarów, tylko PDF, treść dopisujesz sam. InkMagnet bada temat i pisze książkę, PDF i EPUB w cenie, już od 14,99 dolara."
+description: "Sqribble sprzedaje szablony za 67 dolarów, tylko PDF, treść dopisujesz sam. InkMagnet bada temat i pisze książkę, PDF i EPUB w cenie, już od 9,99 dolara."
 lang: pl
 pubDate: 2026-08-29
 translationOf: inkmagnet-vs-sqribble
@@ -35,7 +35,7 @@ InkMagnet dostarcza gotowy do druku PDF i poprawny plik EPUB przy każdej ksią�
 
 Cena z reklamy jest prawdziwa: 67 dolarów jednorazowo, bez abonamentu, i Sqribble zasługuje na uznanie za to, że podaje ją wprost na stronie zakupu. Czego wizytówka nie pokazuje, to udokumentowany przez niezależnych recenzentów łańcuch dopłat za nią: Professional za 97 dolarów (ok. 364 zł), Prime za 47 dolarów (ok. 176 zł), Fantasia 3D do flipbooków i makiet okładek 3D za 77 dolarów (ok. 289 zł) oraz dodatek Auto Job Finder za 197 dolarów (ok. 739 zł). Doliczone do ceny bazowej dają realną sumę bliską 485 dolarom (ok. 1819 zł) za zestaw funkcji pokazany w filmie demo, nie 67 dolarów.
 
-InkMagnet liczy raz za książkę, zależnie od jej długości: 14,99 dolara (ok. 56 zł) za książkę na 30–45 stron, 24,99 dolara za 46–75 stron, 29,99 dolara za 76–115 stron, 44,99 dolara za 116–160 stron i 59,99 dolara (ok. 225 zł) za najdłuższy wariant, 161–200 stron. Research, pisanie, ilustracje, projekt okładki, PDF i EPUB mieszczą się w tej jednej kwocie, razem z pełnymi prawami komercyjnymi i nieograniczoną liczbą edycji oraz ponownych składów każdej kupionej książki. Ten sam wzorzec dopłat opisaliśmy szerzej [w zestawieniu kosztów ebooka na tle rynku ghostwriterów i składu](/pl/blog/ile-kosztuje-stworzenie-ebooka/).
+InkMagnet liczy raz za książkę, zależnie od jej długości: 9,99 dolara (ok. 37 zł) za książkę na 30–45 stron, 14,99 dolara za 46–75 stron, 19,99 dolara za 76–115 stron, 27,99 dolara za 116–160 stron i 34,99 dolara (ok. 130 zł) za najdłuższy wariant, 161–200 stron. Research, pisanie, ilustracje, projekt okładki, PDF i EPUB mieszczą się w tej jednej kwocie, razem z pełnymi prawami komercyjnymi i nieograniczoną liczbą edycji oraz ponownych składów każdej kupionej książki. Ten sam wzorzec dopłat opisaliśmy szerzej [w zestawieniu kosztów ebooka na tle rynku ghostwriterów i składu](/pl/blog/ile-kosztuje-stworzenie-ebooka/).
 
 ## Kiedy Sqribble jest właściwym wyborem
 

@@ -130,11 +130,11 @@ export interface PricingTier {
 }
 
 export const PRICING_TIERS: PricingTier[] = [
-  { minPages: 30, maxPages: 45, priceUsdCents: 1499, label: "Compact" },
-  { minPages: 46, maxPages: 75, priceUsdCents: 2499, label: "Standard" },
-  { minPages: 76, maxPages: 115, priceUsdCents: 2999, label: "Extended" },
-  { minPages: 116, maxPages: 160, priceUsdCents: 4499, label: "Comprehensive" },
-  { minPages: 161, maxPages: 200, priceUsdCents: 5999, label: "Complete" },
+  { minPages: 30, maxPages: 45, priceUsdCents: 999, label: "Compact" },
+  { minPages: 46, maxPages: 75, priceUsdCents: 1499, label: "Standard" },
+  { minPages: 76, maxPages: 115, priceUsdCents: 1999, label: "Extended" },
+  { minPages: 116, maxPages: 160, priceUsdCents: 2799, label: "Comprehensive" },
+  { minPages: 161, maxPages: 200, priceUsdCents: 3499, label: "Complete" },
 ];
 
 export const MIN_PAGES = 30;

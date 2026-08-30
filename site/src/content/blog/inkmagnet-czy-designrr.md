@@ -1,7 +1,7 @@
 ---
 title: "InkMagnet czy Designrr: piszesz nową książkę, czy przerabiasz to, co już masz"
 seoTitle: "InkMagnet czy Designrr (2026)"
-description: "Designrr przerabia treść, którą już masz, za 29–249 dolarów miesięcznie. InkMagnet bada temat i pisze książkę od zera, raz, już od 14,99 dolara."
+description: "Designrr przerabia treść, którą już masz, za 29–249 dolarów miesięcznie. InkMagnet bada temat i pisze książkę od zera, raz, już od 9,99 dolara."
 lang: pl
 pubDate: 2026-08-27
 translationOf: inkmagnet-vs-designrr
@@ -33,7 +33,7 @@ Designrr działa na pięciu poziomach subskrypcji, sprawdzonych bezpośrednio na
 
 Narzędzie reklamuje się także ofertą „lifetime" za 27 dolarów (ok. 101 zł), a drobny druk warto przeczytać, zanim się w nią kliknie. Ta cena kupuje mniej więcej plan Standard: sam PDF, bez EPUB-a, bez generowania obrazów, bez usunięcia znaku wodnego. Recenzenci na Trustpilocie opisują wydawanie dodatkowych 97–200 dolarów (365–750 zł), żeby dojść do funkcji pokazanych w reklamie, a przynajmniej jedna osoba zgłosiła obciążanie jej 97 dolarami miesięcznie przez rok, mimo przekonania, że kupiła licencję jednorazową.
 
-InkMagnet liczy sobie raz za książkę, zależnie od objętości: 14,99 dolara (ok. 56 zł) za książkę 30–45 stron, do 59,99 dolara (ok. 225 zł) za 161–200 stron. Research, pisanie, recenzja, ilustracje, projekt okładki, PDF i EPUB mieszczą się w tej jednej kwocie. Nie ma planu wyższego rzędu, w którym chowa się eksport do EPUB-a, bo nigdy nie był zablokowany, i nie ma osobnej puli kredytów do pilnowania.
+InkMagnet liczy sobie raz za książkę, zależnie od objętości: 9,99 dolara (ok. 37 zł) za książkę 30–45 stron, do 34,99 dolara (ok. 130 zł) za 161–200 stron. Research, pisanie, recenzja, ilustracje, projekt okładki, PDF i EPUB mieszczą się w tej jednej kwocie. Nie ma planu wyższego rzędu, w którym chowa się eksport do EPUB-a, bo nigdy nie był zablokowany, i nie ma osobnej puli kredytów do pilnowania.
 
 ## Gdzie Designrr naprawdę wygrywa
 

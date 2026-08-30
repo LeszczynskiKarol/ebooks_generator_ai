@@ -1,7 +1,7 @@
 ---
 title: "Ile naprawdę kosztuje stworzenie ebooka w 2026 roku?"
 seoTitle: "Ile kosztuje ebook w 2026"
-description: "Ghostwriter, oprogramowanie do składu, projekt okładki i formatowanie wycenione osobno wg aktualnych stawek rynkowych, zestawione z gotową książką za 14,99–59,99 $."
+description: "Ghostwriter, oprogramowanie do składu, projekt okładki i formatowanie wycenione osobno wg aktualnych stawek rynkowych, zestawione z gotową książką za 9,99–34,99 $."
 lang: pl
 pubDate: 2026-08-23
 translationOf: cost-to-create-an-ebook
@@ -55,7 +55,7 @@ Darmowe "generatory ebooków AI" stoją na przeciwnym, równie mylącym biegunie
 
 ## Gdzie mieści się jedna, stała cena za wszystko
 
-[InkMagnet](/pl/) powstał, bo te cztery pozycje to naprawdę jedno zadanie: zbadaj temat, napisz każdy rozdział, złóż go poprawnie, zaprojektuj okładkę pasującą do treści i wyeksportuj gotowy plik. Zrobienie tego jako jednego procesu zamiast czterech osobnych zakupów sprawia, że **14,99–59,99 dolara za książkę** (zależnie od objętości, jednorazowo, z pełnymi prawami komercyjnymi, nielimitowaną edycją i przekompilowaniem) jest realną ceną, a nie podejrzanie niską: nie ma tu marży godzinowej ghostwritera, osobnej faktury od formatera ani opłaty konkursowej dla projektanta okładki, bo żaden z nich nie jest tu osobnym wykonawcą.
+[InkMagnet](/pl/) powstał, bo te cztery pozycje to naprawdę jedno zadanie: zbadaj temat, napisz każdy rozdział, złóż go poprawnie, zaprojektuj okładkę pasującą do treści i wyeksportuj gotowy plik. Zrobienie tego jako jednego procesu zamiast czterech osobnych zakupów sprawia, że **9,99–34,99 dolara za książkę** (zależnie od objętości, jednorazowo, z pełnymi prawami komercyjnymi, nielimitowaną edycją i przekompilowaniem) jest realną ceną, a nie podejrzanie niską: nie ma tu marży godzinowej ghostwritera, osobnej faktury od formatera ani opłaty konkursowej dla projektanta okładki, bo żaden z nich nie jest tu osobnym wykonawcą.
 
 To też uczciwe zastrzeżenie: książka za 32 800 dolarów, napisana przez człowieka-specjalistę, profesjonalnie złożona i z okładką na zamówienie, to inny produkt z innymi gwarancjami niż książka zbadana i złożona przez AI. Dla lead magnetu, materiału do kursu, tytułu na Amazon KDP czy wewnętrznej bazy wiedzy różnica w efekcie jest niewielka, a różnica w cenie ogromna. Dla flagowej książki, która ma nazwisko autora na okładce i sprzedaje się w księgarniach po 60 zł za sztukę, ten rachunek może się odwrócić.
 

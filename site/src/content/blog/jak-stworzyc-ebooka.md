@@ -35,7 +35,7 @@ Użyteczny konspekt przydziela rozdziałom objętość, a nie tylko kolejność.
 
 **Ghostwriter.** [Stawki z marketplace'u Reedsy](https://reedsy.com/blog/cost-to-hire-a-ghostwriter/) pokazują krótkie teksty poradnikowe w przedziale 1 000–10 000 dolarów, a pełne książki specjalistyczne średnio 24–48 tysięcy. Dolicz 2–6 tygodni i pracę nad briefem, bo ghostwriter jest dokładnie tak dobry jak brief. Ta ścieżka ma sens, gdy książka jest produktem przychodowym.
 
-**Generowanie przez AI.** Stan na 2026 rok, bez owijania: tekst z ogólnego czatbota jest rozpoznawalny i płytki, natomiast wyspecjalizowane potoki, które najpierw robią research, piszą na podstawie źródeł i recenzują własne szkice, dają książki broniące się w lekturze. Ekonomia to inny gatunek zjawiska: [nasz generator](/pl/) oddaje zbadaną w źródłach, zilustrowaną i złożoną typograficznie książkę za 14,99–59,99 dolara. Uczciwa cena tej ścieżki: oddajesz część kontroli nad głosem w zamian za stukrotnie niższy koszt. I zawsze czytaj to, co publikujesz, bo nieprzeczytany przez wydawcę tekst AI to przepis na wpadkę.
+**Generowanie przez AI.** Stan na 2026 rok, bez owijania: tekst z ogólnego czatbota jest rozpoznawalny i płytki, natomiast wyspecjalizowane potoki, które najpierw robią research, piszą na podstawie źródeł i recenzują własne szkice, dają książki broniące się w lekturze. Ekonomia to inny gatunek zjawiska: [nasz generator](/pl/) oddaje zbadaną w źródłach, zilustrowaną i złożoną typograficznie książkę za 9,99–34,99 dolara. Uczciwa cena tej ścieżki: oddajesz część kontroli nad głosem w zamian za stukrotnie niższy koszt. I zawsze czytaj to, co publikujesz, bo nieprzeczytany przez wydawcę tekst AI to przepis na wpadkę.
 
 ## Skład zdradza amatora szybciej niż treść
 

@@ -39,7 +39,7 @@ Legend — "Leans on": the advantage/comparison the post is built around. "Links
 ## B. Cost & value posts (justify the price, capture "how much" searches)
 
 7. **P1 — "How much does it cost to create an ebook in 2026?"**
-   Angle: ghostwriter ($1,000s), freelance formatting ($200–1,000), typesetting software ($147–250), cover design (extra) — vs InkMagnet from $14.99. The value-anchor section as a full article.
+   Angle: ghostwriter ($1,000s), freelance formatting ($200–1,000), typesetting software ($147–250), cover design (extra) — vs InkMagnet from $9.99. The value-anchor section as a full article.
    Keyword: "cost to create an ebook", "ebook creation cost".
 
 8. **P2 — "What you actually pay a ghostwriter (and what you get instead)"**

@@ -1,7 +1,7 @@
 ---
 title: "InkMagnet vs Designrr: generating a book vs repurposing your content"
 seoTitle: "InkMagnet vs Designrr (2026)"
-description: "Designrr reformats content you already have for $29–249/month. InkMagnet researches and writes an original book once, from $14.99. Compared with sources."
+description: "Designrr reformats content you already have for $29–249/month. InkMagnet researches and writes an original book once, from $9.99. Compared with sources."
 lang: en
 pubDate: 2026-08-27
 translationOf: inkmagnet-czy-designrr
@@ -33,7 +33,7 @@ Designrr runs a five-tier subscription, checked directly on its pricing page in 
 
 The tool is also marketed through a $27 "lifetime" offer, and the fine print is worth reading before you click it. That price buys roughly the Standard tier: PDF only, no EPUB, no image generation, no watermark removal. Trustpilot reviewers describe spending $97–200 in follow-up upgrades to reach the features shown in the ad, and at least one reported being billed $97 monthly for a year after believing they'd bought a one-time license.
 
-InkMagnet charges once per book, scaled to length: $14.99 for a 30–45 page book up to $59.99 for a 161–200 page one. Research, writing, review, illustrations, cover design, PDF and EPUB all sit inside that single number. There's no upgrade tier hiding EPUB export, because it was never gated in the first place, and no separate credit balance to watch.
+InkMagnet charges once per book, scaled to length: $9.99 for a 30–45 page book up to $34.99 for a 161–200 page one. Research, writing, review, illustrations, cover design, PDF and EPUB all sit inside that single number. There's no upgrade tier hiding EPUB export, because it was never gated in the first place, and no separate credit balance to watch.
 
 ## Where Designrr genuinely wins
 

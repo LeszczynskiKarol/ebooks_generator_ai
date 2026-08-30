@@ -1,7 +1,7 @@
 ---
 title: "How much does it actually cost to create an ebook in 2026?"
 seoTitle: "Ebook creation cost in 2026"
-description: "Ghostwriter, typesetting software, cover design and formatting priced separately with current market rates, then compared to a $14.99–$59.99 finished book."
+description: "Ghostwriter, typesetting software, cover design and formatting priced separately with current market rates, then compared to a $9.99–$34.99 finished book."
 lang: en
 pubDate: 2026-08-23
 translationOf: ile-kosztuje-stworzenie-ebooka
@@ -55,7 +55,7 @@ Free "AI ebook generator" tools sit at the opposite, equally misleading end: the
 
 ## Where a one-time, all-in price actually lands
 
-[InkMagnet](/) exists because those four line items are really one job: research the topic, write every chapter, typeset it properly, design a cover that fits the content, and export a finished file. Doing it as one pipeline instead of four separate purchases is what makes **$14.99–$59.99 per book** (by length, one-time, full commercial rights, unlimited edits and recompiles) realistic rather than suspicious: there's no ghostwriter's hourly margin, no formatter's separate invoice, no designer's contest fee stacked on top, because none of those are separate vendors here.
+[InkMagnet](/) exists because those four line items are really one job: research the topic, write every chapter, typeset it properly, design a cover that fits the content, and export a finished file. Doing it as one pipeline instead of four separate purchases is what makes **$9.99–$34.99 per book** (by length, one-time, full commercial rights, unlimited edits and recompiles) realistic rather than suspicious: there's no ghostwriter's hourly margin, no formatter's separate invoice, no designer's contest fee stacked on top, because none of those are separate vendors here.
 
 That's also the honest caveat: a $32,800 ghostwritten, professionally typeset, custom-covered book from named human specialists is a different product with different guarantees than an AI-researched and AI-typeset one. For a lead magnet, a course companion, a KDP title or an internal knowledge base, the gap in outcome is small and the gap in price is not. For a flagship book carrying your name at $30 a copy in stores, that calculus can flip.
 

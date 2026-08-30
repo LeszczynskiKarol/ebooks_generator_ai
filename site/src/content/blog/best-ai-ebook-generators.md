@@ -55,7 +55,7 @@ These are the tools serious self-publishers use to lay out a manuscript. They ar
 
 ## Where InkMagnet sits — and why it's its own category
 
-[InkMagnet](/) is the one tool here that does the whole job in one **one-time payment per book**: it researches your topic on the live web, plans a structure, writes and reviews every chapter, typesets the result with LaTeX (the system academic publishers use — clickable contents, drop caps, hyphenation, styled tables), generates matched illustrations, designs a cover, and hands you a print-quality PDF and a store-ready EPUB with **full commercial rights**. Pricing runs **$14.99–$59.99 per book** by length — no subscription.
+[InkMagnet](/) is the one tool here that does the whole job in one **one-time payment per book**: it researches your topic on the live web, plans a structure, writes and reviews every chapter, typesets the result with LaTeX (the system academic publishers use — clickable contents, drop caps, hyphenation, styled tables), generates matched illustrations, designs a cover, and hands you a print-quality PDF and a store-ready EPUB with **full commercial rights**. Pricing runs **$9.99–$34.99 per book** by length — no subscription.
 
 Put plainly against the categories above: the draft-text tools stop at step one and bill monthly; the typesetting tools start at the step InkMagnet *finishes* with, and cost $147–250 before you've written a word. InkMagnet is the only one that crosses the whole gap in a single purchase.
 
