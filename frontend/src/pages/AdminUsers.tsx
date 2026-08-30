@@ -27,6 +27,34 @@ interface AdminUser {
   projectCount: number;
   country: string | null;
   source: string | null;
+  funnel: { event: string; at: string; meta: any; opens: number } | null;
+}
+
+// Furthest product step a user reached (from FunnelEvent rows).
+const FUNNEL_LABEL: Record<string, { label: string; cls: string }> = {
+  dashboard_empty: { label: "dashboard", cls: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300" },
+  new_project_open: { label: "opened form", cls: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300" },
+  new_project_abandon: { label: "left form", cls: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
+  new_project_filled: { label: "filled form", cls: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300" },
+  checkout_start: { label: "→ checkout", cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+  checkout_created: { label: "checkout", cls: "bg-emerald-200 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200" },
+};
+
+function FunnelCell({ f }: { f: AdminUser["funnel"] }) {
+  if (!f) return <span className="text-gray-300 dark:text-gray-600">—</span>;
+  const d = FUNNEL_LABEL[f.event] ?? { label: f.event, cls: "bg-gray-100 text-gray-600" };
+  const m = f.meta || {};
+  const bits: string[] = [];
+  if (m.tier) bits.push(String(m.tier));
+  if (typeof m.priceUsdCents === "number") bits.push(`$${(m.priceUsdCents / 100).toFixed(0)}`);
+  if (typeof m.seconds === "number") bits.push(`${m.seconds}s`);
+  if (f.opens > 1) bits.push(`×${f.opens}`);
+  return (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+      <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${d.cls}`}>{d.label}</span>
+      {bits.length > 0 && <span className="text-[11px] text-gray-400">{bits.join(" · ")}</span>}
+    </span>
+  );
 }
 
 // "PL" → 🇵🇱 (regional indicator letters)
@@ -119,6 +147,9 @@ function UserRow({ u }: { u: AdminUser }) {
           )}
           {u.source && <span className="ml-1.5 text-gray-400">· {u.source}</span>}
         </td>
+        <td className="px-3 py-2.5">
+          <FunnelCell f={u.funnel} />
+        </td>
         <td className="px-3 py-2.5 text-gray-500 dark:text-gray-400 whitespace-nowrap">
           {fmtDate(u.createdAt)}
         </td>
@@ -171,7 +202,7 @@ function UserRow({ u }: { u: AdminUser }) {
       </tr>
       {open && (
         <tr className="bg-gray-50/80 dark:bg-gray-900/60">
-          <td colSpan={7} className="px-6 py-3">
+          <td colSpan={8} className="px-6 py-3">
             {detail.isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
             ) : detail.data?.projects?.length ? (
@@ -269,6 +300,7 @@ export default function AdminUsers() {
                 <th className="px-3 py-2.5 font-semibold">Status</th>
                 <th className="px-3 py-2.5 font-semibold text-center">Books</th>
                 <th className="px-3 py-2.5 font-semibold">From</th>
+                <th className="px-3 py-2.5 font-semibold">Funnel</th>
                 <th className="px-3 py-2.5 font-semibold">Joined</th>
                 <th className="px-3 py-2.5 font-semibold text-right">Actions</th>
               </tr>
@@ -277,7 +309,7 @@ export default function AdminUsers() {
               {data?.map((u) => <UserRow key={u.id} u={u} />)}
               {data?.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-10 text-center text-gray-400">
+                  <td colSpan={8} className="px-3 py-10 text-center text-gray-400">
                     No users found.
                   </td>
                 </tr>

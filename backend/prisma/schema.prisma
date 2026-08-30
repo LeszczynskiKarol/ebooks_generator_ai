@@ -21,6 +21,7 @@ model User {
   stripeCustomerId     String? @unique
   stripeCustomerIdTest String?
   projects             Project[]
+  funnelEvents         FunnelEvent[]
 
   // Signup attribution (set once at account creation, never updated).
   // ip/country come from CloudFront (X-Forwarded-For, CloudFront-Viewer-Country);
@@ -349,4 +350,18 @@ model ImagePlacement {
   createdAt DateTime @default(now())
 
   @@index([chapterId])
+}
+
+// Product-funnel telemetry (first-party, no cookies): which step a user
+// reached after signup — open form / fill form / abandon / checkout.
+model FunnelEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([event, createdAt])
 }

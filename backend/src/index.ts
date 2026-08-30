@@ -15,6 +15,7 @@ import { epubDownloadRoutes } from "./routes/epubDownloadRoutes";
 import { playBillingRoutes } from "./routes/playBilling";
 import { imageRoutes } from "./routes/imageRoutes";
 import { exchangeRateRoutes } from "./routes/exchangeRate";
+import { funnelRoutes } from "./routes/funnel";
 import {
   startGenerationWorker,
   recoverInterruptedJobs,
@@ -63,6 +64,7 @@ async function start() {
   await app.register(webhookRoutes);
   await app.register(authRoutes);
   await app.register(exchangeRateRoutes);
+  await app.register(funnelRoutes);
   await app.register(adminRoutes);
   await app.register(autopilotRoutes);
   await app.register(coverRoutes);

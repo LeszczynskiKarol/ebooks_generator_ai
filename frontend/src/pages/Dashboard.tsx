@@ -14,6 +14,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import apiClient from "@/lib/api";
+import { track } from "@/lib/funnel";
 import { useAuthStore } from "@/stores/authStore";
 import { useT } from "@/lib/i18n";
 import {
@@ -229,6 +230,9 @@ export default function Dashboard() {
     queryKey: ["projects"],
     queryFn: async () => {
       const res = await apiClient.get("/projects");
+      if (Array.isArray(res.data?.data) && res.data.data.length === 0) {
+        track("dashboard_empty");
+      }
       return res.data.data as ProjectSummary[];
     },
   });

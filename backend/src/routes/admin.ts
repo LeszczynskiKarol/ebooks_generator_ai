@@ -1,6 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
+
+// Product depth of each funnel step (higher = further along).
+const FUNNEL_RANK: Record<string, number> = {
+  dashboard_empty: 0,
+  new_project_open: 1,
+  new_project_abandon: 2,
+  new_project_filled: 3,
+  checkout_start: 4,
+  checkout_created: 5,
+};
 import { getSelection, setSelection } from "../lib/llm";
 
 // Human-readable traffic source for the users table: utm_source from the
@@ -561,6 +571,24 @@ export async function adminRoutes(app: FastifyInstance) {
         _count: { select: { projects: true } },
       },
     });
+    // Furthest funnel step per user (ordered by product depth, not time), so
+    // the list shows "opened form / filled / abandoned / checkout" at a glance.
+    const funnelRows = await prisma.funnelEvent.findMany({
+      where: { userId: { in: users.map((u) => u.id) } },
+      select: { userId: true, event: true, createdAt: true, meta: true },
+      orderBy: { createdAt: "asc" },
+    });
+    const funnelByUser = new Map<string, { event: string; at: Date; meta: any; opens: number }>();
+    for (const r of funnelRows) {
+      if (!r.userId) continue;
+      const cur = funnelByUser.get(r.userId);
+      const opens = (cur?.opens ?? 0) + (r.event === "new_project_open" ? 1 : 0);
+      if (!cur || FUNNEL_RANK[r.event] >= FUNNEL_RANK[cur.event]) {
+        funnelByUser.set(r.userId, { event: r.event, at: r.createdAt, meta: r.meta, opens });
+      } else {
+        cur.opens = opens;
+      }
+    }
     return reply.send({
       success: true,
       data: users.map((u) => ({
@@ -574,7 +602,52 @@ export async function adminRoutes(app: FastifyInstance) {
         projectCount: u._count.projects,
         country: u.signupCountry,
         source: signupSource(u.signupReferrer, u.signupLanding),
+        funnel: funnelByUser.get(u.id) ?? null,
       })),
+    });
+  });
+
+  // ━━━ GET /api/admin/funnel  (step counts, last N days) ━━━
+  app.get("/api/admin/funnel", async (request, reply) => {
+    const days = Math.min(365, Math.max(1, Number((request.query as any)?.days) || 30));
+    const since = new Date(Date.now() - days * 86_400_000);
+    const [signups, grouped, recent] = await Promise.all([
+      prisma.user.count({ where: { createdAt: { gte: since } } }),
+      prisma.funnelEvent.groupBy({
+        by: ["event"],
+        where: { createdAt: { gte: since } },
+        _count: { _all: true },
+      }),
+      prisma.funnelEvent.findMany({
+        where: { createdAt: { gte: since } },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+        select: {
+          id: true,
+          event: true,
+          meta: true,
+          createdAt: true,
+          user: { select: { email: true, signupCountry: true } },
+        },
+      }),
+    ]);
+    // Distinct users per step — the funnel is about people, not clicks.
+    const perUser = await prisma.funnelEvent.findMany({
+      where: { createdAt: { gte: since } },
+      distinct: ["event", "userId"],
+      select: { event: true },
+    });
+    const usersByEvent: Record<string, number> = {};
+    for (const r of perUser) usersByEvent[r.event] = (usersByEvent[r.event] ?? 0) + 1;
+    return reply.send({
+      success: true,
+      data: {
+        days,
+        signups,
+        events: Object.fromEntries(grouped.map((g) => [g.event, g._count._all])),
+        usersByEvent,
+        recent,
+      },
     });
   });
 
@@ -597,6 +670,11 @@ export async function adminRoutes(app: FastifyInstance) {
         signupUserAgent: true,
         signupReferrer: true,
         signupLanding: true,
+        funnelEvents: {
+          orderBy: { createdAt: "asc" },
+          take: 100,
+          select: { event: true, meta: true, createdAt: true },
+        },
         projects: {
           orderBy: { createdAt: "desc" },
           take: 200,

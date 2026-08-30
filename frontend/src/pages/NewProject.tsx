@@ -27,6 +27,7 @@ import toast from "react-hot-toast";
 import DevModelPicker from "@/components/DevModelPicker";
 import { useT, useLangStore, translate, type AppLang } from "@/lib/i18n";
 import { useMoney } from "@/lib/money";
+import { track } from "@/lib/funnel";
 
 // Language keys → i18n label keys (the select VALUES en/pl/de… stay code)
 // Only the two languages the product is edited/proofread in. Default follows
@@ -244,6 +245,49 @@ export default function NewProject() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formSnapshot, selectedColors, coverOption, selectedTierIdx]);
 
+  // ── Funnel telemetry: open → filled → (abandon | checkout) ──
+  const funnel = useRef({ openedAt: Date.now(), filled: false, submitted: false });
+  const topicValue = watch("topic");
+  useEffect(() => {
+    track("new_project_open", { lang });
+    const onHide = () => {
+      const f = funnel.current;
+      if (f.submitted) return;
+      if (Date.now() - f.openedAt < 1000) return; // StrictMode double-mount
+      f.submitted = true; // fire once
+      track("new_project_abandon", {
+        filled: f.filled,
+        tier: pricingRef.current.tier?.label ?? null,
+        pages: pagesRef.current ?? null,
+        priceUsdCents: pricingRef.current.priceUsdCents,
+        seconds: Math.round((Date.now() - f.openedAt) / 1000),
+      });
+    };
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      onHide();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const pricingRef = useRef(pricing);
+  pricingRef.current = pricing;
+  const pagesRef = useRef(pages);
+  pagesRef.current = pages;
+  useEffect(() => {
+    if (funnel.current.filled) return;
+    if ((topicValue ?? "").trim().length >= 20) {
+      funnel.current.filled = true;
+      track("new_project_filled", {
+        tier: pricing.tier?.label ?? null,
+        pages: pages ?? null,
+        priceUsdCents: pricing.priceUsdCents,
+        lang,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topicValue]);
+
   const selectTier = (idx: number) => {
     setSelectedTierIdx(idx);
     setValue("targetPages", PAGE_SIZE_TIERS[idx].targetPages);
@@ -295,7 +339,18 @@ export default function NewProject() {
       if (coverOption !== "none") {
         payload.coverOption = coverOption;
       }
+      track("checkout_start", {
+        tier: pricing.tier?.label ?? null,
+        pages: pages ?? null,
+        priceUsdCents: pricing.priceUsdCents,
+        currency,
+      });
       const { data } = await apiClient.post("/projects", payload);
+      funnel.current.submitted = true;
+      track("checkout_created", {
+        projectId: data.data?.project?.id ?? null,
+        priceUsdCents: pricing.priceUsdCents,
+      });
 
       // Project created — the draft served its purpose
       localStorage.removeItem(DRAFT_KEY);
