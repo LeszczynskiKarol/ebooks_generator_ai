@@ -32,6 +32,44 @@
 /** @type {ExampleBook[]} */
 export const examples = [
   {
+    slug: "strength-training-at-home-30-exercises",
+    title: "Strength Training at Home — 30 Bodyweight and Dumbbell Exercises",
+    lang: "en",
+    category: "fitness",
+    style: "Premium",
+    pages: 52,
+    featured: true,
+    desc: {
+      pl: "Angielskie wydanie „Treningu siłowego w domu” — 30 ćwiczeń z ciągłą numeracją, plany treningowe i zasady progresji.",
+      en: "30 continuously numbered exercises grouped by muscle part, AI photographs, training plans and progression rules.",
+    },
+  },
+  {
+    slug: "air-fryer-60-simple-recipes",
+    title: "Air Fryer — 60 Simple Recipes for Every Day",
+    lang: "en",
+    category: "cooking",
+    style: "Modern",
+    pages: 55,
+    featured: true,
+    desc: {
+      pl: "Angielskie wydanie książki o air fryerze — 60 numerowanych przepisów z fotografiami AI i ściągawkami czasów.",
+      en: "60 continuously numbered recipes, AI photographs matched to specific dishes, time and temperature cheat-sheets.",
+    },
+  },
+  {
+    slug: "thermomix-simple-dinners",
+    title: "Thermomix — Simple Dinners for Busy People",
+    lang: "en",
+    category: "cooking",
+    style: "Modern",
+    pages: 51,
+    desc: {
+      pl: "Angielskie wydanie poradnika Thermomix — przepisy bazowe, tabele porównawcze i plan tygodnia.",
+      en: "Base recipes, comparison tables and a weekly plan — handbook chapters interleaved with numbered recipes.",
+    },
+  },
+  {
     slug: "trening-silowy-w-domu-30-cwiczen",
     title: "Trening siłowy w domu — 30 ćwiczeń bez sprzętu i z hantlami",
     lang: "pl",

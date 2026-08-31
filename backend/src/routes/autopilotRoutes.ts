@@ -321,6 +321,11 @@ export async function autopilotRoutes(app: FastifyInstance) {
         userId: adminUserId,
         topic,
         title: b.title || null,
+        numberingMode: isNumberingMode(b.numberingMode) ? b.numberingMode : null,
+        numberingLabel:
+          typeof b.numberingLabel === "string" && b.numberingLabel.trim()
+            ? b.numberingLabel.trim().slice(0, 40)
+            : null,
         targetPages: pages,
         language: b.language || "en",
         guidelines: b.guidelines || null,
