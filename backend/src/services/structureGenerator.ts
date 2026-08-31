@@ -86,9 +86,15 @@ export async function generateStructure(projectId: string) {
   const wpp = getWordsPerPage(project.bookFormat);
   const totalWords = project.targetPages * wpp;
 
+  // Draft-based structure: the chapter count EMERGES from the material the
+  // model drafts, not from the tier. We only pass a soft typical range so the
+  // draft stays proportional to the page budget.
+  const chLo = Math.min(10, Math.max(3, Math.round(project.targetPages / 18)));
+  const chHi = Math.min(14, Math.max(chLo + 1, Math.round(project.targetPages / 8)));
+
   log.data(
     "Tier",
-    `${tier.label} (${tier.chapters} chapters, ${tier.sectionsPerChapter} sections each)`,
+    `${tier.label} (pricing) — chapter count decided from draft, typical ${chLo}-${chHi}`,
   );
   log.data("Words/page", wpp);
   log.data("Total target words", totalWords.toLocaleString());
@@ -101,8 +107,8 @@ export async function generateStructure(projectId: string) {
     stylePreset: project.stylePreset,
     guidelines: project.guidelines,
     bookFormat: project.bookFormat,
-    chapters: tier.chapters,
-    sectionsPerChapter: tier.sectionsPerChapter,
+    chaptersLo: chLo,
+    chaptersHi: chHi,
     totalWords,
     wpp,
     sourcesText,
@@ -273,8 +279,9 @@ interface StructurePromptParams {
   stylePreset: string;
   guidelines: string | null;
   bookFormat: string;
-  chapters: number;
-  sectionsPerChapter: string;
+  /** soft typical chapter-count range for this page budget (guidance, not a rule) */
+  chaptersLo: number;
+  chaptersHi: number;
   totalWords: number;
   wpp: number;
   sourcesText: string;
@@ -316,7 +323,7 @@ ${
   p.numbering.mode === "items"
     ? `STRUCTURE RULE FOR A COLLECTION BOOK: every "section" you plan below is ONE item (one recipe / project / exercise) — its title is the item's name, its description says what makes it distinct. Group items into chapters by theme. ${
         p.numbering.itemCount
-          ? `Plan EXACTLY ${p.numbering.itemCount} item-sections in total across all chapters (the title promises that number) — distribute them across the ${p.chapters} chapters; the "${p.sectionsPerChapter} sections per chapter" guideline is overridden by this total.`
+          ? `Plan EXACTLY ${p.numbering.itemCount} item-sections in total across all chapters (the title promises that number) — distribute them across the chapters by theme.`
           : "Plan as many item-sections as the page budget allows (roughly one per 1-1.5 pages)."
       } A chapter may additionally open with at most ONE short non-item section (technique, ingredients, tools) — mark it by starting its description with "[intro]".`
     : ""
@@ -383,10 +390,13 @@ TITLE STYLE — repetitive title patterns expose machine-written books:
 - Not every title needs a colon with a subtitle; use the "Label: explanation" shape for
   at most half of the titles
 
+DRAFT-FIRST PLANNING — the structure must be DERIVED from a working draft, not from a template:
+- FIRST write the "workingDraft" field: a compact working draft of the whole book (10-20 lines, in the book's language) — what the reader must actually get, the real threads/items the research supports, in reading order. Think it through like an author, not like a table-of-contents generator.
+- THEN derive the chapters FROM that draft. The chapter count EMERGES from the material — do NOT force a fixed number. For a ${p.targetPages}-page book that is typically ${p.chaptersLo}-${p.chaptersHi} chapters, but the material decides: merge thin threads, split rich ones.
+- Sections per chapter: as many as the chapter's material needs (typically 2-5; in a collection book, one per item).
+
 CRITICAL FORMATTING RULES:
-- Create EXACTLY ${p.chapters} chapters
-- Each chapter: ${p.sectionsPerChapter} sections
-- Total pages MUST equal approximately ${p.targetPages}
+- Total pages MUST equal approximately ${p.targetPages} — allocate targetPages per chapter/section accordingly
 - ${langInstruction}
 - ${getCapitalizationRule(p.language)}
 - suggestedTitle should be specific and compelling — avoid generic titles
@@ -394,6 +404,7 @@ CRITICAL FORMATTING RULES:
 Respond with RAW JSON ONLY — no markdown, no \`\`\` fences, no commentary before or after.
 Keep every "description" to 1–2 short sentences (max ~35 words). This keeps the output compact and parseable.
 {
+  "workingDraft": "The compact working draft (10-20 lines) you derived the structure from — write this FIRST",
   "suggestedTitle": "Specific, compelling book title (in the book's language and its correct capitalization)",
   "chapters": [
     {
@@ -401,7 +412,7 @@ Keep every "description" to 1–2 short sentences (max ~35 words). This keeps th
       "number": 1,
       "title": "Specific chapter title with a clear angle",
       "description": "1–2 sentences: the chapter's thesis + what the reader will be able to DO after it.",
-      "targetPages": ${Math.round(p.targetPages / p.chapters)},
+      "targetPages": ${Math.round(p.targetPages / Math.round((p.chaptersLo + p.chaptersHi) / 2))},
       "sections": [
         {
           "id": "ch1-s1",
