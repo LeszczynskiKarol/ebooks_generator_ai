@@ -1,0 +1,38 @@
+---
+title: "Czy nie mogę po prostu napisać ebooka w ChatGPT albo Claude?"
+seoTitle: "Czy ChatGPT naprawdę napisze Ci ebooka?"
+description: "ChatGPT i Claude mają dziś okna kontekstu liczone w milionach tokenów, ale jeden czat wciąż nie zrobi za Ciebie researchu, struktury, składu i eksportu ebooka."
+lang: pl
+pubDate: 2026-08-31
+translationOf: write-a-book-with-chatgpt
+heroImage: ../../assets/blog/czy-chatgpt-napisze-mi-ksiazke-hero.jpg
+heroAlt: "Luźny, rozsypany stos zawijających się kartek maszynopisu na drewnianym biurku pisarza, obok otwarta książka źródłowa ze szklaną lupą w mosiężnej oprawie leżącą na jej stronach, a osobno stoi jedna niewielka, gotowa książka oprawiona w płótno w kolorze głębokiego indygo, zamknięta i kompletna"
+coverPrompt: "A loose scattered stack of curling typed manuscript pages spilling across a wood writer's desk, an open reference book with a brass magnifying glass resting on its pages beside them, and one small finished deep indigo clothbound book standing closed and bound apart from the scattered pages"
+eyebrow: "PORÓWNANIE"
+---
+
+Poproś ChatGPT albo Claude'a: „napisz mi 200-stronicowego ebooka o poście przerywanym", a tekst faktycznie się pojawi, i to sporo tekstu. Obie firmy przez cały 2026 rok powiększały okna kontekstu: Claude Sonnet 5 trzyma w pamięci do 1 miliona tokenów kontekstu, z limitem 128 000 tokenów na pojedynczą odpowiedź, a rodzina GPT-5.6 od OpenAI (Sol, Terra, Luna) dzieli okno kontekstu opisywane jako 1,05 do 1,5 miliona tokenów. Stary zarzut, że cała książka po prostu się nie mieści w czacie, jest dziś słabszy niż dwa lata temu. Sprawdzone na własnych stronach cennikowych i specyfikacjach obu firm w sierpniu 2026, wciąż prawdziwe pozostaje jedno: zmieszczenie słów to tylko pierwsze z czterech osobnych zadań, które musi wykonać gotowa, sprzedawalna książka, a szersze okno kontekstu pomaga wyłącznie w tym pierwszym.
+
+## Szersze okno nie robi z książki spójnej całości
+
+Duże okno kontekstu oznacza, że model może dużo *przeczytać*, zanim odpowie. Nie oznacza, że jedna odpowiedź utrzyma własną strukturę przez 90 000 słów. W praktyce i tak nie dostajesz jednej odpowiedzi: promptujesz rozdział po rozdziale, wklejasz poprzedni rozdział z powrotem dla ciągłości i obserwujesz, jak terminologia, ton, a nawet szczegóły argumentacji rozjeżdżają się do dziewiątego rozdziału, niezależnie od tego, ile miejsca model technicznie ma. Rozdział zaczyna się od tego samego zdania otwierającego co poprzedni, jakiś termin zostaje zdefiniowany dwa razy z dwiema nieco innymi definicjami, statystyka wprowadzona w rozdziale drugim wraca w siódmym z inną liczbą, bo model wygenerował ten fragment na nowo z osobnego promptu, a nie z pierwotnego źródła. Nic nie planuje całej książki, zanim powstanie pierwszy rozdział, i nic nie sprawdza rozdziału szóstego względem drugiego, gdy oba już istnieją. Ten etap planowania i pilnowania spójności to osobny kawałek inżynierii, nie efekt uboczny większego okna kontekstu.
+
+Obie firmy sprzedają też tryb badawczy wyższej klasy: Deep Research w ChatGPT i odpowiednik przeglądania sieci w Claude potrafią pobrać żywe strony zamiast odpowiadać z pamięci. Ale to osobna, limitowana funkcja, którą trzeba odpalać ręcznie do każdego zapytania, a nie coś, co działa automatycznie w trakcie pisania kolejnych rozdziałów książki, i tak zwraca notatki badawcze, które i tak musisz sam wpleść w tekst.
+
+## Cytaty to nadal loteria
+
+Większy problem siedzi wcześniej niż struktura. Analiza dokładności cytowań w czołowych modelach komercyjnych z 2026 roku pokazała, że to najsłabiej wypadające zadanie ze wszystkich testowanych: średni wskaźnik konfabulacji na poziomie 12,4%, nawet przy włączonym rozszerzonym rozumowaniu, z wymyślonymi numerami DOI, tytułami prac i nazwiskami autorów podawanymi z taką samą pewnością, jak prawdziwe dane. Osobno, przegląd 4841 prac przyjętych na konferencję NeurIPS 2025 wykonany przez GPTZero wykrył co najmniej 100 potwierdzonych sfabrykowanych cytowań w 53 pracach, mimo formalnej recenzji naukowej. To dokładnie ten sam mechanizm, który dziedziczysz, gdy prosisz chatbota o napisanie rozdziału non-fiction z tego, co już „wie", zamiast wskazać mu żywe źródło: pisze płynnie i wymyśla badanie, procent albo cytat eksperta, który sprawia, że akapit brzmi, jakby miał źródło.
+
+## Co zostaje, gdy zamykasz okno czatu
+
+Załóżmy, że pisanie idzie dobrze i kończysz z 60 000 użytecznych słów. Wciąż masz folder wiadomości z czatu, nie książkę. Ktoś musi wyciągnąć każdą odpowiedź osobno, poprawić formatowanie, które ChatGPT i Claude renderują jako markdown, zbudować spis treści ręcznie, wybrać krój pisma i marginesy, rozmieścić ewentualne obrazy, zaprojektować okładkę (albo zlecić ją osobno) i wyeksportować plik, który faktycznie przejdzie walidację jako EPUB, a nie tylko zmieni rozszerzenie z pliku Worda. [Ten etap składania rozpisaliśmy osobno, razem z kosztami freelancerów od formatowania i projektu](/pl/blog/ile-kosztuje-stworzenie-ebooka/); zwykle dochodzi tam 750–3750 zł ponad to, co już kosztował sam abonament chatbota, i nic z tego nie jest opcjonalne, jeśli celem jest książka, którą ktoś rzeczywiście kupi albo przeczyta na Kindle'u.
+
+## Co robi InkMagnet na tym samym modelu
+
+InkMagnet działa na modelach z tej samej klasy co ChatGPT i Claude, tylko owija je w cztery etapy, których wymaga gotowa książka, zamiast zatrzymywać się po pierwszym. Opisujesz temat, nie rękopis. System najpierw przeszukuje żywy internet w poszukiwaniu Twojego tematu, [czyta pełne strony źródłowe zamiast pisać z pamięci](/pl/blog/ksiazki-ai-czytaja-sie-jak-blog/), planuje strukturę rozdziałów, zanim powstanie jakikolwiek tekst, pisze każdy rozdział w oparciu o ten research i przechodzi automatyczną recenzję, która sprawdza rozdziały względem siebie pod kątem powtórzeń i rozjazdów, zanim cokolwiek zostanie uznane za gotowe. Wynik jest składany systemem opartym na LaTeX, tą samą technologią, która stoi za publikacjami naukowymi, z automatycznie obsługiwanym klikalnym spisem treści, inicjałami, żywą paginą i konsekwentnym dzieleniem wyrazów, plus zaprojektowaną okładką i ilustracjami do rozdziałów. Pobierasz gotowy do druku PDF i poprawny plik EPUB, nie stos odpowiedzi z czatu czekających na złożenie.
+
+## Abonament, który i tak płacisz, podwójnie
+
+ChatGPT Plus kosztuje 20 dolarów miesięcznie (ok. 75 zł), 240 dolarów rocznie (ok. 900 zł), jeśli utrzymasz go po tej jednej książce. Claude Pro to te same 20 dolarów miesięcznie albo 200 dolarów rocznie (ok. 750 zł) przy płatności za rok z góry. Żadna z tych cen nie kupuje gotowej książki: kupuje dwanaście miesięcy dostępu do okna czatu, które i tak musisz prowadzić rozdział po rozdziale, a potem samodzielnie sformatować, do tego dochodzą jeszcze koszty składania, które pojawiają się później. InkMagnet wycenia gotową, zbadaną, zilustrowaną i złożoną książkę raz, zależnie od długości: od 9,99 dolara (ok. 37 zł) za 30–45 stron do 34,99 dolara (ok. 130 zł) za 161–200 stron, z pełnymi prawami komercyjnymi i nieograniczoną liczbą edycji oraz ponownych składów w tej jednej kwocie, bez odnowienia abonamentu czekającego w październiku.
+
+Jeśli rękopis już masz w głowie i nie masz nic przeciwko samodzielnemu researchowi, strukturze, sprawdzaniu faktów, formatowaniu i projektowi okładki, goły abonament ChatGPT albo Claude'a to całkiem dobre narzędzie do szkicowania tej pracy. [Porównaj go z szerszym rynkiem dedykowanych generatorów książek AI](/pl/blog/najlepsze-generatory-ebookow-ai/), jeśli chcesz pełny obraz, sprawdź [cennik według liczby stron](/pl/#pricing) albo [zacznij od jednego tematu](https://app.inkmagnet.com/auth/register) i zobacz zbadaną strukturę rozdziałów, zanim sam napiszesz choć jeden prompt.
