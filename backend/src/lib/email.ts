@@ -134,3 +134,35 @@ export function sendWelcomeEmail(to: string, name: string | null, lang: Lang) {
 <p style="font-size:15px;margin:0">${body}</p>`);
   return sendEmail({ to, subject, html, text: `${hello}\n${body}`, tag: "welcome" });
 }
+
+// ── Structure ready for review ──
+export function sendStructureReadyEmail(
+  to: string,
+  bookTitle: string,
+  link: string,
+  lang: Lang,
+) {
+  const pl = lang === "pl";
+  const subject = pl
+    ? `Plan książki gotowy: ${bookTitle}`
+    : `Book plan ready: ${bookTitle}`;
+  const intro = pl
+    ? `Plan Twojej książki <strong>„${bookTitle}"</strong> jest gotowy. Przejrzyj rozdziały i sekcje — możesz je edytować — a potem zatwierdź plan, aby ruszyło pisanie treści.`
+    : `The plan for your book <strong>"${bookTitle}"</strong> is ready. Review the chapters and sections — you can edit them — then approve the plan to start the writing.`;
+  const cta = pl ? "Przejrzyj i zatwierdź plan" : "Review and approve the plan";
+  const note = pl
+    ? "Pisanie ruszy dopiero po Twoim zatwierdzeniu."
+    : "Writing starts only after your approval.";
+  const html = shell(`
+<p style="font-size:15px;margin:0 0 20px">${intro}</p>
+<p style="text-align:center;margin:0 0 20px">
+<a href="${link}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;
+   font-weight:700;padding:13px 28px;border-radius:10px">${cta}</a></p>
+<p style="font-size:13px;color:#6b7280;margin:0">${note}</p>`);
+  const text = `${intro.replace(/<[^>]+>/g, "")}
+
+${link}
+
+${note}`;
+  return sendEmail({ to, subject, html, text, tag: "structure_ready" });
+}

@@ -9,6 +9,8 @@ export const en: Record<string, string> = {
   "layout.adminPanel": "Admin Panel",
   "layout.toggleTheme": "Toggle theme",
   "layout.logout": "Log out",
+  "layout.notifications": "Notifications",
+  "layout.noNotifications": "No notifications yet",
 };
 
 export const pl: Record<string, string> = {
@@ -21,4 +23,6 @@ export const pl: Record<string, string> = {
   "layout.adminPanel": "Panel administratora",
   "layout.toggleTheme": "Przełącz motyw",
   "layout.logout": "Wyloguj się",
+  "layout.notifications": "Powiadomienia",
+  "layout.noNotifications": "Brak powiadomień",
 };

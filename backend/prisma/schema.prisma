@@ -22,6 +22,7 @@ model User {
   stripeCustomerIdTest String?
   projects             Project[]
   funnelEvents         FunnelEvent[]
+  notifications        Notification[]
 
   // Signup attribution (set once at account creation, never updated).
   // ip/country come from CloudFront (X-Forwarded-For, CloudFront-Viewer-Country);
@@ -364,4 +365,20 @@ model FunnelEvent {
 
   @@index([userId, createdAt])
   @@index([event, createdAt])
+}
+
+// In-app notifications (web + mobile read the same feed). One row per event
+// the user should see: structure ready for review, book completed...
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // "structure_ready" | "book_completed" | ...
+  title     String
+  body      String?
+  projectId String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
 }

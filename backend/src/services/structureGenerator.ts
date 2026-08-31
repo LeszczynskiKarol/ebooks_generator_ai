@@ -251,6 +251,10 @@ export async function generateStructure(projectId: string) {
       },
     });
 
+    // Tell the owner the plan is waiting (in-app row + email). Never blocks.
+    const { notifyStructureReady } = await import("../lib/notify");
+    void notifyStructureReady(projectId);
+
     log.ok("Structure saved, stage → STRUCTURE_REVIEW");
     log.footer(
       "SUCCESS",

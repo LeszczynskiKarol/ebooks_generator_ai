@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useThemeStore } from "@/stores/themeStore";
 import { useT } from "@/lib/i18n";
 import api from "@/lib/api";
+import NotificationsBell from "@/components/NotificationsBell";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const t = useT();
@@ -56,6 +57,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link to="/admin" className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-sm" title={t("layout.adminPanel")}>
               <Shield className="w-4 h-4" /> <span className="hidden sm:inline">{t("layout.admin")}</span>
             </Link>
+
+            <NotificationsBell />
 
             <button onClick={toggle} className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title={t("layout.toggleTheme")}>
               {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
