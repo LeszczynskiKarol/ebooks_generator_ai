@@ -1,5 +1,6 @@
 ---
-// PL-only examples page built around one recent book (screens, no PDF download).
+// PL-only examples page: raw pages from the two newest cookbooks (screens, no
+// PDF download). Both books use the continuous item numbering ("Przepis 1…60").
 // The EN /examples/ page stays removed until strong English samples exist.
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Header from "../../components/Header.astro";
@@ -7,32 +8,53 @@ import Footer from "../../components/Footer.astro";
 import { Image } from "astro:assets";
 import { siteConfig } from "../../config/site";
 
-import pOkladka from "../../assets/psy-mgr/01-okladka.webp";
-import pSpis from "../../assets/psy-mgr/02-spis-tresci.webp";
-import pOpener from "../../assets/psy-mgr/03-opener.webp";
-import pTabela from "../../assets/psy-mgr/04-tabela-apa.webp";
-import pDiagram from "../../assets/psy-mgr/05-diagram.webp";
-import pHipotezy from "../../assets/psy-mgr/06-hipotezy.webp";
-import pMapa from "../../assets/psy-mgr/07-mapa-testow.webp";
-import pTabeleApa from "../../assets/psy-mgr/08-tabele-apa.webp";
-import pObrona from "../../assets/psy-mgr/09-opener-obrona.webp";
+import afOkladka from "../../assets/air-fryer/01-okladka.webp";
+import afSpis from "../../assets/air-fryer/02-spis-tresci.webp";
+import afOpener from "../../assets/air-fryer/03-opener.webp";
+import afFoto1 from "../../assets/air-fryer/04-przepis-foto.webp";
+import afFoto2 from "../../assets/air-fryer/05-przepis-foto2.webp";
+import afDesery from "../../assets/air-fryer/06-przepisy-desery.webp";
 
-const title = "Przykład ebooka — surowe strony z książki wygenerowanej przez AI";
+import tmOkladka from "../../assets/thermomix/01-okladka.webp";
+import tmSpis from "../../assets/thermomix/02-spis-tresci.webp";
+import tmOpener from "../../assets/thermomix/03-opener-przepis1.webp";
+import tmFoto from "../../assets/thermomix/04-foto-gulasz.webp";
+import tmTablica from "../../assets/thermomix/05-przepis-tablica.webp";
+import tmPlan from "../../assets/thermomix/06-plan-tygodnia.webp";
+
+const title = "Przykłady ebooków — surowe strony z książek wygenerowanych przez AI";
 const description =
-  "Nieretuszowane strony z 40-stronicowego przewodnika wygenerowanego w InkMagnet: autorska okładka, pełnostronicowe otwarcia rozdziałów, tabele APA, diagramy i checklisty.";
+  "Nieretuszowane strony z dwóch książek kucharskich wygenerowanych w InkMagnet: autorskie okładki, fotografie AI przy przepisach, ciągła numeracja przepisów, tabele i pełny skład typograficzny.";
 
 const registerUrl = `${siteConfig.appUrl}/auth/register?lang=pl`;
 
-const gallery = [
-  { img: pOkladka, cap: "Okładka zaprojektowana pod paletę kolorów tej książki" },
-  { img: pSpis, cap: "Spis treści — 16 rozdziałów z numeracją do trzeciego poziomu" },
-  { img: pOpener, cap: "Pełnostronicowe otwarcie rozdziału z numerem na pasie" },
-  { img: pTabela, cap: "Tabele w konwencji APA i checklisty na koniec sekcji" },
-  { img: pDiagram, cap: "Rycina modelu badania i tabela operacjonalizacji" },
-  { img: pHipotezy, cap: "Ramki ostrzeżeń i checklisty kontrolne przy hipotezach" },
-  { img: pMapa, cap: "Mapa „hipoteza → test statystyczny” w przejrzystej tabeli" },
-  { img: pTabeleApa, cap: "Rozdział o tabelach i rycinach według standardu APA" },
-  { img: pObrona, cap: "Finał: pytania komisji i przygotowanie do obrony" },
+const books = [
+  {
+    heading: "„Air fryer — 60 prostych przepisów na każdy dzień” — 56 stron, 6 rozdziałów",
+    intro:
+      "Pełnowymiarowa książka kucharska wygenerowana w jednym przebiegu: 60 przepisów z ciągłą numeracją (Przepis 1–60, nie 3.11.1), fotografie AI dopasowane do konkretnych potraw, ściągawki czasów i temperatur, checklisty i skład typograficzny, którego nie da się uzyskać eksportem z edytora tekstu.",
+    gallery: [
+      { img: afOkladka, cap: "Okładka zaprojektowana pod treść tej konkretnej książki" },
+      { img: afSpis, cap: "Spis treści — przepisy numerowane ciągle przez całą książkę (35, 36… 57)" },
+      { img: afOpener, cap: "Pełnostronicowe otwarcie rozdziału z numerem na pasie" },
+      { img: afFoto1, cap: "Przepis 7 z fotografią AI wykonaną specjalnie do tej potrawy" },
+      { img: afFoto2, cap: "Rycina przy przepisie — udka z kurczaka prosto z air fryera" },
+      { img: afDesery, cap: "Rozdział deserowy — każdy przepis z pasem „PRZEPIS N”" },
+    ],
+  },
+  {
+    heading: "„Thermomix — proste obiady dla zabieganych” — 55 stron, 5 rozdziałów",
+    intro:
+      "Poradnik z przepisami: część podręcznikowa o funkcjach urządzenia i organizacji tygodnia przeplata się z przepisami bazowymi, które dostają własną, ciągłą numerację. Tabele porównawcze, plany tygodnia i checklisty wygenerowane razem z treścią.",
+    gallery: [
+      { img: tmOkladka, cap: "Okładka z paletą kolorów dobraną przez generator" },
+      { img: tmSpis, cap: "Spis treści — rozdziały numerowane, przepisy z własnym licznikiem" },
+      { img: tmOpener, cap: "Otwarcie rozdziału i Przepis 1 na tej samej rozkładówce" },
+      { img: tmFoto, cap: "Fotografia AI przy technice wolnego gotowania" },
+      { img: tmTablica, cap: "Tablica porównania czasów i Przepis 3 — krem z brokułów" },
+      { img: tmPlan, cap: "Przykładowy plan obiadów na tydzień w tabeli" },
+    ],
+  },
 ];
 
 const jsonLd = [
@@ -60,41 +82,45 @@ const jsonLd = [
   <main class="pt-16">
     <div class="mx-auto max-w-7xl px-4 pb-4 pt-14 text-center sm:px-6 lg:px-8">
       <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-5xl">
-        Prawdziwa książka. Surowe strony. Zero mockupów.
+        Prawdziwe książki. Surowe strony. Zero mockupów.
       </h1>
       <p class="mx-auto mt-5 max-w-2xl text-lg text-ink-600">
-        Każde narzędzie obiecuje „profesjonalne ebooki". Poniżej strony z prawdziwej
-        książki wygenerowanej w InkMagnet — dokładnie tak, jak wyszły z generatora,
-        bez retuszu.
+        Każde narzędzie obiecuje „profesjonalne ebooki". Poniżej strony z dwóch
+        prawdziwych książek wygenerowanych w InkMagnet — dokładnie tak, jak wyszły
+        z generatora, bez retuszu.
       </p>
     </div>
 
-    <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
-      <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
-        „Jak napisać pracę magisterską z psychologii" — 40 stron, 16 rozdziałów
-      </h2>
-      <p class="mt-3 max-w-3xl text-ink-600">
-        To nie jest demo — to komercyjny przewodnik sprzedawany na
-        praca-magisterska.pl, wygenerowany w jednym przebiegu: autorska okładka z
-        paletą kolorów, pełnostronicowe otwarcia rozdziałów, tabele w konwencji APA,
-        ryciny modeli badania, checklisty kontrolne i skład typograficzny, którego
-        nie da się uzyskać eksportem z edytora tekstu.
-      </p>
-      <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {
-          gallery.map((g, i) => (
-            <figure>
-              <div class="overflow-hidden rounded-xl border border-ink-200 shadow-md shadow-ink-900/5">
-                <Image src={g.img} alt={g.cap} width={640} class="w-full" loading={i < 3 ? "eager" : "lazy"} />
-              </div>
-              <figcaption class="mt-2.5 text-center text-sm text-ink-600">{g.cap}</figcaption>
-            </figure>
-          ))
-        }
-      </div>
+    {
+      books.map((book, bi) => (
+        <section class="mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
+          <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
+            {book.heading}
+          </h2>
+          <p class="mt-3 max-w-3xl text-ink-600">{book.intro}</p>
+          <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {book.gallery.map((g, i) => (
+              <figure>
+                <div class="overflow-hidden rounded-xl border border-ink-200 shadow-md shadow-ink-900/5">
+                  <Image
+                    src={g.img}
+                    alt={g.cap}
+                    width={640}
+                    class="w-full"
+                    loading={bi === 0 && i < 3 ? "eager" : "lazy"}
+                  />
+                </div>
+                <figcaption class="mt-2.5 text-center text-sm text-ink-600">{g.cap}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      ))
+    }
 
+    <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <p class="mt-10 text-center text-sm text-ink-400">
-        Wszystkie strony powyżej to surowe rendery z finalnego PDF-a. Niczego nie
+        Wszystkie strony powyżej to surowe rendery z finalnych PDF-ów. Niczego nie
         poprawialiśmy w Photoshopie.
       </p>
       <div class="mt-8 pb-16 text-center">
