@@ -7,6 +7,7 @@ import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import { Image } from "astro:assets";
 import { siteConfig } from "../../config/site";
+import ExampleBooks from "../../components/ExampleBooks.astro";
 
 import afOkladka from "../../assets/air-fryer/01-okladka.webp";
 import afSpis from "../../assets/air-fryer/02-spis-tresci.webp";
@@ -31,6 +32,7 @@ const registerUrl = `${siteConfig.appUrl}/auth/register?lang=pl`;
 const books = [
   {
     heading: "„Air fryer — 60 prostych przepisów na każdy dzień” — 56 stron, 6 rozdziałów",
+    pdf: "/samples/air-fryer-60-prostych-przepisow.pdf",
     intro:
       "Pełnowymiarowa książka kucharska wygenerowana w jednym przebiegu: 60 przepisów z ciągłą numeracją (Przepis 1–60, nie 3.11.1), fotografie AI dopasowane do konkretnych potraw, ściągawki czasów i temperatur, checklisty i skład typograficzny, którego nie da się uzyskać eksportem z edytora tekstu.",
     gallery: [
@@ -44,6 +46,7 @@ const books = [
   },
   {
     heading: "„Thermomix — proste obiady dla zabieganych” — 55 stron, 5 rozdziałów",
+    pdf: "/samples/thermomix-proste-obiady-dla-zabieganych.pdf",
     intro:
       "Poradnik z przepisami: część podręcznikowa o funkcjach urządzenia i organizacji tygodnia przeplata się z przepisami bazowymi, które dostają własną, ciągłą numerację. Tabele porównawcze, plany tygodnia i checklisty wygenerowane razem z treścią.",
     gallery: [
@@ -114,9 +117,36 @@ const jsonLd = [
               </figure>
             ))}
           </div>
+          <div class="mt-8 text-center">
+            <a
+              href={book.pdf}
+              download
+              class="inline-flex items-center gap-2 rounded-xl border-2 border-brand-600 px-7 py-3 text-base font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Pobierz całą książkę (PDF)
+            </a>
+          </div>
         </section>
       ))
     }
+
+    <section class="pt-14">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
+          Wszystkie przykładowe książki
+        </h2>
+        <p class="mt-3 max-w-3xl text-ink-600">
+          Każdą możesz pobrać w całości jako PDF — dokładnie ten plik, który
+          wychodzi z generatora.
+        </p>
+      </div>
+      <div class="mt-8">
+        <ExampleBooks lang="pl" />
+      </div>
+    </section>
 
     <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <p class="mt-10 text-center text-sm text-ink-400">

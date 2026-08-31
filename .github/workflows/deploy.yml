@@ -117,8 +117,11 @@ jobs:
           npm run build
           [ -f dist/index.html ] || { echo "::error::astro build produced no dist/index.html"; exit 1; }
           # Hashed assets are content-addressed → cache forever (immutable).
+          # samples/*.pdf are uploaded to S3 by hand (gitignored, ~7MB each) —
+          # exclude them so `--delete` never wipes them from the bucket.
           aws s3 sync dist "s3://${SITE_BUCKET}" --delete \
             --exclude "*.html" --exclude "*.xml" --exclude "robots.txt" \
+            --exclude "samples/*.pdf" \
             --cache-control "public,max-age=31536000,immutable"
           # HTML / sitemap / robots must stay fresh → short TTL, revalidate.
           aws s3 sync dist "s3://${SITE_BUCKET}" --delete \

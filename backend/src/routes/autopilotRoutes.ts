@@ -24,6 +24,7 @@ import {
   MIN_PAGES,
   MAX_PAGES,
 } from "../lib/types";
+import { isNumberingMode } from "../lib/numbering";
 
 // Resolve the admin user (owner of autopilot projects) from ADMIN_EMAIL.
 async function getAdminUserId(): Promise<string | null> {
@@ -113,6 +114,13 @@ export async function autopilotRoutes(app: FastifyInstance) {
         userId: adminUserId,
         topic,
         title: b.title || null,
+        // Routine decides the heading-numbering scheme (items/hierarchical/...)
+        // — compile resolves \itemsection counters from these (lib/numbering.ts).
+        numberingMode: isNumberingMode(b.numberingMode) ? b.numberingMode : null,
+        numberingLabel:
+          typeof b.numberingLabel === "string" && b.numberingLabel.trim()
+            ? b.numberingLabel.trim().slice(0, 40)
+            : null,
         targetPages: pages,
         language: b.language || "en",
         guidelines: b.guidelines || null,
