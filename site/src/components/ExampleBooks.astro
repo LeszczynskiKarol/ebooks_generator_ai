@@ -16,8 +16,8 @@ const books = (pl ? examples : examples.filter((b) => b.lang === "en"))
   .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 
 const catLabel: Record<string, string> = pl
-  ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie" }
-  : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic" };
+  ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie", fitness: "Fitness" }
+  : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic", fitness: "Fitness" };
 const pagesWord = pl ? "stron" : "pages";
 const downloadWord = pl ? "Pobierz PDF" : "Download PDF";
 ---

@@ -27,10 +27,22 @@
  *   featured optional — pulled to the front of the grid
  */
 
-/** @typedef {{ slug:string, title:string, lang:"pl"|"en", category:"cooking"|"marketing"|"tech"|"academic", style:string, pages:number, desc:{pl:string,en:string}, featured?:boolean }} ExampleBook */
+/** @typedef {{ slug:string, title:string, lang:"pl"|"en", category:"cooking"|"marketing"|"tech"|"academic"|"fitness", style:string, pages:number, desc:{pl:string,en:string}, featured?:boolean }} ExampleBook */
 
 /** @type {ExampleBook[]} */
 export const examples = [
+  {
+    slug: "trening-silowy-w-domu-30-cwiczen",
+    title: "Trening siłowy w domu — 30 ćwiczeń bez sprzętu i z hantlami",
+    lang: "pl",
+    category: "fitness",
+    style: "Modern",
+    pages: 54,
+    desc: {
+      pl: "30 ćwiczeń z ciągłą numeracją pogrupowanych w partie mięśniowe, fotografie AI, plany treningowe i zasady progresji.",
+      en: "30 continuously numbered exercises grouped by muscle part, AI photographs, training plans and progression rules.",
+    },
+  },
   {
     slug: "air-fryer-60-prostych-przepisow",
     title: "Air fryer — 60 prostych przepisów na każdy dzień",
