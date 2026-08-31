@@ -540,10 +540,11 @@ export async function generateContent(
 
     try {
       const chTimer = log.timer();
-      const result = await generateChapterLatex({
+      const chapterNumbering = resolveNumbering(project);
+      let result = await generateChapterLatex({
         bookTitle,
         bookTopic: project.topic,
-        numbering: resolveNumbering(project),
+        numbering: chapterNumbering,
         language: project.language,
         stylePreset: project.stylePreset,
         guidelines: project.guidelines || "",
@@ -564,6 +565,59 @@ export async function generateContent(
       });
 
       totalTokens += result.tokensUsed;
+
+      // ── Items-mode contract: EXACTLY one \itemsection per planned item.
+      // The prompt demands it, but models occasionally drop or merge an item
+      // (a 30-recipe book shipping 29 breaks the title's promise) — validate
+      // and retry ONCE with the explicit list of planned items.
+      if (chapterNumbering.mode === "items") {
+        const plannedItems = (chapter.sections || []).filter(
+          (sec: any) => !String(sec.description || "").startsWith("[intro]"),
+        );
+        const emitted = (result.latexContent.match(/\\itemsection\{/g) || []).length;
+        if (plannedItems.length > 0 && emitted !== plannedItems.length) {
+          log.warn(
+            `Ch ${chapter.number}: ${emitted}/${plannedItems.length} \\itemsection emitted — retrying with correction`,
+          );
+          const retry = await generateChapterLatex({
+            bookTitle,
+            bookTopic: project.topic,
+            numbering: chapterNumbering,
+            language: project.language,
+            stylePreset: project.stylePreset,
+            guidelines: project.guidelines || "",
+            brief,
+            bookFormat: project.bookFormat,
+            chapter,
+            chapterIndex: i,
+            totalChapters: chapters.length,
+            previousSummaries,
+            previousChaptersContent,
+            chapterRegistries,
+            allChapters: chapters,
+            sourcesText: mergedSourcesText,
+            hasResearch,
+            wpp,
+            allowFootnotes: footnotesEnabled(project),
+            log,
+            correctionNote: `Your previous draft contained ${emitted} \\itemsection headings but this chapter has EXACTLY ${plannedItems.length} planned items. Emit ONE \\itemsection per planned item, in this exact order, none skipped, none merged:\n${plannedItems
+              .map((sec: any, n: number) => `${n + 1}. ${sec.title}`)
+              .join("\n")}`,
+          });
+          totalTokens += retry.tokensUsed;
+          const retryEmitted = (retry.latexContent.match(/\\itemsection\{/g) || []).length;
+          if (retryEmitted === plannedItems.length) {
+            result = retry;
+            log.ok(`Ch ${chapter.number}: retry emitted ${retryEmitted}/${plannedItems.length} items`);
+          } else {
+            // keep the better of the two, loudly
+            if (Math.abs(retryEmitted - plannedItems.length) < Math.abs(emitted - plannedItems.length)) result = retry;
+            log.warn(
+              `Ch ${chapter.number}: item count STILL off after retry (${retryEmitted}/${plannedItems.length}) — keeping closer draft`,
+            );
+          }
+        }
+      }
 
       // ── Mechanical citation guards (no LLM judge) — only when footnotes are on ──
       if (footnotesEnabled(project)) {
@@ -907,6 +961,8 @@ Your chapter starts where this left off. Transition naturally — don't repeat t
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 interface GenParams {
+  /** appended verbatim when a validation retry re-runs the chapter */
+  correctionNote?: string;
   bookTitle: string;
   bookTopic: string;
   language: string;
@@ -944,6 +1000,13 @@ async function generateChapterLatex(p: GenParams): Promise<{
   // Models systematically undershoot long-form targets by 15-25%. Ask ABOVE
   // the real target so a single response usually lands on it — continuations
   // are a last resort (they tend to leak meta-commentary into the book).
+  const correction = p.correctionNote
+    ? `
+
+CRITICAL CORRECTION (previous attempt was rejected):
+${p.correctionNote}
+`
+    : "";
   const realTargetWords = p.chapter.targetPages * p.wpp;
   const targetWords = Math.round(realTargetWords * 1.2);
   const lang = getLangName(p.language);
@@ -1285,7 +1348,7 @@ roughly how many per chapter. Follow it. Universal rules on top of it:
 - If the brief says an element does not fit this book, do not use it at all`;
 
   // ━━━ User prompt ━━━
-  let userPrompt = `Write Chapter ${p.chapter.number}/${p.totalChapters}: "${p.chapter.title}"
+  let userPrompt = `Write Chapter ${p.chapter.number}/${p.totalChapters}: "${p.chapter.title}"${correction}
 Description: ${p.chapter.description}
 
 SECTIONS TO WRITE:
