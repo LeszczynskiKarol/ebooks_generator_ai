@@ -21,7 +21,7 @@ interface Props {
 }
 const { lang } = Astro.props;
 const pl = lang === "pl";
-const registerUrl = `${siteConfig.appUrl}/auth/register${pl ? "?lang=pl" : ""}`;
+const registerUrl = `${siteConfig.appUrl}/auth/register?lang=${pl ? "pl" : "en"}`;
 
 const t = pl
   ? {

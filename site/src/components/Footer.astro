@@ -82,7 +82,7 @@ const legalLinks =
           }
           <li>
             <a
-              href={`${siteConfig.appUrl}/auth/login${lang === "pl" ? "?lang=pl" : ""}`}
+              href={`${siteConfig.appUrl}/auth/login?lang=${lang}`}
               class="transition-colors hover:text-white">{t.nav.signIn}</a
             >
           </li>

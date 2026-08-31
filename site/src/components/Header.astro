@@ -15,7 +15,9 @@ const enPath = Astro.url.pathname.replace(/^\/pl(\/|$)/, "/");
 const switchHref = otherLang === "pl" ? (enPath === "/" ? "/pl/" : `/pl${enPath}`) : enPath;
 
 // carry the language into the app so login/registration open in the right one
-const appQ = lang === "pl" ? "?lang=pl" : "";
+// ALWAYS explicit — without ?lang=en the app falls back to navigator.language
+// and a Polish-browser visitor reading the ENGLISH site got a Polish app.
+const appQ = `?lang=${lang}`;
 
 const navItems = [
   { href: `${p}/#how`, label: t.nav.how },

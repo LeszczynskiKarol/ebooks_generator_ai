@@ -57,6 +57,13 @@ const altPl = new URL(plPath, siteConfig.url).href;
       (function () {
         try {
           if (location.pathname !== "/") return;
+          // Explicit ?lang= (ads, partners, tests) wins and is remembered.
+          var forced = new URLSearchParams(location.search).get("lang");
+          if (forced === "en" || forced === "pl") {
+            try { localStorage.setItem("im_lang", forced); } catch (_) {}
+            if (forced === "pl") location.replace("/pl/" + location.search + location.hash);
+            return;
+          }
           if (localStorage.getItem("im_lang")) return;
           var ua = navigator.userAgent || "";
           if (/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|embedly/i.test(ua)) return;

@@ -18,7 +18,7 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = langPrefix(lang);
-const registerUrl = `${siteConfig.appUrl}/auth/register${lang === "pl" ? "?lang=pl" : ""}`;
+const registerUrl = `${siteConfig.appUrl}/auth/register?lang=${lang}`;
 
 const isPL = lang === "pl";
 // PL prices are shown in zł, converted from the USD base at the current NBP rate.
