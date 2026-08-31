@@ -440,6 +440,35 @@ export async function authRoutes(app: FastifyInstance) {
     }
   });
 
+  // ━━━ DELETE /api/auth/me  (account deletion — Google Play requirement) ━━━
+  // Permanently deletes the account and all owned data (projects, chapters,
+  // notifications, purchases metadata — Prisma cascades). Requires the literal
+  // confirmation string so a stray client call can't wipe an account.
+  app.delete(
+    "/api/auth/me",
+    { preHandler: [authenticate] },
+    async (request, reply) => {
+      const b = (request.body ?? {}) as { confirm?: unknown };
+      if (b.confirm !== "DELETE") {
+        return reply
+          .status(400)
+          .send({ success: false, error: 'Send {"confirm":"DELETE"} to delete the account' });
+      }
+      const userId = request.user.userId;
+      const adminEmail = process.env.ADMIN_EMAIL;
+      const me = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+      if (!me) return reply.status(404).send({ success: false, error: "User not found" });
+      if (adminEmail && me.email.toLowerCase() === adminEmail.toLowerCase()) {
+        return reply
+          .status(403)
+          .send({ success: false, error: "Admin account cannot be deleted via API" });
+      }
+      await prisma.user.delete({ where: { id: userId } });
+      console.log(`🗑️  Account deleted on user request: ${me.email}`);
+      return reply.status(204).send();
+    },
+  );
+
   // ━━━ GET /api/auth/me ━━━
   app.get(
     "/api/auth/me",
