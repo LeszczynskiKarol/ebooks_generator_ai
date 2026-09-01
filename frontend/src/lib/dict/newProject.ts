@@ -180,6 +180,7 @@ export const en: Record<string, string> = {
   "newProject.failed": "Failed",
 
   // Validation
+  "newProject.titleTypoHint": "The topic spells this differently — did you mean:",
   "newProject.errMinChars": "Min 5 chars",
   "newProject.errTitleOrTopic": "Fill in the title or the topic",
 };
@@ -369,6 +370,7 @@ export const pl: Record<string, string> = {
   "newProject.failed": "Nie powiodło się",
 
   // Validation
+  "newProject.titleTypoHint": "W temacie jest inna pisownia — czy chodziło o:",
   "newProject.errMinChars": "Min. 5 znaków",
   "newProject.errTitleOrTopic": "Wypełnij tytuł albo temat",
 };

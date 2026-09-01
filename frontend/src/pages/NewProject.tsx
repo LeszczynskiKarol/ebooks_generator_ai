@@ -28,6 +28,7 @@ import DevModelPicker from "@/components/DevModelPicker";
 import { useT, useLangStore, translate, type AppLang } from "@/lib/i18n";
 import { useMoney } from "@/lib/money";
 import { track } from "@/lib/funnel";
+import { suggestTitleFix } from "@/lib/titleTypo";
 
 // Language keys → i18n label keys (the select VALUES en/pl/de… stay code)
 // Only the two languages the product is edited/proofread in. Default follows
@@ -309,6 +310,16 @@ export default function NewProject() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicValue]);
 
+  // The title goes on the cover in the largest type in the book, and it is the
+  // field people retype fastest. When it is one or two characters away from a
+  // line of the topic, one of the two spellings is a slip — surface it and let
+  // the author pick. Never rewrites anything, never blocks checkout.
+  const titleValue = watch("title");
+  const titleSuggestion = useMemo(
+    () => suggestTitleFix(titleValue, topicValue),
+    [titleValue, topicValue],
+  );
+
   const selectTier = (idx: number) => {
     setSelectedTierIdx(idx);
     setValue("targetPages", PAGE_SIZE_TIERS[idx].targetPages);
@@ -463,6 +474,20 @@ export default function NewProject() {
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
               {t("newProject.bookTitleHelp")}
             </p>
+            {titleSuggestion && (
+              <p className="mt-1.5 text-xs text-amber-700 dark:text-amber-400">
+                {t("newProject.titleTypoHint")}{" "}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setValue("title", titleSuggestion, { shouldDirty: true })
+                  }
+                  className="font-semibold underline underline-offset-2 hover:no-underline"
+                >
+                  {titleSuggestion}
+                </button>
+              </p>
+            )}
             {errors.title && (
               <p className="text-red-500 text-xs mt-1">
                 {errors.title.message}
