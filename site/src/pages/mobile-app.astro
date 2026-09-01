@@ -1,0 +1,66 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AppLanding from "../components/AppLanding.astro";
+import { siteConfig } from "../config/site";
+import { useTranslations } from "../i18n/ui";
+
+const t = useTranslations("en");
+
+const title = "AI Ebook Generator App for Android — InkMagnet";
+const description =
+  "InkMagnet's Android app: describe a topic, pay once through Google Play and get a fully researched, written and typeset ebook as PDF and EPUB — ordered, tracked and downloaded from your phone.";
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    name: "InkMagnet: AI Ebook Generator",
+    operatingSystem: "Android 7.0+",
+    applicationCategory: "ProductivityApplication",
+    url: siteConfig.playUrl,
+    installUrl: siteConfig.playUrl,
+    downloadUrl: siteConfig.playUrl,
+    description,
+    author: { "@type": "Organization", name: siteConfig.name, url: siteConfig.url },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      description: "Free to install; books are one-time in-app purchases from $9.99.",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: t.appPage.faq.items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "InkMagnet", item: siteConfig.url },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Android app",
+        item: `${siteConfig.url}/mobile-app/`,
+      },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  jsonLd={jsonLd}
+  translated={true}
+  hreflangEnPath="/mobile-app/"
+  hreflangPlPath="/pl/aplikacja-mobilna/"
+>
+  <AppLanding lang="en" />
+</BaseLayout>

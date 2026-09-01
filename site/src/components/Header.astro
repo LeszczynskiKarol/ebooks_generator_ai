@@ -1,6 +1,7 @@
 ---
 import { siteConfig } from "../config/site";
 import { useTranslations, langPrefix, type Lang } from "../i18n/ui";
+import { appPagePath } from "../lib/play";
 
 interface Props {
   lang: Lang;
@@ -19,13 +20,15 @@ const switchHref = otherLang === "pl" ? (enPath === "/" ? "/pl/" : `/pl${enPath}
 // and a Polish-browser visitor reading the ENGLISH site got a Polish app.
 const appQ = `?lang=${lang}`;
 
-const navItems = [
+const navItems: { href: string; label: string; lgOnly?: boolean }[] = [
   { href: `${p}/#how`, label: t.nav.how },
   ...(lang === "pl"
     ? [{ href: "/pl/przyklady/", label: t.nav.examples }]
     : [{ href: "/examples/", label: t.nav.examples }]),
   { href: `${p}/#pricing`, label: t.nav.pricing },
   { href: lang === "pl" ? "/pl/blog/" : "/blog/", label: t.nav.blog },
+  // only from lg up — five items plus the CTA buttons overflow a md viewport
+  { href: appPagePath(lang), label: t.nav.app, lgOnly: true },
 ];
 ---
 
@@ -51,7 +54,10 @@ const navItems = [
         navItems.map((item) => (
           <a
             href={item.href}
-            class="text-sm font-medium text-ink-600 transition-colors hover:text-ink-900"
+            class:list={[
+              "text-sm font-medium text-ink-600 transition-colors hover:text-ink-900",
+              item.lgOnly && "hidden lg:inline",
+            ]}
           >
             {item.label}
           </a>

@@ -25,6 +25,7 @@ export const ui = {
       blog: "Blog",
       signIn: "Sign in",
       cta: "Create your ebook",
+      app: "Android app",
     },
     hero: {
       badge: "AI ebook generator",
@@ -572,6 +573,161 @@ export const ui = {
       sub: "Describe the topic today, download the finished ebook within the hour.",
       cta: "Start writing — from $9.99",
     },
+    phone: {
+      // The Android screens, recreated in HTML so both languages stay in sync
+      // with the real UI — the Play screenshots only exist in Polish.
+      time: "9:41",
+      books: {
+        title: "My Books",
+        items: [
+          { title: "The Lean SaaS Launch Playbook", meta: "60 pages · EN · premium", status: "Completed", state: "done" },
+          { title: "Atomic Habits for Founders", meta: "84 pages · EN · modern", status: "Writing…", state: "writing" },
+          { title: "The Remote Team Handbook", meta: "72 pages · EN · modern", status: "Completed", state: "done" },
+        ],
+      },
+      create: {
+        title: "New book",
+        topicLabel: "What should the book be about?",
+        topicPlaceholder: "e.g. Air fryer — 60 simple everyday recipes",
+        titleLabel: "Title (optional — we can suggest one)",
+        langLabel: "Book language",
+        langs: ["English", "Polski"],
+        sizeLabel: "Length",
+        sizes: [
+          { name: "Compact", pages: "30–40 pages" },
+          { name: "Standard", pages: "50–70 pages" },
+          { name: "Extended", pages: "80–100 pages" },
+        ],
+      },
+      detail: {
+        title: "Strength Training at Home",
+        status: "Completed",
+        progressLabel: "Progress",
+        steps: ["Payment", "Plan", "Review", "Writing", "Typeset", "Ready"],
+        downloadLabel: "Download",
+        pdf: "Open PDF",
+        epub: "Open EPUB",
+        webLink: "Edit chapters in the web app",
+      },
+    },
+    appPromo: {
+      badge: "New — Android",
+      title: "Now you can start a book from your phone",
+      sub: "InkMagnet has an Android app. Order a book on the bus, approve the outline over coffee, open the finished PDF on the train home. Same account, same books, same engine as the web app.",
+      points: [
+        "Order a book and follow every stage live: research, writing, typesetting.",
+        "Open the finished PDF and EPUB straight on your phone.",
+        "Pay once per book through Google Play. No subscription.",
+        "Chapters you edited on the web stay exactly as you left them.",
+      ],
+      cta: "Get it on Google Play",
+      more: "More about the app",
+      note: "Requires Android 7.0 or newer. The full chapter editor stays in the web app.",
+    },
+    appPage: {
+      badge: "Android app",
+      title1: "The AI ebook generator,",
+      titleAccent: "in your pocket",
+      sub: "InkMagnet for Android turns a topic into a finished book: researched on the live web, written chapter by chapter, illustrated, typeset and delivered as a print-quality PDF and EPUB. Order it from your phone, watch it being built, read it the moment it lands.",
+      bullets: ["Free to install", "One payment per book", "PDF + EPUB on your phone"],
+      ctaSecondary: "See sample pages",
+      screens: {
+        title: "Three screens, the whole workflow",
+        sub: "Nothing is hidden behind a desktop-only wall: ordering, tracking and downloading all happen on the phone.",
+        items: [
+          {
+            title: "Your library",
+            text: "Every book you have ordered, with its live status — waiting for payment, planning, writing, typesetting, ready. Books you started in the browser appear here too, because it is one account rather than two products.",
+          },
+          {
+            title: "Order a new book",
+            text: "Topic, an optional title, language and length. Five sizes from 30 to 200 pages. Pick one, pay through Google Play, and the pipeline starts within seconds.",
+          },
+          {
+            title: "Track it, then download",
+            text: "A six-stage strip shows exactly where your book is: payment, plan, review, writing, typesetting, ready. When it finishes, the PDF and the EPUB open straight from the app.",
+          },
+        ],
+      },
+      why: {
+        title: "Why it is worth having on the phone",
+        sub: "A book takes about an hour to build. The app is what lets you spend that hour anywhere.",
+        items: [
+          {
+            title: "Order in the two minutes you actually have",
+            desc: "A queue, a commute, a waiting room. Describing the book takes a minute, and the engine works while you get on with your day.",
+          },
+          {
+            title: "Approve the outline where you are",
+            desc: "The chapter plan is the one decision that gates everything else. A task that small should not need a laptop.",
+          },
+          {
+            title: "Read it on the device you read on",
+            desc: "The finished PDF and EPUB open in the app, so a book generated at nine in the morning can be read on the sofa that evening without moving files between devices.",
+          },
+          {
+            title: "Pay through Google Play",
+            desc: "Payment goes through the Play account you already have, in your local currency, with Google handling the receipt and the refund policy.",
+          },
+        ],
+      },
+      split: {
+        title: "The app and the web share one account",
+        sub: "Two windows onto the same books, and each is better at something.",
+        appTitle: "Do it in the app",
+        appItems: [
+          "Order a new book and pay through Google Play",
+          "Approve or reject the chapter outline",
+          "Follow the build stage by stage",
+          "Open, read and share the finished PDF and EPUB",
+        ],
+        webTitle: "Do it in the browser",
+        webItems: [
+          "Edit chapter text in the full editor",
+          "Regenerate a single chapter or illustration",
+          "Recompile the PDF and EPUB after edits",
+          "Manage cover variants and typography",
+        ],
+        note: "Manual edits made in the browser are never overwritten by anything you do in the app.",
+      },
+      price: {
+        title: "The same price, paid a different way",
+        body: "In the app a book is a one-off Google Play in-app purchase, billed in your own currency with local tax included, which is why the figure on the phone is not the plain dollar price shown on this site. Neither version has a subscription, and a book bought in the app is the same book: full commercial rights, no watermark.",
+      },
+      faq: {
+        title: "Questions about the app",
+        items: [
+          {
+            q: "Is the app free?",
+            a: "The app is free to install and free to browse. You pay only when you order a specific book, as a one-time in-app purchase through Google Play.",
+          },
+          {
+            q: "Do I need a separate account?",
+            a: "No. It is the same InkMagnet account as on the web. Sign in on the phone and your existing books are there; order on the phone and the book shows up in the browser.",
+          },
+          {
+            q: "Can I edit chapters in the app?",
+            a: "Not yet. The app takes you from an idea to a finished, downloadable book. Rewriting chapter text happens in the web editor, and the app links straight to it.",
+          },
+          {
+            q: "Is there an iPhone version?",
+            a: "Not at the moment. On iOS the web app works in Safari, so you can order, track and download books from there.",
+          },
+          {
+            q: "What Android version do I need?",
+            a: "Android 7.0 (Nougat) or newer.",
+          },
+          {
+            q: "What happens if I close the app while a book is being written?",
+            a: "Nothing stops. The whole pipeline runs on our servers, so you can close the app, lose signal or restart the phone: the book carries on and is waiting when you come back.",
+          },
+        ],
+      },
+      final: {
+        title: "Install it and start your first book",
+        sub: "Free to install. One payment per book, whenever you decide to make one.",
+      },
+    },
     footer: {
       tagline: "Professional AI-written ebooks with real typesetting.",
       product: "Product",
@@ -593,6 +749,7 @@ export const ui = {
       blog: "Blog",
       signIn: "Zaloguj się",
       cta: "Stwórz ebooka",
+      app: "Aplikacja Android",
     },
     hero: {
       badge: "Ebook AI Creator",
@@ -1131,6 +1288,161 @@ export const ui = {
       title: "Od Twojej książki dzieli Cię jeden formularz",
       sub: "Opisz temat dzisiaj, a gotowego ebooka pobierzesz w ciągu godziny.",
       cta: "Zacznij pisać — od $9.99",
+    },
+    phone: {
+      // Ekrany aplikacji odtworzone w HTML, żeby obie wersje językowe
+      // nadążały za prawdziwym UI (zrzuty z Play są tylko po polsku).
+      time: "9:41",
+      books: {
+        title: "Moje książki",
+        items: [
+          { title: "Trening siłowy w domu — 30 ćwiczeń", meta: "35 stron · PL · premium", status: "Gotowa", state: "done" },
+          { title: "Thermomix — proste obiady dla zabieganych", meta: "60 stron · PL · modern", status: "Pisanie…", state: "writing" },
+          { title: "Air fryer — 60 prostych przepisów", meta: "35 stron · PL · modern", status: "Gotowa", state: "done" },
+        ],
+      },
+      create: {
+        title: "Nowa książka",
+        topicLabel: "O czym ma być książka?",
+        topicPlaceholder: "np. Air fryer — 60 prostych przepisów na każdy dzień",
+        titleLabel: "Tytuł (opcjonalnie — możemy zaproponować)",
+        langLabel: "Język książki",
+        langs: ["English", "Polski"],
+        sizeLabel: "Rozmiar",
+        sizes: [
+          { name: "Kompaktowa", pages: "30–40 stron" },
+          { name: "Standardowa", pages: "50–70 stron" },
+          { name: "Rozszerzona", pages: "80–100 stron" },
+        ],
+      },
+      detail: {
+        title: "Trening siłowy w domu",
+        status: "Gotowa",
+        progressLabel: "Postęp",
+        steps: ["Płatność", "Plan", "Przegląd", "Pisanie", "Składanie", "Gotowe"],
+        downloadLabel: "Pobieranie",
+        pdf: "Otwórz PDF",
+        epub: "Otwórz EPUB",
+        webLink: "Edytuj rozdziały w wersji web",
+      },
+    },
+    appPromo: {
+      badge: "Nowość — Android",
+      title: "Książkę zamówisz teraz z telefonu",
+      sub: "InkMagnet ma aplikację na Androida. Zamówisz książkę w autobusie, zatwierdzisz plan przy kawie, a gotowy PDF otworzysz w drodze do domu. To samo konto, te same książki i ten sam silnik co w wersji web.",
+      points: [
+        "Zamawiasz książkę i na żywo śledzisz każdy etap: research, pisanie, skład.",
+        "Gotowy PDF i EPUB otwierasz bezpośrednio w telefonie.",
+        "Płacisz raz za książkę przez Google Play. Bez abonamentu.",
+        "Rozdziały poprawione w wersji web zostają dokładnie takie, jak je zostawiłeś.",
+      ],
+      cta: "Pobierz z Google Play",
+      more: "Więcej o aplikacji",
+      note: "Wymaga Androida 7.0 lub nowszego. Pełny edytor rozdziałów pozostaje w wersji web.",
+    },
+    appPage: {
+      badge: "Aplikacja na Androida",
+      title1: "Generator ebooków AI",
+      titleAccent: "w kieszeni",
+      sub: "InkMagnet na Androida zamienia temat w gotową książkę: research w żywych źródłach, pisanie rozdział po rozdziale, ilustracje, skład typograficzny, a na końcu PDF w jakości drukarskiej i EPUB. Zamawiasz z telefonu, na żywo patrzysz, jak książka powstaje, i czytasz, gdy tylko będzie gotowa.",
+      bullets: ["Instalacja za darmo", "Jedna płatność za książkę", "PDF i EPUB w telefonie"],
+      ctaSecondary: "Zobacz przykładowe strony",
+      screens: {
+        title: "Trzy ekrany, cały proces",
+        sub: "Nic nie jest schowane za ścianą „tylko na komputerze”: zamówienie, śledzenie i pobranie dzieją się w telefonie.",
+        items: [
+          {
+            title: "Twoja biblioteka",
+            text: "Wszystkie zamówione książki z aktualnym statusem: czeka na płatność, planowanie, pisanie, składanie, gotowa. Książki zaczynane w przeglądarce też tu są, bo to jedno konto, a nie dwa osobne produkty.",
+          },
+          {
+            title: "Zamówienie nowej książki",
+            text: "Temat, opcjonalny tytuł, język i objętość. Pięć rozmiarów od 30 do 200 stron. Wybierasz, płacisz przez Google Play i po kilku sekundach silnik rusza.",
+          },
+          {
+            title: "Śledzenie i pobranie",
+            text: "Sześcioetapowy pasek pokazuje dokładnie, gdzie jest książka: płatność, plan, przegląd, pisanie, składanie, gotowe. Po zakończeniu PDF i EPUB otwierasz wprost z aplikacji.",
+          },
+        ],
+      },
+      why: {
+        title: "Po co to w telefonie",
+        sub: "Książka powstaje mniej więcej w godzinę. Aplikacja sprawia, że tę godzinę możesz spędzić gdziekolwiek.",
+        items: [
+          {
+            title: "Zamówienie w te dwie minuty, które naprawdę masz",
+            desc: "Kolejka, dojazd, poczekalnia. Opisanie książki zajmuje minutę, a silnik pracuje, kiedy ty robisz swoje.",
+          },
+          {
+            title: "Plan zatwierdzasz tam, gdzie jesteś",
+            desc: "Struktura rozdziałów to jedyna decyzja, która blokuje wszystko dalej. Zadanie tej wielkości nie powinno wymagać laptopa.",
+          },
+          {
+            title: "Czytasz na urządzeniu, na którym czytasz",
+            desc: "Gotowy PDF i EPUB otwierają się w aplikacji, więc książkę wygenerowaną rano przeczytasz wieczorem na kanapie, bez przerzucania plików między urządzeniami.",
+          },
+          {
+            title: "Płatność przez Google Play",
+            desc: "Płacisz kontem Play, które już masz, w złotówkach, a paragon i zasady zwrotów obsługuje Google.",
+          },
+        ],
+      },
+      split: {
+        title: "Aplikacja i wersja web to jedno konto",
+        sub: "Dwa okna na te same książki, a każde jest w czymś lepsze.",
+        appTitle: "Zrób w aplikacji",
+        appItems: [
+          "Zamów nową książkę i zapłać przez Google Play",
+          "Zatwierdź albo odrzuć plan rozdziałów",
+          "Śledź powstawanie etap po etapie",
+          "Otwórz, przeczytaj i wyślij gotowy PDF oraz EPUB",
+        ],
+        webTitle: "Zrób w przeglądarce",
+        webItems: [
+          "Popraw tekst rozdziału w pełnym edytorze",
+          "Wygeneruj ponownie pojedynczy rozdział albo ilustrację",
+          "Przekompiluj PDF i EPUB po zmianach",
+          "Zarządzaj wariantami okładki i typografią",
+        ],
+        note: "Ręczne poprawki zrobione w przeglądarce nigdy nie zostają nadpisane przez to, co robisz w aplikacji.",
+      },
+      price: {
+        title: "Ta sama cena, inaczej zapłacona",
+        body: "W aplikacji książka jest jednorazowym zakupem w Google Play, rozliczanym w złotówkach i z podatkiem w cenie. Dlatego kwota na telefonie nie jest wprost przeliczonym kursem dolarem z tej strony. Żadna z wersji nie ma abonamentu, a książka kupiona w aplikacji jest dokładnie tą samą książką: z pełnymi prawami komercyjnymi i bez znaku wodnego.",
+      },
+      faq: {
+        title: "Pytania o aplikację",
+        items: [
+          {
+            q: "Czy aplikacja jest darmowa?",
+            a: "Sama aplikacja jest darmowa, instalacja i przeglądanie nic nie kosztują. Płacisz dopiero, gdy zamawiasz konkretną książkę, jednorazowym zakupem w Google Play.",
+          },
+          {
+            q: "Czy potrzebuję osobnego konta?",
+            a: "Nie. To jest to samo konto InkMagnet co w wersji web. Zalogujesz się w telefonie i zobaczysz swoje dotychczasowe książki; zamówisz z telefonu, a książka pojawi się w przeglądarce.",
+          },
+          {
+            q: "Czy mogę edytować rozdziały w aplikacji?",
+            a: "Na razie nie. Aplikacja prowadzi od pomysłu do gotowej książki do pobrania. Przepisywanie tekstu rozdziałów odbywa się w edytorze webowym, do którego aplikacja linkuje jednym kliknięciem.",
+          },
+          {
+            q: "Czy jest wersja na iPhone’a?",
+            a: "Na razie nie. Na iOS działa wersja przeglądarkowa w Safari, więc zamówisz, prześledzisz i pobierzesz książkę stamtąd.",
+          },
+          {
+            q: "Jakiej wersji Androida potrzebuję?",
+            a: "Androida 7.0 (Nougat) albo nowszego.",
+          },
+          {
+            q: "Co się stanie, jeśli zamknę aplikację w trakcie pisania książki?",
+            a: "Nic się nie zatrzyma. Cały proces dzieje się na naszych serwerach, więc możesz zamknąć aplikację, stracić zasięg albo zrestartować telefon: książka powstaje dalej i czeka, gdy wrócisz.",
+          },
+        ],
+      },
+      final: {
+        title: "Zainstaluj i zacznij pierwszą książkę",
+        sub: "Instalacja za darmo. Jedna płatność za książkę, wtedy gdy zdecydujesz się ją zrobić.",
+      },
     },
     footer: {
       tagline: "Profesjonalne ebooki pisane przez AI, z prawdziwym składem.",

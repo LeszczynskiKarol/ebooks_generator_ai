@@ -1,6 +1,7 @@
 ---
 import { siteConfig } from "../config/site";
 import { useTranslations, langPrefix, type Lang } from "../i18n/ui";
+import { appPagePath } from "../lib/play";
 
 interface Props {
   lang: Lang;
@@ -79,6 +80,11 @@ const legalLinks =
               </li>
             )
           }
+          <li>
+            <a href={appPagePath(lang)} class="transition-colors hover:text-white">
+              {t.nav.app}
+            </a>
+          </li>
           <li>
             <a
               href={`${siteConfig.appUrl}/auth/login?lang=${lang}`}

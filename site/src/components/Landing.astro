@@ -11,6 +11,7 @@ import EditorMock from "./mock/EditorMock.astro";
 import ReaderMock from "./mock/ReaderMock.astro";
 import Lightbox from "./Lightbox.astro";
 import BlogTeasers from "./BlogTeasers.astro";
+import AppPromo from "./AppPromo.astro";
 
 interface Props {
   lang: Lang;
@@ -497,6 +498,9 @@ const useCaseIcons = [
       </div>
     </div>
   </section>
+
+  <!-- ━━━ Android app ━━━ -->
+  <AppPromo lang={lang} />
 
   <!-- ━━━ Universality of topics ━━━ -->
   <section class="border-t border-ink-100 bg-ink-50">

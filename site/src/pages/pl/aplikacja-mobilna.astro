@@ -1,0 +1,68 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AppLanding from "../../components/AppLanding.astro";
+import { siteConfig } from "../../config/site";
+import { useTranslations } from "../../i18n/ui";
+
+const t = useTranslations("pl");
+
+const title = "Aplikacja mobilna — generator ebooków AI na Androida";
+const description =
+  "Aplikacja InkMagnet na Androida: opisujesz temat, płacisz raz przez Google Play i dostajesz gotową książkę z researchem, składem i ilustracjami — PDF i EPUB zamówione, śledzone i pobrane z telefonu.";
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    name: "InkMagnet — generator ebooków",
+    operatingSystem: "Android 7.0+",
+    applicationCategory: "ProductivityApplication",
+    inLanguage: "pl",
+    url: siteConfig.playUrl,
+    installUrl: siteConfig.playUrl,
+    downloadUrl: siteConfig.playUrl,
+    description,
+    author: { "@type": "Organization", name: siteConfig.name, url: siteConfig.url },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "PLN",
+      description:
+        "Instalacja za darmo; książki to jednorazowe zakupy w aplikacji, od 45,99 zł.",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: t.appPage.faq.items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "InkMagnet", item: `${siteConfig.url}/pl/` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Aplikacja mobilna",
+        item: `${siteConfig.url}/pl/aplikacja-mobilna/`,
+      },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  jsonLd={jsonLd}
+  translated={true}
+  hreflangEnPath="/mobile-app/"
+  hreflangPlPath="/pl/aplikacja-mobilna/"
+>
+  <AppLanding lang="pl" />
+</BaseLayout>
