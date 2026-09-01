@@ -68,7 +68,7 @@ async function authorize(
 
 export async function autopilotRoutes(app: FastifyInstance) {
   // ━━━ POST /api/admin/books/generate ━━━
-  // Body: { topic (required, ≥5 chars), title?, targetPages?, language?,
+  // Body: { topic or title (one of them, ≥5 chars), targetPages?, language?,
   //         guidelines?, stylePreset?, bookFormat?, customColors?[],
   //         authorName?, subtitle?, coverOption?, useAiImages?,
   //         imageGuidelines?, imageDensity?, footnoteMode? }
@@ -84,11 +84,17 @@ export async function autopilotRoutes(app: FastifyInstance) {
     }
 
     const b = (request.body ?? {}) as any;
-    const topic = typeof b.topic === "string" ? b.topic.trim() : "";
+    // Topic or title — whichever the admin filled in is enough (same rule as
+    // the paid flow in projects.ts). A title-only order becomes its own topic,
+    // so research and structure downstream always have a subject to work from.
+    const topicInput = typeof b.topic === "string" ? b.topic.trim() : "";
+    const titleInput = typeof b.title === "string" ? b.title.trim() : "";
+    const topic = topicInput || titleInput;
     if (topic.length < 5) {
-      return reply
-        .status(400)
-        .send({ success: false, error: "Topic must be at least 5 characters" });
+      return reply.status(400).send({
+        success: false,
+        error: "Provide a topic or a title (at least 5 characters)",
+      });
     }
 
     // Snap pages to the nearest valid tier (same rule as the paid flow).
@@ -188,11 +194,17 @@ export async function autopilotRoutes(app: FastifyInstance) {
       });
     }
     const b = (request.body ?? {}) as any;
-    const topic = typeof b.topic === "string" ? b.topic.trim() : "";
+    // Topic or title — whichever the admin filled in is enough (same rule as
+    // the paid flow in projects.ts). A title-only order becomes its own topic,
+    // so research and structure downstream always have a subject to work from.
+    const topicInput = typeof b.topic === "string" ? b.topic.trim() : "";
+    const titleInput = typeof b.title === "string" ? b.title.trim() : "";
+    const topic = topicInput || titleInput;
     if (topic.length < 5) {
-      return reply
-        .status(400)
-        .send({ success: false, error: "Topic must be at least 5 characters" });
+      return reply.status(400).send({
+        success: false,
+        error: "Provide a topic or a title (at least 5 characters)",
+      });
     }
     // The routine reads its runtime input from the `text` param (JSON string).
     // Forward the FULL form — the routine (an agent) uses whatever is present;
@@ -277,11 +289,17 @@ export async function autopilotRoutes(app: FastifyInstance) {
     }
 
     const b = (request.body ?? {}) as any;
-    const topic = typeof b.topic === "string" ? b.topic.trim() : "";
+    // Topic or title — whichever the admin filled in is enough (same rule as
+    // the paid flow in projects.ts). A title-only order becomes its own topic,
+    // so research and structure downstream always have a subject to work from.
+    const topicInput = typeof b.topic === "string" ? b.topic.trim() : "";
+    const titleInput = typeof b.title === "string" ? b.title.trim() : "";
+    const topic = topicInput || titleInput;
     if (topic.length < 5) {
-      return reply
-        .status(400)
-        .send({ success: false, error: "Topic must be at least 5 characters" });
+      return reply.status(400).send({
+        success: false,
+        error: "Provide a topic or a title (at least 5 characters)",
+      });
     }
     const chapters = Array.isArray(b.chapters) ? b.chapters : [];
     if (
