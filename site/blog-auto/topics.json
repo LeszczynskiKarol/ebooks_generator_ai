@@ -8,7 +8,7 @@
     { "id": "a5", "plan_ref": 5, "priority": 2, "cluster": "vs", "status": "done", "slug_en": "write-a-book-with-chatgpt", "slug_pl": "czy-chatgpt-napisze-mi-ksiazke", "title_en": "Can't I just use ChatGPT or Claude to write an ebook?", "completed_at": "2026-08-31" },
     { "id": "a6", "plan_ref": 6, "priority": 1, "cluster": "vs", "status": "pending", "title_en": "Subscription vs one-time: why we charge per book, not per month" },
     { "id": "b7", "plan_ref": 7, "priority": 2, "cluster": "cost", "status": "done", "slug_en": "cost-to-create-an-ebook", "slug_pl": "ile-kosztuje-stworzenie-ebooka", "title_en": "How much does it cost to create an ebook in 2026?", "completed_at": "2026-08-23" },
-    { "id": "b8", "plan_ref": 8, "priority": 1, "cluster": "cost", "status": "pending", "title_en": "What you actually pay a ghostwriter (and what you get instead)" },
+    { "id": "b8", "plan_ref": 8, "priority": 1, "cluster": "cost", "status": "done", "slug_en": "ghostwriter-cost-what-you-get", "slug_pl": "ile-kosztuje-ghostwriter", "title_en": "What you actually pay a ghostwriter (and what you get instead)", "completed_at": "2026-09-01" },
     { "id": "b9", "plan_ref": 9, "priority": 1, "cluster": "cost", "status": "pending", "title_en": "Free AI book generators: what's the catch?" },
     { "id": "c10", "plan_ref": 10, "priority": 2, "cluster": "howto", "status": "done", "slug_en": "ai-books-read-like-blog-posts", "slug_pl": "ksiazki-ai-czytaja-sie-jak-blog", "title_en": "Why most AI books read like a blog post in a PDF (and how to fix it)", "completed_at": "2026-08-24" },
     { "id": "c11", "plan_ref": 11, "priority": 1, "cluster": "howto", "status": "pending", "title_en": "What LaTeX typesetting does for a book that Word and Canva can't" },
