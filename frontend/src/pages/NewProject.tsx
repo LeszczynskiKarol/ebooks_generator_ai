@@ -115,12 +115,14 @@ const COLOR_ROLE_KEYS = [
   "newProject.colorRoleTertiary",
 ];
 
+// Title and topic are interchangeable inputs for the same thing: what the book
+// is about. Requiring both is friction — someone who arrives with a finished
+// title in mind shouldn't have to reword it as a "topic" to get past the form.
+// Exactly one of them is enough; the backend copies a title-only order into the
+// topic field so research and structure still have a subject.
 const makeSchema = (lang: AppLang) =>
   z.object({
-    topic: z
-      .string()
-      .min(5, translate(lang, "newProject.errMinChars"))
-      .max(500),
+    topic: z.string().max(500).optional(),
     title: z.string().max(200).optional(),
     targetPages: z.number().min(MIN_PAGES).max(MAX_PAGES),
     language: z.string().default("en"),
@@ -131,7 +133,26 @@ const makeSchema = (lang: AppLang) =>
     imageGuidelines: z.string().max(1000).optional(),
     imageDensity: z.enum(["standard", "rich"]).default("standard"),
     footnoteMode: z.enum(["auto", "always", "never"]).default("auto"),
-  });
+  })
+    .superRefine((data, ctx) => {
+      const topic = (data.topic ?? "").trim();
+      const title = (data.title ?? "").trim();
+      if (!topic && !title) {
+        const message = translate(lang, "newProject.errTitleOrTopic");
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["title"], message });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["topic"], message });
+        return;
+      }
+      // Whichever one the user did fill has to actually say something.
+      const subject = topic || title;
+      if (subject.length < 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: topic ? ["topic"] : ["title"],
+          message: translate(lang, "newProject.errMinChars"),
+        });
+      }
+    });
 type FormData = z.infer<ReturnType<typeof makeSchema>>;
 
 export default function NewProject() {
@@ -427,6 +448,9 @@ export default function NewProject() {
             <BookOpen className="w-5 h-5 text-primary-600 dark:text-primary-400" />{" "}
             {t("newProject.bookDetails")}
           </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 -mt-2">
+            {t("newProject.titleOrTopicHint")}
+          </p>
 
           <div>
             <label className={labelCls}>{t("newProject.bookTitleLabel")}</label>
@@ -439,6 +463,11 @@ export default function NewProject() {
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
               {t("newProject.bookTitleHelp")}
             </p>
+            {errors.title && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.title.message}
+              </p>
+            )}
           </div>
 
           <div>

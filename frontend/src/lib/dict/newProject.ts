@@ -6,14 +6,17 @@ export const en: Record<string, string> = {
 
   // Section: Book Details
   "newProject.bookDetails": "Book Details",
-  "newProject.bookTitleLabel": "Book Title (optional)",
+  "newProject.bookTitleLabel": "Book Title",
   "newProject.bookTitlePlaceholder": "e.g., The SaaS Playbook",
-  "newProject.bookTitleHelp": "Leave empty — we'll suggest one based on your topic",
-  "newProject.topicLabel": "Topic / Subject *",
+  "newProject.bookTitleHelp":
+    "Leave empty — we'll suggest one based on your topic",
+  "newProject.topicLabel": "Topic / Subject",
   "newProject.topicPlaceholder":
     "e.g., A comprehensive guide to starting a SaaS business in 2025...",
   "newProject.topicHelp":
     "The more specific the topic, the better the book — audience, scope, angle.",
+  "newProject.titleOrTopicHint":
+    "Fill in the title or the topic — either one is enough.",
   "newProject.guidelinesLabel": "Guidelines (optional)",
   "newProject.guidelinesPlaceholder":
     "e.g., Focus on practical examples, include case studies...",
@@ -178,6 +181,7 @@ export const en: Record<string, string> = {
 
   // Validation
   "newProject.errMinChars": "Min 5 chars",
+  "newProject.errTitleOrTopic": "Fill in the title or the topic",
 };
 
 export const pl: Record<string, string> = {
@@ -188,11 +192,13 @@ export const pl: Record<string, string> = {
 
   // Section: Book Details
   "newProject.bookDetails": "Szczegóły książki",
-  "newProject.bookTitleLabel": "Tytuł książki (opcjonalnie)",
+  "newProject.bookTitleLabel": "Tytuł książki",
   "newProject.bookTitlePlaceholder": "np. Poradnik SaaS",
   "newProject.bookTitleHelp":
     "Zostaw puste — zaproponujemy tytuł na podstawie tematu",
-  "newProject.topicLabel": "Temat / Zagadnienie *",
+  "newProject.titleOrTopicHint":
+    "Wypełnij tytuł albo temat — wystarczy jedno z dwóch.",
+  "newProject.topicLabel": "Temat / Zagadnienie",
   "newProject.topicPlaceholder":
     "np. Kompleksowy przewodnik po zakładaniu firmy SaaS w 2025 roku...",
   "newProject.topicHelp":
@@ -364,4 +370,5 @@ export const pl: Record<string, string> = {
 
   // Validation
   "newProject.errMinChars": "Min. 5 znaków",
+  "newProject.errTitleOrTopic": "Wypełnij tytuł albo temat",
 };

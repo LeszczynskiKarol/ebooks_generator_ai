@@ -120,10 +120,19 @@ export async function projectRoutes(app: FastifyInstance) {
       paymentProvider,
     } = request.body as any;
 
-    if (!topic || topic.length < 5) {
-      return reply
-        .status(400)
-        .send({ success: false, error: "Topic must be at least 5 characters" });
+    // A book needs a subject, but the user may express it either way: as a
+    // topic ("30-day bodyweight plan for beginners") or straight as a title
+    // ("The 12-Week Weight Loss Blueprint"). Either one alone is enough —
+    // a title-only order becomes its own topic, so research and structure
+    // downstream always have something to work from.
+    const topicInput = typeof topic === "string" ? topic.trim() : "";
+    const titleInput = typeof title === "string" ? title.trim() : "";
+    const effectiveTopic = topicInput || titleInput;
+    if (effectiveTopic.length < 5) {
+      return reply.status(400).send({
+        success: false,
+        error: "Provide a topic or a title (at least 5 characters)",
+      });
     }
 
     // Mobile app pays through Google Play (POST /api/play/verify) — no Stripe
@@ -166,8 +175,8 @@ export async function projectRoutes(app: FastifyInstance) {
     const project = await prisma.project.create({
       data: {
         userId: request.user.userId,
-        topic,
-        title: title || null,
+        topic: effectiveTopic,
+        title: titleInput || null,
         targetPages: pages,
         language: language || "en",
         guidelines: guidelines || null,
