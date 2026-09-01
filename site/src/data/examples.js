@@ -95,6 +95,30 @@ export const examples = [
     },
   },
   {
+    slug: "chatgpt-at-work-practical-office-guide",
+    title: "ChatGPT at Work — A Practical Guide for the Office",
+    lang: "en",
+    category: "tech",
+    style: "Modern",
+    pages: 49,
+    desc: {
+      pl: "Angielskie wydanie przewodnika o ChatGPT w biurze — pisanie, arkusze, spotkania, automatyzacje i zasady bezpieczeństwa danych firmowych.",
+      en: "Prompting that actually saves time, spreadsheets and data analysis, meeting notes, automations and the rules for company data.",
+    },
+  },
+  {
+    slug: "chatgpt-w-pracy-biurowej-praktyczny-przewodnik",
+    title: "ChatGPT w pracy biurowej — praktyczny przewodnik",
+    lang: "pl",
+    category: "tech",
+    style: "Modern",
+    pages: 53,
+    desc: {
+      pl: "Prompty, które realnie oszczędzają czas, arkusze i analiza danych, notatki ze spotkań, automatyzacje oraz zasady bezpieczeństwa danych firmowych.",
+      en: "Polish edition of the ChatGPT office guide — prompting, spreadsheets, meeting notes, automations and company data safety.",
+    },
+  },
+  {
     slug: "thermomix-proste-obiady-dla-zabieganych",
     title: "Thermomix — proste obiady dla zabieganych",
     lang: "pl",
