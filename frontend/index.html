@@ -8,17 +8,30 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>InkMagnet — AI eBook Generator</title>
-    <!-- GA4 (same property as inkmagnet.com) with Consent Mode v2 defaults DENIED:
-         no cookies are set, only cookieless consent pings, which is enough for
-         sign_up counts + country/source breakdown. -->
+    <!-- GA4 (same property as inkmagnet.com), Consent Mode v2 with two defaults:
+         analytics GRANTED worldwide, everything DENIED in the EEA + UK + CH,
+         where prior consent is legally required. This app has no cookie banner
+         and lives on its own origin, so EEA visitors stay on cookieless consent
+         pings — enough for sign_up counts + country/source breakdown. Keep this
+         region list in sync with site/src/components/Analytics.astro. -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       window.gtag = gtag;
       gtag('consent', 'default', {
         ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
-        analytics_storage: 'denied', functionality_storage: 'granted',
+        analytics_storage: 'granted', functionality_storage: 'granted',
         personalization_storage: 'denied', security_storage: 'granted',
+      });
+      gtag('consent', 'default', {
+        ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        region: [
+          'AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU',
+          'IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE',
+          'IS','LI','NO',
+          'GB','CH',
+        ],
       });
     </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QLDSL0FSYN"></script>

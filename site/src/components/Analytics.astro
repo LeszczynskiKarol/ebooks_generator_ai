@@ -1,6 +1,13 @@
 ---
-// GA4 + Consent Mode v2. Defaults DENIED before gtag.js loads; CookieConsent.astro
-// flips analytics_storage on accept. Pattern ported from claude-astro-generator.
+// GA4 + Consent Mode v2. Two defaults, both set before gtag.js loads:
+//   • worldwide  — analytics_storage GRANTED (ads still denied; we run no ads)
+//   • EEA+UK+CH  — everything DENIED until the banner is accepted, because
+//     that is where prior consent is legally required (GDPR/ePrivacy, UK PECR,
+//     Swiss revDSG). CookieConsent.astro flips analytics_storage on accept.
+// Before 2026-09-01 the worldwide default was DENIED too, which silenced
+// analytics for the whole non-EU audience (AO/DZ/NG/SN/BR/IN — i.e. most of
+// the actual traffic): GA4 logged 10 sessions in 28 days against 21 real
+// signups recorded server-side. Pattern ported from claude-astro-generator.
 //
 // CRITICAL: the inline scripts below are raw JS — do NOT wrap their bodies in
 // template literals. Astro is:inline does not preprocess; wrapping would render
@@ -23,7 +30,7 @@ const gaId = siteConfig.ga4;
           ad_storage: 'denied',
           ad_user_data: 'denied',
           ad_personalization: 'denied',
-          analytics_storage: 'denied',
+          analytics_storage: 'granted',
           functionality_storage: 'granted',
           personalization_storage: 'denied',
           security_storage: 'granted',
@@ -35,7 +42,13 @@ const gaId = siteConfig.ga4;
           ad_user_data: 'denied',
           ad_personalization: 'denied',
           analytics_storage: 'denied',
-          region: ['PL', 'EU'],
+          region: [
+            'AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU',
+            'IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE',
+            'IS','LI','NO',
+            'GB','CH',
+          ],
+          wait_for_update: 500,
         });
 
         try {
