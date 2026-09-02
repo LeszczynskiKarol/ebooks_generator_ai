@@ -121,6 +121,10 @@ async function start() {
   });
   scheduleBuildCleanup();
 
+  // ── Abandoned-checkout reminder emails ──
+  const { startPaymentReminderSweep } = await import("./lib/paymentReminders");
+  startPaymentReminderSweep();
+
   let shuttingDown = false;
   const shutdown = async (signal: string) => {
     if (shuttingDown) return;

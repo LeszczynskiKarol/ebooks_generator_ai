@@ -86,6 +86,13 @@ model Project {
   paymentStatus   PaymentStatus @default(PENDING)
   paidAt          DateTime?
 
+  // Abandoned-checkout recovery (lib/paymentReminders.ts): how many reminder
+  // emails went out for this unpaid order and when the last one was sent.
+  // Claimed atomically (updateMany with the old count in the WHERE), so a
+  // second process can never double-send.
+  paymentRemindersSent  Int       @default(0)
+  lastPaymentReminderAt DateTime?
+
   structure         ProjectStructure?
   structureRedoUsed Boolean @default(false)
 

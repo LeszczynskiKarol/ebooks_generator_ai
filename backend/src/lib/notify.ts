@@ -58,3 +58,54 @@ export async function notifyStructureReady(projectId: string): Promise<void> {
     console.error(`🔔 notifyStructureReady(${projectId}) failed: ${err.message}`);
   }
 }
+
+/**
+ * The book finished compiling — PDF (and usually EPUB) are ready to download.
+ * Sent only for the FIRST completed version: recompiles after user edits give
+ * new versions of a book the user already has, and a fresh "your book is
+ * ready" for each of them would read as spam. Autopilot books have no waiting
+ * customer, so they are skipped the same way as in notifyStructureReady.
+ */
+export async function notifyBookCompleted(projectId: string): Promise<void> {
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: {
+        id: true,
+        title: true,
+        topic: true,
+        language: true,
+        autoPilot: true,
+        user: { select: { id: true, email: true } },
+      },
+    });
+    if (!project || project.autoPilot || !project.user) return;
+
+    const pl = project.language === "pl";
+    const bookName = project.title || project.topic;
+    const title = pl ? "Twoja książka jest gotowa" : "Your book is ready";
+    const body = pl
+      ? `„${bookName}" — PDF i EPUB czekają do pobrania.`
+      : `"${bookName}" — the PDF and EPUB are ready to download.`;
+
+    await prisma.notification.create({
+      data: {
+        userId: project.user.id,
+        type: "book_completed",
+        title,
+        body,
+        projectId: project.id,
+      },
+    });
+
+    const { sendBookCompletedEmail } = await import("./email");
+    await sendBookCompletedEmail(
+      project.user.email,
+      bookName,
+      `${APP_URL}/projects/${project.id}`,
+      pl ? "pl" : "en",
+    );
+  } catch (err: any) {
+    console.error(`🔔 notifyBookCompleted(${projectId}) failed: ${err.message}`);
+  }
+}

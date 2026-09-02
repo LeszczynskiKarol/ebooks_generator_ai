@@ -506,6 +506,13 @@ export async function compileBook(projectId: string) {
       },
     });
 
+    // First finished version → tell the owner (in-app + email). Recompiles of
+    // later versions stay silent — the user already has their book.
+    if (newVersion === 1) {
+      const { notifyBookCompleted } = await import("../lib/notify");
+      void notifyBookCompleted(projectId);
+    }
+
     return { pdfPath, pdfUrl, s3Key, version: newVersion };
   } catch (error) {
     console.error(`❌ Compilation failed:`, error);
