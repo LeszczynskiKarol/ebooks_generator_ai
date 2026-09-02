@@ -11,7 +11,7 @@
     { "id": "b8", "plan_ref": 8, "priority": 1, "cluster": "cost", "status": "done", "slug_en": "ghostwriter-cost-what-you-get", "slug_pl": "ile-kosztuje-ghostwriter", "title_en": "What you actually pay a ghostwriter (and what you get instead)", "completed_at": "2026-09-01" },
     { "id": "b9", "plan_ref": 9, "priority": 1, "cluster": "cost", "status": "pending", "title_en": "Free AI book generators: what's the catch?" },
     { "id": "c10", "plan_ref": 10, "priority": 2, "cluster": "howto", "status": "done", "slug_en": "ai-books-read-like-blog-posts", "slug_pl": "ksiazki-ai-czytaja-sie-jak-blog", "title_en": "Why most AI books read like a blog post in a PDF (and how to fix it)", "completed_at": "2026-08-24" },
-    { "id": "c11", "plan_ref": 11, "priority": 1, "cluster": "howto", "status": "pending", "title_en": "What LaTeX typesetting does for a book that Word and Canva can't" },
+    { "id": "c11", "plan_ref": 11, "priority": 1, "cluster": "howto", "status": "done", "title_en": "What LaTeX typesetting does for a book that Word and Canva can't", "slug_en": "what-latex-does-for-your-book", "slug_pl": "co-latex-daje-twojej-ksiazce", "completed_at": "2026-09-02" },
     { "id": "c12", "plan_ref": 12, "priority": 1, "cluster": "howto", "status": "pending", "title_en": "From topic to finished book: the 4-step pipeline" },
     { "id": "c13", "plan_ref": 13, "priority": 1, "cluster": "howto", "status": "pending", "title_en": "Your edits are sacred: editing an AI book without losing your changes" },
     { "id": "c14", "plan_ref": 14, "priority": 1, "cluster": "howto", "status": "pending", "title_en": "AI book covers that don't look AI-generated" },
