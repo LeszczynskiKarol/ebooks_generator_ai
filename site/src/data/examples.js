@@ -120,6 +120,18 @@ export const examples = [
     },
   },
   {
+    slug: "how-to-get-out-of-debt-step-by-step-plan",
+    title: "How to Get Out of Debt: A Step-by-Step Plan",
+    lang: "en",
+    category: "finanse",
+    style: "Minimal",
+    pages: 43,
+    desc: {
+      pl: "Angielski poradnik wychodzenia z długów na realiach USA — inwentarz zadłużenia, metody snowball i avalanche, negocjacje z wierzycielami, dane Fed i konkretne kwoty.",
+      en: "Debt inventory, snowball vs avalanche, creditor negotiations and rebuilding credit — grounded in Federal Reserve data and real dollar figures.",
+    },
+  },
+  {
     slug: "chatgpt-at-work-practical-office-guide",
     title: "ChatGPT at Work — A Practical Guide for the Office",
     lang: "en",
