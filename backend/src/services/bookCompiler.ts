@@ -708,7 +708,7 @@ export function assembleLatexDocument(p: AssembleParams): string {
         // One item = eyebrow line "PRZEPIS 52" in the section colour + an
         // unnumbered subsection title; TOC gets "52. Title".
         "\\newcommand{\\itemsection}[1]{%",
-        "  \\par\\needspace{6\\baselineskip}%",
+        "  \\par\\Needspace*{6\\baselineskip}%",
         "  \\refstepcounter{bookitem}%",
         "  \\vspace{1.6em}{\\noindent\\sffamily\\bfseries\\footnotesize\\color{sectioncolor}\\MakeUppercase{\\itemlabel}~\\thebookitem\\par}%",
         "  \\vspace{-1.5em}\\subsection*{#1}%",
@@ -731,7 +731,12 @@ export function assembleLatexDocument(p: AssembleParams): string {
     "\\usepackage{needspace}",
     // A section title's underline (titlerule) must not orphan onto the next page
     "\\let\\bforigsection\\section",
-    "\\renewcommand{\\section}{\\needspace{4\\baselineskip}\\bforigsection}",
+    // \Needspace* (exact), not \needspace (elastic): the elastic form inserts
+    // a negative penalty with stretchable glue, and under \raggedbottom that
+    // made a break right before every section essentially free — TeX left
+    // third-of-a-page gaps before headings (2026-09-02 book, p. 37).
+    // \Needspace* breaks only when the lines genuinely do not fit.
+    "\\renewcommand{\\section}{\\Needspace*{4\\baselineskip}\\bforigsection}",
     // Blank verso pages inserted before chapters must not carry running heads
     "\\makeatletter",
     "\\renewcommand{\\cleardoublepage}{\\clearpage\\if@twoside\\ifodd\\c@page\\else\\hbox{}\\thispagestyle{empty}\\newpage\\fi\\fi}",
