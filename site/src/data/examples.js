@@ -120,6 +120,18 @@ export const examples = [
     },
   },
   {
+    slug: "career-change-after-40",
+    title: "Career Change After 40",
+    lang: "en",
+    category: "kariera",
+    style: "Business",
+    pages: 38,
+    desc: {
+      pl: "Angielski poradnik przebranżowienia po czterdziestce — audyt kompetencji, przekwalifikowanie bez straty roku, ukryty rynek pracy i finansowa mechanika przejścia, na danych amerykańskiego Bureau of Labor Statistics.",
+      en: "Skills audit, reskilling without wasting a year, the hidden job market and the financial mechanics of the move — grounded in U.S. Bureau of Labor Statistics data.",
+    },
+  },
+  {
     slug: "how-to-get-out-of-debt-step-by-step-plan",
     title: "How to Get Out of Debt: A Step-by-Step Plan",
     lang: "en",
