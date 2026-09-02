@@ -2034,10 +2034,19 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
   result = result.replace(/\\\{[lcrXp|.\s{}0-9cm]+\\\}/g, "");
 
   // Validate tabularx: fix column count mismatches
+  // Both args may contain BRACED GROUPS (spec like >{\raggedright\arraybackslash}XX,
+  // width like \textwidth) — the old [^}]* capture cut the spec at the first `}`,
+  // pushed the leftover ("XX}") into the body as a fake row, and then counted
+  // the letters of \raggedright\arraybackslash as columns (→ "padded 2 cols → 6",
+  // phantom empty cells, blown-up tables in the 2026-09-02 book). Parse braces,
+  // and count only real column tokens with alignment prefixes stripped.
   result = result.replace(
-    /\\begin\{tabularx\}\{[^}]*\}\{([^}]*)\}([\s\S]*?)\\end\{tabularx\}/g,
-    (_match, colSpec, body) => {
-      const expectedCols = (colSpec.match(/[lcrXp]/g) || []).length;
+    /\\begin\{tabularx\}\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}([\s\S]*?)\\end\{tabularx\}/g,
+    (_match, _width, colSpec, body) => {
+      const bareSpec = colSpec
+        .replace(/>\{(?:[^{}]|\{[^{}]*\})*\}/g, "")
+        .replace(/[pmb]\{[^{}]*\}/g, "p");
+      const expectedCols = (bareSpec.match(/[lcrXp]/g) || []).length;
       if (expectedCols === 0) return _match;
 
       const lines = body.split("\n");
@@ -2100,7 +2109,7 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
         return padded.join(" & ") + rowEnd;
       });
 
-      return `\\begin{tabularx}{\\textwidth}{${colSpec}}${fixedLines.join("\n")}\\end{tabularx}`;
+      return `\\begin{tabularx}{${_width}}{${colSpec}}${fixedLines.join("\n")}\\end{tabularx}`;
     },
   );
 
