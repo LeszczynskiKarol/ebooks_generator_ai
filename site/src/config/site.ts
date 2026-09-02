@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "InkMagnet",
   url: "https://inkmagnet.com",
   appUrl: "https://app.inkmagnet.com",
-  email: "hello@inkmagnet.com",
+  email: "contact@inkmagnet.com",
   priceFrom: "$9.99",
   // Android app — live on Google Play since September 2026
   playId: "com.inkmagnet.app",

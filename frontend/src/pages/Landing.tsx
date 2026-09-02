@@ -1528,7 +1528,7 @@ export default function Landing() {
                 Terms
               </Link>
               <a
-                href="mailto:hello@bookforge.ai"
+                href="mailto:contact@inkmagnet.com"
                 className="text-sm text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 Contact

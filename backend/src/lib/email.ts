@@ -9,8 +9,8 @@ import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 
 const SES_REGION = process.env.SES_REGION || "us-east-1";
 const FROM =
-  process.env.SES_FROM_EMAIL || "InkMagnet <hello@inkmagnet.com>";
-const REPLY_TO = process.env.SES_REPLY_TO || "hello@inkmagnet.com";
+  process.env.SES_FROM_EMAIL || "InkMagnet <contact@inkmagnet.com>";
+const REPLY_TO = process.env.SES_REPLY_TO || "contact@inkmagnet.com";
 
 let _client: SESv2Client | null = null;
 function ses(): SESv2Client {
