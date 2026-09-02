@@ -1741,6 +1741,21 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
     },
   );
 
+  // ━━━ FIX 1a2c: \stepflow{{a, b, c}} → \stepflow{a, b, c} ━━━
+  // Model czasem "chroni" liste krokow dodatkowa para nawiasow. \foreach
+  // widzi wtedy JEDEN krok, laduje go w node o text width=2cm, a otaczajacy
+  // \resizebox{\linewidth} rozciaga ten waski slupek na cala szerokosc strony
+  // — gigantyczne litery przez 2 strony (book 2026-09-02 "Career Change
+  // After 40" s. 22-23). Zdejmujemy zewnetrzna pare, gdy obejmuje caly
+  // argument i nie zawiera zagniezdzonych nawiasow.
+  result = result.replace(
+    /\\stepflow\{\s*\{([^{}]*)\}\s*\}/g,
+    (_m: string, inner: string) => {
+      console.log(`  🔧 stepflow podwojne nawiasy → pojedyncze: ${inner.substring(0, 50)}`);
+      return `\\stepflow{${inner}}`;
+    },
+  );
+
   // ━━━ FIX 1a2b: plain tabular → tabularx ━━━
   // A bare tabular{lcl} has natural-width, non-wrapping columns: one longer
   // cell pushes the whole table past \textwidth (book 2026-09-02, table 4.2
