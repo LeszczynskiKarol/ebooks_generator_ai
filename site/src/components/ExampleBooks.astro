@@ -19,7 +19,12 @@ const catLabel: Record<string, string> = pl
   ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie", fitness: "Fitness", kariera: "Kariera", finanse: "Finanse" }
   : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic", fitness: "Fitness", kariera: "Career", finanse: "Finance" };
 const pagesWord = pl ? "stron" : "pages";
-const downloadWord = pl ? "Pobierz PDF" : "Download PDF";
+const downloadWord = pl ? "Spis treści, podgląd i PDF" : "Contents, preview & PDF";
+// Karta prowadzi na landing książki (w sekcji JEJ języka) — tam HTML-owy spis
+// treści, podgląd stron i pobranie PDF-a.
+const landingHref = (b: ExBook) =>
+  b.lang === "pl" ? `/pl/przyklady/${b.slug}/` : `/examples/${b.slug}/`;
+type ExBook = (typeof examples)[number];
 ---
 
 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -27,8 +32,7 @@ const downloadWord = pl ? "Pobierz PDF" : "Download PDF";
     {
       books.map((b) => (
         <a
-          href={`/samples/${b.slug}.pdf`}
-          download
+          href={landingHref(b)}
           class="group flex flex-col overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lg"
         >
           <div class="relative aspect-[3/4] overflow-hidden bg-ink-50">

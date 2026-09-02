@@ -1,0 +1,880 @@
+{
+ "strength-training-at-home-30-exercises": {
+  "toc": [
+   {
+    "title": "Before You Begin: Three Rules That Decide Your Results",
+    "sections": [
+     "You Have a Floor. That Is Enough — but You Need to Know How",
+     "Warm-Up and Cool-Down: Eight Minutes That Protect Your Joints",
+     "How to Read Every Exercise in This Book"
+    ]
+   },
+   {
+    "title": "Legs and Glutes: The Foundation of Strength",
+    "sections": [
+     "Why Legs Matter More Than You Think",
+     "Bodyweight Squat",
+     "Goblet Squat",
+     "Stationary Lunge",
+     "Dumbbell Lunge",
+     "Bodyweight Hip Thrust",
+     "Dumbbell Hip Thrust",
+     "Bodyweight Single-Leg Deadlift",
+     "Romanian Deadlift With Dumbbells"
+    ]
+   },
+   {
+    "title": "Trunk and Core: The Stability That Protects Your Spine",
+    "sections": [
+     "The Core Is Not Just a Six-Pack",
+     "Plank",
+     "Side Plank",
+     "Dead Bug",
+     "Hollow Body Hold",
+     "Russian Twist With a Dumbbell",
+     "Lying Leg Raise",
+     "Superman (Prone Back Extension)"
+    ]
+   },
+   {
+    "title": "Chest and Triceps: Push From the Floor to the Ceiling",
+    "sections": [
+     "The Push-Up as the Centre of the Workout, Not the Warm-Up",
+     "Standard Push-Up",
+     "Knee Push-Up (Regression)",
+     "Wide Push-Up",
+     "Close-Grip Push-Up (Triceps Push-Up)",
+     "Dumbbell Floor Press",
+     "Dumbbell Floor Fly",
+     "Dumbbell Shoulder Press",
+     "Dumbbell Skull Crusher"
+    ]
+   },
+   {
+    "title": "Back and Biceps: Pull Without a Bar",
+    "sections": [
+     "Inverted Row Under a Table",
+     "Single-Arm Dumbbell Row",
+     "Bent-Over Two-Arm Dumbbell Row",
+     "Bent-Over Reverse Fly",
+     "Dumbbell Front Raise",
+     "Dumbbell Bicep Curl",
+     "Alternating Hammer Curl"
+    ]
+   },
+   {
+    "title": "Putting It Together: Plans, Progression and What Comes Next",
+    "sections": [
+     "Plan A: Three Sessions a Week for Beginners",
+     "Plan B: An Upper/Lower Split for Those Coming Back After a Break",
+     "Progression: When and How to Increase Resistance",
+     "Nutrition and Recovery: What Happens Between Sessions",
+     "What Comes Next"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
+ },
+ "air-fryer-60-simple-recipes": {
+  "toc": [
+   {
+    "title": "Air Fryer Demystified – How to Get Started",
+    "sections": [
+     "How an Air Fryer Works",
+     "Temperatures and Times – A Cheat Sheet to Start With",
+     "Safety: Internal Temperature",
+     "Accessories and Prepping Food",
+     "The Most Common Beginner Mistakes"
+    ]
+   },
+   {
+    "title": "Breakfasts and Light Meals",
+    "sections": [
+     "Mornings Without Waiting for the Oven",
+     "Eggs in Silicone Molds",
+     "Baked Oatmeal with Apple and Cinnamon",
+     "French Toast with Cinnamon",
+     "Crispy Bacon",
+     "Egg Muffins with Bell Pepper and Spinach",
+     "Homemade Granola with Nuts",
+     "Grilled Cheese and Ham Sandwich",
+     "Banana Pancakes",
+     "Baked Apples with Honey and Nuts",
+     "Cinnamon Rolls from Ready-Made Dough"
+    ]
+   },
+   {
+    "title": "Poultry and Meat for Dinner",
+    "sections": [
+     "Meat Without Watching the Pan",
+     "Whole Roast Chicken",
+     "Chicken Thighs in Honey and Mustard",
+     "Crispy Breaded Chicken Breast",
+     "BBQ Wings",
+     "Ground Turkey Patties",
+     "Pork Neck Steaks",
+     "BBQ Pork Ribs",
+     "Pork Tenderloin with Herbs",
+     "Breaded Pork Cutlet",
+     "Beef Burgers",
+     "Meatballs in Tomato Sauce",
+     "Curry Chicken",
+     "Beef Steak"
+    ]
+   },
+   {
+    "title": "Fish, Vegetables, and Vegetarian Dishes",
+    "sections": [
+     "Light Meals for Every Day",
+     "Salmon Baked with Lemon and Dill",
+     "Garlic Shrimp",
+     "Breaded Cod",
+     "Whole Baked Trout",
+     "Tuna Steak",
+     "Whole Roasted Cauliflower",
+     "Sweet Potato Fries",
+     "Brussels Sprouts with Parmesan",
+     "Bell Peppers Stuffed with Grains",
+     "Zucchini in Parmesan Breading",
+     "Baked Falafel",
+     "Sesame Tofu",
+     "Mushrooms Stuffed with Cheese"
+    ]
+   },
+   {
+    "title": "Snacks, Fries, and Sides",
+    "sections": [
+     "Movie Night Without Ordering In",
+     "Classic Potato Fries",
+     "Potato Fritters",
+     "Breaded Onion Rings",
+     "Cheese Sticks",
+     "Homemade Chicken Nuggets",
+     "Kale Chips",
+     "Pierogi from the Freezer",
+     "Cheese Quesadilla",
+     "Baked Nachos",
+     "Cheese Croissants",
+     "Corn on the Cob",
+     "Soft Pretzels"
+    ]
+   },
+   {
+    "title": "Desserts and a Sweet End to the Day",
+    "sections": [
+     "Sweet Things Without Heating the Whole Oven",
+     "Chocolate Brownie in a Mold",
+     "Mini Apple Pie",
+     "Bananas in Puff Pastry",
+     "Oat Cookies",
+     "Baked Peaches with Cinnamon",
+     "Chocolate Muffins",
+     "Apple Crumble",
+     "Croissants with Chocolate Spread",
+     "Baked Pears in Maple Syrup",
+     "Chocolate Chip Cookies",
+     "Mini Cheesecake",
+     "Doughnuts from Ready-Made Dough",
+     "Summary"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 7
+ },
+ "thermomix-simple-dinners": {
+  "toc": [
+   {
+    "title": "Why the Thermomix Changes Weeknight Cooking for Busy People",
+    "sections": [
+     "The Evening When There Is No Energy Left to Cook",
+     "What the Thermomix Does Differently From an Ordinary Pan",
+     "This Is Not a Passing Fashion",
+     "Who This Book Is For",
+     "How to Use This Book"
+    ]
+   },
+   {
+    "title": "Getting to Know the Machine: The Functions That Really Speed Up Cooking",
+    "sections": [
+     "Scales, Mixer and Pan in One Bowl",
+     "Steaming Without Watching the Pan",
+     "Slow Cooking and Sous Vide, or Technique Without Hurry",
+     "Settings Worth Knowing by Heart",
+     "A Screen That Guides You Step by Step",
+     "How to Scale Recipes to the Size of Your Family",
+     "The Accessories That Genuinely Shorten Dinner",
+     "Safety and Quick Cleaning",
+     "Common Mistakes in the First Few Weeks"
+    ]
+   },
+   {
+    "title": "Soups and One-Pot Dishes for a Difficult Day",
+    "sections": [
+     "Soup as the Rescue for an Evening Without a Plan",
+     "Cream of Tomato With Basil",
+     "Cream of Pumpkin and Carrot With Ginger",
+     "Cream of Broccoli and Cheese",
+     "One-Pot Chicken Broth Soup With Noodles",
+     "One-Pot Dish: Vegetable and Meat Goulash",
+     "The Extras That Turn a Soup Into a Full Dinner",
+     "How to Adapt the Base Recipes",
+     "Frozen Vegetables as a Base for a Difficult Week"
+    ]
+   },
+   {
+    "title": "Main Courses in 30 Minutes: Meat, Fish and Plant-Based Cooking",
+    "sections": [
+     "The Principle of a Complete Meal From One Bowl",
+     "Chicken Curry With Steamed Rice",
+     "Steamed Salmon With Vegetables and Lemon Dressing",
+     "Plant-Based Lentil Bolognese",
+     "Teriyaki Beef With Steamed Vegetables",
+     "Turkey Patties With Mashed Potato",
+     "How to Match Cooking Time to the Type of Protein",
+     "Serving and Portioning on the Plate",
+     "A Template for Your Own Layered Dish",
+     "Sauces That Rescue a Dish at the Last Moment"
+    ]
+   },
+   {
+    "title": "Organising the Week: Planning, Batch Cooking and Freezing",
+    "sections": [
+     "Planning Saves More Than Fast Cooking Does",
+     "Batch Cooking: What to Make on Sunday",
+     "Freezing Without Losing Flavour",
+     "A Shopping List Without Random Purchases",
+     "A Sample Plan for the Week",
+     "When the Plan Does Not Work",
+     "In Summary: Fewer Decisions, More Dinners on the Table"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
+ },
+ "trening-silowy-w-domu-30-cwiczen": {
+  "toc": [
+   {
+    "title": "Zanim zaczniesz: trzy zasady, które decydują o wynikach",
+    "sections": [
+     "Masz podłogę. To wystarczy — ale musisz wiedzieć jak",
+     "Rozgrzewka i cool-down: 8 minut, które chronią twoje stawy",
+     "Jak czytać każde ćwiczenie w tej książce"
+    ]
+   },
+   {
+    "title": "Nogi i pośladki: fundament siły",
+    "sections": [
+     "Dlaczego nogi są ważniejsze niż myślisz",
+     "Przysiad klasyczny",
+     "Przysiad z hantlami (goblet squat)",
+     "Wykrok w miejscu",
+     "Wykrok z hantlami",
+     "Hip thrust bez sprzętu",
+     "Hip thrust z hantlą",
+     "Martwy ciąg na jednej nodze bez obciążenia",
+     "Martwy ciąg z hantlami (Romanian deadlift)"
+    ]
+   },
+   {
+    "title": "Tułów i core: stabilność, która chroni kręgosłup",
+    "sections": [
+     "Core to nie tylko sześciopak",
+     "Deska (plank)",
+     "Plank boczny",
+     "Dead bug",
+     "Hollow body hold",
+     "Rosyjskie skręty z hantlą",
+     "Wznos nóg w leżeniu",
+     "Superman (unoszenie tułowia w leżeniu przodem)"
+    ]
+   },
+   {
+    "title": "Klatka piersiowa i triceps: push od podłogi do sufitu",
+    "sections": [
+     "Pompka jako centrum treningowe, nie rozgrzewka",
+     "Pompka klasyczna",
+     "Pompka z ugiętymi kolanami (regresja)",
+     "Pompka szeroka",
+     "Pompka wąska (tricepsowa)",
+     "Wyciskanie hantli w leżeniu na podłodze (floor press)",
+     "Rozpiętki z hantlami w leżeniu na podłodze",
+     "Wyciskanie hantli nad głowę (shoulder press)",
+     "Francuz z hantlą (skull crusher)"
+    ]
+   },
+   {
+    "title": "Plecy i biceps: pull bez drążka",
+    "sections": [
+     "Odwrócona pompka (inverted row pod stołem)",
+     "Wiosłowanie hantlą w oparciu (single-arm row)",
+     "Wiosłowanie oburącz w opadzie tułowia",
+     "Odwodzenie ramion z hantlami w opadzie (reverse fly)",
+     "Wznosy ramion przodem z hantlami (front raise)",
+     "Uginanie ramion z hantlami (bicep curl)",
+     "Uginanie naprzemienne z rotacją nadgarstka (hammer curl)"
+    ]
+   },
+   {
+    "title": "Jak to złożyć: plany, progresja i co dalej",
+    "sections": [
+     "Plan A: trzy sesje w tygodniu dla początkującego",
+     "Plan B: podział góra/dół dla wracających po przerwie",
+     "Progresja: kiedy i jak zwiększać opór",
+     "Odżywianie i regeneracja: co dzieje się między sesjami",
+     "Co dalej"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
+ },
+ "air-fryer-60-prostych-przepisow": {
+  "toc": [
+   {
+    "title": "Air fryer bez tajemnic – jak zacząć",
+    "sections": [
+     "Jak działa frytkownica beztłuszczowa",
+     "Temperatury i czasy – ściągawka na start",
+     "Bezpieczeństwo: temperatura wewnętrzna",
+     "Akcesoria i przygotowanie potraw",
+     "Najczęstsze błędy początkujących"
+    ]
+   },
+   {
+    "title": "Śniadania i lekkie posiłki",
+    "sections": [
+     "Poranek bez czekania na piekarnik",
+     "Jajka w silikonowych foremkach",
+     "Owsianka pieczona z jabłkiem i cynamonem",
+     "Tosty francuskie z cynamonem",
+     "Chrupiący bekon",
+     "Muffinki jajeczne z papryką i szpinakiem",
+     "Domowa granola z orzechami",
+     "Grillowana kanapka z serem i szynką",
+     "Placuszki bananowe",
+     "Pieczone jabłka z miodem i orzechami",
+     "Bułeczki cynamonowe z gotowego ciasta"
+    ]
+   },
+   {
+    "title": "Drób i mięso na obiad",
+    "sections": [
+     "Mięso bez pilnowania patelni",
+     "Kurczak w całości",
+     "Udka z kurczaka w miodzie i musztardzie",
+     "Chrupiąca pierś z kurczaka w panierce",
+     "Skrzydełka BBQ",
+     "Kotlety mielone z indyka",
+     "Karkówka wieprzowa",
+     "Żeberka wieprzowe BBQ",
+     "Polędwiczki wieprzowe w ziołach",
+     "Kotlet schabowy w panierce",
+     "Burgery wołowe",
+     "Klopsiki w sosie pomidorowym",
+     "Kurczak curry",
+     "Stek wołowy"
+    ]
+   },
+   {
+    "title": "Ryby, warzywa i dania wegetariańskie",
+    "sections": [
+     "Lekkie dania na co dzień",
+     "Łosoś pieczony z cytryną i koperkiem",
+     "Krewetki czosnkowe",
+     "Panierowany dorsz",
+     "Pstrąg pieczony w całości",
+     "Stek z tuńczyka",
+     "Kalafior pieczony w całości",
+     "Frytki z batatów",
+     "Brukselka z parmezanem",
+     "Papryka faszerowana kaszą",
+     "Cukinia w panierce parmezanowej",
+     "Falafel pieczony",
+     "Tofu w sezamie",
+     "Pieczarki faszerowane serem"
+    ]
+   },
+   {
+    "title": "Przekąski, frytki i dodatki",
+    "sections": [
+     "Wieczór filmowy bez zamawiania jedzenia",
+     "Frytki ziemniaczane klasyczne",
+     "Placki ziemniaczane",
+     "Krążki cebulowe w panierce",
+     "Paluszki serowe",
+     "Domowe nuggetsy z kurczaka",
+     "Chipsy z jarmużu",
+     "Pierogi z zamrażarki",
+     "Quesadilla z serem",
+     "Nachos zapiekane",
+     "Rogaliki francuskie z serem",
+     "Kukurydza pieczona w kolbie",
+     "Miękkie precle"
+    ]
+   },
+   {
+    "title": "Desery i słodkie zakończenie dnia",
+    "sections": [
+     "Słodkości bez nagrzewania całego piekarnika",
+     "Brownie czekoladowe w foremce",
+     "Mini szarlotka",
+     "Banany w cieście francuskim",
+     "Ciasteczka owsiane",
+     "Pieczone brzoskwinie z cynamonem",
+     "Muffinki czekoladowe",
+     "Crumble jabłkowy",
+     "Rogaliki z nutellą",
+     "Pieczone gruszki w syropie klonowym",
+     "Ciastka czekoladowe",
+     "Mini sernik",
+     "Pączki z gotowego ciasta",
+     "Podsumowanie"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 7
+ },
+ "zmiana-zawodu-po-40-przewodnik-przebranzowienia": {
+  "toc": [
+   {
+    "title": "Zanim zmienisz zawód: uczciwy rachunek sumienia",
+    "sections": [
+     "Zmęczenie pracą a zmęczenie zawodem",
+     "Przekonania, które kosztują więcej niż fakty",
+     "Co zmienia się po czterdziestce, a czego nie warto ignorować",
+     "Ile kosztuje zostanie na miejscu",
+     "Rozmowa z domownikami, zanim zacznie się rozmowa z rynkiem",
+     "Zmiana z wyboru i zmiana z konieczności",
+     "Kiedy lepiej poczekać",
+     "Pięć pytań przed dalszą lekturą",
+     "Głosy zniechęcające i jak je ważyć",
+     "Co odróżnia udaną zmianę od nieudanej"
+    ]
+   },
+   {
+    "title": "Co już masz: audyt kompetencji, sieci i zasobów",
+    "sections": [
+     "Kapitał przenaszalny, nie stanowisko",
+     "Formalne wykształcenie a doświadczenie praktyczne",
+     "Trzy warstwy kompetencji",
+     "Sieć kontaktów, o której zapomniałeś",
+     "Marka osobista, o której nie wiedziałeś",
+     "Bufor finansowy: ile naprawdę potrzebujesz",
+     "Czas i energia jako zasób, nie tylko pieniądze",
+     "Opinia z zewnątrz jako korekta ślepych plamek",
+     "Mapa zasobów: podsumowanie audytu"
+    ]
+   },
+   {
+    "title": "Dokąd: wybór nowego kierunku w oparciu o dane rynku pracy",
+    "sections": [
+     "Moda kontra realny popyt",
+     "Co mówią dane o zawodach deficytowych",
+     "Dlaczego same statystyki krajowe nie wystarczą",
+     "Kiedy branża wygląda dobrze z zewnątrz, a nie jest",
+     "Metoda przecięcia trzech kręgów",
+     "Cztery źródła, które warto sprawdzić samodzielnie",
+     "Trzy ścieżki przebranżowienia",
+     "Kiedy dwa kierunki wyglądają równie dobrze",
+     "Weryfikacja hipotezy, zanim zainwestujesz"
+    ]
+   },
+   {
+    "title": "Za co: finansowanie i logistyka przekwalifikowania",
+    "sections": [
+     "Cztery pytania, zanim policzysz cokolwiek",
+     "Ile naprawdę kosztuje i trwa przekwalifikowanie",
+     "Krajowy Fundusz Szkoleniowy",
+     "Urząd pracy i malejące budżety aktywizacji",
+     "Negocjowanie elastyczności z obecnym pracodawcą",
+     "Urlop szkoleniowy i urlop bezpłatny",
+     "Koszty nauki jako koszt prowadzenia działalności",
+     "Jak wygląda proces wnioskowania o KFS w praktyce",
+     "Dofinansowanie na start własnej działalności",
+     "Ulga na start dla nowej działalności",
+     "Budżet domowy na czas przejścia"
+    ]
+   },
+   {
+    "title": "Jak: zdobywanie kompetencji, wiarygodności i przełamywanie ageizmu",
+    "sections": [
+     "Tempo nauki dorosłych: mity i fakty",
+     "Wybór formy nauki dopasowanej do zawodu",
+     "Portfolio jako dowód, nie deklaracja",
+     "Syndrom oszusta w nowej roli ucznia",
+     "Ageizm w rekrutacji: co mówią dane",
+     "Egzaminy i certyfikaty: kiedy naprawdę są potrzebne",
+     "Strategie przełamywania bariery wieku",
+     "Mentoring i społeczności branżowe",
+     "Widoczność i storytelling zmiany"
+    ]
+   },
+   {
+    "title": "Start: wejście na nowy rynek, negocjacje i pierwsze miesiące",
+    "sections": [
+     "List motywacyjny, który nie przeprasza",
+     "CV, które opowiada historię zmiany",
+     "Rozmowa kwalifikacyjna: pytanie, które zawsze padnie",
+     "Referencje z poprzedniej branży",
+     "Negocjacje: akceptacja niższej stawki, ale z granicą czasową",
+     "Kontroferta od obecnego pracodawcy",
+     "Alternatywa: samozatrudnienie i freelancing",
+     "Kiedy pierwsza próba się nie udaje",
+     "Młodszy przełożony, starszy podwładny",
+     "Pierwsze dziewięćdziesiąt dni"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
+ },
+ "jak-wyjsc-z-dlugow-plan-krok-po-kroku": {
+  "toc": [
+   {
+    "title": "Ile naprawdę jesteś winny i komu — diagnoza bez wstydu",
+    "sections": [
+     "Nie jesteś sam w tej sytuacji",
+     "Nie wszystkie długi działają tak samo",
+     "Arkusz długów — pierwsze narzędzie, które musisz mieć",
+     "Rozmowa z bliskimi, zanim dowiedzą się od komornika",
+     "Sprawdź się w rejestrach, zanim ktoś zrobi to za ciebie",
+     "Dlaczego panika pogarsza sytuację",
+     "Uważaj na firmy obiecujące magiczne oddłużenie"
+    ]
+   },
+   {
+    "title": "Zatrzymaj krwotok — budżet ratunkowy i pierwsze 30 dni",
+    "sections": [
+     "Hierarchia płatności, która chroni to, co najważniejsze",
+     "Budżet awaryjny w trzydzieści minut",
+     "Kiedy budżet trzeba zrewidować po tygodniu",
+     "Czego nie robić w pierwszym miesiącu",
+     "Świadczenia, o których łatwo zapomnieć w kryzysie",
+     "Dodatkowe źródła gotówki, zanim sięgniesz po kredyt",
+     "Wakacje kredytowe i inne programy dla kredytobiorców hipotecznych"
+    ]
+   },
+   {
+    "title": "Rozmowa z wierzycielem — jak negocjować i czego nie podpisywać",
+    "sections": [
+     "Zanim zadzwonisz, zbierz fakty",
+     "Trzy scenariusze rozmowy",
+     "Jak sformułować pismo z propozycją",
+     "Czego pilnować w treści ugody",
+     "Mediacja jako alternatywa dla sądu",
+     "Gdy negocjacje nie przynoszą efektu",
+     "Granice, których windykator nie może przekroczyć",
+     "Jak brzmi taka rozmowa w praktyce"
+    ]
+   },
+   {
+    "title": "Kula śnieżna czy lawina — strategia spłaty wielu długów",
+    "sections": [
+     "Metoda lawiny: najpierw najdroższy dług",
+     "Metoda kuli śnieżnej: najpierw najmniejszy dług",
+     "Śledzenie postępu bez utraty motywacji",
+     "Wersja hybrydowa dla trudnych przypadków",
+     "Gdy nie starcza nawet na minimalne raty",
+     "Kiedy konsolidacja ma sens, a kiedy jest pułapką",
+     "Co zrobić z kartą kredytową po spłacie"
+    ]
+   },
+   {
+    "title": "Komornik u drzwi — egzekucja, kwota wolna, twoje prawa",
+    "sections": [
+     "Jak dług trafia do komornika",
+     "Co komornik może zająć, a czego nie",
+     "Etapy postępowania egzekucyjnego",
+     "Koszty egzekucji i kto je ponosi",
+     "Jak zareagować na zajęcie",
+     "Gdy komorników jest kilku naraz",
+     "Wpis w rejestrze i jego realne skutki",
+     "Komornik sądowy a egzekucja administracyjna"
+    ]
+   },
+   {
+    "title": "Upadłość konsumencka i życie bez długów",
+    "sections": [
+     "Dla kogo jest upadłość konsumencka",
+     "Jak wygląda cała procedura",
+     "Upadłość a wspólne zobowiązania małżonków",
+     "Rola doradcy restrukturyzacyjnego",
+     "Kiedy upadłość to zły pomysł",
+     "Życie po wyjściu z długów",
+     "Co dalej, gdy fundusz awaryjny jest już zbudowany",
+     "Odbudowa zdolności kredytowej bez powrotu do długów",
+     "Comiesięczny przegląd budżetu jako nawyk na stałe"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
+ },
+ "chatgpt-at-work-practical-office-guide": {
+  "toc": [
+   {
+    "title": "Your First Day with ChatGPT at the Office",
+    "sections": [
+     "A Conversation, Not an Oracle",
+     "Iterate Instead of Starting Over",
+     "Three Levels of Memory: Instructions, Memory, Projects",
+     "Where It Pays Off Fastest at the Office",
+     "What to Avoid at the Start"
+    ]
+   },
+   {
+    "title": "Writing and Editing Office Documents",
+    "sections": [
+     "Anatomy of a good writing prompt",
+     "Emails that do not need rewriting",
+     "From a long document to five bullet points",
+     "Editing someone else's text",
+     "Longer documents built in stages",
+     "Shifting register and translating tone between readers",
+     "Outlook and email drafts from inside the inbox"
+    ]
+   },
+   {
+    "title": "Data and Spreadsheets",
+    "sections": [
+     "What Advanced Data Analysis is",
+     "Cleaning data step by step",
+     "Statistics, segmentation and charts",
+     "Combining several spreadsheets at once",
+     "Excel formulas on demand",
+     "The ChatGPT add-in inside Excel"
+    ]
+   },
+   {
+    "title": "Meetings, Notes and Staying Organized",
+    "sections": [
+     "Recording and summarizing a meeting",
+     "From a summary to a specific document",
+     "Teams integration and searching for decisions",
+     "Templates for recurring tasks",
+     "Working with long project documents",
+     "Sorting out your own task list",
+     "When a handwritten note still wins"
+    ]
+   },
+   {
+    "title": "Automation, Integrations and Company Data Security",
+    "sections": [
+     "ChatGPT Work: an agent that carries out tasks on its own",
+     "The integrations productivity actually rests on",
+     "Where trust in automation ends",
+     "Company data security",
+     "How to build this habit in a team"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 5
+ },
+ "chatgpt-w-pracy-biurowej-praktyczny-przewodnik": {
+  "toc": [
+   {
+    "title": "Pierwszy dzień z ChatGPT w biurze",
+    "sections": [
+     "Rozmowa, nie wyrocznia",
+     "Iteracja zamiast zaczynania od nowa",
+     "Trzy poziomy pamięci: instrukcje, pamięć, projekty",
+     "Gdzie w biurze przyda się najszybciej",
+     "Czego unikać na start"
+    ]
+   },
+   {
+    "title": "Pisanie i redagowanie tekstów biurowych",
+    "sections": [
+     "Anatomia dobrego polecenia do tekstu",
+     "E-maile, które nie wymagają przepisywania",
+     "Od długiego dokumentu do pięciu punktów",
+     "Redakcja cudzego tekstu",
+     "Dłuższe dokumenty budowane etapami",
+     "Zmiana rejestru i tłumaczenie tonu między odbiorcami",
+     "Outlook i szkice maili z poziomu skrzynki"
+    ]
+   },
+   {
+    "title": "Dane i arkusze kalkulacyjne",
+    "sections": [
+     "Czym jest Advanced Data Analysis",
+     "Czyszczenie danych krok po kroku",
+     "Statystyki, segmentacja i wykresy",
+     "Łączenie kilku arkuszy naraz",
+     "Formuły Excela na żądanie",
+     "Dodatek ChatGPT bezpośrednio w Excelu"
+    ]
+   },
+   {
+    "title": "Spotkania, notatki i organizacja pracy",
+    "sections": [
+     "Nagrywanie i podsumowanie spotkania",
+     "Od podsumowania do konkretnego dokumentu",
+     "Integracja z Teams i wyszukiwanie decyzji",
+     "Szablony powtarzalnych zadań",
+     "Praca z długimi dokumentami projektowymi",
+     "Porządkowanie własnej listy zadań",
+     "Kiedy notatka odręczna wciąż wygrywa"
+    ]
+   },
+   {
+    "title": "Automatyzacja, integracje i bezpieczeństwo danych firmowych",
+    "sections": [
+     "ChatGPT Work: agent, który wykonuje zadania samodzielnie",
+     "Integracje, na których faktycznie opiera się produktywność",
+     "Gdzie kończy się zaufanie do automatyzacji",
+     "Bezpieczeństwo danych firmowych",
+     "Jak wprowadzić ten nawyk w zespole"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 5
+ },
+ "thermomix-proste-obiady-dla-zabieganych": {
+  "toc": [
+   {
+    "title": "Dlaczego Thermomix zmienia gotowanie obiadów w zabieganym tygodniu",
+    "sections": [
+     "Wieczór, w którym nie ma siły na gotowanie",
+     "Co Thermomix robi inaczej niż zwykły garnek",
+     "To nie jest chwilowa moda",
+     "Dla kogo jest ta książka",
+     "Jak korzystać z tej książki"
+    ]
+   },
+   {
+    "title": "Poznaj urządzenie: funkcje, które naprawdę przyspieszają gotowanie",
+    "sections": [
+     "Waga, mikser i garnek w jednym naczyniu",
+     "Gotowanie na parze bez pilnowania garnka",
+     "Wolne gotowanie i sous vide, czyli technika bez pośpiechu",
+     "Ustawienia, które warto znać na pamięć",
+     "Ekran, który prowadzi krok po kroku",
+     "Jak skalować przepisy pod wielkość rodziny",
+     "Akcesoria, które realnie skracają gotowanie obiadu",
+     "Bezpieczeństwo i szybkie mycie",
+     "Częste błędy pierwszych tygodni"
+    ]
+   },
+   {
+    "title": "Zupy i dania jednogarnkowe na trudny dzień",
+    "sections": [
+     "Zupa jako ratunek na wieczór bez planu",
+     "Krem pomidorowy z bazylią",
+     "Krem z dyni i marchewki z imbirem",
+     "Krem z brokułów i sera",
+     "Rosołowa zupa jednogarnkowa z kurczakiem i makaronem",
+     "Danie jednogarnkowe: gulasz warzywno-mięsny",
+     "Dodatki, które zamieniają zupę w pełny obiad",
+     "Jak modyfikować bazowe przepisy",
+     "Mrożone warzywa jako baza na trudny tydzień"
+    ]
+   },
+   {
+    "title": "Dania główne w 30 minut: mięso, ryby i kuchnia roślinna",
+    "sections": [
+     "Zasada dania kompletnego z jednego naczynia",
+     "Kurczak w sosie curry z ryżem na parze",
+     "Łosoś na parze z warzywami i sosem cytrynowym",
+     "Bolognese roślinne z soczewicy",
+     "Wołowina w sosie teriyaki z warzywami na parze",
+     "Kotlety z indyka z puree ziemniaczanym",
+     "Jak dobrać czas gotowania do rodzaju białka",
+     "Podawanie i porcjowanie na talerzu",
+     "Szablon własnego dania warstwowego",
+     "Sosy, które ratują danie w ostatniej chwili"
+    ]
+   },
+   {
+    "title": "Organizacja tygodnia: planowanie, batch cooking i mrożenie",
+    "sections": [
+     "Planowanie oszczędza więcej niż szybkie gotowanie",
+     "Batch cooking: co ugotować w niedzielę",
+     "Mrożenie bez utraty smaku",
+     "Lista zakupów bez przypadkowych zakupów",
+     "Przykładowy plan na tydzień",
+     "Kiedy plan się nie sprawdza",
+     "Podsumowanie: mniej decyzji, więcej gotowych obiadów"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
+ }
+}

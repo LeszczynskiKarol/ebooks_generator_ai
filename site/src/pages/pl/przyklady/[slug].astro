@@ -1,0 +1,55 @@
+---
+// Landing pojedynczej POLSKIEJ przykładowej książki (EN mają swoje pod
+// /examples/[slug]). Treść SEO: HTML-owy spis treści + podgląd stron + PDF.
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Header from "../../../components/Header.astro";
+import Footer from "../../../components/Footer.astro";
+import ExampleBookLanding from "../../../components/ExampleBookLanding.astro";
+import { examples } from "../../../data/examples.js";
+import { siteConfig } from "../../../config/site";
+import pagesData from "../../../data/examplePages.json";
+
+export function getStaticPaths() {
+  return examples
+    .filter((b) => b.lang === "pl")
+    .map((b) => ({ params: { slug: b.slug }, props: { book: b } }));
+}
+
+const { book } = Astro.props;
+const extra = (pagesData as Record<string, { toc: { title: string; sections: string[] }[]; pages: string[]; previewFrom: number }>)[book.slug];
+if (!extra) throw new Error(`Brak danych w examplePages.json dla ${book.slug} — uruchom scripts/build-example-pages.py`);
+
+const title = `${book.title} — przykładowy ebook z generatora AI (PDF za darmo)`;
+const description = `${book.desc.pl} Pełny spis treści, podgląd stron i darmowy PDF (${book.pages} stron) wygenerowany przez InkMagnet.`;
+const canonical = `${siteConfig.url}/pl/przyklady/${book.slug}/`;
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Book",
+    name: book.title,
+    inLanguage: "pl",
+    numberOfPages: book.pages,
+    bookFormat: "https://schema.org/EBook",
+    isAccessibleForFree: true,
+    url: canonical,
+    image: `${siteConfig.url}/samples/covers/${book.slug}.webp`,
+    author: { "@type": "Organization", name: "InkMagnet", url: siteConfig.url },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Strona główna", item: `${siteConfig.url}/pl/` },
+      { "@type": "ListItem", position: 2, name: "Przykłady", item: `${siteConfig.url}/pl/przyklady/` },
+      { "@type": "ListItem", position: 3, name: book.title, item: canonical },
+    ],
+  },
+];
+---
+
+<BaseLayout title={title} description={description} canonicalUrl={canonical} jsonLd={jsonLd} translated={false}>
+  <Header lang="pl" />
+  <ExampleBookLanding lang="pl" book={book} toc={extra.toc} pageImages={extra.pages} previewFrom={extra.previewFrom} />
+  <Footer lang="pl" />
+</BaseLayout>

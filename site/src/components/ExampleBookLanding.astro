@@ -1,0 +1,206 @@
+---
+// Landing jednej przykładowej książki: HTML-owy spis treści z zakładek PDF
+// (indeksowalna treść pod długi ogon fraz) + podgląd stron z lightboxem +
+// pobranie pełnego PDF-a. Dane: examples.js (meta) + examplePages.json
+// (TOC i lista renderów, generowane przez scripts/build-example-pages.py).
+import { siteConfig } from "../config/site";
+import Lightbox from "./Lightbox.astro";
+import type { Lang } from "../i18n/ui";
+
+interface Chapter {
+  title: string;
+  sections: string[];
+}
+interface Props {
+  lang: Lang;
+  book: {
+    slug: string;
+    title: string;
+    category: string;
+    style: string;
+    pages: number;
+    desc: { pl: string; en: string };
+  };
+  toc: Chapter[];
+  pageImages: string[];
+  previewFrom: number;
+}
+const { lang, book, toc, pageImages, previewFrom } = Astro.props;
+const pl = lang === "pl";
+
+const catLabel: Record<string, string> = pl
+  ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie", fitness: "Fitness", kariera: "Kariera", finanse: "Finanse" }
+  : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic", fitness: "Fitness", kariera: "Career", finanse: "Finance" };
+
+const t = pl
+  ? {
+      crumb: "Przykłady",
+      crumbHref: "/pl/przyklady/",
+      badge: "Przykładowa książka wygenerowana przez AI",
+      pages: "stron",
+      langLabel: "po polsku",
+      download: "Pobierz pełny PDF (za darmo)",
+      makeOwn: "Stwórz podobną książkę",
+      tocHeading: "Co znajdziesz w środku",
+      tocSub: "Pełny spis treści — dokładnie te rozdziały i sekcje znajdziesz w pliku.",
+      peekHeading: "Zajrzyj do środka",
+      peekSub: `Okładka i pierwsze strony pierwszego rozdziału (od s. ${previewFrom}) — surowe rendery z finalnego PDF-a, bez retuszu. Kliknij, aby powiększyć.`,
+      chapterWord: "Rozdział",
+      ctaHeading: "Ta książka powstała z jednego tematu",
+      ctaBody: "Generator napisał treść, dobrał ilustracje, złożył całość w PDF i EPUB. Twoja książka może być następna.",
+      ctaBtn: "Wygeneruj własną książkę",
+      allExamples: "Zobacz wszystkie przykłady",
+    }
+  : {
+      crumb: "Examples",
+      crumbHref: "/examples/",
+      badge: "Sample book generated with AI",
+      pages: "pages",
+      langLabel: "in English",
+      download: "Download the full PDF (free)",
+      makeOwn: "Create a book like this",
+      tocHeading: "What's inside",
+      tocSub: "The complete table of contents — exactly the chapters and sections you'll find in the file.",
+      peekHeading: "Look inside",
+      peekSub: `The cover and the first pages of chapter one (from p. ${previewFrom}) — raw renders from the final PDF, unretouched. Click to enlarge.`,
+      chapterWord: "Chapter",
+      ctaHeading: "This book started as a single topic",
+      ctaBody: "The generator wrote the content, matched the illustrations and typeset the whole thing into a PDF and EPUB. Your book can be next.",
+      ctaBtn: "Generate your own book",
+      allExamples: "See all examples",
+    };
+
+const registerUrl = `${siteConfig.appUrl}/auth/register?lang=${lang}`;
+const pdfUrl = `/samples/${book.slug}.pdf`;
+const coverUrl = `/samples/covers/${book.slug}.webp`;
+---
+
+<main class="pt-16">
+  {/* breadcrumb */}
+  <div class="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
+    <nav class="text-sm text-ink-400" aria-label="Breadcrumb">
+      <a href={t.crumbHref} class="hover:text-ink-600">{t.crumb}</a>
+      <span class="mx-2">/</span>
+      <span class="text-ink-600">{book.title}</span>
+    </nav>
+  </div>
+
+  {/* hero */}
+  <section class="mx-auto grid max-w-6xl items-center gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_320px] lg:gap-16 lg:px-8">
+    <div>
+      <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand-700">
+        {t.badge}
+      </p>
+      <h1 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl [text-wrap:balance]">
+        {book.title}
+      </h1>
+      <p class="mt-4 max-w-2xl text-lg leading-relaxed text-ink-600">{book.desc[lang]}</p>
+      <p class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold">
+        <span class="rounded-full bg-ink-100 px-2.5 py-0.5 text-ink-600">{catLabel[book.category]}</span>
+        <span class="text-ink-400">{book.style}</span>
+        <span class="text-ink-300">·</span>
+        <span class="text-ink-400">{book.pages} {t.pages}</span>
+        <span class="text-ink-300">·</span>
+        <span class="text-ink-400">{t.langLabel}</span>
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a
+          href={pdfUrl}
+          download
+          class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          {t.download}
+        </a>
+        <a
+          href={registerUrl}
+          class="inline-flex items-center rounded-xl border-2 border-brand-600 px-6 py-3 text-base font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+        >
+          {t.makeOwn}
+        </a>
+      </div>
+    </div>
+    <a href={pdfUrl} download class="group mx-auto block w-56 sm:w-64 lg:w-full">
+      <img
+        src={coverUrl}
+        alt={book.title}
+        width="520"
+        height="736"
+        class="w-full rotate-1 rounded-xl border border-ink-200 shadow-2xl shadow-ink-900/20 transition-transform duration-300 group-hover:rotate-0 group-hover:scale-[1.02]"
+      />
+    </a>
+  </section>
+
+  {/* TOC */}
+  <section class="border-t border-ink-100 bg-ink-50 py-14">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">{t.tocHeading}</h2>
+      <p class="mt-2 max-w-2xl text-ink-600">{t.tocSub}</p>
+      <div class="mt-8 grid gap-6 md:grid-cols-2">
+        {
+          toc.map((ch, i) => (
+            <div class="rounded-2xl border border-ink-200 bg-white p-6">
+              <p class="text-xs font-bold uppercase tracking-wide text-brand-600">{t.chapterWord} {i + 1}</p>
+              <h3 class="mt-1 font-display text-lg font-bold leading-snug text-ink-900">{ch.title}</h3>
+              {ch.sections.length > 0 && (
+                <ul class="mt-3 space-y-1.5 text-sm leading-relaxed text-ink-600">
+                  {ch.sections.map((s) => (
+                    <li class="flex gap-2">
+                      <span class="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-brand-400" aria-hidden="true" />
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* look inside */}
+  <section class="py-14">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">{t.peekHeading}</h2>
+      <p class="mt-2 max-w-2xl text-ink-600">{t.peekSub}</p>
+      <div class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        {
+          pageImages.map((p, i) => (
+            <img
+              src={`/samples/pages/${book.slug}/${p}`}
+              alt={`${book.title} — ${i === 0 ? (pl ? "okładka" : "cover") : (pl ? "strona" : "page") + " " + (previewFrom + i - 1)}`}
+              width="760"
+              height="1075"
+              loading="lazy"
+              decoding="async"
+              data-zoom
+              class="w-full cursor-zoom-in rounded-lg border border-ink-200 shadow-sm transition-shadow hover:shadow-md"
+            />
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* CTA */}
+  <section class="border-t border-ink-100 bg-ink-50">
+    <div class="mx-auto max-w-4xl px-4 py-14 text-center sm:px-6 lg:px-8">
+      <h2 class="font-display text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">{t.ctaHeading}</h2>
+      <p class="mx-auto mt-3 max-w-xl text-ink-600">{t.ctaBody}</p>
+      <div class="mt-7 flex flex-wrap items-center justify-center gap-4">
+        <a
+          href={registerUrl}
+          class="inline-block rounded-xl bg-brand-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700"
+        >
+          {t.ctaBtn}
+        </a>
+        <a href={t.crumbHref} class="text-sm font-semibold text-brand-700 hover:underline">{t.allExamples} →</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<Lightbox />
