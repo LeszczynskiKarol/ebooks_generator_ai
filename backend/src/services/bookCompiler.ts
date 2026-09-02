@@ -1745,6 +1745,25 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
     },
   );
 
+  // ━━━ FIX 1a4: tabularx row junk — phantom cells and stray row breaks ━━━
+  // Revise rounds have produced rows carrying MORE cells than the spec has
+  // columns ("A & B &   &   &   \\" against a 2-column spec) plus a bare \\
+  // right after \begin{tabularx}{...}{...}. Every surplus & makes LaTeX emit
+  // "Extra alignment tab has been changed to \\" — i.e. a phantom EMPTY ROW —
+  // which blew every affected table up with huge even gaps between rows
+  // (2026-09-02 book, table 1.2 after recompile). Strip trailing runs of
+  // empty cells before \\ (escaped \& is protected by the lookbehind) and the
+  // stray row break glued to the environment opening.
+  {
+    const before = result;
+    result = result.replace(
+      /(\\begin\{tabularx\}\{[^{}]*\}\{(?:[^{}]|\{[^{}]*\})*\})[ \t]*\\\\/g,
+      "$1",
+    );
+    result = result.replace(/(?:[ \t]*(?<!\\)&[ \t]*)+(\\\\)/g, " $1");
+    if (result !== before) console.log("  🔧 tabularx rows: stripped phantom empty cells / stray \\\\");
+  }
+
   // ━━━ FIX 1b: Box titles — brace syntax → optional-arg syntax ━━━
   // The tcolorbox envs are defined as \newtcolorbox{tipbox}[1][]{...title={#1}...},
   // i.e. the title is an OPTIONAL [arg]. The model (and the EPUB converter)
