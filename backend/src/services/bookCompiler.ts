@@ -1741,6 +1741,21 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
     },
   );
 
+  // ━━━ FIX 1a2b: plain tabular → tabularx ━━━
+  // A bare tabular{lcl} has natural-width, non-wrapping columns: one longer
+  // cell pushes the whole table past \textwidth (book 2026-09-02, table 4.2
+  // ran off the right edge on A5). Promote simple specs to tabularx — FIX 1a3
+  // below then converts the l/c/r letters to wrapping X columns. Complex specs
+  // (p{...}, >{...}, @{...}) are left untouched.
+  result = result.replace(
+    /\\begin\{tabular\}\{([lcr|\s]+)\}([\s\S]*?)\\end\{tabular\}/g,
+    (_m: string, spec: string, body: string) => {
+      if ((spec.match(/[lcr]/g) || []).length < 2) return _m;
+      console.log(`  🔧 tabular{${spec.trim()}} → tabularx`);
+      return `\\begin{tabularx}{\\textwidth}{${spec}}${body}\\end{tabularx}`;
+    },
+  );
+
   // ━━━ FIX 1a3: tabularx column specs — bare l/c/r → wrapping X columns ━━━
   // In tabularx an `l` (or c/r) column takes the NATURAL width of its longest
   // cell and never wraps. The model keeps putting whole sentences in such
