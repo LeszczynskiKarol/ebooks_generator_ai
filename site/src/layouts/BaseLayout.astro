@@ -50,6 +50,20 @@ const altPl = new URL(plPath, siteConfig.url).href;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* Motyw przed pierwszym malowaniem: zapamiętany wybór > preferencja
+        systemowa. Klasa .dark na <html> odwraca skalę kolorów w global.css. */}
+    <script is:inline>
+      (function () {
+        var t;
+        try {
+          t = localStorage.getItem("im-theme");
+        } catch (e) {}
+        if (t !== "dark" && t !== "light") {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        if (t === "dark") document.documentElement.classList.add("dark");
+      })();
+    </script>
     {/* First-visit language auto-routing: send pl-PL browsers to /pl from the
         homepage, unless the visitor already made an explicit choice. Runs before
         paint to avoid a flash; homepage-only because EN/PL deep-link slugs differ. */}

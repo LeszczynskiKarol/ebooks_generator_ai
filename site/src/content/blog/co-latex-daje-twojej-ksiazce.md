@@ -7,7 +7,7 @@ pubDate: 2026-09-02
 translationOf: what-latex-does-for-your-book
 heroImage: ../../assets/blog/co-latex-daje-twojej-ksiazce-hero.jpg
 heroAlt: "Drewniana kaszta zecerska pełna rzędów metalowych czcionek drukarskich, obok niej odbitka szczotkowa z naniesionymi korektami i lupa introligatorska, a przy nich mała, zamknięta książka oprawiona w płótno w kolorze głębokiego indygo"
-coverPrompt: "A wooden compositor's type case filled with rows of small metal printing letterforms, a galley proof sheet marked with correction symbols and a printer's loupe resting on top of it, a steel ruler nearby, and one small finished deep indigo clothbound book standing closed and complete on the desk beside them"
+coverPrompt: "A single small deep indigo clothbound hardcover book standing closed on a dark oak desk, its spine and cover completely blank without any lettering, beside a brass printer's loupe, a bone folder and a spool of binding thread, warm side light from a desk lamp, soft dark background, shallow depth of field"
 eyebrow: "WARSZTAT"
 ---
 

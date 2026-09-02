@@ -179,3 +179,70 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
+
+/* ━━━ Tryb ciemny ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Kolory serwisu są zmiennymi @theme, więc dark mode to INWERSJA skali ink
+   pod .dark — łapie każde użycie, łącznie z wariantami hover:. Do tego
+   mostek dla bg-white (nie ruszamy --color-white, bo text-white musi zostać
+   biały na przyciskach) i przyciemnione tinty brandowe. Sekcje celowo
+   ciemne w obu motywach (pasy aplikacji, stopka, mocki telefonów) noszą
+   klasę .theme-fixed, która przywraca im oryginalną skalę. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark {
+  color-scheme: dark;
+  --color-ink-50: #0f172a;
+  --color-ink-100: #1e293b;
+  --color-ink-200: #334155;
+  --color-ink-300: #475569;
+  --color-ink-400: #64748b;
+  --color-ink-500: #94a3b8;
+  --color-ink-600: #cbd5e1;
+  --color-ink-700: #e2e8f0;
+  --color-ink-800: #f1f5f9;
+  --color-ink-900: #f8fafc;
+  --color-ink-950: #ffffff;
+  --color-brand-50: #1e1b4b;
+  --color-brand-100: #312e81;
+}
+
+.dark body {
+  background-color: #0b1220;
+}
+.dark :where(.bg-white) {
+  background-color: var(--color-ink-100);
+}
+.dark :where(.bg-white\/85) {
+  background-color: rgb(11 18 32 / 0.85);
+}
+.dark :where(.bg-white\/90) {
+  background-color: rgb(30 41 59 / 0.9);
+}
+/* Tekst brandowy na przyciemnionych tintach musi pojaśnieć; bg-brand-600/700
+   (przyciski) zostają nietknięte, więc ich hover działa jak w jasnym. */
+.dark :where(.text-brand-700) {
+  color: var(--color-brand-300);
+}
+
+/* Wyspy o stałym, ciemnym wyglądzie — oryginalna skala niezależnie od motywu. */
+.dark .theme-fixed {
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+  --color-ink-950: #020617;
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+}
+.dark .theme-fixed :where(.bg-white) {
+  background-color: #ffffff;
+}
+.dark .theme-fixed :where(.text-brand-700) {
+  color: var(--color-brand-700);
+}
