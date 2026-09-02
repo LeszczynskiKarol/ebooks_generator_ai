@@ -27,7 +27,7 @@
  *   featured optional — pulled to the front of the grid
  */
 
-/** @typedef {{ slug:string, title:string, lang:"pl"|"en", category:"cooking"|"marketing"|"tech"|"academic"|"fitness", style:string, pages:number, desc:{pl:string,en:string}, featured?:boolean }} ExampleBook */
+/** @typedef {{ slug:string, title:string, lang:"pl"|"en", category:"cooking"|"marketing"|"tech"|"academic"|"fitness"|"kariera"|"finanse", style:string, pages:number, desc:{pl:string,en:string}, featured?:boolean }} ExampleBook */
 
 /** @type {ExampleBook[]} */
 export const examples = [
@@ -92,6 +92,31 @@ export const examples = [
     desc: {
       pl: "60 przepisów z ciągłą numeracją, fotografie AI dopasowane do konkretnych potraw, ściągawki czasów i temperatur.",
       en: "60 continuously numbered recipes, AI photographs matched to specific dishes, time and temperature cheat-sheets.",
+    },
+  },
+  {
+    slug: "zmiana-zawodu-po-40-przewodnik-przebranzowienia",
+    title: "Zmiana zawodu po 40 — przewodnik przebranżowienia",
+    lang: "pl",
+    category: "kariera",
+    style: "Modern",
+    pages: 87,
+    featured: true,
+    desc: {
+      pl: "Uczciwy rachunek kosztów zmiany i pozostania, audyt kompetencji, wybór kierunku na danych rynku pracy, finansowanie (KFS, ulgi ZUS) i plan przejścia bez rzucania etatu z dnia na dzień.",
+      en: "Polish-market career change guide: cost accounting, skills audit, retraining funding and a transition plan that doesn't start with quitting.",
+    },
+  },
+  {
+    slug: "jak-wyjsc-z-dlugow-plan-krok-po-kroku",
+    title: "Jak wyjść z długów — plan krok po kroku",
+    lang: "pl",
+    category: "finanse",
+    style: "Modern",
+    pages: 55,
+    desc: {
+      pl: "Arkusz długów, budżet awaryjny, negocjacje z wierzycielami, komornik i upadłość konsumencka — plan wychodzenia z zadłużenia oparty na polskich realiach i przepisach.",
+      en: "Polish personal-debt playbook: debt sheet, crisis budget, creditor negotiations, bailiffs and consumer bankruptcy.",
     },
   },
   {

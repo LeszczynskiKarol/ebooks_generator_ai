@@ -84,6 +84,22 @@ artykuł o statystykach → przedmioty sugerujące pomiar/porządek; o pisaniu �
 warsztat pisarski; o formatach → czytnik obok druku. Rekwizyty wymieniaj
 konkretnie (gatunek papieru, rodzaj światła, materiał).
 
+**ZAKAZ REKWIZYTÓW NIOSĄCYCH LITERY (twarda reguła, lekcja z 2026-09-02).**
+Recenzent odrzuca każde zdjęcie z czytelnym tekstem lub pseudo-tekstem — a
+niektóre rekwizyty generują litery Z DEFINICJI, nawet gdy prompt tekstu nie
+wspomina. Cover wpisu o składzie LaTeX ze sceną „kaszta zecerska + odbitka
+korektorska" był odrzucany 4×/run przez wiele runów CI i zablokował
+publikację pary wpisów na cały dzień. Dlatego:
+- NIE używaj: czcionek/kaszt zecerskich, odbitek i stron z tekstem, gazet,
+  maszyn do pisania z kartką, klawiatur w zbliżeniu, ekranów z treścią,
+  etykiet, szyldów, nut.
+- Każdy papier, okładka, grzbiet i ekran w kadrze MUSI mieć w promptcie
+  jawny kwalifikator: "blank", "unmarked", "no lettering", "no readable
+  text anywhere".
+- Świat druku pokazuj przez przedmioty bez glifów: zamknięta książka bez
+  liternictwa, lupa, kościak, nić introligatorska, ryza czystego papieru,
+  linijka, prasa, płótno okładkowe.
+
 ## 7. Proces
 
 1. Prompt wg sekcji 6 → FLUX 1.1 Pro Ultra (klucz: FLUX_API w d:/data/.app).

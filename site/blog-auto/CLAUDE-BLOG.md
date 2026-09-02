@@ -78,6 +78,16 @@ rekwizyty wynikające z TEMATU, dokładnie JEDEN przedmiot deep indigo, bez ludz
 i bez tekstu w kadrze. BEZ sufiksu stylu (dokleja go skrypt). Para PL+EN MUSI
 mieć identyczny coverPrompt — jedno zdjęcie, dwa panele.
 
+**„Bez tekstu" znaczy też: bez rekwizytów, które litery generują Z DEFINICJI**
+(czcionki zecerskie, odbitki korektorskie, gazety, maszyna do pisania z kartką,
+ekran z treścią, nuty, etykiety). Recenzent odrzuca pseudo-tekst tak samo jak
+tekst — scena „kaszta + odbitka" przy wpisie o LaTeX-u wisiała odrzucana przez
+cały dzień i blokowała publikację (2026-09-02). Każdy papier/okładka/ekran w
+kadrze dostaje jawnie "blank / unmarked / no lettering / no readable text
+anywhere". Bezpieczne rekwizyty świata druku: zamknięta książka bez
+liternictwa, lupa, kościak, nić introligatorska, czysty papier, prasa, płótno.
+Pełna reguła: DESIGN-BOOK §6.
+
 Przy `pl_only`: jeden plik, bez `translationOf`.
 
 ### Styl (samokontrola przed zapisem każdego pliku)
