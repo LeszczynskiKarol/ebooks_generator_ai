@@ -1,7 +1,13 @@
 ---
+// Stopka: brand z badge Google Play, Produkt, 5 przykładowych książek
+// (site-wide linki wewnętrzne do landingów z /pl/przyklady//examples —
+// karmią też SEO tych stron) i 3 najnowsze wpisy bloga w języku strony.
+// Prawne + kontakt w dolnym pasku obok copyright.
+import { getCollection } from "astro:content";
 import { siteConfig } from "../config/site";
 import { useTranslations, langPrefix, type Lang } from "../i18n/ui";
 import { appPagePath } from "../lib/play";
+import { examples } from "../data/examples.js";
 
 interface Props {
   lang: Lang;
@@ -9,24 +15,44 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = langPrefix(lang);
+const pl = lang === "pl";
 const year = new Date().getFullYear();
 
-const legalLinks =
-  lang === "pl"
-    ? [
-        { href: "/pl/polityka-prywatnosci/", label: t.footer.privacy },
-        { href: "/pl/regulamin/", label: t.footer.terms },
-      ]
-    : [
-        { href: "/privacy/", label: t.footer.privacy },
-        { href: "/terms/", label: t.footer.terms },
-      ];
+const legalLinks = pl
+  ? [
+      { href: "/pl/polityka-prywatnosci/", label: t.footer.privacy },
+      { href: "/pl/regulamin/", label: t.footer.terms },
+    ]
+  : [
+      { href: "/privacy/", label: t.footer.privacy },
+      { href: "/terms/", label: t.footer.terms },
+    ];
+
+// 5 książek w języku stopki, wyróżnione najpierw — linki do landingów.
+const footerBooks = examples
+  .filter((b) => b.lang === lang)
+  .slice()
+  .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+  .slice(0, 5);
+const bookHref = (slug: string) => (pl ? `/pl/przyklady/${slug}/` : `/examples/${slug}/`);
+
+// 3 najnowsze wpisy bloga w języku stopki.
+const posts = (await getCollection("blog", (e) => e.data.lang === lang && !e.data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+const postHref = (id: string) => (pl ? `/pl/blog/${id}/` : `/blog/${id}/`);
+
+const L = pl
+  ? { books: "Przykładowe książki", allBooks: "Wszystkie przykłady", blog: "Z bloga", allPosts: "Wszystkie wpisy", badgeAlt: "Pobierz z Google Play" }
+  : { books: "Sample books", allBooks: "All examples", blog: "From the blog", allPosts: "All posts", badgeAlt: "Get it on Google Play" };
+const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
 ---
 
 <footer class="theme-fixed border-t border-ink-800 bg-ink-950 text-ink-300">
   <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-    <div class="grid gap-10 md:grid-cols-4">
-      <div class="md:col-span-2">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1.2fr_1.2fr]">
+      {/* brand */}
+      <div>
         <div class="flex items-center gap-2.5">
           <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600">
             <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5 text-white" aria-hidden="true">
@@ -38,29 +64,24 @@ const legalLinks =
           </span>
           <span class="font-display text-lg font-bold tracking-tight text-white">InkMagnet</span>
         </div>
-        <p class="mt-4 max-w-sm text-sm leading-relaxed text-ink-400">{t.footer.tagline}</p>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed text-ink-400">{t.footer.tagline}</p>
+        <a href={siteConfig.playUrl} class="mt-5 inline-block" rel="noopener">
+          <img src={badge} alt={L.badgeAlt} width="150" height="58" loading="lazy" decoding="async" class="h-[46px] w-auto" />
+        </a>
+        <p class="mt-4 text-sm">
+          <a href={`mailto:${siteConfig.email}`} class="text-ink-400 transition-colors hover:text-white">
+            {siteConfig.email}
+          </a>
+        </p>
       </div>
 
+      {/* product */}
       <div>
         <h3 class="text-sm font-semibold text-white">{t.footer.product}</h3>
         <ul class="mt-4 space-y-2.5 text-sm">
           <li><a href={`${p}/#how`} class="transition-colors hover:text-white">{t.nav.how}</a></li>
           <li>
-            <a
-              href={lang === "pl" ? "/pl/przyklady/" : "/examples/"}
-              class="transition-colors hover:text-white"
-            >
-              {t.nav.examples}
-            </a>
-          </li>
-          <li>
             <a href={`${p}/#pricing`} class="transition-colors hover:text-white">{t.nav.pricing}</a>
-          </li>
-          <li>
-            <a
-              href={lang === "pl" ? "/pl/blog/" : "/blog/"}
-              class="transition-colors hover:text-white">{t.nav.blog}</a
-            >
           </li>
           {
             lang === "en" && (
@@ -94,29 +115,73 @@ const legalLinks =
         </ul>
       </div>
 
+      {/* sample books */}
       <div>
-        <h3 class="text-sm font-semibold text-white">{t.footer.legal}</h3>
+        <h3 class="text-sm font-semibold text-white">{L.books}</h3>
         <ul class="mt-4 space-y-2.5 text-sm">
           {
-            legalLinks.map((l) => (
+            footerBooks.map((b) => (
               <li>
-                <a href={l.href} class="transition-colors hover:text-white">
-                  {l.label}
+                <a href={bookHref(b.slug)} class="line-clamp-1 transition-colors hover:text-white" title={b.title}>
+                  {b.title}
                 </a>
               </li>
             ))
           }
           <li>
-            <a href={`mailto:${siteConfig.email}`} class="transition-colors hover:text-white">
-              {t.footer.contact}
+            <a
+              href={pl ? "/pl/przyklady/" : "/examples/"}
+              class="font-semibold text-brand-400 transition-colors hover:text-brand-300"
+            >
+              {L.allBooks} →
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      {/* blog */}
+      <div>
+        <h3 class="text-sm font-semibold text-white">{L.blog}</h3>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          {
+            posts.map((e) => (
+              <li>
+                <a href={postHref(e.id)} class="line-clamp-2 transition-colors hover:text-white" title={e.data.title}>
+                  {e.data.title}
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a
+              href={pl ? "/pl/blog/" : "/blog/"}
+              class="font-semibold text-brand-400 transition-colors hover:text-brand-300"
+            >
+              {L.allPosts} →
             </a>
           </li>
         </ul>
       </div>
     </div>
 
-    <div class="mt-12 border-t border-ink-800 pt-6 text-sm text-ink-500">
-      © {year} InkMagnet. {t.footer.rights}
+    <div class="mt-12 flex flex-col gap-3 border-t border-ink-800 pt-6 text-sm text-ink-500 sm:flex-row sm:items-center sm:justify-between">
+      <p>© {year} InkMagnet. {t.footer.rights}</p>
+      <ul class="flex flex-wrap items-center gap-x-5 gap-y-1">
+        {
+          legalLinks.map((l) => (
+            <li>
+              <a href={l.href} class="transition-colors hover:text-white">
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href={`mailto:${siteConfig.email}`} class="transition-colors hover:text-white">
+            {t.footer.contact}
+          </a>
+        </li>
+      </ul>
     </div>
   </div>
 </footer>
