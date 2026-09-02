@@ -1006,12 +1006,16 @@ export function assembleLatexDocument(p: AssembleParams): string {
   // graphics without exposing the model to fragile TikZ.
   add(
     "% \\pullquote{text} — large elegant pull quote",
+    "% (before/after skip zeroed on the box itself — tcolorbox adds its own",
+    "%  vertical skips on top of our \\vspace, which doubled the gaps; feedback",
+    "%  from the 2026-09-02 book: too much air above and below every quote)",
     "\\newcommand{\\pullquote}[1]{%",
-    "  \\par\\vspace{12pt}\\noindent",
+    "  \\par\\vspace{6pt}\\noindent",
     "  \\begin{tcolorbox}[blanker, breakable, left=2.2em, right=1em, top=2pt, bottom=2pt,",
+    "    before skip=0pt, after skip=0pt,",
     "    borderline west={2.5pt}{0pt}{accent}]",
     "    {\\color{chaptercolor}\\Large\\itshape #1}",
-    "  \\end{tcolorbox}\\vspace{10pt}\\par",
+    "  \\end{tcolorbox}\\vspace{6pt}\\par",
     "}",
     "",
     "% \\bignumber{value}{label} — big statistic callout",
@@ -1076,16 +1080,28 @@ export function assembleLatexDocument(p: AssembleParams): string {
     "",
   );
 
-  // ── Captions (unchanged) ──
+  // ── Captions + float spacing ──
+  // skip 8→5pt and explicit \intextsep/\textfloatsep: LaTeX's defaults left
+  // visibly too much air above and below in-text figures and their captions
+  // (feedback from the 2026-09-02 book, issue #1).
   add(
     "\\usepackage[",
     "  font={small},",
     "  labelfont={bf,color=accent},",
     "  textfont={color=captiongray},",
-    "  skip=8pt",
+    "  skip=5pt",
     "]{caption}",
+    "\\setlength{\\intextsep}{9pt plus 2pt minus 2pt}",
+    "\\setlength{\\textfloatsep}{12pt plus 2pt minus 2pt}",
     "",
   );
+
+  // Polish babel names tables "Tablica" — everyday Polish (and every report
+  // the user reads) says "Tabela". Same idea applies to any language where
+  // babel's default reads bookish; keep it a per-language map.
+  if (p.language === "pl") {
+    add("\\addto\\captionspolish{\\renewcommand{\\tablename}{Tabela}}", "");
+  }
 
   // ── TOC styling — entries colored, heading will be set separately ──
   add(
@@ -1688,6 +1704,46 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
       },
     );
   }
+
+  // ━━━ FIX 1a2: \begin{stepflow}...\end{stepflow} → \stepflow{...} ━━━
+  // stepflow is a COMMAND, not an environment. When the model writes the
+  // environment form, \begin{stepflow} expands \stepflow which grabs the next
+  // single token as its argument — the first LETTER of the first step lands in
+  // a step box and the rest of the steps print as raw comma-separated prose
+  // (book 2026-09-02: "O" in a box + "becna sytuacja, Koszt..."). Normalize.
+  result = result.replace(
+    /\\begin\{stepflow\}\s*([\s\S]*?)\s*\\end\{stepflow\}/g,
+    (_m: string, body: string) => {
+      console.log(`  🔧 stepflow env → command: ${body.substring(0, 50)}`);
+      return `\\stepflow{${body.trim()}}`;
+    },
+  );
+
+  // ━━━ FIX 1a3: tabularx column specs — bare l/c/r → wrapping X columns ━━━
+  // In tabularx an `l` (or c/r) column takes the NATURAL width of its longest
+  // cell and never wraps. The model keeps putting whole sentences in such
+  // columns: either the l-column swallows half the page width and squeezes the
+  // X columns that hold MORE text (lXX/lXc), or a long unwrappable cell pushes
+  // the table past the text width entirely (lX with question-length labels —
+  // the "totally broken" table 1.2 of the 2026-09-02 book). Convert every bare
+  // l/c/r in a tabularx spec to an aligned X so all columns share the width
+  // and wrap. Only simple specs are touched — anything already carrying >{...}
+  // or p{...} is left alone (blind letter-replacement would corrupt it).
+  result = result.replace(
+    /(\\begin\{tabularx\}\{[^{}]*\})\{([^{}]*)\}/g,
+    (m: string, head: string, spec: string) => {
+      if (!/^[lcrX|\s]+$/.test(spec) || !/[lcr]/.test(spec)) return m;
+      const conv = spec.replace(/[lcr]/g, (ch: string) =>
+        ch === "l"
+          ? ">{\\raggedright\\arraybackslash}X"
+          : ch === "c"
+            ? ">{\\centering\\arraybackslash}X"
+            : ">{\\raggedleft\\arraybackslash}X",
+      );
+      console.log(`  🔧 tabularx spec: {${spec}} → all-X`);
+      return `${head}{${conv}}`;
+    },
+  );
 
   // ━━━ FIX 1b: Box titles — brace syntax → optional-arg syntax ━━━
   // The tcolorbox envs are defined as \newtcolorbox{tipbox}[1][]{...title={#1}...},
