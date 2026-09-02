@@ -163,6 +163,7 @@ export default function NewProject() {
   const schema = useMemo(() => makeSchema(lang), [lang]);
   const [loading, setLoading] = useState(false);
   const [autopilotLoading, setAutopilotLoading] = useState(false);
+  const [autopilotEnglish, setAutopilotEnglish] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedTierIdx, setSelectedTierIdx] = useState(1);
 
@@ -414,6 +415,7 @@ export default function NewProject() {
       // routine finishes, so we don't navigate to one.
       const payload: Record<string, unknown> = { ...form };
       if (selectedColors.length > 0) payload.customColors = selectedColors;
+      if (autopilotEnglish) payload.alsoEnglish = true;
       const { data } = await apiClient.post("/admin/routine/run-book", payload);
       localStorage.removeItem(DRAFT_KEY);
       const sessionUrl =
@@ -1134,15 +1136,31 @@ export default function NewProject() {
             runs the whole pipeline unattended. Standard payment flow above is
             untouched. */}
         {isAdmin && (
-          <button
-            type="button"
-            disabled={autopilotLoading}
-            onClick={handleSubmit(onAutopilot)}
-            className="w-full py-3 border-2 border-dashed border-amber-400 text-amber-700 dark:text-amber-300 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            {autopilotLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-            ⚡ Autopilot (Routines) — admin, bez płatności
-          </button>
+          <div className="space-y-2">
+            <button
+              type="button"
+              disabled={autopilotLoading}
+              onClick={handleSubmit(onAutopilot)}
+              className="w-full py-3 border-2 border-dashed border-amber-400 text-amber-700 dark:text-amber-300 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {autopilotLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+              ⚡ Autopilot (Routines) — admin, bez płatności
+            </button>
+            {/* Ta sama rutyna po QA wersji źródłowej tłumaczy jej FINALNY
+                LaTeX 1:1 (z figurami wstawionymi przez backend) i ingestuje
+                drugi projekt EN z tymi samymi zdjęciami — bez pisania książki
+                drugi raz i bez drugiej rundy FLUX. */}
+            <label className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300 cursor-pointer select-none justify-center">
+              <input
+                type="checkbox"
+                checked={autopilotEnglish}
+                onChange={(e) => setAutopilotEnglish(e.target.checked)}
+                className="w-4 h-4 accent-amber-500"
+              />
+              od razu wydanie EN (tłumaczenie 1:1 tego samego LaTeX-a, te same
+              zdjęcia)
+            </label>
+          </div>
         )}
       </form>
     </div>

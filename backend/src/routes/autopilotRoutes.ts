@@ -247,6 +247,10 @@ export async function autopilotRoutes(app: FastifyInstance) {
       footnoteMode: ["auto", "always", "never"].includes(b.footnoteMode)
         ? b.footnoteMode
         : undefined,
+      // Admin opted in to an English twin: after the source book passes QA,
+      // the routine translates its FINAL LaTeX 1:1 and ingests a second
+      // project (same images via imagesFromProjectId, no second authoring).
+      alsoEnglish: b.alsoEnglish === true ? true : undefined,
     });
     try {
       const r = await fetch(url, {
@@ -394,6 +398,41 @@ export async function autopilotRoutes(app: FastifyInstance) {
           status: "LATEX_READY",
         },
       });
+    }
+
+    // A translated twin of an existing book reuses the source edition's
+    // illustrations: its chapters arrive with the SAME absolute S3 URLs
+    // already in the LaTeX. The compiler rewrites an \includegraphics URL to
+    // a packaged local file only when a ProjectImage row of THIS project
+    // carries the matching s3Url (lib/projectImages.ts) — without mirrored
+    // rows pdflatex drops every figure silently (lesson from the first EN
+    // edition: a 1.2 MB PDF with only the cover). Mirror them BEFORE the
+    // finalize job compiles, so the first compile already embeds the photos.
+    if (typeof b.imagesFromProjectId === "string" && b.imagesFromProjectId) {
+      const sourceImages = await prisma.projectImage.findMany({
+        where: { projectId: b.imagesFromProjectId },
+      });
+      for (const i of sourceImages) {
+        await prisma.projectImage.create({
+          data: {
+            projectId: project.id,
+            source: i.source,
+            originalName: i.originalName,
+            s3Key: i.s3Key,
+            s3Url: i.s3Url,
+            description: i.description,
+            suggestedContext: i.suggestedContext,
+            width: i.width,
+            height: i.height,
+            format: i.format,
+            fluxPrompt: i.fluxPrompt,
+            fluxSeed: i.fluxSeed,
+          },
+        });
+      }
+      console.log(
+        `[INGEST] mirrored ${sourceImages.length} ProjectImage rows from ${b.imagesFromProjectId} → ${project.id}`,
+      );
     }
 
     // Deterministic cover (no LLM, no FLUX) when the agent didn't supply one.
