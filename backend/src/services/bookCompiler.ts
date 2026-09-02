@@ -585,6 +585,13 @@ export function assembleLatexDocument(p: AssembleParams): string {
       "," +
       paperSize +
       ",twoside,openany]{book}",
+    // book+twoside defaults to \flushbottom: TeX stretches every piece of
+    // flexible glue (parskip, heading skips, quote skips) DIFFERENTLY on each
+    // page to fill it to the bottom — which read as \"spacing around quotes and
+    // under headings is uneven across the book\" (feedback 2026-09-02).
+    // \\raggedbottom keeps internal spacing identical everywhere and lets the
+    // page bottom vary slightly instead.
+    "\\raggedbottom",
     "",
   );
 
@@ -655,6 +662,15 @@ export function assembleLatexDocument(p: AssembleParams): string {
   );
   add(
     "\\titleformat{\\subsubsection}{\\normalfont\\normalsize\\bfseries\\color{sectioncolor}}{\\thesubsubsection.}{1em}{}",
+  );
+  // Explicit, modest heading spacing. Without this, titlesec falls back to its
+  // defaults (3.5ex plus 1ex...) whose large stretch was another contributor to
+  // uneven gaps; the small minus lets a heading squeeze onto a page instead of
+  // leaving a half-empty one behind (feedback 2026-09-02: page 37).
+  add(
+    "\\titlespacing*{\\section}{0pt}{14pt plus 4pt minus 4pt}{6pt plus 1pt}",
+    "\\titlespacing*{\\subsection}{0pt}{10pt plus 3pt minus 3pt}{4pt plus 1pt}",
+    "\\titlespacing*{\\subsubsection}{0pt}{8pt plus 2pt minus 2pt}{3pt plus 1pt}",
   );
   add("");
 
@@ -1006,16 +1022,17 @@ export function assembleLatexDocument(p: AssembleParams): string {
   // graphics without exposing the model to fragile TikZ.
   add(
     "% \\pullquote{text} — large elegant pull quote",
-    "% (before/after skip zeroed on the box itself — tcolorbox adds its own",
-    "%  vertical skips on top of our \\vspace, which doubled the gaps; feedback",
-    "%  from the 2026-09-02 book: too much air above and below every quote)",
+    "% Spacing lives ONLY in tcolorbox's before/after skips: the earlier",
+    "% \\vspace sandwich merged differently with \\parskip depending on what",
+    "% surrounded the quote (top of page, after a list, mid-paragraph), which",
+    "% made quote gaps visibly unequal across the book (feedback 2026-09-02).",
+    "% bottom=3pt vs top=2pt compensates the \\Large descender optically.",
     "\\newcommand{\\pullquote}[1]{%",
-    "  \\par\\vspace{6pt}\\noindent",
-    "  \\begin{tcolorbox}[blanker, breakable, left=2.2em, right=1em, top=2pt, bottom=2pt,",
-    "    before skip=0pt, after skip=0pt,",
+    "  \\begin{tcolorbox}[blanker, breakable, left=2.2em, right=1em, top=2pt, bottom=3pt,",
+    "    before skip=9pt plus 1pt, after skip=9pt plus 1pt,",
     "    borderline west={2.5pt}{0pt}{accent}]",
     "    {\\color{chaptercolor}\\Large\\itshape #1}",
-    "  \\end{tcolorbox}\\vspace{6pt}\\par",
+    "  \\end{tcolorbox}%",
     "}",
     "",
     "% \\bignumber{value}{label} — big statistic callout",
