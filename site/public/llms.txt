@@ -1,0 +1,11 @@
+# InkMagnet
+
+> AI ebook generator: turn a topic into a complete, professionally typeset book — table of contents, chapters, AI illustrations and a cover — delivered as a print-ready PDF and EPUB. Available in English and Polish, with full sample books free to download.
+
+## Key pages
+
+- [What InkMagnet does](https://inkmagnet.com/): product overview and pricing
+- [Sample books (full PDFs)](https://inkmagnet.com/examples/): complete generated books, free to download
+- [Przykładowe książki po polsku](https://inkmagnet.com/pl/przyklady/): polskie wydania przykładowych książek
+- [Generator ebooków (PL)](https://inkmagnet.com/pl/generator-ebookow/): opis produktu po polsku
+- [Mobile app](https://inkmagnet.com/mobile-app/): Android app for generating books on the phone
