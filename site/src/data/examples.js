@@ -120,6 +120,30 @@ export const examples = [
     },
   },
   {
+    slug: "ile-zarabia-copywriter-i-skad-brac-zlecenia-realia-rynku",
+    title: "Ile zarabia copywriter i skąd brać zlecenia — realia rynku",
+    lang: "pl",
+    category: "kariera",
+    style: "Business",
+    pages: 75,
+    desc: {
+      pl: "Realne widełki z polskiego rynku: stawki za 1000 znaków, etat kontra B2B, formy opodatkowania i ZUS, wycena od celu zamiast od rynku i systematyczne zdobywanie zleceń.",
+      en: "Polish-market copywriting income guide: real rate brackets, employment vs B2B, taxes and a repeatable system for winning clients.",
+    },
+  },
+  {
+    slug: "the-copywriters-income-reality",
+    title: "The Copywriter's Income Reality",
+    lang: "en",
+    category: "kariera",
+    style: "Business",
+    pages: 48,
+    desc: {
+      pl: "Angielski przewodnik po zarobkach copywritera na rynku USA — mediany płac, stawki per word, modele wyceny (projekt, retainer, value-based) i skąd naprawdę biorą się klienci.",
+      en: "What copywriters actually earn, how per-word, project and retainer pricing compare, the niche premium and where the clients really come from.",
+    },
+  },
+  {
     slug: "career-change-after-40",
     title: "Career Change After 40",
     lang: "en",
