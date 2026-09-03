@@ -16,8 +16,8 @@ const books = (pl ? examples : examples.filter((b) => b.lang === "en"))
   .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
 
 const catLabel: Record<string, string> = pl
-  ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie", fitness: "Fitness", kariera: "Kariera", finanse: "Finanse" }
-  : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic", fitness: "Fitness", kariera: "Career", finanse: "Finance" };
+  ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie", fitness: "Fitness", kariera: "Kariera", finanse: "Finanse", rozwoj: "Rozwój osobisty" }
+  : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic", fitness: "Fitness", kariera: "Career", finanse: "Finance", rozwoj: "Personal growth" };
 const pagesWord = pl ? "stron" : "pages";
 const downloadWord = pl ? "Spis treści, podgląd i PDF" : "Contents, preview & PDF";
 // Karta prowadzi na landing książki (w sekcji JEJ języka) — tam HTML-owy spis

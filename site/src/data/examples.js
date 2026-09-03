@@ -27,7 +27,7 @@
  *   featured optional — pulled to the front of the grid
  */
 
-/** @typedef {{ slug:string, title:string, lang:"pl"|"en", category:"cooking"|"marketing"|"tech"|"academic"|"fitness"|"kariera"|"finanse", style:string, pages:number, desc:{pl:string,en:string}, featured?:boolean }} ExampleBook */
+/** @typedef {{ slug:string, title:string, lang:"pl"|"en", category:"cooking"|"marketing"|"tech"|"academic"|"fitness"|"kariera"|"finanse"|"rozwoj", style:string, pages:number, desc:{pl:string,en:string}, featured?:boolean }} ExampleBook */
 
 /** @type {ExampleBook[]} */
 export const examples = [
@@ -117,6 +117,18 @@ export const examples = [
     desc: {
       pl: "Arkusz długów, budżet awaryjny, negocjacje z wierzycielami, komornik i upadłość konsumencka — plan wychodzenia z zadłużenia oparty na polskich realiach i przepisach.",
       en: "Polish personal-debt playbook: debt sheet, crisis budget, creditor negotiations, bailiffs and consumer bankruptcy.",
+    },
+  },
+  {
+    slug: "jak-przestac-prokrastynowac-system-nie-motywacja",
+    title: "Jak przestać prokrastynować — system, nie motywacja",
+    lang: "pl",
+    category: "rozwoj",
+    style: "Minimal",
+    pages: 77,
+    desc: {
+      pl: "Prokrastynacja to problem regulacji emocji, nie zarządzania czasem — stąd system czterech elementów: środowisko, najmniejszy krok, rytm pracy i powrót po potknięciu, oparty na badaniach, nie na motywacyjnych sloganach.",
+      en: "Polish guide to beating procrastination with a four-part system — environment, smallest step, rhythm and recovery — built on research, not motivation.",
     },
   },
   {
