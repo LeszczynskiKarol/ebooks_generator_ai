@@ -20,6 +20,6 @@
     { "id": "d17", "plan_ref": 17, "priority": 1, "cluster": "usecase", "status": "pending", "title_en": "A companion book for your online course (that students actually keep)" },
     { "id": "d18", "plan_ref": 18, "priority": 1, "cluster": "usecase", "status": "pending", "title_en": "Self-publish on Amazon KDP with an AI-written, typeset book" },
     { "id": "e19", "plan_ref": 19, "priority": 2, "cluster": "pl", "status": "done", "pl_only": true, "title_pl": "Generator ebooków AI - czy warto i ile kosztuje? (porównanie 2026)", "slug_pl": "generator-ebookow-ai-ile-kosztuje", "completed_at": "2026-08-26" },
-    { "id": "e20", "plan_ref": 20, "priority": 1, "cluster": "pl", "status": "pending", "pl_only": true, "title_pl": "Kompendium wiedzy w godzinę - jak działa research i skład InkMagnet" }
+    { "id": "e20", "plan_ref": 20, "priority": 1, "cluster": "pl", "status": "done", "pl_only": true, "title_pl": "Kompendium wiedzy w godzinę - jak działa research i skład InkMagnet", "slug_pl": "kompendium-wiedzy-w-godzine", "completed_at": "2026-09-03" }
   ]
 }
