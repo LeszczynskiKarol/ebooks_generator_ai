@@ -120,6 +120,18 @@ export const examples = [
     },
   },
   {
+    slug: "jak-budowac-nawyki-30-dniowy-plan-wdrozenia",
+    title: "Jak budować nawyki — 30-dniowy plan wdrożenia",
+    lang: "pl",
+    category: "rozwoj",
+    style: "Creative",
+    pages: 53,
+    desc: {
+      pl: "Cztery tygodnie, dzień po dniu: jeden celowo mały nawyk, projekt otoczenia, śledzenie postępów i powrót po przerwie — plan oparty na mechanice automatyzacji zachowań, nie na motywacji.",
+      en: "Polish 30-day habit-building plan: one deliberately small habit, environment design, tracking and recovery after a missed day.",
+    },
+  },
+  {
     slug: "jak-przestac-prokrastynowac-system-nie-motywacja",
     title: "Jak przestać prokrastynować — system, nie motywacja",
     lang: "pl",

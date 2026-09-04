@@ -663,6 +663,76 @@
   ],
   "previewFrom": 6
  },
+ "jak-budowac-nawyki-30-dniowy-plan-wdrozenia": {
+  "toc": [
+   {
+    "title": "Dlaczego nawyki wygrywają z motywacją",
+    "sections": [
+     "Pułapka czystej motywacji",
+     "Jak mózg automatyzuje powtarzane działania",
+     "Dlaczego trzydzieści dni, nie dwadzieścia jeden",
+     "Jak korzystać z tego planu",
+     "Czego ta książka nie obiecuje",
+     "Jeśli wcześniejsze próby się nie udały"
+    ]
+   },
+   {
+    "title": "Tydzień 1: wybór nawyku i projekt otoczenia",
+    "sections": [
+     "Zasada jednego nawyku, celowo za małego",
+     "Wyzwalacze: dlaczego chęć nie wystarczy",
+     "Redukcja tarcia",
+     "Nagroda dopasowana do nawyku"
+    ]
+   },
+   {
+    "title": "Tydzień 2: rytm, dowiązanie i pierwszy tracker",
+    "sections": [
+     "Dowiązanie do istniejącej rutyny",
+     "Plan na wypadek konkretnej sytuacji",
+     "Śledzenie postępu bez kultu nieprzerwanej serii",
+     "Krótki przegląd tygodniowy"
+    ]
+   },
+   {
+    "title": "Tydzień 3: kryzys motywacji i powrót po przerwie",
+    "sections": [
+     "Dlaczego właśnie teraz najłatwiej zrezygnować",
+     "Zasada dwóch dni z rzędu",
+     "Plan awaryjny na zmianę kontekstu",
+     "Przerwa wywołana stresem albo emocjami"
+    ]
+   },
+   {
+    "title": "Tydzień 4: od powtórzenia do tożsamości",
+    "sections": [
+     "Sygnały, że coś zaczyna dziać się samo",
+     "Nawyk jako część tożsamości",
+     "Przygotowanie do dnia trzydziestego pierwszego",
+     "Dzielenie się postępem"
+    ]
+   },
+   {
+    "title": "Po dniu 30: utrzymanie i kolejny nawyk",
+    "sections": [
+     "Jak sprawdzić, czy nawyk się przyjął",
+     "Co dalej z pierwszym nawykiem",
+     "Kiedy dołożyć drugi nawyk",
+     "Nawroty w dłuższej perspektywie",
+     "Podsumowanie"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 5
+ },
  "jak-przestac-prokrastynowac-system-nie-motywacja": {
   "toc": [
    {
