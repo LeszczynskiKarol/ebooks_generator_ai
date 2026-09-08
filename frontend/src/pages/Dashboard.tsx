@@ -14,6 +14,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import apiClient from "@/lib/api";
+import NewProject from "@/pages/NewProject";
 import { track } from "@/lib/funnel";
 import { useAuthStore } from "@/stores/authStore";
 import { useT } from "@/lib/i18n";
@@ -239,6 +240,11 @@ export default function Dashboard() {
 
   const projects = data || [];
 
+  // First run: a user with no books gets the creation form straight away —
+  // an empty grid with a "create your first book" button was a click that
+  // led nowhere else. Returning users keep the normal grid.
+  if (!isLoading && projects.length === 0) return <NewProject />;
+
   return (
     <div className="animate-fade-in">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -270,24 +276,6 @@ export default function Dashboard() {
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
-        </div>
-      ) : projects.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center">
-            <BookOpen className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            {t("dashboard.noBooks")}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-            {t("dashboard.emptyDesc")}
-          </p>
-          <Link
-            to="/projects/new"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-medium cursor-pointer"
-          >
-            <Plus className="w-5 h-5" /> {t("dashboard.createFirst")}
-          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

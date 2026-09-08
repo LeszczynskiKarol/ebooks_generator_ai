@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -158,6 +159,7 @@ type FormData = z.infer<ReturnType<typeof makeSchema>>;
 
 export default function NewProject() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const t = useT();
   const lang = useLangStore((s) => s.lang);
   const schema = useMemo(() => makeSchema(lang), [lang]);
@@ -387,6 +389,9 @@ export default function NewProject() {
 
       // Project created — the draft served its purpose
       localStorage.removeItem(DRAFT_KEY);
+      // The dashboard renders this very form while the project list is empty,
+      // so a stale-but-fresh [] cache would show it again right after creating.
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
 
       // Redirect to Stripe checkout immediately
       if (data.data.sessionUrl) {
@@ -418,6 +423,7 @@ export default function NewProject() {
       if (autopilotEnglish) payload.alsoEnglish = true;
       const { data } = await apiClient.post("/admin/routine/run-book", payload);
       localStorage.removeItem(DRAFT_KEY);
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       const sessionUrl =
         data?.data?.claude_code_session_url ||
         data?.data?.session_url ||
