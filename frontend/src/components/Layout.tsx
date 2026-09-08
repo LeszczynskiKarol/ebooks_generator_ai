@@ -12,6 +12,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuthStore();
   const { dark, toggle } = useThemeStore();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [adminLockBanner, setAdminLockBanner] = useState(false);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       .get("/auth/me")
       .then(({ data }) => {
         if (cancelled) return;
+        setIsAdmin(data.data?.isAdmin === true);
         setAdminLockBanner(
           data.data?.isAdmin === true && data.data?.generationLocked === true,
         );
@@ -54,9 +56,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Plus className="w-4 h-4" /> <span className="sm:hidden">{t("layout.newShort")}</span><span className="hidden sm:inline">{t("layout.new")}</span>
             </Link>
 
-            <Link to="/admin" className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-sm" title={t("layout.adminPanel")}>
-              <Shield className="w-4 h-4" /> <span className="hidden sm:inline">{t("layout.admin")}</span>
-            </Link>
+            {isAdmin && (
+              <Link to="/admin" className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-sm" title={t("layout.adminPanel")}>
+                <Shield className="w-4 h-4" /> <span className="hidden sm:inline">{t("layout.admin")}</span>
+              </Link>
+            )}
 
             <NotificationsBell />
 
