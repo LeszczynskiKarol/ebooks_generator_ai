@@ -27,6 +27,6 @@
     { "id": "d24", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "A signature book for consultants and coaches who speak at conferences" },
     { "id": "d25", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "Turn a season of podcast episodes into a researched, typeset book" },
     { "id": "d26", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "Publish your 2026 knowledge before the year closes: a realistic timeline" },
-    { "id": "e27", "priority": 1, "cluster": "pl", "status": "pending", "added_by_writer": true, "pl_only": true, "title_pl": "Książka dla trenera i konsultanta: jak zbudować autorytet bez ghostwritera" }
+    { "id": "e27", "priority": 1, "cluster": "pl", "status": "done", "added_by_writer": true, "pl_only": true, "title_pl": "Książka dla trenera i konsultanta: jak zbudować autorytet bez ghostwritera", "slug_pl": "ksiazka-dla-trenera-i-konsultanta", "completed_at": "2026-09-10" }
   ]
 }
