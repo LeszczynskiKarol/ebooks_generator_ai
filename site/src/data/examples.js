@@ -125,10 +125,22 @@ export const examples = [
     lang: "pl",
     category: "rozwoj",
     style: "Creative",
-    pages: 53,
+    pages: 86,
     desc: {
-      pl: "Cztery tygodnie, dzień po dniu: jeden celowo mały nawyk, projekt otoczenia, śledzenie postępów i powrót po przerwie — plan oparty na mechanice automatyzacji zachowań, nie na motywacji.",
-      en: "Polish 30-day habit-building plan: one deliberately small habit, environment design, tracking and recovery after a missed day.",
+      pl: "Siedem decyzji przed startem, potem trzy dekady po jednym zadaniu dziennie: wersja minimalna, kotwica, zdanie jeśli-to, procedura powrotu po przerwie i decyzja, co dalej — plan oparty na badaniach automatyzmu, nie na motywacji.",
+      en: "Polish 30-day habit plan: seven decisions before day one, then one task a day — minimum version, anchor, if-then sentence and a return procedure after a missed day.",
+    },
+  },
+  {
+    slug: "how-to-build-habits-30-day-implementation-plan",
+    title: "How to Build Habits — A 30-Day Implementation Plan",
+    lang: "en",
+    category: "rozwoj",
+    style: "Creative",
+    pages: 87,
+    desc: {
+      pl: "Angielskie wydanie planu budowania nawyków — siedem decyzji przed startem, jedno zadanie na każdy z 30 dni i procedura powrotu po przerwie, na badaniach Lally i Gollwitzera.",
+      en: "Seven decisions before day one, then one task a day for thirty days — minimum version, anchor, if-then plan and a return procedure — grounded in habit-formation research, not motivation.",
     },
   },
   {

@@ -666,60 +666,90 @@
  "jak-budowac-nawyki-30-dniowy-plan-wdrozenia": {
   "toc": [
    {
-    "title": "Dlaczego nawyki wygrywają z motywacją",
+    "title": "Dlaczego postanowienia się rozsypują",
     "sections": [
-     "Pułapka czystej motywacji",
-     "Jak mózg automatyzuje powtarzane działania",
-     "Dlaczego trzydzieści dni, nie dwadzieścia jeden",
-     "Jak korzystać z tego planu",
-     "Czego ta książka nie obiecuje",
-     "Jeśli wcześniejsze próby się nie udały"
+     "Czerstwy popcorn",
+     "Ile twojego dnia dzieje się bez ciebie",
+     "Skąd wzięło się dwadzieścia jeden dni",
+     "Pięć powodów, dla których poprzednie próby padły",
+     "Co realnie da ci trzydzieści dni"
     ]
    },
    {
-    "title": "Tydzień 1: wybór nawyku i projekt otoczenia",
+    "title": "Projekt nawyku: siedem decyzji przed startem",
     "sections": [
-     "Zasada jednego nawyku, celowo za małego",
-     "Wyzwalacze: dlaczego chęć nie wystarczy",
-     "Redukcja tarcia",
-     "Nagroda dopasowana do nawyku"
+     "Godzina, która decyduje o miesiącu",
+     "Decyzja pierwsza: jedna rzecz",
+     "Decyzja druga: wersja, której nie da się nie zrobić",
+     "Decyzja trzecia: kotwica",
+     "Decyzja czwarta: plan jeśli-to",
+     "Decyzja piąta: tarcie w obie strony",
+     "Kiedy nawyk polega na przestaniu",
+     "Decyzja szósta: sposób zapisu",
+     "Decyzja siódma: kryterium na koniec miesiąca",
+     "Jak wygląda karta wypełniona do końca"
     ]
    },
    {
-    "title": "Tydzień 2: rytm, dowiązanie i pierwszy tracker",
+    "title": "Dni 1–10. Uruchomienie",
     "sections": [
-     "Dowiązanie do istniejącej rutyny",
-     "Plan na wypadek konkretnej sytuacji",
-     "Śledzenie postępu bez kultu nieprzerwanej serii",
-     "Krótki przegląd tygodniowy"
+     "Co robi pierwsza dekada",
+     "Wykonaj wersję minimalną i nic więcej",
+     "Przypnij nawyk do kotwicy",
+     "Zapisz zdanie jeśli-to z godziną",
+     "Przygotuj scenę wieczorem",
+     "Usuń jedno tarcie, dołóż jedno",
+     "Przenieś nawyk z pamięci na papier",
+     "Pierwszy przegląd tygodnia",
+     "Napisz procedurę powrotu",
+     "Ustaw nagrodę, która przychodzi od razu",
+     "Sprawdź stabilność kontekstu"
     ]
    },
    {
-    "title": "Tydzień 3: kryzys motywacji i powrót po przerwie",
+    "title": "Dni 11–20. Stabilizacja",
     "sections": [
-     "Dlaczego właśnie teraz najłatwiej zrezygnować",
-     "Zasada dwóch dni z rzędu",
-     "Plan awaryjny na zmianę kontekstu",
-     "Przerwa wywołana stresem albo emocjami"
+     "Co robi druga dekada",
+     "Dzień bez motywacji",
+     "Zbuduj wersję podłogową",
+     "Zrób audyt wyzwalaczy konkurencyjnych",
+     "Drugi przegląd tygodnia",
+     "Sprawdź, co właściwie mierzysz",
+     "Podnieś poprzeczkę o jeden krok",
+     "Wykonaj nawyk poza domem",
+     "Powiedz jednej osobie",
+     "Odróżnij przerwę planowaną od opuszczonej",
+     "Dzień bez przypomnienia"
     ]
    },
    {
-    "title": "Tydzień 4: od powtórzenia do tożsamości",
+    "title": "Dni 21–30. Usamodzielnienie",
     "sections": [
-     "Sygnały, że coś zaczyna dziać się samo",
-     "Nawyk jako część tożsamości",
-     "Przygotowanie do dnia trzydziestego pierwszego",
-     "Dzielenie się postępem"
+     "Co robi trzecia dekada",
+     "Trzeci przegląd i kształt krzywej",
+     "Znajdź swojego głównego dywersanta",
+     "Przejdź z kalendarza do kontekstu",
+     "Przećwicz powrót po wpadce",
+     "Odchudź rytuał",
+     "Nazwij kategorię, nie afirmację",
+     "Przygotuj kolejny nawyk, ale go nie zaczynaj",
+     "Zrób audyt otoczenia",
+     "Napisz własną instrukcję obsługi",
+     "Przegląd, decyzja i plan na kolejne dwa miesiące"
     ]
    },
    {
-    "title": "Po dniu 30: utrzymanie i kolejny nawyk",
+    "title": "Dzień 31 i dalej",
     "sections": [
-     "Jak sprawdzić, czy nawyk się przyjął",
-     "Co dalej z pierwszym nawykiem",
+     "Gdzie naprawdę jesteś po miesiącu",
+     "Co rozbraja nawyk po trzydziestym dniu",
+     "Protokół powrotu po dłuższej przerwie",
+     "Okna, w których zmiana idzie łatwiej",
+     "Nawyki rzadsze niż codzienne",
+     "Kiedy nawyku nie widać w kratkach",
      "Kiedy dołożyć drugi nawyk",
-     "Nawroty w dłuższej perspektywie",
-     "Podsumowanie"
+     "Co zabierasz z tego miesiąca",
+     "Co robisz jutro"
     ]
    }
   ],
@@ -731,7 +761,107 @@
    "p5.webp",
    "p6.webp"
   ],
-  "previewFrom": 5
+  "previewFrom": 6
+ },
+ "how-to-build-habits-30-day-implementation-plan": {
+  "toc": [
+   {
+    "title": "Why Resolutions Fall Apart",
+    "sections": [
+     "Stale Popcorn",
+     "How Much of Your Day Happens Without You",
+     "Where the Twenty-One Days Came From",
+     "Five Reasons Your Previous Attempts Died",
+     "What Thirty Days Will Actually Give You"
+    ]
+   },
+   {
+    "title": "Designing the Habit: Seven Decisions Before You Start",
+    "sections": [
+     "The Hour That Decides the Month",
+     "Decision One: One Thing",
+     "Decision Two: The Version You Cannot Fail to Do",
+     "Decision Three: The Anchor",
+     "Decision Four: The If-Then Plan",
+     "Decision Five: Friction in Both Directions",
+     "When the Habit Is About Stopping",
+     "Decision Six: How You Record It",
+     "Decision Seven: The Criterion for the End of the Month",
+     "What a Fully Completed Card Looks Like"
+    ]
+   },
+   {
+    "title": "Days 1–10. Launch",
+    "sections": [
+     "What the First Ten Days Do",
+     "Do the Minimum Version and Nothing More",
+     "Pin the Habit to the Anchor",
+     "Write the If-Then Sentence With a Time",
+     "Set the Stage in the Evening",
+     "Remove One Friction, Add One",
+     "Move the Habit From Memory Onto Paper",
+     "The First Weekly Review",
+     "Write the Return Procedure",
+     "Set Up a Reward That Arrives Immediately",
+     "Check the Stability of the Context"
+    ]
+   },
+   {
+    "title": "Days 11–20. Stabilization",
+    "sections": [
+     "What the Second Ten Days Do",
+     "A Day Without Motivation",
+     "Build the Floor Version",
+     "Audit the Competing Cues",
+     "The Second Weekly Review",
+     "Check What You Are Actually Measuring",
+     "Raise the Bar by One Step",
+     "Do the Habit Away From Home",
+     "Tell One Person",
+     "Distinguish a Planned Break From a Missed Day",
+     "A Day Without a Reminder"
+    ]
+   },
+   {
+    "title": "Days 21–30. Standing on Its Own",
+    "sections": [
+     "What the Third Ten Days Do",
+     "The Third Review and the Shape of the Curve",
+     "Find Your Main Saboteur",
+     "Move From the Calendar to the Context",
+     "Rehearse the Return After a Slip",
+     "Trim the Ritual",
+     "Name the Category, Not an Affirmation",
+     "Prepare the Next Habit, but Do Not Start It",
+     "Audit Your Surroundings",
+     "Write Your Own Operating Manual",
+     "Review, Decision and a Plan for the Next Two Months"
+    ]
+   },
+   {
+    "title": "Day 31 and Beyond",
+    "sections": [
+     "Where You Really Are After a Month",
+     "What Disarms a Habit After Day Thirty",
+     "The Return Protocol After a Longer Break",
+     "Windows Where Change Comes Easier",
+     "Habits Less Frequent Than Daily",
+     "When the Habit Cannot Be Seen in the Boxes",
+     "When to Add a Second Habit",
+     "What You Take From This Month",
+     "What You Do Tomorrow"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
  },
  "jak-przestac-prokrastynowac-system-nie-motywacja": {
   "toc": [
