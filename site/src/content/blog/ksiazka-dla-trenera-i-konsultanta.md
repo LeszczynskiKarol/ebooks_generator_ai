@@ -5,8 +5,8 @@ description: "Ghostwriter za książkę eksperta to 10 000-25 000 zł i miesiąc
 lang: pl
 pubDate: 2026-09-10
 heroImage: ../../assets/blog/ksiazka-dla-trenera-i-konsultanta-hero.jpg
-heroAlt: "Rozłożony wachlarz pustych białych fiszek obok zamkniętej książki oprawionej w płótno koloru głębokiego indygo bez żadnego liternictwa, wieczne pióro leżące w poprzek zwiniętej smyczy konferencyjnej bez nadruku, na drewnianym biurku w ciepłym świetle z okna"
-coverPrompt: "A small fan of blank white index cards resting beside a closed deep indigo clothbound book with no lettering anywhere, a fountain pen laid across a coiled conference lanyard with no text or badge printing, on a warm wood desk, soft directional window light, shallow depth of field"
+heroAlt: "Rozłożony wachlarz pustych białych fiszek obok zamkniętej książki oprawionej w płótno koloru głębokiego indygo bez żadnego liternictwa, wieczne pióro i złożone okulary do czytania, na drewnianym biurku w ciepłym świetle z okna"
+coverPrompt: "A small fan of blank white index cards resting beside a closed deep indigo clothbound book with a completely plain unmarked cover, a fountain pen and a pair of folded tortoiseshell reading glasses beside it, on a warm wood desk, soft directional window light, shallow depth of field"
 eyebrow: "PRZYPADKI"
 ---
 
