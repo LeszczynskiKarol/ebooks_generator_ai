@@ -13,6 +13,79 @@ function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+/** Escape a string for use inside a double-quoted HTML attribute. */
+function escAttr(s: string): string {
+  return escHtml(s).replace(/"/g, "&quot;");
+}
+
+/**
+ * Replace every `\cmd{…}` with balanced-brace matching (footnote bodies nest
+ * \textit{…}/\url{…}; a [^}]* regex cut them short and leaked "}" fragments).
+ */
+function replaceBalancedCommand(
+  text: string,
+  cmd: string,
+  cb: (content: string) => string,
+): string {
+  const needle = cmd + "{";
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    const idx = text.indexOf(needle, i);
+    if (idx === -1) {
+      out += text.slice(i);
+      break;
+    }
+    out += text.slice(i, idx);
+    let j = idx + cmd.length;
+    let depth = 0;
+    const start = j + 1;
+    do {
+      const c = text[j];
+      if (c === "{" && text[j - 1] !== "\\") depth++;
+      else if (c === "}" && text[j - 1] !== "\\") depth--;
+      j++;
+    } while (j < text.length && depth > 0);
+    if (depth !== 0) {
+      out += text.slice(idx);
+      break;
+    }
+    out += cb(text.slice(start, j - 1));
+    i = j;
+  }
+  return out;
+}
+
+/**
+ * Re-escape LaTeX specials in a callout title / bignumber value that came
+ * back from a data-* attribute. latexToHtml unescapes `\$ \% \& \# \_` and
+ * turns `--`/quotes into Unicode for the WHOLE html string, attributes
+ * included, so the title must be escaped again on the way out — otherwise
+ * `\bignumber{$5.70}` opens math mode (Melbourne book, 2026-09-12).
+ */
+function escapeLatexTitle(title: string): string {
+  return title
+    .replace(/(?<!\\)([$%&#_])/g, "\\$1")
+    .replace(/—/g, "---")
+    .replace(/–/g, "--")
+    .replace(/“/g, "``")
+    .replace(/”/g, "''")
+    .replace(/‘/g, "`")
+    .replace(/’/g, "'")
+    .replace(/ /g, "\\,");
+}
+
+/** Plain-text preview of a LaTeX snippet (tooltip on footnote / ref chips). */
+function latexPreview(latex: string): string {
+  return latex
+    .replace(/\\(?:url|texttt|textit|textbf|emph)\{([^}]*)\}/g, "$1")
+    .replace(/\\[a-zA-Z]+\*?/g, "")
+    .replace(/[{}]/g, "")
+    .replace(/~/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // ────────────────────────────────────────────────────
 // LATEX → HTML
 // ────────────────────────────────────────────────────
@@ -38,13 +111,37 @@ export function latexToHtml(
   html = html.replace(/\\end\{document\}/g, "");
   html = html.replace(/\\usepackage(\[[^\]]*\])?\{[^}]*\}/g, "");
 
+  // ── Footnotes FIRST, before any inline pass touches their bodies ──
+  // The raw LaTeX body is parked in a placeholder and emitted at the very end
+  // as <sup data-footnote="…">[*]</sup> (an atom node in the editor, see
+  // FootnoteNode.ts). Converting the body to HTML first (old behaviour) put
+  // `<a href="…">` INSIDE the attribute — the inner quote broke the tag and
+  // the URL + `" class="footnote">[*]` leaked into the book as body text.
+  const footnoteBodies: string[] = [];
+  html = replaceBalancedCommand(html, "\\footnote", (body) => {
+    footnoteBodies.push(body.trim());
+    return `⦃FN${footnoteBodies.length - 1}⦄`;
+  });
+
+  // ── Cross-references: keep \label / \ref as raw-LaTeX atoms (were stripped
+  //    resp. flattened to the literal text "[ref]") ──
+  const rawLatex: string[] = [];
+  const parkRaw = (cmd: string) => {
+    rawLatex.push(cmd);
+    return `⦃RAW${rawLatex.length - 1}⦄`;
+  };
+  html = html.replace(/\\label\{[^}]*\}/g, (m) => parkRaw(m));
+  html = html.replace(/\\ref\{[^}]*\}/g, (m) => parkRaw(m));
+
   // ── Strip layout commands ──
   html = html.replace(/\\clearpage/g, "");
   html = html.replace(/\\newpage/g, "");
   html = html.replace(/\\vspace\*?\{[^}]*\}/g, "");
   html = html.replace(/\\hspace\*?\{[^}]*\}/g, "");
   html = html.replace(/\\noindent\s*/g, "");
-  html = html.replace(/\\label\{[^}]*\}/g, "");
+  // control space "e.g.\ X" → plain space; thin space "20\,GB" → U+2009
+  html = html.replace(/\\ /g, " ");
+  html = html.replace(/\\,/g, " ");
   html = html.replace(/\\pagebreak/g, "");
   html = html.replace(/\\bigskip/g, "");
   html = html.replace(/\\medskip/g, "");
@@ -109,12 +206,22 @@ export function latexToHtml(
   });
 
   // ── Tables ──
+  // Column spec may nest braces: {>{\raggedright\arraybackslash}XX}. The old
+  // `\{[^}]*\}` stopped at the first "}" and the rest of the spec ("XX}")
+  // leaked into the first header cell.
+  const COLSPEC = "\\{(?:[^{}]|\\{[^{}]*\\})*\\}";
   html = html.replace(
-    /\\begin\{table\}[\s\S]*?\\begin\{tabular[x]?\}[^}]*\{[^}]*\}([\s\S]*?)\\end\{tabular[x]?\}[\s\S]*?\\end\{table\}/g,
+    new RegExp(
+      `\\\\begin\\{table\\}[\\s\\S]*?\\\\begin\\{tabular[x]?\\}(?:\\{[^{}]*\\})?${COLSPEC}([\\s\\S]*?)\\\\end\\{tabular[x]?\\}[\\s\\S]*?\\\\end\\{table\\}`,
+      "g",
+    ),
     (_match, tableContent) => convertTable(tableContent),
   );
   html = html.replace(
-    /\\begin\{tabular[x]?\}[^}]*\{[^}]*\}([\s\S]*?)\\end\{tabular[x]?\}/g,
+    new RegExp(
+      `\\\\begin\\{tabular[x]?\\}(?:\\{[^{}]*\\})?${COLSPEC}([\\s\\S]*?)\\\\end\\{tabular[x]?\\}`,
+      "g",
+    ),
     (_match, tableContent) => convertTable(tableContent),
   );
 
@@ -212,12 +319,6 @@ export function latexToHtml(
   // ── Inline formatting ──
   html = convertInlineLatex(html);
 
-  // ── Footnotes ──
-  html = html.replace(
-    /\\footnote\{([^}]*)\}/g,
-    '<sup data-footnote="$1" class="footnote">[*]</sup>',
-  );
-
   // ── Special characters ──
   html = html.replace(/---/g, "—");
   html = html.replace(/--/g, "–");
@@ -248,6 +349,17 @@ export function latexToHtml(
   html = html.replace(/<p>\s*<\/p>/g, "");
   html = html.replace(/<li>\s*<\/li>/g, "");
 
+  // ── Footnotes / raw LaTeX atoms — emitted last, bodies untouched ──
+  html = html.replace(/⦃FN(\d+)⦄/g, (_m, i) => {
+    const body = footnoteBodies[Number(i)] ?? "";
+    return `<sup data-footnote="${escAttr(body)}" class="footnote" title="${escAttr(latexPreview(body))}">[*]</sup>`;
+  });
+  html = html.replace(/⦃RAW(\d+)⦄/g, (_m, i) => {
+    const cmd = rawLatex[Number(i)] ?? "";
+    const kind = cmd.startsWith("\\label") ? "label" : "ref";
+    return `<span data-latex-raw="${escAttr(cmd)}" data-kind="${kind}" class="latex-raw" title="${escAttr(cmd)}">${kind === "label" ? "⚓" : "→ref"}</span>`;
+  });
+
   return html.trim();
 }
 
@@ -269,7 +381,6 @@ function convertInlineLatex(text: string): string {
     '<a href="$1">$2</a>',
   );
   result = result.replace(/\\url\{([^}]*)\}/g, '<a href="$1">$1</a>');
-  result = result.replace(/\\ref\{[^}]*\}/g, "[ref]");
   result = result.replace(/\\cite\{[^}]*\}/g, "[cite]");
   result = result.replace(/\\index\{[^}]*\}/g, "");
   return result;
@@ -351,7 +462,8 @@ function convertTable(content: string): string {
 /** Wrap loose text in <p> tags, respecting existing block elements */
 function wrapParagraphs(html: string): string {
   const blockTags =
-    /^<(h[1-6]|p|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|div|hr|pre|img)/;
+    /^<(h[1-6]|p|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|div|hr|pre|img)\b/;
+  const inlineStart = /^<(strong|b|em|i|u|s|del|code|a|sup|span)\b/;
   const lines = html.split(/\n\n+/);
   const result: string[] = [];
 
@@ -360,9 +472,13 @@ function wrapParagraphs(html: string): string {
     if (!trimmed) continue;
     if (blockTags.test(trimmed)) {
       result.push(trimmed);
-    } else if (trimmed.startsWith("<")) {
+    } else if (trimmed.startsWith("<") && !inlineStart.test(trimmed)) {
       result.push(trimmed);
     } else {
+      // Inline-led chunks ("<strong>30 days out.</strong> …") MUST be wrapped
+      // too: left bare, ProseMirror merged consecutive ones into a single
+      // paragraph (Melbourne book: the whole 30/21/14/7-days timeline and the
+      // Scape/UniLodge/Iglu descriptions collapsed into one block).
       result.push(`<p>${trimmed.replace(/\n/g, " ")}</p>`);
     }
   }
@@ -477,7 +593,7 @@ function nodeToLatex(node: Node): string {
     case "div": {
       const calloutType = el.dataset.callout;
       if (calloutType) {
-        const title = el.dataset.title || "";
+        const title = escapeLatexTitle(el.dataset.title || "");
         const content = children().trim();
         // Single-argument macros: collapse the body to one paragraph
         const inline = content.replace(/\s*\n+\s*/g, " ").trim();
@@ -539,6 +655,8 @@ function nodeToLatex(node: Node): string {
     // ── Span ──
     case "span": {
       if (el.dataset.latex === "textsc") return `\\textsc{${children()}}`;
+      // raw LaTeX atom (\label{…} / \ref{…}) — emitted verbatim
+      if (el.dataset.latexRaw) return el.dataset.latexRaw;
       return children();
     }
 
@@ -617,20 +735,28 @@ function convertHtmlTableToLatex(table: HTMLElement): string {
 
   const tbody = table.querySelector("tbody") || table;
   const bodyRows = tbody.querySelectorAll(thead ? "tbody tr" : "tr");
-  bodyRows.forEach((tr) => {
+  bodyRows.forEach((tr, rowIdx) => {
     const cells: string[] = [];
+    let allTh = true;
     tr.querySelectorAll("th, td").forEach((cell) => {
+      if (cell.tagName.toLowerCase() !== "th") allTh = false;
       let cellText = nodeToLatex(cell).trim();
       cellText = cellText.replace(/\|\|\|MIDRULE\|\|\|/g, "").trim();
       cells.push(cellText);
     });
-    if (cells.length > 0 && cells.some((c) => c)) rows.push(cells);
+    if (cells.length > 0 && cells.some((c) => c)) {
+      rows.push(cells);
+      // TipTap keeps header cells as <th> but drops <thead>: a leading
+      // all-<th> row is the header (the old code lost \midrule + shading).
+      if (!thead && rowIdx === 0 && allTh) headerRows = 1;
+    }
   });
 
   if (rows.length === 0) return "";
 
   const colCount = Math.max(...rows.map((r) => r.length));
-  const colSpec = "X".repeat(colCount).split("").join(" ");
+  // Same spec the generator emits: wrapping, ragged-right columns.
+  const colSpec = ">{\\raggedright\\arraybackslash}X".repeat(colCount);
 
   let latex = `\n\\begin{table}[H]\n\\centering\n\\begin{tabularx}{\\textwidth}{${colSpec}}\n\\toprule\n`;
 
@@ -639,7 +765,14 @@ function convertHtmlTableToLatex(table: HTMLElement): string {
     while (paddedRow.length < colCount) paddedRow.push("");
 
     if (i < headerRows) {
-      latex += paddedRow.map((c) => `\\textbf{${c}}`).join(" & ") + " \\\\\n";
+      const stripBold = (c: string) =>
+        c.replace(/^\\textbf\{([\s\S]*)\}$/, "$1");
+      latex +=
+        "\\rowcolor{tableheadbg} " +
+        paddedRow
+          .map((c) => `\\textcolor{tableheadfg}{\\textbf{${stripBold(c)}}}`)
+          .join(" & ") +
+        " \\\\\n";
       if (i === headerRows - 1) latex += "\\midrule\n";
     } else {
       latex += paddedRow.join(" & ") + " \\\\\n";
@@ -687,7 +820,9 @@ function escapeLatexChars(text: string): string {
     .replace(/\u2018/g, "`")
     .replace(/\u2019/g, "'")
     .replace(/\u2014/g, "---")
-    .replace(/\u2013/g, "--");
+    .replace(/\u2013/g, "--")
+    .replace(/\u2009/g, "\\,")
+    .replace(/\u00a0/g, "~");
 
   // Step 3: Replace placeholder with \textbackslash{} AFTER brace escaping
   result = result.replace(/\x00/g, "\\textbackslash{}");

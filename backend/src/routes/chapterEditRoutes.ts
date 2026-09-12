@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
+import { repairEditorArtifacts } from "../lib/latexFixes";
 
 export async function chapterEditRoutes(app: FastifyInstance) {
   app.addHook("preHandler", authenticate);
@@ -55,12 +56,23 @@ export async function chapterEditRoutes(app: FastifyInstance) {
     "/api/projects/:id/chapters/:chapterNumber",
     async (request, reply) => {
       const { id, chapterNumber } = request.params as any;
-      const { latexContent } = request.body as any;
+      let { latexContent } = request.body as any;
 
       if (typeof latexContent !== "string") {
         return reply
           .status(400)
           .send({ success: false, error: "latexContent required" });
+      }
+
+      // Never persist editor round-trip damage (leaked footnote HTML, orphan
+      // [*] markers, escaped control spaces). The converter is fixed, but an
+      // old cached bundle can still send it — repair before it reaches the DB.
+      const repaired = repairEditorArtifacts(latexContent);
+      if (repaired !== latexContent) {
+        console.warn(
+          `⚠️ Chapter ${chapterNumber} of ${id}: editor artifacts repaired on save`,
+        );
+        latexContent = repaired;
       }
 
       // Verify ownership

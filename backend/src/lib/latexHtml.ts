@@ -10,7 +10,7 @@
 // this one-way publishing conversion.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { repairControlCharLatex } from "./latexFixes";
+import { repairControlCharLatex, repairEditorArtifacts } from "./latexFixes";
 
 export function escapeXml(text: string): string {
   return text
@@ -34,7 +34,7 @@ export function latexToXhtml(
   lang: string,
   numbering?: XhtmlNumbering,
 ): string {
-  let html = repairControlCharLatex(latex);
+  let html = repairEditorArtifacts(repairControlCharLatex(latex));
 
   // ── Collection items: \itemsection{Title} → numbered item heading ──
   // Must run before the generic heading pass (which would not match it).
@@ -112,8 +112,10 @@ export function latexToXhtml(
   );
 
   // ── Footnotes → endnotes within chapter ──
+  // Balanced-brace scan: footnote bodies nest braces (\textit{…}, \url{…}),
+  // a [^}]* regex cut them short and left "}" fragments in the text.
   const footnotes: string[] = [];
-  html = html.replace(/\\footnote\{([^}]*)\}/g, (_match, content) => {
+  html = replaceBalancedCommand(html, "\\footnote", (content) => {
     footnotes.push(content);
     const idx = footnotes.length;
     return `<sup class="footnote-ref"><a href="#fn${idx}" id="fnref${idx}">[${idx}]</a></sup>`;
@@ -454,4 +456,43 @@ function wrapParagraphs(html: string): string {
       return `<p>${trimmed}</p>`;
     })
     .join("\n\n");
+}
+
+/**
+ * Replace every `\cmd{…}` occurrence, matching the argument with balanced
+ * braces (nested \textit{…}/\url{…} inside are common in footnotes).
+ */
+function replaceBalancedCommand(
+  text: string,
+  cmd: string,
+  cb: (content: string) => string,
+): string {
+  const needle = cmd + "{";
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    const idx = text.indexOf(needle, i);
+    if (idx === -1) {
+      out += text.slice(i);
+      break;
+    }
+    out += text.slice(i, idx);
+    let j = idx + cmd.length;
+    let depth = 0;
+    const start = j + 1;
+    do {
+      const c = text[j];
+      if (c === "{" && text[j - 1] !== "\\") depth++;
+      else if (c === "}" && text[j - 1] !== "\\") depth--;
+      j++;
+    } while (j < text.length && depth > 0);
+    if (depth !== 0) {
+      // unbalanced — leave the rest untouched
+      out += text.slice(idx);
+      break;
+    }
+    out += cb(text.slice(start, j - 1));
+    i = j;
+  }
+  return out;
 }

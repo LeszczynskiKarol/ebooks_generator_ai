@@ -49,6 +49,7 @@ import {
   Plus,
 } from "lucide-react";
 import { Callout, CALLOUT_STYLES, INSERTABLE_CALLOUTS } from "./CalloutNode";
+import { Footnote, RawLatex } from "./FootnoteNode";
 import { useT } from "@/lib/i18n";
 
 // Map callout type → i18n key for the user-visible label
@@ -120,6 +121,8 @@ export default function WysiwygEditor({
         placeholder: t("editor.startWriting"),
       }),
       Callout,
+      Footnote,
+      RawLatex,
     ],
     content,
     editable: !readOnly,
@@ -490,6 +493,35 @@ export default function WysiwygEditor({
         .dark .wysiwyg-content hr {
           border-color: #374151;
         }
+        /* footnote / cross-reference atoms — round-trip raw LaTeX, not editable here */
+        .wysiwyg-content sup.footnote {
+          display: inline-block;
+          font-size: 0.7em;
+          line-height: 1;
+          padding: 0.1em 0.35em;
+          margin: 0 0.1em;
+          border-radius: 0.3em;
+          background: #ede9fe;
+          color: #6d28d9;
+          cursor: help;
+          user-select: none;
+          vertical-align: super;
+        }
+        .dark .wysiwyg-content sup.footnote { background: #3b2a6b; color: #c4b5fd; }
+        .wysiwyg-content span.latex-raw {
+          display: inline-block;
+          font-size: 0.7em;
+          line-height: 1;
+          padding: 0.1em 0.35em;
+          margin: 0 0.1em;
+          border-radius: 0.3em;
+          background: #e5e7eb;
+          color: #4b5563;
+          cursor: help;
+          user-select: none;
+        }
+        .dark .wysiwyg-content span.latex-raw { background: #374151; color: #d1d5db; }
+        .wysiwyg-content .ProseMirror-selectednode { outline: 2px solid #7c3aed; }
         .wysiwyg-content strong { font-weight: 700; }
         .wysiwyg-content em { font-style: italic; }
         .wysiwyg-content u { text-decoration: underline; }

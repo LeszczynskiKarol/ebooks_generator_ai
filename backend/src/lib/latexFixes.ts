@@ -56,3 +56,86 @@ export function mergeSplitTableHeaders(latex: string): string {
     return `\\rowcolor{tableheadbg}\n${merged} \\\\\n`;
   });
 }
+
+/**
+ * Repair damage done by the WYSIWYG round trip (frontend latexConverter < v4,
+ * see the Melbourne book incident 2026-09-12):
+ *
+ *  - a footnote whose URL leaked into the body as text — the attribute
+ *    `data-footnote="… <a href="URL">…"` broke on the inner quote, so the
+ *    saved LaTeX reads `sentence.URL" class="footnote">[*]`
+ *  - orphan `[*]` markers (footnote content dropped by the editor schema)
+ *  - `\textbackslash{}` + space / comma (the editor escaped `\ ` and `\,`)
+ *  - `$` unescaped inside a \bignumber value (→ math mode, huge line gaps)
+ *  - stray HTML tags / entities
+ *
+ * Idempotent: clean LaTeX passes through unchanged.
+ */
+export function repairEditorArtifacts(latex: string): string {
+  let r = latex;
+  const Q = `(?:"|'')`; // quotes may already be normalised to '' by the sanitizer
+  const MARK = `\\s*${Q}\\s*class=${Q}\\s*footnote\\s*${Q}>\\[\\*\\]`;
+
+  // 1. Leaked footnote: `text.URL[ tail]" class="footnote">[*]` → \footnote{\url{URL} tail}
+  //    URL starts right after sentence punctuation; tail = rest of the footnote
+  //    body that leaked after the first link (never crosses a line).
+  const leaked = new RegExp(
+    `(?<=[.!?)}:;,])((?:https?:\\/\\/|www\\.)?[A-Za-z0-9][A-Za-z0-9.\\-]*\\.[a-z]{2,}(?:\\/[^\\s"'{}<>]*)?)([^"\\n]{0,400}?)${MARK}`,
+    "g",
+  );
+  r = r.replace(leaked, (m, url: string, tail: string) => {
+    // Guard against matching a TLD fragment inside \href{…}{…} ("com.au}"):
+    // a real leaked URL has a scheme, www., a path or ≥2 dots, and the
+    // recovered footnote body must have balanced braces.
+    const looksLikeUrl =
+      /^(?:https?:\/\/|www\.)/.test(url) ||
+      url.includes("/") ||
+      (url.match(/\./g) || []).length >= 2;
+    let depth = 0;
+    for (const c of url + tail) {
+      if (c === "{") depth++;
+      else if (c === "}") depth--;
+      if (depth < 0) break;
+    }
+    if (!looksLikeUrl || depth !== 0) return m;
+    const cleanUrl = url.replace(/[.,;]+$/, "");
+    const cleanTail = tail.replace(/^\.\s*/, "").trim();
+    const sep = /^[,;:]/.test(cleanTail) ? "" : " ";
+    return `\\footnote{\\url{${cleanUrl}}${cleanTail ? sep + cleanTail : ""}}`;
+  });
+  // 2. Any leftover marker fragments and orphan [*] markers
+  r = r.replace(new RegExp(MARK, "g"), "");
+  r = r.replace(/\[\*\]/g, "");
+
+  // 3. Escaped control-space / thin-space
+  r = r.replace(/\\textbackslash\{\} /g, "\\ ");
+  r = r.replace(/\\textbackslash\{\},/g, "\\,");
+
+  // 4. \bignumber{$5.70} → \bignumber{\$5.70}
+  r = r.replace(/\\bignumber\{([^{}]*)\}/g, (_m, v: string) => {
+    return `\\bignumber{${v.replace(/(?<!\\)\$/g, "\\$")}}`;
+  });
+
+  // 5. Stray HTML tags and entities
+  r = r.replace(/<\/?(?:sup|a|span|strong|em|b|i|u|code|p|div|br)\b[^<>]*>/g, "");
+  r = r
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, "~")
+    .replace(/&lt;/g, "\\textless{}")
+    .replace(/&gt;/g, "\\textgreater{}")
+    .replace(/&amp;/g, "\\&");
+
+  return r;
+}
+
+/**
+ * URLs the model set in \texttt{} cannot break → they run past the right
+ * margin on A5. Route anything that looks like a domain/URL through \url{}
+ * (hyperref+url break after "/" and "." and, with the hyphens option, "-").
+ */
+export function urlifyTexttt(latex: string): string {
+  return latex.replace(
+    /\\texttt\{((?:https?:\/\/|www\.)?[a-z0-9][a-z0-9.\-]*\.[a-z]{2,}(?:\/[^\s{}]*)?)\}/gi,
+    "\\url{$1}",
+  );
+}

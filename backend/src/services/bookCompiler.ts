@@ -22,6 +22,8 @@ import {
 import {
   repairControlCharLatex,
   mergeSplitTableHeaders,
+  repairEditorArtifacts,
+  urlifyTexttt,
 } from "../lib/latexFixes";
 import { footnotesEnabled } from "../lib/types";
 
@@ -592,6 +594,10 @@ export function assembleLatexDocument(p: AssembleParams): string {
     // \\raggedbottom keeps internal spacing identical everywhere and lets the
     // page bottom vary slightly instead.
     "\\raggedbottom",
+    // Let \url{} break after hyphens too (default: only after . / etc.).
+    // A5 measure + long government URLs in footnotes otherwise gave lines
+    // stretched to absurd word spacing or running past the margin.
+    "\\PassOptionsToPackage{hyphens}{url}",
     "",
   );
 
@@ -1099,6 +1105,14 @@ export function assembleLatexDocument(p: AssembleParams): string {
     "  linkcolor=linkcolor,",
     "  urlcolor=accent",
     "]{hyperref}",
+    // xurl (after hyperref): a URL may break after ANY character. On the A5
+    // measure a 30-character path segment with no "/" or "-" inside otherwise
+    // has no legal break and TeX ships an overfull line running into the
+    // margin ("www.studymelbourne.vic.gov.au" in a list item, 2026-09-12).
+    "\\usepackage{xurl}",
+    // Stretchable inter-character glue inside \url so a long URL can be
+    // justified instead of forcing an overfull or badly stretched line.
+    "\\Urlmuskip=0mu plus 1mu",
     "",
   );
 
@@ -1695,6 +1709,15 @@ function removeFootnotes(latex: string): string {
 
 function sanitizeChapterLatex(latex: string, language: string = "en"): string {
   let result = repairControlCharLatex(latex);
+  // WYSIWYG round-trip damage (leaked footnote HTML, orphan [*], escaped
+  // control spaces, $ in \bignumber) — belt and braces: the PUT route repairs
+  // on save too; this catches content saved before that fix existed.
+  const repaired = repairEditorArtifacts(result);
+  if (repaired !== result) {
+    console.log("  🔧 Editor round-trip artifacts repaired in chapter LaTeX");
+    result = repaired;
+  }
+  result = urlifyTexttt(result);
   result = mergeSplitTableHeaders(result);
 
   // ━━━ FIX 0: Decorative comment-separator lines ━━━
