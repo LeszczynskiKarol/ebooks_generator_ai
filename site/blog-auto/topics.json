@@ -23,7 +23,7 @@
     { "id": "e20", "plan_ref": 20, "priority": 1, "cluster": "pl", "status": "done", "pl_only": true, "title_pl": "Kompendium wiedzy w godzinę - jak działa research i skład InkMagnet", "slug_pl": "kompendium-wiedzy-w-godzine", "completed_at": "2026-09-03" },
     { "id": "c21", "priority": 1, "cluster": "howto", "status": "pending", "added_by_writer": true, "title_en": "How long it actually takes to go from topic to a finished book" },
     { "id": "c22", "priority": 1, "cluster": "howto", "status": "pending", "added_by_writer": true, "title_en": "Can InkMagnet write fiction, or is it built for nonfiction only?" },
-    { "id": "b23", "priority": 1, "cluster": "cost", "status": "pending", "added_by_writer": true, "title_en": "What you actually own: commercial rights on an AI-written book, explained" },
+    { "id": "b23", "priority": 1, "cluster": "cost", "status": "done", "added_by_writer": true, "title_en": "What you actually own: commercial rights on an AI-written book, explained", "slug_en": "ai-book-commercial-rights-explained", "slug_pl": "prawa-komercyjne-do-ksiazki-ai", "completed_at": "2026-09-12" },
     { "id": "d24", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "A signature book for consultants and coaches who speak at conferences" },
     { "id": "d25", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "Turn a season of podcast episodes into a researched, typeset book" },
     { "id": "d26", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "Publish your 2026 knowledge before the year closes: a realistic timeline" },
