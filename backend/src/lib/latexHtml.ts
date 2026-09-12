@@ -231,6 +231,7 @@ export function latexToXhtml(
   html = html.replace(/\\textasciicircum\{\}/g, "^");
   html = html.replace(/\\\\/g, "<br/>");
   html = html.replace(/\\,/g, " ");
+  html = html.replace(/\\ /g, " "); // control space: "approx.\ AUD"
   html = html.replace(/~/g, "&nbsp;");
 
   // ── Strip remaining LaTeX commands ──
@@ -308,8 +309,11 @@ function convertTables(html: string): string {
       }
 
       // Extract tabularx or tabular
+      // {\textwidth} then a column spec that may nest braces
+      // ({>{\raggedright\arraybackslash}XX}) — the old \{[^}]*\} consumed only
+      // the first group and "{>{}XX>{}XX}" leaked into the header cell.
       const tabMatch = content.match(
-        /\\begin\{tabular[x]?\}\{[^}]*\}([\s\S]*?)\\end\{tabular[x]?\}/,
+        /\\begin\{tabular[x]?\}\{[^{}]*\}(?:\{(?:[^{}]|\{[^{}]*\})*\})?([\s\S]*?)\\end\{tabular[x]?\}/,
       );
       if (!tabMatch) return content;
 
@@ -320,7 +324,7 @@ function convertTables(html: string): string {
 
   // Standalone tabularx (no table wrapper)
   html = html.replace(
-    /\\begin\{tabular[x]?\}\{[^}]*\}([\s\S]*?)\\end\{tabular[x]?\}/g,
+    /\\begin\{tabular[x]?\}\{[^{}]*\}(?:\{(?:[^{}]|\{[^{}]*\})*\})?([\s\S]*?)\\end\{tabular[x]?\}/g,
     (_match, content) => {
       const tableContent = convertTableContent(content);
       return `<table class="data-table">${tableContent}</table>`;
