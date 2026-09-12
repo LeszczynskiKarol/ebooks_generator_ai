@@ -153,7 +153,27 @@ export async function compileBook(projectId: string) {
         // the classic parametric generator remains the safety net. Uploaded
         // custom covers always go through the classic path untouched.
         let coverResult: { pdfPath: string } | null = null;
+
+        // Recompile after text edits: keep the cover the reader already has.
+        // The designer is non-deterministic (concept → FLUX → review), so
+        // re-running it on every recompile changed the cover under the user's
+        // feet and billed a full design each time. Reuse the previous build's
+        // cover.pdf unless the cover settings changed since it was made
+        // (coverUpdatedAt newer than the file). COVER_REUSE=off disables.
+        const prevCover = path.join(buildDir, "cover.pdf");
         if (
+          project.coverType === "GENERATED" &&
+          process.env.COVER_REUSE !== "off" &&
+          fs.existsSync(prevCover) &&
+          fs.statSync(prevCover).size > 20 * 1024 &&
+          (!project.coverUpdatedAt ||
+            project.coverUpdatedAt.getTime() < fs.statSync(prevCover).mtimeMs)
+        ) {
+          coverResult = { pdfPath: prevCover };
+          console.log("  📕 Reusing previous build's cover.pdf (settings unchanged)");
+        }
+        if (
+          !coverResult &&
           project.coverType === "GENERATED" &&
           process.env.COVER_DESIGNER !== "off" &&
           // Routine books ship the agent's own coverLatex — compile it directly
@@ -175,10 +195,12 @@ export async function compileBook(projectId: string) {
           coverResult = await compileCover(projectId);
         }
         if (fs.existsSync(coverResult.pdfPath)) {
-          fs.copyFileSync(
-            coverResult.pdfPath,
-            path.join(buildDir, "cover.pdf"),
-          );
+          const dest = path.join(buildDir, "cover.pdf");
+          // copyFileSync onto itself truncates the source (O_TRUNC) — the
+          // reuse branch above hands us dest itself.
+          if (path.resolve(coverResult.pdfPath) !== path.resolve(dest)) {
+            fs.copyFileSync(coverResult.pdfPath, dest);
+          }
           coverPdfFile = "cover.pdf";
           console.log("  📕 Cover compiled — included via pdfpages");
         }
