@@ -686,7 +686,11 @@ export function assembleLatexDocument(p: AssembleParams): string {
   add(
     styleConfig.sectionStyle
       .replace(/\\thesection(?=\})/g, "\\thesection.")
-      .replace(/\\thesubsection(?=\})/g, "\\thesubsection."),
+      .replace(/\\thesubsection(?=\})/g, "\\thesubsection.")
+      // Headings are ragged-right: justified titles with an unbreakable
+      // compound ("University-by-University") had no feasible break and TeX
+      // shipped the line 44pt past the margin (Melbourne book, 2026-09-12).
+      .replace(/(\\titleformat\{\\(?:sub)?section\}\s*)\{/g, "$1{\\raggedright"),
   );
   add(
     "\\titleformat{\\subsubsection}{\\normalfont\\normalsize\\bfseries\\color{sectioncolor}}{\\thesubsubsection.}{1em}{}",
@@ -808,6 +812,11 @@ export function assembleLatexDocument(p: AssembleParams): string {
     "\\usepackage{colortbl}",
     "\\usepackage{float}",
     "\\usepackage{etoolbox}",
+    // Page-breaking tabularx (longtable) — used by breakTallTables for tables
+    // that would not fit on one page (a float taller than \textheight is
+    // clipped at the page bottom; rows silently vanish).
+    "\\usepackage{xltabular}",
+    "\\setlength{\\LTcapwidth}{\\textwidth}",
     "",
     "\\setlength{\\heavyrulewidth}{1.2pt}",
     "\\setlength{\\lightrulewidth}{0.6pt}",
@@ -1334,7 +1343,7 @@ export function assembleLatexDocument(p: AssembleParams): string {
   // ── Chapter content ──
   for (const ch of p.chapters) {
     if (ch.latexContent) {
-      let content = sanitizeChapterLatex(ch.latexContent, p.language);
+      let content = sanitizeChapterLatex(ch.latexContent, p.language, p.format);
       if (p.stripFootnotes) content = removeFootnotes(content);
 
       // ── DEBUG: Check for image commands before rewriting ──
@@ -1654,6 +1663,107 @@ export function normalizeTablePlacement(latex: string): string {
  * fit the remaining space it is pushed whole to the next page — leaving the
  * previous page mostly empty.
  */
+/**
+ * A `table` float taller than \textheight is placed anyway and CLIPPED at the
+ * page bottom — the rows after the cut never print (Table 2.2 "Suburb guide",
+ * 10 rows × 4 narrow A5 columns, lost Fitzroy…Footscray; 2026-09-12).
+ * Estimate the typeset height from the cell text and convert tables that
+ * cannot fit on one page into xltabular (tabularx that breaks across pages),
+ * repeating the header row on every page.
+ */
+export function breakTallTables(latex: string, format: string = "a5"): string {
+  const isA4 = /a4/i.test(format);
+  const textWidthPt = isA4 ? 440 : 300; // body measure incl. \tabcolsep loss
+  const maxLines = isA4 ? 46 : 30; // rows of 11pt text that safely fit with caption
+  const re =
+    /\\begin\{table\}(?:\[[^\]]*\])?\s*([\s\S]*?)\\begin\{tabularx\}\{\\textwidth\}(\{(?:[^{}]|\{[^{}]*\})*\})([\s\S]*?)\\end\{tabularx\}\s*([\s\S]*?)\\end\{table\}/g;
+  return latex.replace(re, (whole, pre: string, spec: string, body: string, post: string) => {
+    // strip >{...} / <{...} decorators before counting column letters
+    const bareSpec = spec
+      .replace(/^\{|\}$/g, "")
+      .replace(/[<>]\{(?:[^{}]|\{[^{}]*\})*\}/g, "")
+      .replace(/[|@!\s]/g, "");
+    const cols = (bareSpec.match(/X|[lcr]|p\{[^}]*\}/g) || []).length || 1;
+    const charsPerLine = Math.max(6, Math.floor(textWidthPt / cols / 5.2));
+    const rows = body
+      .split(/\\\\/)
+      .map((r) => r.replace(/\\(?:top|mid|bottom)rule|\\rowcolor\{[^}]*\}/g, "").trim())
+      .filter((r) => r);
+    let lines = 0;
+    const colLen: number[] = new Array(cols).fill(0);
+    const colMaxWord: number[] = new Array(cols).fill(0);
+    for (const r of rows) {
+      const cells = r.split("&").map((c) =>
+        c
+          .replace(/\\textcolor\{[^}]*\}/g, "") // colour NAME is not text
+          .replace(/\\[a-zA-Z]+\*?(?:\[[^\]]*\])?/g, "")
+          .replace(/[{}]/g, "")
+          .trim(),
+      );
+      lines += Math.max(1, ...cells.map((c) => Math.ceil(c.length / charsPerLine)));
+      cells.forEach((c, i) => {
+        if (i >= cols) return;
+        colLen[i] += c.length;
+        // "AUD~200--280" is one unbreakable token (~ = tie); "/" gets an
+        // \allowbreak below, so it splits tokens here too
+        for (const tok of c.split(/[\s/]+/)) {
+          colMaxWord[i] = Math.max(colMaxWord[i], tok.replace(/--/g, "-").length);
+        }
+      });
+    }
+    if (lines <= maxLines) return whole;
+
+    // Equal X columns waste width on short cells while the verbose column
+    // wraps to 7-8 lines a row. Weight the X columns by their text volume
+    // (hsize factors sum to the column count), but never below the width of
+    // the column's longest unbreakable token (else "AUD 200–280" overflows
+    // into the next cell).
+    let newSpec = spec;
+    if (/^X+$/.test(bareSpec) && cols >= 2) {
+      const colPt = textWidthPt / cols; // width of one unit-weight column
+      // 1) floor per column = longest token at \small (~4.6pt/char) + padding
+      const minW = colMaxWord.map((m) => ((m + 1) * 4.6 + 12) / colPt);
+      let w: number[];
+      const minSum = minW.reduce((a, b) => a + b, 0);
+      if (minSum >= cols) {
+        w = minW.map((x) => (x * cols) / minSum); // nothing to spare
+      } else {
+        // 2) hand the remaining width out in proportion to text volume
+        const total = colLen.reduce((a, b) => a + b, 0) || 1;
+        const spare = cols - minSum;
+        w = minW.map((x, i) => x + (spare * colLen[i]) / total);
+      }
+      newSpec =
+        "{" +
+        w.map((x) => `>{\\hsize=${x.toFixed(2)}\\hsize\\raggedright\\arraybackslash}X`).join("") +
+        "}";
+    }
+
+    const capM = (pre + post).match(/\\caption\{((?:[^{}]|\{[^{}]*\})*)\}/);
+    const labM = (pre + post).match(/\\label\{[^}]*\}/);
+    const caption = capM ? capM[1] : "";
+    // header = everything up to and including the first \midrule
+    const midIdx = body.indexOf("\\midrule");
+    const header = midIdx >= 0 ? body.slice(0, midIdx + "\\midrule".length) : "\\toprule";
+    let rest = midIdx >= 0 ? body.slice(midIdx + "\\midrule".length) : body;
+    rest = rest.replace(/\\bottomrule\s*$/, "").replace(/\\toprule/g, "").trim();
+    // narrow columns: let "Pakenham/Cranbourne", "Lilydale/Belgrave" break after "/"
+    rest = rest.replace(/([A-Za-z])\/([A-Za-z])/g, "$1/\\allowbreak{}$2");
+    const cap = caption ? `\\caption{${caption}}${labM ? labM[0] : ""}\\\\\n` : "";
+    const capCont = caption ? `\\caption[]{${caption} (cont.)}\\\\\n` : "";
+    console.log(`  🔧 Tall table (~${lines} lines) → xltabular: ${caption.slice(0, 50)}`);
+    // \small mirrors the \AtBeginEnvironment{table}{\small} hook the float
+    // version gets; at body size a 4-column A5 table fits only 2 rows a page.
+    return (
+      `\n\\begingroup\\small\n\\begin{xltabular}{\\textwidth}${newSpec}\n` +
+      cap + header.trim() + "\n\\endfirsthead\n" +
+      capCont + header.trim() + "\n\\endhead\n" +
+      "\\endfoot\n\\bottomrule\n\\endlastfoot\n" +
+      rest + "\n\\end{xltabular}\n\\endgroup\n"
+    );
+  });
+}
+
 export function wrapNakedTables(latex: string): string {
   const re = /\\(begin|end)\{(table|tabularx|tabular)\}/g;
   let tableDepth = 0; // depth of \begin{table} floats
@@ -1729,7 +1839,11 @@ function removeFootnotes(latex: string): string {
   return out;
 }
 
-function sanitizeChapterLatex(latex: string, language: string = "en"): string {
+function sanitizeChapterLatex(
+  latex: string,
+  language: string = "en",
+  format: string = "a5",
+): string {
   let result = repairControlCharLatex(latex);
   // WYSIWYG round-trip damage (leaked footnote HTML, orphan [*], escaped
   // control spaces, $ in \bignumber) — belt and braces: the PUT route repairs
@@ -1967,6 +2081,7 @@ function sanitizeChapterLatex(latex: string, language: string = "en"): string {
   result = fixTableRowTerminators(result);
   result = wrapNakedTables(result);
   result = normalizeTablePlacement(result);
+  result = breakTallTables(result, format);
   result = addDropCap(result);
 
   // ── Escape unescaped % signs — in LaTeX % starts a comment ──
