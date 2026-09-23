@@ -33,7 +33,7 @@
     { "id": "e30", "priority": 1, "cluster": "pl", "status": "done", "added_by_writer": true, "pl_only": true, "title_pl": "Jak opisać temat książki, żeby AI napisało dokładnie to, o co chodzi", "slug_pl": "jak-opisac-temat-ksiazki-dla-ai", "completed_at": "2026-09-17" },
     { "id": "e31", "priority": 1, "cluster": "pl", "status": "done", "added_by_writer": true, "pl_only": true, "title_pl": "Ile słów ma ebook na 60 stron? Objętość, cena i czas realizacji w InkMagnet", "slug_pl": "ile-slow-ma-ebook-na-60-stron", "completed_at": "2026-09-19" },
     { "id": "a32", "priority": 1, "cluster": "vs", "status": "done", "added_by_writer": true, "title_en": "InkMagnet vs Canva: a real written book vs a template you fill in yourself", "slug_en": "inkmagnet-vs-canva", "slug_pl": "inkmagnet-czy-canva", "completed_at": "2026-09-21" },
-    { "id": "c33", "priority": 1, "cluster": "howto", "status": "pending", "added_by_writer": true, "title_en": "What \"reviewed, then revised\" means: the AI editing pass before your book ships" },
+    { "id": "c33", "priority": 1, "cluster": "howto", "status": "done", "added_by_writer": true, "title_en": "What \"reviewed, then revised\" means: the AI editing pass before your book ships", "slug_en": "ai-book-editing-pass-before-it-ships", "slug_pl": "redakcja-ai-ksiazki-przed-publikacja", "completed_at": "2026-09-23" },
     { "id": "d34", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "Turn a year of newsletter issues into a researched, typeset book" }
   ]
 }
