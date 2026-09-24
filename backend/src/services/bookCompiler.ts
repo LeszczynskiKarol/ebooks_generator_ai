@@ -1773,7 +1773,8 @@ export function breakTallTables(latex: string, format: string = "a5"): string {
     const charsPerLine = Math.max(6, Math.floor(textWidthPt / cols / 5.2));
     const rows = body
       .split(/\\\\/)
-      .map((r) => r.replace(/\\(?:top|mid|bottom)rule|\\rowcolor\{[^}]*\}/g, "").trim())
+      // "[2pt]" left over from the previous row's \\[2pt] is not cell text
+      .map((r) => r.replace(/^\s*\[[^\]]*\]/, "").replace(/\\(?:top|mid|bottom)rule|\\rowcolor\{[^}]*\}/g, "").trim())
       .filter((r) => r);
     let lines = 0;
     const colLen: number[] = new Array(cols).fill(0);
@@ -1783,7 +1784,7 @@ export function breakTallTables(latex: string, format: string = "a5"): string {
         c
           .replace(/\\textcolor\{[^}]*\}/g, "") // colour NAME is not text
           .replace(/\\[a-zA-Z]+\*?(?:\[[^\]]*\])?/g, "")
-          .replace(/[{}]/g, "")
+          .replace(/[{}$]/g, "")
           .trim(),
       );
       lines += Math.max(1, ...cells.map((c) => Math.ceil(c.length / charsPerLine)));
