@@ -1797,6 +1797,19 @@ export function breakTallTables(latex: string, format: string = "a5"): string {
         }
       });
     }
+    // `lines` counts 11pt text lines, but a table row costs more: \arraystretch
+    // 1.35, cell padding and math struts ($\square$ checkboxes) make a one-line
+    // row ~20pt in practice (measured 2026-09-24: the 30-row fill-in tracker
+    // was judged "31 lines, fits", stayed a float, overflowed past the footer
+    // and lost row 30). Scale rows by the real pitch and add explicit \\[skip]
+    // row gaps the writer inserted.
+    const ROW_STRETCH = 1.5;
+    let skipPt = 0;
+    for (const m of body.matchAll(/\\\\\[\s*(-?\d+(?:\.\d+)?)\s*(pt|mm|em|ex)\s*\]/g)) {
+      const v = parseFloat(m[1]);
+      skipPt += m[2] === "mm" ? v * 2.85 : m[2] === "em" ? v * 11 : m[2] === "ex" ? v * 5 : v;
+    }
+    lines = lines * ROW_STRETCH + Math.max(0, skipPt) / 11;
     if (lines <= maxLines) return whole;
 
     // Equal X columns waste width on short cells while the verbose column
@@ -1805,7 +1818,14 @@ export function breakTallTables(latex: string, format: string = "a5"): string {
     // the column's longest unbreakable token (else "AUD 200–280" overflows
     // into the next cell).
     let newSpec = spec;
-    if (/^X+$/.test(bareSpec) && cols >= 2) {
+    // A fill-in table (tracker, self-assessment: mostly empty cells and
+    // checkboxes) has no text volume to weight by — reweighting would starve
+    // the blank "Data" column to 13mm while the day-number column grew 1.7×.
+    // Keep the writer's equal (often \centering) columns when the average
+    // cell holds under ~2 characters.
+    const totalText = colLen.reduce((a, b) => a + b, 0);
+    const sparse = totalText < rows.length * cols * 2;
+    if (/^X+$/.test(bareSpec) && cols >= 2 && !sparse) {
       const colPt = textWidthPt / cols; // width of one unit-weight column
       // 1) floor per column = longest token at \small (~4.6pt/char) + padding
       const minW = colMaxWord.map((m) => ((m + 1) * 4.6 + 12) / colPt);
