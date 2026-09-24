@@ -22,6 +22,7 @@ export const en: Record<string, string> = {
   "projectDetail.payment": "Payment",
   "projectDetail.status": "Status:",
   "projectDetail.guidelines": "Guidelines",
+  "projectDetail.materials": "Attached files",
   // payment pending
   "projectDetail.paymentPending": "Payment Pending",
   "projectDetail.paymentNotCompleted":
@@ -73,6 +74,7 @@ export const pl: Record<string, string> = {
   "projectDetail.payment": "Płatność",
   "projectDetail.status": "Status:",
   "projectDetail.guidelines": "Wytyczne",
+  "projectDetail.materials": "Załączone pliki",
   // payment pending
   "projectDetail.paymentPending": "Oczekiwanie na płatność",
   "projectDetail.paymentNotCompleted":

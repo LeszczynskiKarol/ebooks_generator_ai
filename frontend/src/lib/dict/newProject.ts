@@ -20,6 +20,21 @@ export const en: Record<string, string> = {
   "newProject.guidelinesLabel": "Guidelines (optional)",
   "newProject.guidelinesPlaceholder":
     "e.g., Focus on practical examples, include case studies...",
+  "newProject.materialsButton": "Attach files",
+  "newProject.materialsHint":
+    "or drop them here — guidelines, examples, sources, inspirations",
+  "newProject.materialsFormats":
+    "PDF, Word (DOC/DOCX), OpenDocument (ODT/ODP), RTF, TXT, Markdown, PowerPoint · up to {mb} MB each, max {n} files. The AI reads their text and follows them while writing.",
+  "newProject.materialsChars": "{n} chars",
+  "newProject.materialsTruncated": "long file — first part used",
+  "newProject.materialsReading": "Reading file…",
+  "newProject.materialsRemove": "Remove file",
+  "newProject.materialsErrType": "unsupported file type",
+  "newProject.materialsErrSize": "file larger than {mb} MB",
+  "newProject.materialsErrEmpty":
+    "no text found (a scanned PDF? paste the key parts into the guidelines instead)",
+  "newProject.materialsErrCount": "You can attach up to {n} files",
+  "newProject.materialsErrGeneric": "upload failed — try again",
 
   // Section: Book Size
   "newProject.bookSize": "Book Size",
@@ -207,6 +222,21 @@ export const pl: Record<string, string> = {
   "newProject.guidelinesLabel": "Wytyczne (opcjonalnie)",
   "newProject.guidelinesPlaceholder":
     "np. Skup się na praktycznych przykładach, dodaj studia przypadków...",
+  "newProject.materialsButton": "Dołącz pliki",
+  "newProject.materialsHint":
+    "lub przeciągnij je tutaj — wskazówki, przykłady, źródła, inspiracje",
+  "newProject.materialsFormats":
+    "PDF, Word (DOC/DOCX), OpenDocument (ODT/ODP), RTF, TXT, Markdown, PowerPoint · do {mb} MB każdy, maks. {n} plików. AI czyta ich treść i trzyma się jej podczas pisania.",
+  "newProject.materialsChars": "{n} znaków",
+  "newProject.materialsTruncated": "długi plik — użyta pierwsza część",
+  "newProject.materialsReading": "Czytam plik…",
+  "newProject.materialsRemove": "Usuń plik",
+  "newProject.materialsErrType": "nieobsługiwany typ pliku",
+  "newProject.materialsErrSize": "plik większy niż {mb} MB",
+  "newProject.materialsErrEmpty":
+    "nie znaleziono tekstu (skan PDF? wklej najważniejsze fragmenty do wytycznych)",
+  "newProject.materialsErrCount": "Możesz dołączyć maksymalnie {n} plików",
+  "newProject.materialsErrGeneric": "nie udało się wgrać — spróbuj ponownie",
 
   // Section: Book Size
   "newProject.bookSize": "Rozmiar książki",

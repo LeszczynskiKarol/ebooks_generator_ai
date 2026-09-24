@@ -9,6 +9,10 @@ import { getWordsPerPage, getPageSizeTier } from "../lib/types";
 import { createPipelineLogger } from "../lib/logger";
 import { conductResearch, formatSourcesForPrompt } from "./researchService";
 import {
+  getOrCreateMaterialsDigest,
+  mergeGuidelinesWithDigest,
+} from "./materialsService";
+import {
   getOrCreateAuthorBrief,
   formatBriefForPrompt,
   BookBrief,
@@ -63,11 +67,15 @@ export async function generateStructure(projectId: string) {
     );
   }
 
+  // ━━━ Phase 1.4: Customer-attached files → digest merged into guidelines ━━━
+  const materialsDigest = await getOrCreateMaterialsDigest(project, log);
+  const guidelines = mergeGuidelinesWithDigest(project.guidelines, materialsDigest);
+
   // ━━━ Phase 1.5: Author brief — the creative contract for this book ━━━
   log.phase(1.5, "Author Brief");
   const briefTimer = log.timer();
   const brief = await getOrCreateAuthorBrief(
-    project,
+    { ...project, guidelines },
     formatSourcesForPrompt(research, 8000),
     log,
   );
@@ -106,7 +114,7 @@ export async function generateStructure(projectId: string) {
     targetPages: project.targetPages,
     language: project.language,
     stylePreset: project.stylePreset,
-    guidelines: project.guidelines,
+    guidelines,
     bookFormat: project.bookFormat,
     chaptersLo: chLo,
     chaptersHi: chHi,

@@ -111,6 +111,16 @@ export default function ProjectDetail() {
     },
   });
 
+  // Reference files attached in the order form (names/sizes only)
+  const { data: materials } = useQuery({
+    queryKey: ["project-materials", id],
+    queryFn: async () => {
+      const res = await apiClient.get(`/projects/${id}/materials`);
+      return res.data.data as Array<{ id: string; fileName: string; charCount: number }>;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   // ══════════════════════════════════════════════════════════
   // ALL useEffects MUST be above early returns (Rules of Hooks)
   // ══════════════════════════════════════════════════════════
@@ -382,6 +392,20 @@ export default function ProjectDetail() {
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {project.guidelines}
               </p>
+            </div>
+          )}
+          {materials && materials.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-1">
+                {t("projectDetail.materials")}
+              </h4>
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
+                {materials.map((m) => (
+                  <li key={m.id} className="truncate">
+                    {m.fileName}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

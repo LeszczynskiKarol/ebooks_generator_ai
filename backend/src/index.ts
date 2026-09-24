@@ -14,6 +14,7 @@ import { chapterEditRoutes } from "./routes/chapterEditRoutes";
 import { epubDownloadRoutes } from "./routes/epubDownloadRoutes";
 import { playBillingRoutes } from "./routes/playBilling";
 import { imageRoutes } from "./routes/imageRoutes";
+import { materialRoutes } from "./routes/materialRoutes";
 import { exchangeRateRoutes } from "./routes/exchangeRate";
 import { funnelRoutes } from "./routes/funnel";
 import { notificationRoutes } from "./routes/notifications";
@@ -77,6 +78,7 @@ async function start() {
   await app.register(epubDownloadRoutes);
   await app.register(playBillingRoutes);
   await app.register(imageRoutes);
+  await app.register(materialRoutes);
 
   // ── Health check ──
   app.get("/api/health", async () => ({

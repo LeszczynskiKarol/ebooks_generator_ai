@@ -30,6 +30,12 @@ import {
 } from "../lib/numbering";
 import { parseLLMJson, ChapterRegistrySchema } from "../lib/llmJson";
 import {
+  getOrCreateMaterialsDigest,
+  loadProjectMaterials,
+  mergeGuidelinesWithDigest,
+  formatMaterialsForChapter,
+} from "./materialsService";
+import {
   repairControlCharLatex,
   mergeSplitTableHeaders,
 } from "../lib/latexFixes";
@@ -275,6 +281,16 @@ export async function generateContent(
   if (!project || !project.structure)
     throw new Error("Project or structure not found");
 
+  // Customer-attached files: the digest joins the typed guidelines (normally
+  // built at structure time — this is the safety net), the raw text goes into
+  // every chapter prompt as AUTHOR-PROVIDED MATERIALS.
+  const materialsDigest = await getOrCreateMaterialsDigest(project, log);
+  const guidelines = mergeGuidelinesWithDigest(project.guidelines, materialsDigest);
+  const materials = materialsDigest ? await loadProjectMaterials(projectId) : [];
+  if (materials.length > 0) {
+    log.data("Customer materials", materials.map((m) => `${m.fileName} [${m.role || "?"}]`).join(", "));
+  }
+
   const structureData = JSON.parse(project.structure.structureJson);
   const chapters: ChapterStructure[] = structureData.chapters;
 
@@ -341,7 +357,7 @@ export async function generateContent(
   // ── Phase 1.5: Author brief (normally created at structure time;
   //    generated here as a safety net for pre-brief projects) ──
   const brief = await getOrCreateAuthorBrief(
-    project,
+    { ...project, guidelines },
     mergeResearchForPrompt(globalResearch, null, 8000).text,
     log,
   );
@@ -526,6 +542,10 @@ export async function generateContent(
       "Research for this chapter",
       `${chapterResearch?.selectedSources.length || 0} chapter-specific + ${globalResearch?.selectedSources.length || 0} global → ${mergedSourcesText.length.toLocaleString()} chars in prompt`,
     );
+    const materialsText = formatMaterialsForChapter(materials, chapter);
+    if (materialsText) {
+      log.data("Customer materials in prompt", `${materialsText.length.toLocaleString()} chars`);
+    }
 
     const prevContentChars = previousChaptersContent.reduce(
       (sum, c) => sum + c.latex.length,
@@ -565,7 +585,7 @@ export async function generateContent(
         chapterHasItems,
         language: project.language,
         stylePreset: project.stylePreset,
-        guidelines: project.guidelines || "",
+        guidelines: guidelines || "",
         brief,
         bookFormat: project.bookFormat,
         chapter,
@@ -577,6 +597,7 @@ export async function generateContent(
         allChapters: chapters,
         sourcesText: mergedSourcesText,
         hasResearch,
+        materialsText,
         wpp,
         allowFootnotes: footnotesEnabled(project),
         log,
@@ -604,7 +625,7 @@ export async function generateContent(
             chapterHasItems,
             language: project.language,
             stylePreset: project.stylePreset,
-            guidelines: project.guidelines || "",
+            guidelines: guidelines || "",
             brief,
             bookFormat: project.bookFormat,
             chapter,
@@ -616,6 +637,7 @@ export async function generateContent(
             allChapters: chapters,
             sourcesText: mergedSourcesText,
             hasResearch,
+            materialsText,
             wpp,
             allowFootnotes: footnotesEnabled(project),
             log,
@@ -736,7 +758,7 @@ export async function generateContent(
         chaptersForReview,
         project.topic,
         bookTitle,
-        project.guidelines || "",
+        guidelines || "",
         project.language,
         log,
       );
@@ -1002,6 +1024,8 @@ interface GenParams {
   allChapters: ChapterStructure[];
   sourcesText: string;
   hasResearch: boolean;
+  /** Customer-attached files (formatMaterialsForChapter) — may be empty */
+  materialsText?: string;
   wpp: number;
   /** false → popular book: facts stay grounded but NO footnote apparatus */
   allowFootnotes: boolean;
@@ -1070,7 +1094,7 @@ Format: ${p.bookFormat.toUpperCase()} (~${p.wpp} words/page with onehalfspacing)
 ${p.guidelines ? `Author guidelines: ${p.guidelines}` : ""}
 
 ${formatBriefForPrompt(p.brief)}
-
+${p.materialsText || ""}
 ${
   p.hasResearch
     ? `

@@ -10,6 +10,7 @@ import {
   MAX_PAGES,
 } from "../lib/types";
 import { getUsdPlnRate } from "../services/exchangeRateService";
+import { attachMaterials } from "./materialRoutes";
 
 /** Build a Stripe price_data line in the project's currency (USD base, or PLN
  *  converted at the given rate). PLN minor unit is grosze. */
@@ -207,6 +208,13 @@ export async function projectRoutes(app: FastifyInstance) {
           : "auto",
       },
     });
+
+    // Files attached in the order form (uploaded before the project existed).
+    await attachMaterials(
+      request.user.userId,
+      project.id,
+      (request.body as any).materialIds,
+    );
 
     if (viaPlay) {
       const { skuForPages } = await import("../lib/playBilling");

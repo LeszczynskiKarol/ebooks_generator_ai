@@ -21,6 +21,7 @@ model User {
   stripeCustomerId     String? @unique
   stripeCustomerIdTest String?
   projects             Project[]
+  projectMaterials     ProjectMaterial[]
   funnelEvents         FunnelEvent[]
   notifications        Notification[]
 
@@ -141,6 +142,12 @@ model Project {
 
   researchData String? @db.Text
 
+  // Files the customer attached in the order form (guidelines, examples,
+  // sources, inspirations) — see src/services/materialsService.ts. The digest
+  // is one LLM pass over all of them, injected wherever guidelines are.
+  materials        ProjectMaterial[]
+  materialsDigest  String? @db.Text
+
   totalTokensUsed Int   @default(0)
   totalCostUsd    Float @default(0)
 
@@ -159,6 +166,31 @@ model Project {
    coverParams       String?   @db.Text        // JSON: layout, font overrides, etc.
    autoCoverRequested Boolean  @default(false)  // user ticked "Generate cover" in order form
    coverUpdatedAt    DateTime?                  // last cover mutation — compared against the newest BookVersion to detect "cover not yet in compiled PDF"
+}
+
+// Customer-uploaded reference file. Uploaded BEFORE the project exists (the
+// order form), so projectId stays null until POST /api/projects attaches it.
+// Only the extracted plain text is kept — the original file is discarded.
+model ProjectMaterial {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  fileName  String
+  mimeType  String?
+  sizeBytes Int
+  charCount Int
+  truncated Boolean  @default(false)
+  text      String   @db.Text
+  // Set by the digest pass: guidelines | examples | sources | inspiration
+  role      String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([projectId])
 }
 
 model BookVersion {

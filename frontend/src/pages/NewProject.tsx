@@ -26,6 +26,7 @@ import {
 import apiClient from "@/lib/api";
 import toast from "react-hot-toast";
 import DevModelPicker from "@/components/DevModelPicker";
+import MaterialsUpload, { type UploadedMaterial } from "@/components/MaterialsUpload";
 import { useT, useLangStore, translate, type AppLang } from "@/lib/i18n";
 import { useMoney } from "@/lib/money";
 import { track } from "@/lib/funnel";
@@ -185,6 +186,9 @@ export default function NewProject() {
   const [coverOption, setCoverOption] = useState<
     "none" | "generate" | "upload"
   >("none");
+  // Reference files attached under the guidelines (already uploaded; ids only)
+  const [materials, setMaterials] = useState<UploadedMaterial[]>([]);
+  const [materialsBusy, setMaterialsBusy] = useState(false);
 
   const {
     register,
@@ -222,10 +226,16 @@ export default function NewProject() {
       if (raw) {
         const d = JSON.parse(raw);
         // Restore only when the user actually typed something
-        if (d?.form && (d.form.topic || d.form.title || d.form.guidelines)) {
+        if (
+          d?.form &&
+          (d.form.topic || d.form.title || d.form.guidelines || d.materials?.length)
+        ) {
           reset({ ...d.form });
           if (Array.isArray(d.selectedColors)) {
             setSelectedColors(d.selectedColors.slice(0, 3));
+          }
+          if (Array.isArray(d.materials)) {
+            setMaterials(d.materials.slice(0, 10));
           }
           if (["none", "generate", "upload"].includes(d.coverOption)) {
             setCoverOption(d.coverOption);
@@ -259,6 +269,7 @@ export default function NewProject() {
             selectedColors,
             coverOption,
             selectedTierIdx,
+            materials,
             savedAt: Date.now(),
           }),
         );
@@ -268,7 +279,7 @@ export default function NewProject() {
     }, 400);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formSnapshot, selectedColors, coverOption, selectedTierIdx]);
+  }, [formSnapshot, selectedColors, coverOption, selectedTierIdx, materials]);
 
   // ── Funnel telemetry: open → filled → (abandon | checkout) ──
   const funnel = useRef({ openedAt: Date.now(), filled: false, submitted: false });
@@ -373,6 +384,9 @@ export default function NewProject() {
       }
       if (coverOption !== "none") {
         payload.coverOption = coverOption;
+      }
+      if (materials.length > 0) {
+        payload.materialIds = materials.map((m) => m.id);
       }
       track("checkout_start", {
         tier: pricing.tier?.label ?? null,
@@ -542,6 +556,11 @@ export default function NewProject() {
               maxLength={5000}
               className={inputCls + " resize-none"}
               placeholder={t("newProject.guidelinesPlaceholder")}
+            />
+            <MaterialsUpload
+              value={materials}
+              onChange={setMaterials}
+              onBusyChange={setMaterialsBusy}
             />
           </div>
         </div>
@@ -1131,7 +1150,7 @@ export default function NewProject() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || materialsBusy}
           className="w-full py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary-600/25 cursor-pointer"
         >
           {loading && <Loader2 className="w-5 h-5 animate-spin" />}
