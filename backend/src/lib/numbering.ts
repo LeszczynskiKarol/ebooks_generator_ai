@@ -141,21 +141,35 @@ export function formatNumberingForPrompt(n: NumberingSpec): string {
  * catalog + weekly plan + trackers) has more planned sections than items —
  * forcing \itemsection on the intro chapter prints "ĆWICZENIE 1" over
  * "Wprowadzenie" and shifts the catalog to 9–28 (incident 2026-09-24,
- * project cmufkxwsr…). Here we pick the subset of chapters whose non-intro
- * section counts sum EXACTLY to itemCount (fewest chapters wins — the
- * catalog, not five scattered prose chapters); with no exact subset we fall
- * back to the greedy largest-first cover.
+ * project cmufkxwsr…).
+ *
+ * 1. Structures planned since 2026-09-24 carry an explicit per-chapter
+ *    `itemChapter` flag from the structure generator — that is authoritative.
+ * 2. Older structures (no flag anywhere): pick the subset of chapters whose
+ *    non-intro section counts sum EXACTLY to itemCount (fewest chapters wins —
+ *    the catalog, not five scattered prose chapters); with no exact subset
+ *    fall back to the greedy largest-first cover.
  */
 export function planItemChapters(
-  chapters: { number: number; sections?: { description?: string | null }[] }[],
+  chapters: {
+    number: number;
+    itemChapter?: boolean | null;
+    sections?: { description?: string | null }[] | null;
+  }[],
   itemCount: number | null,
 ): Set<number> {
   const counts = chapters.map((c) => ({
     number: c.number,
+    flag: typeof c.itemChapter === "boolean" ? c.itemChapter : null,
     n: (c.sections || []).filter(
       (s) => !String(s?.description || "").startsWith("[intro]"),
     ).length,
   }));
+  if (counts.some((c) => c.flag !== null)) {
+    // explicit plan wins; a flagged chapter without a single item section
+    // has nothing to number
+    return new Set(counts.filter((c) => c.flag === true && c.n > 0).map((c) => c.number));
+  }
   const withItems = counts.filter((c) => c.n > 0);
   const total = withItems.reduce((a, c) => a + c.n, 0);
   if (!itemCount || itemCount <= 0 || total <= itemCount) {

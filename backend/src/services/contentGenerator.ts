@@ -43,6 +43,10 @@ interface ChapterStructure {
   title: string;
   description: string;
   targetPages: number;
+  /** `items` scheme: does this chapter carry the item counter? (planned by
+   *  the structure generator; missing on structures from before 2026-09-24
+   *  → lib/numbering.planItemChapters falls back to a count heuristic) */
+  itemChapter?: boolean | null;
   sections: {
     id: string;
     title: string;

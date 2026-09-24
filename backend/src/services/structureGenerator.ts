@@ -16,6 +16,7 @@ import {
 import {
   resolveNumbering,
   formatNumberingForPrompt,
+  planItemChapters,
   NumberingSpec,
 } from "../lib/numbering";
 import {
@@ -184,6 +185,35 @@ export async function generateStructure(projectId: string) {
           `Page allocation mismatch: ${totalPages} vs target ${project.targetPages}`,
         );
       }
+      // `items` scheme: the item counter lives ONLY in the chapters the model
+      // flagged as collections; check the plan against the title's promise
+      // (incident 2026-09-24: intro/theory chapters forced into \itemsection).
+      if (numbering.mode === "items") {
+        const flagged = structure.chapters.filter(
+          (ch: any) => typeof ch.itemChapter === "boolean",
+        ).length;
+        const itemChapters = planItemChapters(structure.chapters, numbering.itemCount);
+        const plannedItems = structure.chapters
+          .filter((ch: any) => itemChapters.has(ch.number))
+          .reduce(
+            (a: number, ch: any) =>
+              a +
+              (ch.sections || []).filter(
+                (s: any) => !String(s.description || "").startsWith("[intro]"),
+              ).length,
+            0,
+          );
+        log.data(
+          "Item chapters",
+          `${[...itemChapters].sort((a, b) => a - b).join(", ") || "none"} → ${plannedItems} items planned (${flagged}/${structure.chapters.length} chapters flagged itemChapter)`,
+        );
+        if (flagged < structure.chapters.length) {
+          log.warn(`itemChapter flag missing on ${structure.chapters.length - flagged} chapter(s) — count heuristic used`);
+        }
+        if (numbering.itemCount && plannedItems !== numbering.itemCount) {
+          log.warn(`Item count mismatch: ${plannedItems} planned vs ${numbering.itemCount} promised by the title`);
+        }
+      }
     }
 
     // Update title if not set
@@ -325,11 +355,14 @@ ${formatBriefForPrompt(p.brief)}
 ${formatNumberingForPrompt(p.numbering)}
 ${
   p.numbering.mode === "items"
-    ? `STRUCTURE RULE FOR A COLLECTION BOOK: every "section" you plan below is ONE item (one recipe / project / exercise) — its title is the item's name, its description says what makes it distinct. Group items into chapters by theme. ${
+    ? `STRUCTURE RULE FOR A COLLECTION BOOK: this book has two kinds of chapters and EVERY chapter must declare which one it is with "itemChapter": true|false.
+- "itemChapter": true — a collection chapter: every "section" in it is ONE item (one recipe / project / exercise) — its title is the item's name, its description says what makes it distinct. Group items into such chapters by theme. Such a chapter may additionally open with at most ONE short non-item section (technique, ingredients, tools) — mark it by starting its description with "[intro]".
+- "itemChapter": false — an ordinary prose chapter (introduction, theory, a day-by-day plan that USES the items, ergonomics, trackers, FAQ, closing). Its sections are normal sections, never items, and they are NOT counted. A collection book usually has 1–3 of these around the collection; they are not optional padding — plan them when the topic needs them.
+${
         p.numbering.itemCount
-          ? `Plan EXACTLY ${p.numbering.itemCount} item-sections in total across all chapters (the title promises that number) — distribute them across the chapters by theme.`
-          : "Plan as many item-sections as the page budget allows (roughly one per 1-1.5 pages)."
-      } A chapter may additionally open with at most ONE short non-item section (technique, ingredients, tools) — mark it by starting its description with "[intro]".`
+          ? `Plan EXACTLY ${p.numbering.itemCount} item-sections in total, counted ONLY inside "itemChapter": true chapters (the title promises that number) — distribute them across the collection chapters by theme.`
+          : "Plan as many item-sections as the page budget allows (roughly one per 1-1.5 pages), inside the collection chapters only."
+      }`
     : ""
 }
 
@@ -416,7 +449,12 @@ Keep every "description" to 1–2 short sentences (max ~35 words). This keeps th
       "number": 1,
       "title": "Specific chapter title with a clear angle",
       "description": "1–2 sentences: the chapter's thesis + what the reader will be able to DO after it.",
-      "targetPages": ${Math.round(p.targetPages / Math.round((p.chaptersLo + p.chaptersHi) / 2))},
+      "targetPages": ${Math.round(p.targetPages / Math.round((p.chaptersLo + p.chaptersHi) / 2))},${
+        p.numbering.mode === "items"
+          ? `
+      "itemChapter": true,`
+          : ""
+      }
       "sections": [
         {
           "id": "ch1-s1",

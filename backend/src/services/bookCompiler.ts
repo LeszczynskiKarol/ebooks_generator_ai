@@ -29,7 +29,7 @@ import { footnotesEnabled } from "../lib/types";
 
 const execAsync = promisify(exec);
 
-import { resolveNumbering, NumberingSpec } from "../lib/numbering";
+import { resolveNumbering, planItemChapters, NumberingSpec } from "../lib/numbering";
 
 const LATEX_MAX_PASSES = 4;
 
@@ -102,6 +102,58 @@ const PAPER_SIZE: Record<string, string> = {
 // Compile: assemble .tex → pdflatex → version → upload S3
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+/**
+ * `items` scheme safety net, applied at EVERY compile (fresh runs, recompiles
+ * of older books, routine ingests, WYSIWYG edits): the item counter may only
+ * tick inside the chapters the structure planned as collections. A stray
+ * \itemsection in a prose chapter (writer drift, a pre-2026-09-24 validator
+ * that forced them, a manual edit) would print "ĆWICZENIE 1" over the
+ * introduction and shift the real catalog — demote it to a plain \section
+ * and say so in the log. Pure function: returns new chapter objects.
+ */
+function demoteStrayItemSections<
+  T extends { chapterNumber: number; latexContent: string | null },
+>(
+  chapters: T[],
+  project: { structure?: { structureJson: string } | null } & Parameters<
+    typeof resolveNumbering
+  >[0],
+): T[] {
+  const numbering = resolveNumbering(project);
+  if (numbering.mode !== "items" || !project.structure?.structureJson) return chapters;
+  let planned: { number: number; itemChapter?: boolean | null; sections?: any[] }[];
+  try {
+    planned = JSON.parse(project.structure.structureJson).chapters || [];
+  } catch {
+    return chapters;
+  }
+  const itemChapters = planItemChapters(planned, numbering.itemCount);
+  let total = 0;
+  const out = chapters.map((ch) => {
+    const n = (ch.latexContent?.match(/\\itemsection\{/g) || []).length;
+    if (n === 0) return ch;
+    if (itemChapters.has(ch.chapterNumber)) {
+      total += n;
+      return ch;
+    }
+    console.warn(
+      `  ⚠️ Ch ${ch.chapterNumber}: ${n} stray \\itemsection in a prose chapter — demoted to \\section (item chapters: ${[...itemChapters].sort((a, b) => a - b).join(", ") || "none"})`,
+    );
+    return {
+      ...ch,
+      latexContent: ch.latexContent!.replace(/\\itemsection\{/g, "\\section{"),
+    };
+  });
+  if (numbering.itemCount && total !== numbering.itemCount) {
+    console.warn(
+      `  ⚠️ Items: book has ${total} \\itemsection but the title promises ${numbering.itemCount}`,
+    );
+  } else if (total > 0) {
+    console.log(`  📊 Items: ${total} \\itemsection in chapters ${[...itemChapters].sort((a, b) => a - b).join(", ")}`);
+  }
+  return out;
+}
+
 export async function compileBook(projectId: string) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -113,8 +165,11 @@ export async function compileBook(projectId: string) {
 
   if (!project) throw new Error("Project not found");
 
-  const readyChapters = project.chapters.filter(
-    (c) => c.latexContent && c.status === "LATEX_READY",
+  const readyChapters = demoteStrayItemSections(
+    project.chapters.filter(
+      (c) => c.latexContent && c.status === "LATEX_READY",
+    ),
+    project,
   );
   if (readyChapters.length === 0) throw new Error("No LaTeX chapters ready");
 
@@ -359,8 +414,9 @@ export async function compileBook(projectId: string) {
             where: { projectId },
             orderBy: { chapterNumber: "asc" },
           });
-          const freshReady = fresh.filter(
-            (c) => c.latexContent && c.status === "LATEX_READY",
+          const freshReady = demoteStrayItemSections(
+            fresh.filter((c) => c.latexContent && c.status === "LATEX_READY"),
+            project,
           );
           const tex = assembleLatexDocument({
             ...baseAssembleOpts,
