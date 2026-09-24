@@ -374,6 +374,32 @@ export async function compileBook(projectId: string) {
     const pdfSize = fs.statSync(pdfPath).size;
     console.log(`  ✅ PDF compiled: ${(pdfSize / 1024).toFixed(0)} KB`);
 
+    // Nonstopmode swallows "Undefined control sequence" — the PDF still comes
+    // out, minus the macro (checklists without $\square$ boxes, 2026-09-24).
+    // Surface them loudly so a missing package never ships silently again.
+    try {
+      if (fs.existsSync(logPath)) {
+        const logLines = fs.readFileSync(logPath, "utf-8").split("\n");
+        const undefinedMacros = new Map<string, number>();
+        for (let i = 0; i < logLines.length; i++) {
+          if (!logLines[i].startsWith("! Undefined control sequence")) continue;
+          // the offending macro is the tail of the next "l.<n> ..." line
+          const src = logLines.slice(i + 1, i + 4).find((l) => /^l\.\d+/.test(l)) || "";
+          const macro = (src.match(/(\\[a-zA-Z@]+)\s*$/) || [])[1] || "?";
+          undefinedMacros.set(macro, (undefinedMacros.get(macro) || 0) + 1);
+        }
+        if (undefinedMacros.size > 0) {
+          console.warn(
+            `  ⚠️ LaTeX: undefined control sequence(s) dropped from the PDF: ${[...undefinedMacros]
+              .map(([m, n]) => `${m}×${n}`)
+              .join(", ")}`,
+          );
+        }
+      }
+    } catch {
+      /* diagnostics only */
+    }
+
     // ── 2.5 Extract page count from PDF ──
     let pageCount: number | null = null;
     try {
@@ -685,6 +711,10 @@ export function assembleLatexDocument(p: AssembleParams): string {
     "\\usepackage{fontspec}",
     "\\defaultfontfeatures{Ligatures=TeX}",
     "\\usepackage[" + babel + "]{babel}",
+    // Writers reach for $\square$ / $\checkmark$ in checklists and fill-in
+    // trackers; without amssymb LuaLaTeX drops the undefined macro in
+    // nonstopmode and the book ships checklists with no boxes (2026-09-24).
+    "\\usepackage{amssymb}",
     "",
   );
 
@@ -1895,7 +1925,7 @@ function removeFootnotes(latex: string): string {
   return out;
 }
 
-function sanitizeChapterLatex(
+export function sanitizeChapterLatex(
   latex: string,
   language: string = "en",
   format: string = "a5",
@@ -2309,15 +2339,67 @@ function sanitizeChapterLatex(
   // phantom empty cells, blown-up tables in the 2026-09-02 book). Parse braces,
   // and count only real column tokens with alignment prefixes stripped.
   result = result.replace(
-    /\\begin\{tabularx\}\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}([\s\S]*?)\\end\{tabularx\}/g,
-    (_match, _width, colSpec, body) => {
+    // xltabular (a tall tabularx broken across pages by breakTallTables,
+    // which runs earlier) has the same {width}{spec} signature — validate it
+    // too, otherwise a 30-row tracker table escapes every row fix.
+    /\\begin\{(tabularx|xltabular)\}\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}([\s\S]*?)\\end\{\1\}/g,
+    (_match, envName, _width, colSpec, body) => {
       const bareSpec = colSpec
         .replace(/>\{(?:[^{}]|\{[^{}]*\})*\}/g, "")
         .replace(/[pmb]\{[^{}]*\}/g, "p");
       const expectedCols = (bareSpec.match(/[lcrXp]/g) || []).length;
       if (expectedCols === 0) return _match;
 
-      const lines = body.split("\n");
+      // One physical line may hold several row terminators — the writer's
+      // "1 & x & $\square$ & $\square$ \\[2pt] &  \\" ends row 1 at \\[2pt]
+      // and then opens a phantom "& \\" row of empty cells (blown-up tracker
+      // table, 2026-09-24). Split at brace-depth-0 \\ into logical rows and
+      // drop rows made only of empty cells.
+      const splitRows = (line: string): string[] => {
+        const rows: string[] = [];
+        let depth = 0;
+        let cur = "";
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === "\\" && line[i + 1] === "\\" && depth === 0) {
+            let j = i + 2;
+            if (line[j] === "[") {
+              const close = line.indexOf("]", j);
+              if (close !== -1) j = close + 1;
+            }
+            rows.push(cur + line.slice(i, j));
+            cur = "";
+            i = j - 1;
+            continue;
+          }
+          if (ch === "\\" && i + 1 < line.length) {
+            // escaped char (\{ \} \& ...) — copy verbatim, do not track depth
+            cur += ch + line[i + 1];
+            i++;
+            continue;
+          }
+          if (ch === "{") depth++;
+          else if (ch === "}") depth = Math.max(0, depth - 1);
+          cur += ch;
+        }
+        if (cur.trim()) rows.push(cur);
+        return rows.length ? rows : [line];
+      };
+      const isEmptyRow = (row: string): boolean => {
+        const t = row.trim();
+        const core = t.replace(/\\\\(\[[^\]]*\])?\s*$/, "").trim();
+        if (core === "") return t !== ""; // a bare "\\" is an empty row too
+        if (!core.includes("&")) return false;
+        return core.split("&").every((c) => c.trim() === "");
+      };
+      const lines = body.split("\n").flatMap((line: string) => {
+        const rows = splitRows(line);
+        const kept = rows.filter((r) => !isEmptyRow(r));
+        if (kept.length < rows.length) {
+          console.log(`  🔧 Table fix: dropped ${rows.length - kept.length} empty phantom row(s)`);
+        }
+        return kept;
+      });
       const fixedLines = lines.map((line: string) => {
         const trimmed = line.trim();
         // Skip non-data lines
@@ -2346,8 +2428,8 @@ function sanitizeChapterLatex(
         // into several broken ones (the invisible-header bug).
         if (trimmed.endsWith("&")) return line;
 
-        // Extract row content (before \\)
-        const rowMatch = trimmed.match(/^(.+?)(\s*\\\\)?\s*$/);
+        // Extract row content (before \\ or \\[skip])
+        const rowMatch = trimmed.match(/^(.+?)(\s*\\\\(?:\[[^\]]*\])?)?\s*$/);
         if (!rowMatch) return line;
 
         const rowContent = rowMatch[1];
@@ -2377,7 +2459,7 @@ function sanitizeChapterLatex(
         return padded.join(" & ") + rowEnd;
       });
 
-      return `\\begin{tabularx}{${_width}}{${colSpec}}${fixedLines.join("\n")}\\end{tabularx}`;
+      return `\\begin{${envName}}{${_width}}{${colSpec}}${fixedLines.join("\n")}\\end{${envName}}`;
     },
   );
 
