@@ -1757,7 +1757,11 @@ export function normalizeTablePlacement(latex: string): string {
  * cannot fit on one page into xltabular (tabularx that breaks across pages),
  * repeating the header row on every page.
  */
-export function breakTallTables(latex: string, format: string = "a5"): string {
+const CONT_LABEL: Record<string, string> = {
+  pl: "cd.", en: "cont.", de: "Forts.", es: "cont.", fr: "suite", it: "segue", pt: "cont.",
+};
+
+export function breakTallTables(latex: string, format: string = "a5", language: string = "en"): string {
   const isA4 = /a4/i.test(format);
   const textWidthPt = isA4 ? 440 : 300; // body measure incl. \tabcolsep loss
   const maxLines = isA4 ? 46 : 30; // rows of 11pt text that safely fit with caption
@@ -1857,7 +1861,7 @@ export function breakTallTables(latex: string, format: string = "a5"): string {
     // narrow columns: let "Pakenham/Cranbourne", "Lilydale/Belgrave" break after "/"
     rest = rest.replace(/([A-Za-z])\/([A-Za-z])/g, "$1/\\allowbreak{}$2");
     const cap = caption ? `\\caption{${caption}}${labM ? labM[0] : ""}\\\\\n` : "";
-    const capCont = caption ? `\\caption[]{${caption} (cont.)}\\\\\n` : "";
+    const capCont = caption ? `\\caption[]{${caption} (${CONT_LABEL[language] || CONT_LABEL.en})}\\\\\n` : "";
     console.log(`  🔧 Tall table (~${lines} lines) → xltabular: ${caption.slice(0, 50)}`);
     // \small mirrors the \AtBeginEnvironment{table}{\small} hook the float
     // version gets; at body size a 4-column A5 table fits only 2 rows a page.
@@ -2188,7 +2192,7 @@ export function sanitizeChapterLatex(
   result = fixTableRowTerminators(result);
   result = wrapNakedTables(result);
   result = normalizeTablePlacement(result);
-  result = breakTallTables(result, format);
+  result = breakTallTables(result, format, language);
   result = addDropCap(result);
 
   // ── Escape unescaped % signs — in LaTeX % starts a comment ──

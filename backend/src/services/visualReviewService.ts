@@ -183,6 +183,57 @@ export async function reviewPdf(
   return all;
 }
 
+// ── Structural guard for visual-fix patches ──
+// The reviewer (Haiku) routinely misreads our styled boxes (\concept, \stepflow,
+// \pullquote, chapter bands) as "raw LaTeX" / "clipped heading", and the fixer
+// then "repairs" them into undefined environments — \concept{T}{..} became
+// \begin{conceptbox} (box lost), \pullquote{..} became an environment (quote
+// shattered into "D / ziesięć"), plus stray \clearpage and manual \\ breaks
+// (2026-09-24, cmufkxws v3). A patch may only tweak sizes/breaks inside the
+// existing structure: it must not introduce or drop commands/environments,
+// except a small whitelist, or un-escape a command that `find` shows escaped.
+const ADD_OK = new Set([
+  "allowbreak", "hfill", "dotfill", "small", "footnotesize", "scriptsize",
+  "enlargethispage", "needspace", "Needspace", "raggedright", "centering",
+  "arraybackslash", "hsize", "textwidth", "linewidth", "columnwidth", "hspace",
+]);
+const DROP_OK = new Set([
+  "clearpage", "newpage", "pagebreak", "vspace", "hspace", "textbackslash",
+  "hfill", "newline",
+]);
+function cmdBag(s: string): Map<string, number> {
+  const bag = new Map<string, number>();
+  // \begin{X} first so the env name is captured; \end is implied by \begin
+  for (const m of s.matchAll(/\\begin\{([^}]+)\}|\\end\{[^}]+\}|\\([a-zA-Z]+)/g)) {
+    if (!m[1] && !m[2]) continue; // \end{...}
+    const k = m[1] ? `env:${m[1]}` : m[2];
+    bag.set(k, (bag.get(k) || 0) + 1);
+  }
+  return bag;
+}
+/** null = patch is structurally safe; otherwise the reason it is rejected. */
+export function checkPatchStructure(find: string, replace: string): string | null {
+  const a = cmdBag(find);
+  const b = cmdBag(replace);
+  for (const [k, n] of b) {
+    if (n <= (a.get(k) || 0)) continue;
+    if (ADD_OK.has(k)) continue;
+    // legit raw_latex repair: find shows the command escaped as text
+    if (!k.startsWith("env:") && new RegExp(`textbackslash(?:\\{\\})?\\s*${k}\\b`).test(find)) continue;
+    return `adds \\${k.replace(/^env:/, "begin{") + (k.startsWith("env:") ? "}" : "")}`;
+  }
+  for (const [k, n] of a) {
+    if (n <= (b.get(k) || 0)) continue;
+    if (DROP_OK.has(k)) continue;
+    // "begin"/"end" are counted via env:; a dropped env is structural
+    return `drops \\${k.replace(/^env:/, "begin{") + (k.startsWith("env:") ? "}" : "")}`;
+  }
+  // manual line breaks outside tables
+  const br = (s: string) => (s.match(/\\\\/g) || []).length;
+  if (br(replace) > br(find) && !find.includes("&")) return "adds a manual \\\\ line break";
+  return null;
+}
+
 /** Ask Sonnet for surgical find/replace patches and apply them. Returns count applied. */
 async function applyFixes(
   projectId: string,
@@ -207,7 +258,7 @@ async function applyFixes(
     .map((c) => `=== ROZDZIAŁ ${c.chapterNumber}: ${c.title} ===\n${c.latexContent}`)
     .join("\n\n");
 
-  const prompt = `Korektor wizualny obejrzał WYRENDEROWANE strony gotowej książki i wykrył defekty SKŁADU (nie treści):\n\n${issueList}\n\nPoniżej źródłowy LaTeX rozdziałów. Dla każdego defektu zwróć MINIMALNĄ łatkę find/replace (krótki, dokładny fragment źródła do podmiany — NIE cały rozdział). Pamiętaj: "widoczny tekst" to render, a w ŹRÓDLE może wyglądać inaczej (np. render pokazuje "\\concept{X}" bo w źródle jest podwójnie zaescapowane "\\textbackslash{}concept\\{X\\}" — wtedy find=dokładny zaescapowany ciąg ze źródła, replace="\\concept{X}").\n\nTypowe naprawy:\n- raw_latex: zaescapowana komenda drukuje się jako tekst → find=zaescapowany ciąg ze źródła, replace=prawdziwa komenda.\n- overflow / broken_table: zwęź/rozbij zawartość, tabularx, krótsza kolumna.\n- clipped_image / giant_image: zmniejsz width, [ht] zamiast [h], wyjmij \\begin{figure} z ramki tcolorbox (keyinsight/tipbox/...) tuż za nią.\n- overlap / blank_page: usuń zbędne \\clearpage / puste środowisko.\n\nKAŻDY find MUSI być dokładnym, unikalnym fragmentem występującym w podanym źródle danego rozdziału. NIE zmieniaj treści merytorycznej ani stylu.\n\nZwróć WYŁĄCZNIE JSON: {"patches":[{"chapterNumber":N,"find":"...","replace":"...","reason":"..."}]}\n\n${chaptersBlock}`;
+  const prompt = `Korektor wizualny obejrzał WYRENDEROWANE strony gotowej książki i wykrył defekty SKŁADU (nie treści):\n\n${issueList}\n\nPoniżej źródłowy LaTeX rozdziałów. Dla każdego defektu zwróć MINIMALNĄ łatkę find/replace (krótki, dokładny fragment źródła do podmiany — NIE cały rozdział). Pamiętaj: "widoczny tekst" to render, a w ŹRÓDLE może wyglądać inaczej (np. render pokazuje "\\concept{X}" bo w źródle jest podwójnie zaescapowane "\\textbackslash{}concept\\{X\\}" — wtedy find=dokładny zaescapowany ciąg ze źródła, replace="\\concept{X}").\n\nTypowe naprawy:\n- raw_latex: zaescapowana komenda drukuje się jako tekst → find=zaescapowany ciąg ze źródła, replace=prawdziwa komenda.\n- overflow / broken_table: zwęź/rozbij zawartość, tabularx, krótsza kolumna.\n- clipped_image / giant_image: zmniejsz width, [ht] zamiast [h], wyjmij \\begin{figure} z ramki tcolorbox (keyinsight/tipbox/...) tuż za nią.\n- overlap / blank_page: usuń zbędne \\clearpage / puste środowisko.\n\nKAŻDY find MUSI być dokładnym, unikalnym fragmentem występującym w podanym źródle danego rozdziału. NIE zmieniaj treści merytorycznej ani stylu.\n\nMAKRA SKŁADU SĄ ZDEFINIOWANE W PREAMBULE i renderują się jako ramki/grafiki: \\concept{Tytuł}{Treść}, \\stepflow{a, b, c}, \\pullquote{...}, \\bignumber{..}{..}, \\itemsection{..}, środowiska keyinsight/tipbox/warningbox/... oraz kolorowy pas \\chapter. Jeśli źródło zawiera je w poprawnej postaci (nie zaescapowane), to defekt zgłoszony na tym elemencie jest fałszywym alarmem — POMIŃ go. NIGDY nie zamieniaj makra na środowisko ani odwrotnie, nie dodawaj \\clearpage/\\newpage ani ręcznych \\\\ w akapitach. Łatka nie może dodać ani usunąć żadnej komendy poza drobnymi korektami rozmiaru/łamania — inaczej zostanie odrzucona.\n\nZwróć WYŁĄCZNIE JSON: {"patches":[{"chapterNumber":N,"find":"...","replace":"...","reason":"..."}]}\n\n${chaptersBlock}`;
 
   const startedAt = Date.now();
   const resp = (await anthropic.messages.create({
@@ -236,6 +287,11 @@ async function applyFixes(
   for (const p of parsed.data.patches) {
     const ch = editable.find((c) => c.chapterNumber === p.chapterNumber);
     if (!ch || !p.find || p.find === p.replace) continue;
+    const verdict = checkPatchStructure(p.find, p.replace);
+    if (verdict) {
+      log?.warn?.(`Visual fix Ch.${p.chapterNumber}: REJECTED (${verdict}) — ${p.reason || p.find.slice(0, 40)}`);
+      continue;
+    }
     const current = updated.get(p.chapterNumber) ?? ch.latexContent!;
     const idx = current.indexOf(p.find);
     if (idx === -1) {
