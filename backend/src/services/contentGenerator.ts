@@ -24,6 +24,7 @@ import {
 } from "./briefGenerator";
 import {
   resolveNumbering,
+  planItemChapters,
   formatNumberingForPrompt,
   NumberingSpec,
 } from "../lib/numbering";
@@ -541,10 +542,23 @@ export async function generateContent(
     try {
       const chTimer = log.timer();
       const chapterNumbering = resolveNumbering(project);
+      // Which chapters carry the item counter (mixed books have prose
+      // chapters that must NOT be forced into \itemsection).
+      const itemChapters =
+        chapterNumbering.mode === "items"
+          ? planItemChapters(chapters, chapterNumbering.itemCount)
+          : new Set<number>();
+      const chapterHasItems = itemChapters.has(chapter.number);
+      if (chapterNumbering.mode === "items") {
+        log.step(
+          `  📊 Items: ${chapterHasItems ? "YES" : "no"} for this chapter (item chapters: ${[...itemChapters].sort((a, b) => a - b).join(", ") || "none"})`,
+        );
+      }
       let result = await generateChapterLatex({
         bookTitle,
         bookTopic: project.topic,
         numbering: chapterNumbering,
+        chapterHasItems,
         language: project.language,
         stylePreset: project.stylePreset,
         guidelines: project.guidelines || "",
@@ -570,7 +584,7 @@ export async function generateContent(
       // The prompt demands it, but models occasionally drop or merge an item
       // (a 30-recipe book shipping 29 breaks the title's promise) — validate
       // and retry ONCE with the explicit list of planned items.
-      if (chapterNumbering.mode === "items") {
+      if (chapterNumbering.mode === "items" && chapterHasItems) {
         const plannedItems = (chapter.sections || []).filter(
           (sec: any) => !String(sec.description || "").startsWith("[intro]"),
         );
@@ -583,6 +597,7 @@ export async function generateContent(
             bookTitle,
             bookTopic: project.topic,
             numbering: chapterNumbering,
+            chapterHasItems,
             language: project.language,
             stylePreset: project.stylePreset,
             guidelines: project.guidelines || "",
@@ -987,6 +1002,10 @@ interface GenParams {
   /** false → popular book: facts stay grounded but NO footnote apparatus */
   allowFootnotes: boolean;
   numbering: NumberingSpec;
+  /** `items` mode only: does THIS chapter carry the item counter? Prose
+   *  chapters of a mixed book (intro, theory, weekly plan) use plain
+   *  \section and must never emit \itemsection. */
+  chapterHasItems?: boolean;
   log: any;
 }
 
@@ -1197,11 +1216,14 @@ BASE RULES:
 - Output ONLY the chapter body — NO preamble, NO \\documentclass, NO \\begin{document}
 - Start with \\chapter{${p.chapter.title}}
 ${
-  p.numbering.mode === "items"
+  p.numbering.mode === "items" && p.chapterHasItems !== false
     ? `- ${formatNumberingForPrompt(p.numbering)}
 - EVERY item planned for this chapter (each section of the structure that is not marked [intro]) = exactly one \\itemsection{Item title} heading, in the planned order, with the item's full content under it. \\itemsection takes ONE brace argument and is NEVER starred, NEVER nested in another heading.
 - \\section{} only for a non-item intro/technique passage; do NOT use \\subsection{} at all in this book`
-    : `- Use \\section{} for main sections, \\subsection{} for subsections
+    : p.numbering.mode === "items"
+      ? `- ${formatNumberingForPrompt(p.numbering)}
+- THIS chapter carries NO items: it is a prose chapter (introduction, theory, plan, tools...). Use plain \\section{} for every planned section (\\subsection{} for sub-parts). NEVER emit \\itemsection in this chapter — the item counter belongs to the collection chapters only; do not number these sections by hand either`
+      : `- Use \\section{} for main sections, \\subsection{} for subsections
 - ${formatNumberingForPrompt(p.numbering)}`
 }
 - Use \\textbf{}, \\textit{}, \\emph{} for emphasis (sparingly)

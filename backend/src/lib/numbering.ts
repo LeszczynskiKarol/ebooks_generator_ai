@@ -131,3 +131,62 @@ export function formatNumberingForPrompt(n: NumberingSpec): string {
       return `HEADING NUMBERING SCHEME: "hierarchical" — the classic 1. / 1.1. / 1.1.1. scheme (chapter.section.subsection). Cross-references by number are fine.`;
   }
 }
+
+/**
+ * `items` mode: decide WHICH chapters carry the item counter.
+ *
+ * A pure collection (cookbook: every chapter is a group of recipes) has every
+ * non-[intro] section as an item, so the planned total equals the promised
+ * count. A mixed book ("30-day back program": intro + anatomy + a 20-exercise
+ * catalog + weekly plan + trackers) has more planned sections than items —
+ * forcing \itemsection on the intro chapter prints "ĆWICZENIE 1" over
+ * "Wprowadzenie" and shifts the catalog to 9–28 (incident 2026-09-24,
+ * project cmufkxwsr…). Here we pick the subset of chapters whose non-intro
+ * section counts sum EXACTLY to itemCount (fewest chapters wins — the
+ * catalog, not five scattered prose chapters); with no exact subset we fall
+ * back to the greedy largest-first cover.
+ */
+export function planItemChapters(
+  chapters: { number: number; sections?: { description?: string | null }[] }[],
+  itemCount: number | null,
+): Set<number> {
+  const counts = chapters.map((c) => ({
+    number: c.number,
+    n: (c.sections || []).filter(
+      (s) => !String(s?.description || "").startsWith("[intro]"),
+    ).length,
+  }));
+  const withItems = counts.filter((c) => c.n > 0);
+  const total = withItems.reduce((a, c) => a + c.n, 0);
+  if (!itemCount || itemCount <= 0 || total <= itemCount) {
+    return new Set(withItems.map((c) => c.number));
+  }
+  // exact subset-sum, fewest chapters preferred (n ≤ 20 → brute force is fine)
+  let best: number[] | null = null;
+  if (withItems.length <= 20) {
+    const m = withItems.length;
+    for (let mask = 1; mask < 1 << m; mask++) {
+      let sum = 0;
+      let size = 0;
+      for (let i = 0; i < m; i++)
+        if (mask & (1 << i)) {
+          sum += withItems[i].n;
+          size++;
+        }
+      if (sum === itemCount && (best === null || size < best.length)) {
+        best = withItems.filter((_, i) => mask & (1 << i)).map((c) => c.number);
+      }
+    }
+  }
+  if (best) return new Set(best);
+  // greedy fallback: largest chapters first until the promise is covered
+  const sorted = [...withItems].sort((a, b) => b.n - a.n);
+  const picked = new Set<number>();
+  let acc = 0;
+  for (const c of sorted) {
+    if (acc >= itemCount) break;
+    picked.add(c.number);
+    acc += c.n;
+  }
+  return picked;
+}
