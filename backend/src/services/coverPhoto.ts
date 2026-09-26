@@ -28,6 +28,14 @@ export function loadCoverStyle(): CoverStyleConfig {
   return JSON.parse(fs.readFileSync(p, "utf8"));
 }
 
+// Sonnet 5 / Opus 4.7+ myślą domyślnie, gdy brak pola `thinking` — przy
+// max_tokens 150–500 myślenie zjadłoby limit i werdykt/scena wyszłyby puste.
+function noThinking(model: string) {
+  return /^claude-(sonnet-5|opus-4-[78]|opus-5|fable)/.test(model)
+    ? { thinking: { type: "disabled" } }
+    : {};
+}
+
 /** Recenzja zdjęcia przez Sonneta (wizja). Zwraca {accept, reason}.
  *  Brak ANTHROPIC_API_KEY ⇒ accept (środowisko dev z Ollamą). */
 export async function reviewCoverPhoto(
@@ -51,6 +59,7 @@ export async function reviewCoverPhoto(
     body: JSON.stringify({
       model: cfg.review.model,
       max_tokens: 500,
+      ...noThinking(cfg.review.model),
       messages: [
         {
           role: "user",
@@ -117,6 +126,7 @@ export async function buildBookCoverScene(
       body: JSON.stringify({
         model: cfg.book.scene_builder.model,
         max_tokens: 150,
+        ...noThinking(cfg.book.scene_builder.model),
         messages: [
           {
             role: "user",

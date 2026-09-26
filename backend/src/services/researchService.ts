@@ -7,7 +7,7 @@ import axios from "axios";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { createPipelineLogger } from "../lib/logger";
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { parseLLMJson } from "../lib/llmJson";
 import {
   cytadoEnabled,
@@ -598,7 +598,7 @@ Output ONLY 2 queries, one per line, nothing else:`;
 
   log?.claudeReq?.("ch-queries", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
+    model: SONNET_MODEL,
     max_tokens: 100,
     temperature: 0.3,
     messages: [{ role: "user", content: prompt }],
@@ -679,7 +679,7 @@ Pick 2-3 sources. Return [] if none are directly relevant.`;
 
   log?.claudeReq?.("ch-select", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
+    model: SONNET_MODEL,
     max_tokens: 100,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -689,7 +689,7 @@ Pick 2-3 sources. Return [] if none are directly relevant.`;
     message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
   log?.claudeRes?.("ch-select", responseText);
   log.api?.(
-    "claude-sonnet-4-6",
+    SONNET_MODEL,
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
@@ -892,7 +892,7 @@ Query:`;
 
   log?.claudeReq?.("simple-query", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
+    model: SONNET_MODEL,
     max_tokens: 50,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -1169,7 +1169,7 @@ RESPOND IN THIS EXACT JSON FORMAT (no other text):
 
   log.claudeReq?.("global-select", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
+    model: SONNET_MODEL,
     max_tokens: 500,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -1179,7 +1179,7 @@ RESPOND IN THIS EXACT JSON FORMAT (no other text):
     message.content[0].type === "text" ? message.content[0].text.trim() : "";
   log.claudeRes?.("global-select", responseText);
   log.api(
-    "claude-sonnet-4-6",
+    SONNET_MODEL,
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );
@@ -1253,7 +1253,7 @@ Pick 1-3 sources. If none add value, respond with: []`;
 
   log.claudeReq?.("en-supplement", prompt);
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
+    model: SONNET_MODEL,
     max_tokens: 100,
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
@@ -1263,7 +1263,7 @@ Pick 1-3 sources. If none add value, respond with: []`;
     message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
   log.claudeRes?.("en-supplement", responseText);
   log.api(
-    "claude-sonnet-4-6",
+    SONNET_MODEL,
     message.usage?.input_tokens || 0,
     message.usage?.output_tokens || 0,
   );

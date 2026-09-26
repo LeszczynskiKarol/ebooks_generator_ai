@@ -17,12 +17,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { parseLLMJson } from "../lib/llmJson";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const anthropic = createLLMClient();
-const BRIEF_MODEL = "claude-sonnet-4-6"; // Karol: always sonnet, not haiku
+const BRIEF_MODEL = SONNET_MODEL; // Karol: always sonnet, not haiku
 
 const REPLICATE_TOKEN =
   process.env.FLUX_API || process.env.REPLICATE_API_TOKEN || "";

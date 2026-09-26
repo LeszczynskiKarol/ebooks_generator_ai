@@ -5,7 +5,7 @@
 
 import { z } from "zod";
 import { createPipelineLogger } from "../lib/logger";
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { parseLLMJson } from "../lib/llmJson";
 import { repairControlCharLatex } from "../lib/latexFixes";
 
@@ -53,8 +53,8 @@ const RemovalResponseSchema = z
   .passthrough();
 
 // ── Models ──
-const REVIEW_MODEL = "claude-sonnet-4-6"; // review & scoring (Karol: always sonnet)
-const REVISION_MODEL = "claude-sonnet-4-6"; // quality — content generation
+const REVIEW_MODEL = SONNET_MODEL; // review & scoring (Karol: always sonnet)
+const REVISION_MODEL = SONNET_MODEL; // quality — content generation
 
 // ── Interfaces ──
 

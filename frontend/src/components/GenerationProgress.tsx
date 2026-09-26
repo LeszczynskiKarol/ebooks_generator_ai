@@ -625,7 +625,7 @@ export default function GenerationProgress({
           </div>
           <span className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
             <Cpu className="w-3.5 h-3.5" />
-            Claude Sonnet 4.5
+            Claude Sonnet 5
           </span>
         </div>
       </div>

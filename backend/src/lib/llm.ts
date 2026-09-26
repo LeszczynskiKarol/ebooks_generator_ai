@@ -18,6 +18,11 @@ import path from "path";
 
 const IS_PROD = process.env.NODE_ENV === "production";
 
+// Główny model "jakościowy" całego pipeline'u. Jedno miejsce zmiany; env
+// CLAUDE_SONNET_MODEL pozwala wrócić do poprzedniego (np. claude-sonnet-4-6)
+// samym restartem, bez deployu.
+export const SONNET_MODEL = process.env.CLAUDE_SONNET_MODEL || "claude-sonnet-5";
+
 const LLM_PROVIDER = (process.env.LLM_PROVIDER || "anthropic").toLowerCase();
 const OLLAMA_BASE_URL = (
   process.env.OLLAMA_BASE_URL || "http://localhost:11434"
@@ -38,9 +43,9 @@ export const MODEL_OPTIONS: ModelOption[] = [
   { key: "auto", label: "Auto (domyślne per-serwis)", provider: "auto" },
   {
     key: "sonnet",
-    label: "Claude Sonnet 4.6",
+    label: `Claude Sonnet (${SONNET_MODEL})`,
     provider: "anthropic",
-    model: "claude-sonnet-4-6",
+    model: SONNET_MODEL,
   },
   {
     key: "haiku",
@@ -234,7 +239,33 @@ async function anthropicCreate(
 ): Promise<Anthropic.Message> {
   // `stream` nie należy do parametrów .stream(); usuń, gdyby wpadł z params.
   const { stream: _drop, ...rest } = params as Anthropic.MessageCreateParams;
-  return anthropic().messages.stream(rest).finalMessage();
+  return anthropic().messages.stream(adaptForModel(rest)).finalMessage();
+}
+
+// Modele z powierzchnią API Opus 4.7+ (Sonnet 5, Opus 4.7/4.8/5, Fable):
+//  - temperature/top_p/top_k ≠ domyślne → 400, więc je zdejmujemy;
+//  - brak pola `thinking` = myślenie adaptacyjne WŁĄCZONE (na 4.6 było wyłączone).
+//    Wszyscy callerzy czytają `content[0].text`; z myśleniem content[0] byłby
+//    blokiem thinking i tekst wyszedłby pusty. Ustawiamy więc jawnie "disabled",
+//    co odtwarza zachowanie z Sonneta 4.6 (caller może nadpisać swoim `thinking`);
+//  - nowy tokenizer liczy ten sam tekst jako ~30% więcej tokenów, więc limity
+//    max_tokens strojone pod 4.6 dostają zapas (płaci się za faktyczne tokeny,
+//    nie za limit).
+const NEW_SURFACE_MODEL = /^claude-(sonnet-5|opus-4-[78]|opus-5|fable)/;
+const TOKENIZER_HEADROOM = 1.35;
+const MAX_OUTPUT_TOKENS = 128_000;
+
+function adaptForModel<T extends Anthropic.MessageCreateParams>(params: T): T {
+  if (!NEW_SURFACE_MODEL.test(String(params.model))) return params;
+  const { temperature: _t, top_p: _p, top_k: _k, ...rest } = params as any;
+  return {
+    ...rest,
+    thinking: rest.thinking ?? { type: "disabled" },
+    max_tokens: Math.min(
+      MAX_OUTPUT_TOKENS,
+      Math.ceil(rest.max_tokens * TOKENIZER_HEADROOM),
+    ),
+  } as T;
 }
 
 // ── Routing per-wywołanie wg bieżącego wyboru ──

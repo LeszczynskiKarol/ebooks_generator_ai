@@ -5,7 +5,7 @@
 // + LaTeX sanitization to prevent compilation failures
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { reviewAndReviseBook } from "./reviewService";
 import { prisma } from "../lib/prisma";
 import { getWordsPerPage, footnotesEnabled } from "../lib/types";
@@ -41,7 +41,7 @@ import {
 } from "../lib/latexFixes";
 
 const anthropic = createLLMClient();
-const UTILITY_MODEL = "claude-sonnet-4-6";
+const UTILITY_MODEL = SONNET_MODEL;
 
 interface ChapterStructure {
   id: string;
@@ -1059,7 +1059,7 @@ ${p.correctionNote}
   const lang = getLangName(p.language);
   const prompts: PromptLog[] = [];
   const responses: ResponseLog[] = [];
-  const model = "claude-sonnet-4-6";
+  const model = SONNET_MODEL;
   const isLastChapter = p.chapterIndex === p.totalChapters - 1;
   const hasPreviousChapters = p.previousChaptersContent.length > 0;
 
@@ -1972,7 +1972,7 @@ async function chapterSummary(
     const prompt = `2-sentence summary in ${getLangName(lang)}:\n\n${plain}`;
     log?.claudeReq?.("summary", prompt);
     const r = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+      model: SONNET_MODEL,
       max_tokens: 200,
       messages: [
         {

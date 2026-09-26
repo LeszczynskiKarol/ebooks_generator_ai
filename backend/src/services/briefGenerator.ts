@@ -7,12 +7,12 @@
 // structure + content prompts, replacing one-size-fits-all rules.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { prisma } from "../lib/prisma";
 import { parseLLMJson, BookBriefSchema, BookBrief } from "../lib/llmJson";
 
 const anthropic = createLLMClient();
-const BRIEF_MODEL = "claude-sonnet-4-6";
+const BRIEF_MODEL = SONNET_MODEL;
 
 export type { BookBrief };
 

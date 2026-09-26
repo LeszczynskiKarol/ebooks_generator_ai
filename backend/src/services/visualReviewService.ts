@@ -18,7 +18,7 @@ import fs from "fs";
 import path from "path";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { parseLLMJson } from "../lib/llmJson";
 import { createPipelineLogger } from "../lib/logger";
 
@@ -49,7 +49,7 @@ function logLLM(
 }
 
 const VISION_MODEL = "claude-haiku-4-5-20251001"; // cheap per-page visual check
-const FIX_MODEL = "claude-sonnet-4-6"; // LaTeX repair (quality)
+const FIX_MODEL = SONNET_MODEL; // LaTeX repair (quality)
 const PAGES_PER_CALL = 4; // images per Haiku request
 const DEFAULT_DPI = 110; // legible enough for the model, small enough to be cheap
 

@@ -3,7 +3,7 @@
 // Research → Structure generation with real-world data
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { prisma } from "../lib/prisma";
 import { getWordsPerPage, getPageSizeTier } from "../lib/types";
 import { createPipelineLogger } from "../lib/logger";
@@ -132,7 +132,7 @@ export async function generateStructure(projectId: string) {
   try {
     const apiTimer = log.timer();
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
+      model: SONNET_MODEL,
       max_tokens: 16000, // struktura to zwięzły JSON — duży zapas, by NIGDY nie uciąć
       messages: [{ role: "user", content: prompt }],
     });
@@ -141,7 +141,7 @@ export async function generateStructure(projectId: string) {
       response.content[0].type === "text" ? response.content[0].text : "";
     const stopReason = response.stop_reason;
     log.api(
-      "claude-sonnet-4-6",
+      SONNET_MODEL,
       response.usage?.input_tokens || 0,
       response.usage?.output_tokens || 0,
     );

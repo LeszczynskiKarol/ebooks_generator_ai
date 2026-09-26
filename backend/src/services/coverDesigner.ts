@@ -17,13 +17,13 @@ import * as path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { prisma } from "../lib/prisma";
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { parseLLMJson } from "../lib/llmJson";
 import { z } from "zod";
 
 const execAsync = promisify(exec);
 const anthropic = createLLMClient();
-const DESIGN_MODEL = "claude-sonnet-4-6";
+const DESIGN_MODEL = SONNET_MODEL;
 
 const REPLICATE_TOKEN =
   process.env.FLUX_API || process.env.REPLICATE_API_TOKEN || "";

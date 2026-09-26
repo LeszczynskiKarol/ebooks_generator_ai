@@ -13,12 +13,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { z } from "zod";
-import { createLLMClient } from "../lib/llm";
+import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { prisma } from "../lib/prisma";
 import { parseLLMJson } from "../lib/llmJson";
 
 const anthropic = createLLMClient();
-const DIGEST_MODEL = "claude-sonnet-4-6";
+const DIGEST_MODEL = SONNET_MODEL;
 
 /** Upper bound of material text sent to the digest call (~70k tokens). */
 const DIGEST_INPUT_CHARS = 280_000;
