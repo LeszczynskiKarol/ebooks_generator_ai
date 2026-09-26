@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,6 +16,8 @@ import {
   Sparkles,
   Upload,
   BookDashed,
+  CreditCard,
+  ArrowRight,
 } from "lucide-react";
 import {
   calculatePrice,
@@ -177,6 +179,25 @@ export default function NewProject() {
       .then(({ data }) => setIsAdmin(data.data?.isAdmin === true))
       .catch(() => setIsAdmin(false));
   }, []);
+
+  // Orders already placed but never paid. Someone who walked away from the
+  // Stripe page (or hit Back) lands here on an EMPTY form — the draft is gone
+  // because the order exists — so point them at the order instead of letting
+  // them think their description was lost. Own query key: the dashboard's
+  // ["projects"] query also fires funnel telemetry.
+  const { data: pendingOrders = [] } = useQuery({
+    queryKey: ["projects", "pendingPayment"],
+    queryFn: async () => {
+      const res = await apiClient.get("/projects");
+      const list: any[] = Array.isArray(res.data?.data) ? res.data.data : [];
+      return list.filter(
+        (p) =>
+          p.paymentStatus !== "PAID" &&
+          (p.currentStage === "PAYMENT" || p.currentStage === "PRICING"),
+      );
+    },
+    staleTime: 0,
+  });
 
   // Color state
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
@@ -407,8 +428,18 @@ export default function NewProject() {
       // so a stale-but-fresh [] cache would show it again right after creating.
       queryClient.invalidateQueries({ queryKey: ["projects"] });
 
-      // Redirect to Stripe checkout immediately
+      // Redirect to Stripe checkout immediately. Rewrite this history entry
+      // to the order page first: Back from Stripe then lands on the saved
+      // order (with its pay button), not on this form — which is empty by
+      // then, since the draft was just cleared.
       if (data.data.sessionUrl) {
+        const orderPath = `/projects/${data.data.project.id}`;
+        window.history.replaceState(window.history.state, "", orderPath);
+        // bfcache would resurrect the filled form under the new URL — reload
+        // so the router renders the order page for real.
+        window.addEventListener("pageshow", (e) => {
+          if (e.persisted) window.location.reload();
+        });
         window.location.href = data.data.sessionUrl;
       } else {
         // Fallback if Stripe session wasn't created (shouldn't happen)
@@ -473,6 +504,34 @@ export default function NewProject() {
           {t("newProject.subtitle")}
         </p>
       </div>
+
+      {pendingOrders.length > 0 && (
+        <div className="mb-8 space-y-3">
+          {pendingOrders.slice(0, 3).map((p: any) => (
+            <Link
+              key={p.id}
+              to={`/projects/${p.id}`}
+              className="flex items-center gap-4 p-4 rounded-2xl border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+            >
+              <CreditCard className="w-6 h-6 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-gray-900 dark:text-white">
+                  {t("newProject.pendingOrderTitle")}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                  {t("newProject.pendingOrderBody", {
+                    s: p.title || p.topic,
+                  })}
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1 shrink-0 text-sm font-semibold text-amber-700 dark:text-amber-300">
+                {t("newProject.pendingOrderCta")}
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Book Details */}

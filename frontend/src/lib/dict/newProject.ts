@@ -188,6 +188,9 @@ export const en: Record<string, string> = {
 
   // Toasts
   "newProject.draftRestored": "Draft restored",
+  "newProject.pendingOrderTitle": "You have an order waiting for payment",
+  "newProject.pendingOrderBody": "“{s}” — your description and settings are saved.",
+  "newProject.pendingOrderCta": "Complete order",
   "newProject.maxColors": "Maximum 3 colors",
   "newProject.invalidHex": "Enter a valid hex color (e.g. #FF5500)",
   "newProject.colorAlreadySelected": "Color already selected",
@@ -393,6 +396,9 @@ export const pl: Record<string, string> = {
 
   // Toasts
   "newProject.draftRestored": "Przywrócono wersję roboczą",
+  "newProject.pendingOrderTitle": "Masz zamówienie czekające na płatność",
+  "newProject.pendingOrderBody": "„{s}” — opis i ustawienia są zapisane.",
+  "newProject.pendingOrderCta": "Dokończ zamówienie",
   "newProject.maxColors": "Maksymalnie 3 kolory",
   "newProject.invalidHex": "Podaj prawidłowy kolor hex (np. #FF5500)",
   "newProject.colorAlreadySelected": "Kolor już wybrany",
