@@ -39,7 +39,7 @@
     { "id": "b36", "priority": 1, "cluster": "cost", "status": "done", "added_by_writer": true, "title_en": "Free chapter illustrations: what they'd cost elsewhere, and why InkMagnet includes them", "slug_en": "how-much-do-book-illustrations-cost", "slug_pl": "ile-kosztuja-ilustracje-do-ksiazki", "completed_at": "2026-09-28" },
     { "id": "d35", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "An employee handbook that doesn't read like a compliance PDF" },
     { "id": "d36", "priority": 1, "cluster": "usecase", "status": "pending", "added_by_writer": true, "title_en": "A buyer's guide book for real estate agents and local service pros" },
-    { "id": "c34", "priority": 1, "cluster": "howto", "status": "pending", "added_by_writer": true, "title_en": "What languages can InkMagnet actually write in?" },
+    { "id": "c34", "priority": 1, "cluster": "howto", "status": "done", "added_by_writer": true, "title_en": "What languages can InkMagnet actually write in?", "slug_en": "what-languages-does-inkmagnet-support", "slug_pl": "w-jakich-jezykach-pisze-inkmagnet", "completed_at": "2026-09-30" },
     { "id": "e32", "priority": 1, "cluster": "pl", "status": "done", "added_by_writer": true, "pl_only": true, "title_pl": "Książka jubileuszowa firmy: prezent dla klientów, który nie ląduje w szufladzie", "slug_pl": "ksiazka-jubileuszowa-firmy", "completed_at": "2026-09-24" },
     { "id": "e33", "priority": 1, "cluster": "pl", "status": "done", "added_by_writer": true, "pl_only": true, "title_pl": "Ebook jako prezent swiateczny dla klientow B2B na koniec roku", "slug_pl": "ebook-prezent-swiateczny-dla-klientow-b2b", "completed_at": "2026-09-27" }
   ]
