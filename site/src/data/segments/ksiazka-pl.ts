@@ -52,13 +52,17 @@ const seg: Segment = {
     sub: "Klikalny spis treści, otwarcia rozdziałów, ramki z wnioskami i tabele. Każda strona jest składana tym samym silnikiem co publikacje akademickie. Kliknij stronę, żeby ją powiększyć.",
   },
   moreExamples: {
-    title: "Inne pełne książki z naszej galerii",
+    title: "Pełne książki z naszej galerii",
     sub: "Każdą możesz pobrać w całości jako PDF i sprawdzić, jak wygląda gotowy egzemplarz.",
     slugs: [
+      "zmiana-zawodu-po-40-przewodnik-przebranzowienia",
       "jak-budowac-nawyki-30-dniowy-plan-wdrozenia",
       "jak-przestac-prokrastynowac-system-nie-motywacja",
       "ile-zarabia-copywriter-i-skad-brac-zlecenia-realia-rynku",
+      "klienci-z-google-bez-budzetu-na-reklamy",
       "air-fryer-60-prostych-przepisow",
+      "jak-wyjsc-z-dlugow-plan-krok-po-kroku",
+      "jedz-regularnie-nie-idealnie",
     ],
   },
   how: {

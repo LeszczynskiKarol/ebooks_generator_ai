@@ -39,6 +39,7 @@ const l = pl
 // Segment pages lead with their matching example PDF; generic pages
 // (e.g. "generator książek") lead with creating a book.
 const createFirst = seg.heroPrimary === "create";
+const galleryHref = pl ? "/pl/przyklady/" : "/examples/";
 const btnPrimary = "inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700";
 const btnSecondary = "inline-flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-7 py-3.5 text-base font-semibold text-ink-700 transition-colors hover:bg-ink-50";
 const dlIcon = "";
@@ -64,7 +65,7 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
           {createFirst ? (
             <>
               <a href={registerUrl} class={btnPrimary}>{pl ? "Stwórz własną książkę" : "Create your own book"}</a>
-              <a href={pdfHref} class={btnSecondary}>{dlIcon}{pl ? "Pobierz przykładową książkę (PDF)" : "Download an example book (PDF)"}</a>
+              <a href={galleryHref} class={btnSecondary}>{pl ? "Zobacz przykładowe książki" : "See example books"}</a>
             </>
           ) : (
             <>
@@ -79,13 +80,20 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
           ))}
         </ul>
       </div>
-      <!-- the example book's cover + an inside page -->
+      <!-- generic page: real app screens; segment page: its example book -->
+      {createFirst ? (
+        <div class="relative mx-auto w-full max-w-md pb-10 pl-8 sm:pl-14 lg:max-w-none">
+          <Shot src={`${shotDir}/h-sample`} w={760} h={574} eager zoom={false} url={pl ? "app.inkmagnet.com: próbka książki" : "app.inkmagnet.com: book sample"} alt={pl ? "Próbka dwóch pierwszych stron książki" : "Two-page sample of a book"} />
+          <Shot src={`${shotDir}/h-plan`} w={240} h={pl ? 511 : 472} kind="phone" eager zoom={false} class="absolute -bottom-2 left-0 w-[34%] max-w-[170px] rotate-[-3deg]" alt={pl ? "Plan książki w aplikacji na Androida" : "Book plan in the Android app"} />
+        </div>
+      ) : (
       <div class="relative mx-auto flex w-full max-w-md items-end justify-center gap-4 lg:max-w-none">
         <a href={bookHref} class="block w-[46%] max-w-[230px] -rotate-2 overflow-hidden rounded-lg shadow-2xl shadow-ink-900/25 ring-1 ring-ink-200 transition-transform hover:-rotate-1">
           <img src={`/samples/covers/${book.slug}.webp`} alt={book.title} width="520" height="738" loading="eager" fetchpriority="high" class="block h-auto w-full" />
         </a>
         <img src={pageImgs[Math.min(2, pageImgs.length - 1)]} alt={pl ? `Strona z książki „${book.title}”` : `A page from "${book.title}"`} width="760" height="1078" loading="eager" data-zoom class="block w-[46%] max-w-[230px] rotate-2 cursor-zoom-in rounded-lg bg-white shadow-xl shadow-ink-900/15 ring-1 ring-ink-200" />
       </div>
+      )}
     </div>
   </section>
 
@@ -115,7 +123,9 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
     </div>
   </section>
 
-  <!-- Example book: real TOC + pages + PDF -->
+  <!-- Example book: real TOC + pages + PDF (segment pages only) -->
+  {!createFirst && (
+  <>
   <section id="przyklad" class="scroll-mt-20 border-t border-ink-100">
     <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <div class="grid gap-12 lg:grid-cols-5 lg:gap-14">
@@ -165,6 +175,8 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
       </div>
     </div>
   </section>
+  </>
+  )}
 
   {seg.moreExamples && (
     <section class="border-t border-ink-100">
@@ -173,18 +185,21 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
           <h2 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">{seg.moreExamples.title}</h2>
           <p class="mt-4 text-lg text-ink-600">{seg.moreExamples.sub}</p>
         </div>
-        <div class="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
+        <div class="mt-10 grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-8">
           {seg.moreExamples.slugs
             .map((sl) => (examples as any[]).find((b) => b.slug === sl))
             .filter(Boolean)
             .map((b: any) => (
               <a href={pl ? `/pl/przyklady/${b.slug}/` : `/examples/${b.slug}/`} class="group block">
                 <img src={`/samples/covers/${b.slug}.webp`} alt={b.title} width="520" height="738" loading="lazy" decoding="async" class="block h-auto w-full rounded-lg shadow-lg shadow-ink-900/15 ring-1 ring-ink-200 transition-transform group-hover:-translate-y-1" />
-                <p class="mt-3 text-sm font-semibold leading-snug text-ink-900">{b.title}</p>
+                <p class="mt-2 text-xs font-semibold leading-snug text-ink-900">{b.title}</p>
                 <p class="text-xs text-ink-500">{b.pages} {l.pages}</p>
               </a>
             ))}
         </div>
+        <p class="mt-10 text-center">
+          <a href={galleryHref} class="font-semibold text-brand-700 underline-offset-4 hover:underline">{pl ? "Zobacz wszystkie przykładowe książki →" : "See all example books →"}</a>
+        </p>
       </div>
     </section>
   )}
