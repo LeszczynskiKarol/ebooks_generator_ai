@@ -55,8 +55,11 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink-600">{seg.hero.sub}</p>
         <div class="mt-8 flex flex-wrap items-center gap-4">
-          <a href={registerUrl} class="rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700">{l.check}</a>
-          <a href="#przyklad" class="rounded-xl border border-ink-200 bg-white px-7 py-3.5 text-base font-semibold text-ink-700 transition-colors hover:bg-ink-50">{pl ? "Zobacz przykładową książkę" : "See the example book"}</a>
+          <a href={pdfHref} class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+            {l.download}
+          </a>
+          <a href={registerUrl} class="rounded-xl border border-ink-200 bg-white px-7 py-3.5 text-base font-semibold text-ink-700 transition-colors hover:bg-ink-50">{pl ? "Stwórz własną książkę" : "Create your own book"}</a>
         </div>
         <ul class="mt-8 grid gap-2 text-sm text-ink-600 sm:grid-cols-2">
           {seg.hero.bullets.map((b) => (
