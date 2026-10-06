@@ -3,19 +3,19 @@ import type { Segment } from "./types";
 const seg: Segment = {
   key: "coach-pl",
   lang: "pl",
-  path: "/pl/ebook-dla-coacha/",
+  path: "/pl/ebook-dla-trenera-i-dietetyka/",
   altPath: "/ebook-for-coaches/",
   exampleSlug: "jedz-regularnie-nie-idealnie",
   seo: {
-    title: "Ebook dla coacha i dietetyka: własny lead magnet | InkMagnet",
+    title: "Ebook dla trenera personalnego i dietetyka | InkMagnet",
     description:
-      "Lead magnet dla coacha, dietetyka i trenera: ebook PDF i EPUB, który zbiera zapisy do newslettera. Zobacz przykład: 14-dniowy plan żywieniowy.",
+      "Lead magnet dla trenera personalnego i dietetyka: ebook PDF i EPUB, który zbiera zapisy do newslettera. Zobacz przykład: 14-dniowy plan żywieniowy.",
   },
   hero: {
-    badge: "Dla coachów, dietetyków i trenerów",
+    badge: "Dla trenerów personalnych i dietetyków",
     title: "Pierwsza rozmowa z klientem zaczyna się",
     accent: "od Twojej książki",
-    sub: "Dietetyczka, trener personalny, coach kariery, terapeutka z własnym gabinetem. Przyszli klienci długo czytają, zanim zarezerwują sesję. Daj im do przeczytania coś Twojego: konkretny ebook z planem działania, który wymieniają na zapis do newslettera i który pokazuje, jak pracujesz.",
+    sub: "Dietetyczka, trener personalny, fizjoterapeutka, doradca kariery z własną praktyką. Przyszli klienci długo czytają, zanim zarezerwują sesję. Daj im do przeczytania coś Twojego: konkretny ebook z planem działania, który wymieniają na zapis do newslettera i który pokazuje, jak pracujesz.",
     bullets: [
       "Lead magnet w PDF i EPUB z zaprojektowaną okładką",
       "Twoja metoda i Twoje podejście, nie ogólniki",
@@ -32,7 +32,7 @@ const seg: Segment = {
     ],
   },
   uses: {
-    title: "Co piszą coachowie, dietetycy i trenerzy",
+    title: "Co piszą trenerzy personalni i dietetycy",
     sub: "W tej branży najlepiej sprawdza się książka krótka, praktyczna i prowadząca czytelnika przez konkretny okres albo konkretną zmianę. Na przykład:",
     items: [
       { title: "Plan na 7, 14 albo 30 dni", desc: "Jadłospis, plan treningowy albo codzienne zadania rozpisane dzień po dniu. Czytelnik wie, co zrobić jutro rano, i szybko sprawdza, czy Twoje podejście mu odpowiada." },

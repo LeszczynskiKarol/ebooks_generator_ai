@@ -1189,7 +1189,7 @@ export const ui = {
           desc: "Zamknij program kursu w książce, która zostaje z kursantami na zawsze.",
         },
         {
-          title: "Coachowie i konsultanci",
+          title: "Trenerzy i konsultanci",
           desc: "Książka z Twoim nazwiskiem na okładce wciąż buduje wiarygodność jak nic innego.",
         },
         {

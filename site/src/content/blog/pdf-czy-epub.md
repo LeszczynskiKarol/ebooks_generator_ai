@@ -51,7 +51,7 @@ Trudność „dorzucenia EPUB-a" polega zaś na tym, że dobry EPUB nie powstaje
 
 - **Wydawcy lead magnetów**: PDF jako plik doręczany, EPUB jako link „wolisz czytać na Kindle?" na stronie pobrania. Nie kosztuje nic, jeśli narzędzie produkuje oba, a po cichu obsługuje czytelnika z pociągu, którego istnienie potwierdza luka konsumpcji.
 - **Sprzedający na KDP / Apple / Kobo**: EPUB jest obowiązkowy, a PDF klasy drukarskiej otwiera drogę do wydania papierowego tej samej książki.
-- **Twórcy kursów i coachowie**: PDF do workbooków, EPUB do lektury towarzyszącej. Dwa artefakty, dwie role.
+- **Twórcy kursów i trenerzy**: PDF do workbooków, EPUB do lektury towarzyszącej. Dwa artefakty, dwie role.
 
 Nasza własna odpowiedź jest nudna: [każda książka z InkMagnet](/pl/) wychodzi w obu formatach, złożony typograficznie PDF i sklepowy EPUB z jednego źródła, bo wybór między nimi należy do czytelnika, nie do narzędzia.
 

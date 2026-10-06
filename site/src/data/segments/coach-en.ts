@@ -4,7 +4,7 @@ const seg: Segment = {
   key: "coach-en",
   lang: "en",
   path: "/ebook-for-coaches/",
-  altPath: "/pl/ebook-dla-coacha/",
+  altPath: "/pl/ebook-dla-trenera-i-dietetyka/",
   exampleSlug: "eat-regularly-not-perfectly",
   seo: {
     title: "Ebook for Coaches: Your Own Lead Magnet Book | InkMagnet",
