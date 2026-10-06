@@ -5,7 +5,7 @@ const seg: Segment = {
   lang: "en",
   path: "/ebook-for-coaches/",
   altPath: "/pl/ebook-dla-coacha/",
-  exampleSlug: "TODO",
+  exampleSlug: "eat-regularly-not-perfectly",
   seo: {
     title: "Ebook for Coaches: Your Own Lead Magnet Book | InkMagnet",
     description:

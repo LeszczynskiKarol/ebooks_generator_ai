@@ -18,6 +18,7 @@ from PIL import Image
 SAMPLES = "public/samples"
 OUT_PAGES = os.path.join(SAMPLES, "pages")
 OUT_JSON = "src/data/examplePages.json"
+TOC_OVERRIDES = json.load(io.open("src/data/tocOverrides.json", encoding="utf-8"))
 PREVIEW_CONTENT_PAGES = 5  # pages rendered from the first chapter onward
 WIDTH = 760                # rendered page width in px (A5 stays crisp, files small)
 
@@ -79,6 +80,15 @@ for slug in slugs:
             img.save(out, "WEBP", quality=82)
             rendered.append(f"p{i}.webp")
 
+    # Hand-written replacements for chapter titles that carry an em dash in the
+    # PDF itself: the site shows no em dashes, and a mechanical swap would turn
+    # "Enough — but" into "Enough: but". src/data/tocOverrides.json, exact match.
+    for ch in toc:
+        ch["title"] = TOC_OVERRIDES.get(ch["title"], ch["title"])
+        ch["sections"] = [TOC_OVERRIDES.get(x, x) for x in ch["sections"]]
+    left = [x for ch in toc for x in [ch["title"], *ch["sections"]] if "—" in x]
+    if left:
+        print(f"  !! {slug}: em dash in TOC, add to src/data/tocOverrides.json: {left}")
     data[slug] = {"toc": toc, "pages": rendered, "previewFrom": start}
     print(f"  OK {slug}: {len(toc)} chapters, {sum(len(c['sections']) for c in toc)} sections, {len(rendered)} page renders")
 

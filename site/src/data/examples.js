@@ -70,6 +70,30 @@ export const examples = [
     },
   },
   {
+    slug: "jedz-regularnie-nie-idealnie",
+    title: "Jedz regularnie, nie idealnie",
+    lang: "pl",
+    category: "cooking",
+    style: "Creative",
+    pages: 30,
+    desc: {
+      pl: "Lead magnet dietetyczki dla zabieganych: 14-dniowy plan posiłków, 12 prostych przepisów, listy zakupów i zasady komponowania talerza bez liczenia kalorii.",
+      en: "A dietitian's lead magnet for busy people: a 14-day meal plan, 12 simple recipes, shopping lists and plate-building without counting calories (in Polish).",
+    },
+  },
+  {
+    slug: "eat-regularly-not-perfectly",
+    title: "Eat Regularly, Not Perfectly",
+    lang: "en",
+    category: "cooking",
+    style: "Creative",
+    pages: 30,
+    desc: {
+      pl: "Angielskie wydanie lead magnetu dietetyczki: 14-dniowy plan posiłków, 12 prostych przepisów i listy zakupów.",
+      en: "A dietitian's lead magnet for busy people: a 14-day meal plan, 12 simple recipes, shopping lists and plate-building without counting calories.",
+    },
+  },
+  {
     slug: "klienci-z-google-bez-budzetu-na-reklamy",
     title: "Klienci z Google bez budżetu na reklamy",
     lang: "pl",

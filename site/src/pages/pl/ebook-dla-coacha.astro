@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import SegmentLanding from "../../components/SegmentLanding.astro";
-import seg from "../../data/segments/firmy-uslugowe-pl";
+import seg from "../../data/segments/coach-pl";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -10,6 +10,6 @@ const jsonLd = {
 };
 ---
 
-<BaseLayout title={seg.seo.title} description={seg.seo.description} jsonLd={jsonLd} translated={false}>
+<BaseLayout title={seg.seo.title} description={seg.seo.description} jsonLd={jsonLd} translated hreflangEnPath="/ebook-for-coaches/" hreflangPlPath="/pl/ebook-dla-coacha/">
   <SegmentLanding seg={seg} />
 </BaseLayout>

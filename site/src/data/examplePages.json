@@ -275,6 +275,120 @@
   ],
   "previewFrom": 6
  },
+ "jedz-regularnie-nie-idealnie": {
+  "toc": [
+   {
+    "title": "Jedz regularnie, nie idealnie",
+    "sections": [
+     "Dla kogo jest ten plan i czego nie obiecuje",
+     "Talerz bez liczenia kalorii",
+     "Dlaczego regularność działa lepiej niż restrykcje"
+    ]
+   },
+   {
+    "title": "14-dniowy plan posiłków",
+    "sections": [
+     "Jak korzystać z tego planu",
+     "Owsianka proteinowa z owocami",
+     "Jajecznica z warzywami i pieczywem",
+     "Kanapka z pastą z ciecierzycy i jajkiem",
+     "Kurczak pieczony z kaszą i warzywami",
+     "Sałatka z tuńczykiem, fasolą i jajkiem",
+     "Zupa-krem z dyni z grzankami",
+     "Makaron pełnoziarnisty z pesto, kurczakiem i pomidorkami",
+     "Omlet z warzywami i serem",
+     "Łosoś pieczony z brokułami i ziemniakami",
+     "Sałatka grecka z fetą i oliwkami",
+     "Jogurt naturalny z orzechami i owocami",
+     "Hummus z warzywami i pieczywem"
+    ]
+   },
+   {
+    "title": "Jedzenie w pracy i wieczorne podjadanie",
+    "sections": [
+     "Jak zorganizować jedzenie w pracy",
+     "Wieczorne podjadanie: skąd się bierze i co z nim robić"
+    ]
+   },
+   {
+    "title": "Listy zakupów i Twój start",
+    "sections": [
+     "Lista zakupów na tydzień 1",
+     "Warzywa, owoce i zioła",
+     "Białko i nabiał",
+     "Produkty zbożowe, strączkowe i inne",
+     "Lista zakupów na tydzień 2",
+     "Zakończenie: Twoje pierwsze dwa tygodnie"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 5
+ },
+ "eat-regularly-not-perfectly": {
+  "toc": [
+   {
+    "title": "Eat Regularly, Not Perfectly",
+    "sections": [
+     "Who this plan is for, and what it does not promise",
+     "The plate, with no calorie counting",
+     "Why regularity beats restriction"
+    ]
+   },
+   {
+    "title": "Your 14-Day Meal Plan",
+    "sections": [
+     "How to use this plan",
+     "Protein Oatmeal with Fruit",
+     "Scrambled Eggs with Vegetables and Bread",
+     "Chickpea Spread Sandwich with Egg",
+     "Baked Chicken with Groats and Vegetables",
+     "Tuna, Bean and Egg Salad",
+     "Cream of Pumpkin Soup with Croutons",
+     "Pesto Pasta with Chicken and Tomatoes",
+     "Vegetable and Cheese Omelette",
+     "Baked Salmon with Broccoli and Potatoes",
+     "Greek Salad with Feta and Olives",
+     "Plain Yogurt with Nuts and Fruit",
+     "Hummus with Vegetables and Bread"
+    ]
+   },
+   {
+    "title": "Eating at Work and Evening Snacking",
+    "sections": [
+     "How to organize eating at work",
+     "Evening snacking: where it comes from and what to do about it"
+    ]
+   },
+   {
+    "title": "Shopping Lists and Your Start",
+    "sections": [
+     "Shopping list for week 1",
+     "Vegetables, fruit and herbs",
+     "Protein and dairy",
+     "Grains, legumes and other staples",
+     "Shopping list for week 2",
+     "Closing: your first two weeks"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 5
+ },
  "klienci-z-google-bez-budzetu-na-reklamy": {
   "toc": [
    {
