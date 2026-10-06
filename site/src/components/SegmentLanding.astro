@@ -36,6 +36,12 @@ const howShots = [
 const l = pl
   ? { exBadge: "Prawdziwa książka z InkMagnet", pages: "stron", download: "Pobierz cały PDF za darmo", bookPage: "Zobacz stronę książki", toc: "Spis treści", faq: "Najczęstsze pytania", check: "Zaplanuj książkę za darmo", note: "Spis treści i próbka 2 stron są za darmo. Płacisz dopiero za gotową książkę." }
   : { exBadge: "A real book made with InkMagnet", pages: "pages", download: "Download the full PDF free", bookPage: "See the book page", toc: "Table of contents", faq: "Frequently asked questions", check: "Plan my book for free", note: "The table of contents and a 2-page sample are free. You pay only for the finished book." };
+// Segment pages lead with their matching example PDF; generic pages
+// (e.g. "generator książek") lead with creating a book.
+const createFirst = seg.heroPrimary === "create";
+const btnPrimary = "inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700";
+const btnSecondary = "inline-flex items-center gap-2 rounded-xl border border-ink-200 bg-white px-7 py-3.5 text-base font-semibold text-ink-700 transition-colors hover:bg-ink-50";
+const dlIcon = "";
 const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z";
 ---
 
@@ -55,11 +61,17 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
         </h1>
         <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink-600">{seg.hero.sub}</p>
         <div class="mt-8 flex flex-wrap items-center gap-4">
-          <a href={pdfHref} class="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-            {l.download}
-          </a>
-          <a href={registerUrl} class="rounded-xl border border-ink-200 bg-white px-7 py-3.5 text-base font-semibold text-ink-700 transition-colors hover:bg-ink-50">{pl ? "Stwórz własną książkę" : "Create your own book"}</a>
+          {createFirst ? (
+            <>
+              <a href={registerUrl} class={btnPrimary}>{pl ? "Stwórz własną książkę" : "Create your own book"}</a>
+              <a href={pdfHref} class={btnSecondary}>{dlIcon}{pl ? "Pobierz przykładową książkę (PDF)" : "Download an example book (PDF)"}</a>
+            </>
+          ) : (
+            <>
+              <a href={pdfHref} class={btnPrimary}>{dlIcon}{l.download}</a>
+              <a href={registerUrl} class={btnSecondary}>{pl ? "Stwórz własną książkę" : "Create your own book"}</a>
+            </>
+          )}
         </div>
         <ul class="mt-8 grid gap-2 text-sm text-ink-600 sm:grid-cols-2">
           {seg.hero.bullets.map((b) => (

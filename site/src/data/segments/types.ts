@@ -15,6 +15,8 @@ export interface Segment {
   exampleSlug: string;
   seo: { title: string; description: string };
   hero: { badge: string; title: string; accent: string; sub: string; bullets: string[] };
+  /** main hero button: download the example PDF (segment pages) or create a book (generic pages) */
+  heroPrimary?: "download" | "create";
   /** why this audience needs a book, in their own situation */
   problem: { title: string; paragraphs: string[] };
   /** concrete books this audience makes */

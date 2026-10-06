@@ -22,12 +22,13 @@ const seg: Segment = {
       "Darmowy plan i próbka dwóch stron przed płatnością",
     ],
   },
+  heroPrimary: "create",
   problem: {
-    title: "Najtrudniejsza w pisaniu książki nie jest wiedza, tylko droga od notatek do gotowego egzemplarza",
+    title: "Masz wiedzę na książkę, ale nie masz miesięcy na pisanie i skład",
     paragraphs: [
-      "Większość książek, które ktoś chciał napisać, nigdy nie powstaje. Nie dlatego, że autor nie miał nic do powiedzenia, tylko dlatego, że między pomysłem a gotowym egzemplarzem stoją miesiące pracy: plan, research, pisanie kolejnych rozdziałów, poprawki, redakcja, skład, okładka i pliki dla drukarni. Każdy z tych etapów to osobna umiejętność albo osobna faktura.",
-      "Tradycyjne wydawnictwo przejmie część tej pracy, ale wybiera niewiele tytułów i decyduje o terminach. Samodzielne wydanie daje swobodę, tylko że wtedy cały proces spada na autora. Właśnie dlatego tyle wartościowej wiedzy zostaje w głowach praktyków, w notatkach i w prezentacjach, zamiast trafić na półkę.",
-      "InkMagnet skraca tę drogę. Zaczynasz od opisu książki i planu rozdziałów, który możesz dowolnie zmienić. Dalej silnik bada temat w aktualnych źródłach, pisze rozdział po rozdziale, sprawdza spójność całości, redaguje język i składa książkę w standardzie znanym z wydawnictw akademickich. Ty zostajesz autorem: decydujesz o treści, poprawiasz to, co trzeba, i podpisujesz się pod efektem.",
+      "Napisanie poradnika na 80 stron to zwykle kilka miesięcy pracy: plan, research, pisanie rozdziałów, poprawki, redakcja i skład. Do tego okładka i przygotowanie plików dla drukarni. Każdy z tych etapów to osobny czas albo osobny wykonawca.",
+      "InkMagnet robi te etapy za Ciebie. Opisujesz temat, poprawiasz spis treści, a silnik bada temat w aktualnych źródłach, pisze książkę rozdział po rozdziale, redaguje język i składa całość do PDF-a gotowego do druku oraz EPUB-a na czytniki.",
+      "Ty zostajesz autorem: decydujesz, o czym jest książka, poprawiasz rozdziały w edytorze i podpisujesz się pod efektem. Plan i próbkę dwóch stron widzisz za darmo, zanim zapłacisz.",
     ],
   },
   uses: {

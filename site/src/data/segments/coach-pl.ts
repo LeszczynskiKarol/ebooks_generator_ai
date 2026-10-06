@@ -24,7 +24,7 @@ const seg: Segment = {
     ],
   },
   problem: {
-    title: "Ludzie nie kupują sesji od nieznajomych",
+    title: "Klienci chcą poznać Twoje metody, zanim się zapiszą",
     paragraphs: [
       "Sprzedajesz coś, czego nie da się obejrzeć na półce: godzinę rozmowy, plan żywieniowy, trzymiesięczny program treningowy. Zanim ktoś zapłaci, chce mieć pewność, że rozumiesz jego problem i masz na niego sposób. Krótkie posty i relacje dają mu tylko fragmenty, a z fragmentów trudno zbudować przekonanie, że to właśnie z Tobą warto pracować. Dlatego tak wiele osób latami obserwuje profil, zostawia polubienia i nigdy nie pisze.",
       "Dłuższy materiał działa inaczej. Kiedy ktoś przez dwa tygodnie korzysta z Twojego planu albo przerabia ćwiczenia z Twojego przewodnika, poznaje Twój sposób myślenia w praktyce, a nie z deklaracji na stronie. Zostawia przy tym adres e-mail, więc możesz do niego wrócić z newsletterem, zaproszeniem na konsultację albo informacją o nowej edycji programu. Kto po takiej lekturze umawia się na sesję, przychodzi z innym nastawieniem, bo wie, czego się spodziewać.",

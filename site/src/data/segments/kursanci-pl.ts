@@ -24,7 +24,7 @@ const seg: Segment = {
     ],
   },
   problem: {
-    title: "Slajdy to jeszcze nie materiał szkoleniowy",
+    title: "Uczestnicy potrzebują materiału, do którego wrócą po szkoleniu",
     paragraphs: [
       "Wiele szkoleń kończy się tak samo: uczestnik dostaje plik z prezentacją, która bez komentarza prowadzącego jest listą haseł. Po tygodniu nie pamięta, dlaczego trzeci punkt był taki ważny, a po miesiącu nie potrafi odtworzyć ćwiczenia, które na sali wychodziło mu bez trudu. Wiedza z dnia szkoleniowego rozmywa się dokładnie wtedy, gdy powinna zacząć przydawać się w pracy.",
       "Dobry skrypt albo zeszyt ćwiczeń rozwiązuje ten problem i przy okazji podnosi wartość całej oferty. Dział HR, który porównuje kilku dostawców, widzi różnicę między „materiałami w formie prezentacji” a książką z zadaniami i omówieniami. Kursant online ma do czego wracać między modułami, a Ty dostajesz mniej pytań o rzeczy, które zostały już wyjaśnione na zajęciach.",

@@ -24,7 +24,7 @@ const seg: Segment = {
     ],
   },
   problem: {
-    title: "Kompetencji nie widać w cenniku",
+    title: "Książka pokazuje Twoją wiedzę, zanim klient zadzwoni",
     paragraphs: [
       "W zawodach opartych na wiedzy klient rzadko potrafi ocenić jakość usługi, zanim z niej skorzysta. Nie wie, czy doradca dobrze policzy zdolność kredytową, czy prawnik zauważy słaby punkt umowy, czy księgowa wychwyci błąd, zanim zrobi to urząd. Wybiera więc na podstawie sygnałów zastępczych: poleceń, tytułów, sposobu, w jaki ktoś mówi o swojej dziedzinie. Tymczasem strona z listą usług i formularzem kontaktowym wygląda u wszystkich bardzo podobnie.",
       "Książka jest jednym z niewielu sygnałów, które klient może sprawdzić sam. Czytając rozdział o tym, jak bank liczy ratę albo co powinno znaleźć się w umowie najmu, przekonuje się, że autor porządkuje temat jasno i uczciwie. Na pierwsze spotkanie przychodzi z lepszymi pytaniami, a rozmowa szybciej przechodzi od podstaw do jego konkretnej sprawy. Ten sam egzemplarz możesz zostawić po prelekcji, dołączyć do oferty albo podarować partnerowi, który poleca Ci klientów.",

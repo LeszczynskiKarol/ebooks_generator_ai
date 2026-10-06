@@ -24,7 +24,7 @@ const seg: Segment = {
     ],
   },
   problem: {
-    title: "Your feed shows you are busy. A book shows how you think",
+    title: "Prospects want to see how you work before they book a call",
     paragraphs: [
       "Most coaches build an audience one post at a time. Reels, carousels and stories keep you visible, but they disappear within a day and rarely explain your approach from start to finish. Someone who follows you for months may still not know what working with you actually looks like, and that uncertainty is usually what keeps them from booking a discovery call.",
       "A short book fills that gap. A busy professional who downloads a 14-day eating plan from a dietitian, or a beginner who reads a trainer's guide to the first month at the gym, gets a real taste of your method in their own kitchen or on their own schedule. By the time they reply to your email, they already know your principles, your tone and the kind of results you focus on. Your 1:1 sessions or group program become the natural next step rather than a cold offer.",

@@ -24,7 +24,7 @@ const seg: Segment = {
     ],
   },
   problem: {
-    title: "Slides explain the lesson. A workbook carries it home",
+    title: "Participants need material they can use after the training",
     paragraphs: [
       "Most training materials are a by-product. A deck exported to PDF, a folder of loose handouts, a few links dropped in the course platform. They make sense while the trainer is talking and very little sense a week later, when a participant opens them alone and tries to repeat an exercise. The knowledge was delivered, but the material that should hold it in place was never really designed.",
       "A proper workbook changes how a course is remembered. Participants get one document that walks through each module in order, explains the reasoning behind every step and leaves room to practice. In a spreadsheet training, that means worked examples, tasks of rising difficulty and a checklist to review before the next session. For an online academy it is something tangible to deliver with the enrollment. For an L&D team it is a consistent reference that every cohort receives in the same form, whoever runs the session.",

@@ -24,7 +24,7 @@ const seg: Segment = {
     ],
   },
   problem: {
-    title: "Credentials get you shortlisted. Clarity gets you hired",
+    title: "A book shows your expertise before the first meeting",
     paragraphs: [
       "In professional services, prospects rarely compare you on price first. They are trying to decide whom to trust with their money, their legal situation or their health, and they usually have little to go on: a website that looks like every other firm's, a list of qualifications they cannot really assess and perhaps a recommendation from a friend. The person who explains the subject most clearly tends to be the one they call.",
       "A book does that explaining for you, at length and in your own framing. A first-time buyer who reads a mortgage advisor's guide learns how the process works, which questions to ask and where people tend to get caught out, all before sitting down at the advisor's desk. The meeting starts from a shared understanding instead of the basics, and the reader already associates the clearest explanation they found with your name. A printed copy left after a consultation keeps that association on someone's shelf for years.",

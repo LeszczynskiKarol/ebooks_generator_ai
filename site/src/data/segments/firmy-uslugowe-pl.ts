@@ -23,7 +23,7 @@ const seg: Segment = {
     ],
   },
   problem: {
-    title: "Ulotka mówi, że jesteś. Poradnik pokazuje, że wiesz",
+    title: "Poradnik dla klientów buduje zaufanie, zanim klient do Ciebie zadzwoni",
     paragraphs: [
       "Mała firma usługowa przegrywa zwykle nie z gorszą obsługą, tylko z kimś, kogo klient zdążył poznać wcześniej. Konkurencja z dłuższą historią w internecie ma więcej opinii, więcej treści i więcej miejsc, w których potencjalny klient na nią trafia. Ty masz wiedzę, ale siedzi ona w Twojej głowie i w rozmowach przy ladzie.",
       "Poradnik zmienia ten układ. Klient, który przeczytał u Ciebie, jak przygotować auto do przeglądu, jak dbać o włosy po koloryzacji albo jakie dokumenty zebrać do rozliczenia, zna Cię, zanim pierwszy raz zadzwoni. Dostaje coś użytecznego za darmo, a Ty zyskujesz jego adres e-mail, numer telefonu albo po prostu zaufanie.",
