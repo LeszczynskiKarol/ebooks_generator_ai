@@ -15,7 +15,7 @@ import {
   PutObjectCommand,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
-import { compileCover } from "./coverGenerator";
+import { adoptCoverPdf, compileCover } from "./coverGenerator";
 import {
   downloadProjectImages,
   rewriteImageUrls,
@@ -245,6 +245,11 @@ export async function compileBook(projectId: string) {
                 warn: (m: string) => console.warn(m),
               }),
             );
+            if (coverResult && fs.existsSync(coverResult.pdfPath)) {
+              await adoptCoverPdf(projectId, coverResult.pdfPath).catch((e) =>
+                console.warn(`  🎨 Cover adopt failed: ${e.message}`),
+              );
+            }
           } catch (e: any) {
             console.warn(`  🎨 Cover designer failed (${e.message}) — falling back`);
           }

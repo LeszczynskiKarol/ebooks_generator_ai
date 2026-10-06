@@ -12,6 +12,7 @@ import ReaderMock from "./mock/ReaderMock.astro";
 import Lightbox from "./Lightbox.astro";
 import BlogTeasers from "./BlogTeasers.astro";
 import AppPromo from "./AppPromo.astro";
+import Shot from "./Shot.astro";
 
 interface Props {
   lang: Lang;
@@ -44,6 +45,44 @@ const featureIcons = [
   // arrow-down-tray / formats
   "M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3",
 ];
+
+// PL: real light-theme screens (web + Android) instead of HTML mocks.
+// Sizes are the intrinsic size of public/app/pl/<name>.webp.
+const plSteps: Array<null | { web: string; wh: number; phone?: string; url: string; alt: string }> = [
+  { web: "w-new", wh: 705, phone: "m-new", url: "app.inkmagnet.com/projects/new", alt: "Formularz nowej książki: jedno pole na opis, język, tytuł" },
+  { web: "w-plan", wh: 625, phone: "m-plan", url: "app.inkmagnet.com/projects/…", alt: "Edytowalny spis treści: rozdziały i podrozdziały z opisami" },
+  null,
+  { web: "w-download", wh: 391, phone: "m-book", url: "app.inkmagnet.com/projects/…", alt: "Gotowa książka: pobieranie PDF i EPUB" },
+];
+const plProduct = {
+  badge: "Polski produkt",
+  title: "Po polsku od pierwszego zdania — nie z tłumaczenia",
+  sub: "InkMagnet powstaje w Polsce i jest projektowany przede wszystkim dla polskich autorów, firm i szkoleniowców. To nie przetłumaczone narzędzie zza oceanu.",
+  items: [
+    {
+      title: "Polszczyzna i polska typografia",
+      desc: "Książki po polsku powstają po polsku, a nie są tłumaczone z angielskiego: z polskimi cudzysłowami „…”, półpauzami, dzieleniem wyrazów i poprawną odmianą.",
+    },
+    {
+      title: "Redakcja w każdej książce",
+      desc: "Zanim książka trafi do składu, przechodzi redakcję językową każdego rozdziału i kontrolę spójności całości: imiona, liczby, odwołania między rozdziałami.",
+    },
+    {
+      title: "Tworzone przez korektora",
+      desc: "Za InkMagnet stoi Karol Leszczyński — korektor i twórca polskich serwisów edukacyjnych i o pisaniu. Standard pracy z tekstem w książkach to jego standard.",
+    },
+  ],
+};
+const plSample = {
+  badge: "Za darmo, przed płatnością",
+  title: "Zobacz próbkę swojej książki, zanim zapłacisz",
+  sub: "Po darmowym spisie treści zamawiasz dwie pierwsze strony — napisane i złożone dokładnie tak jak gotowy egzemplarz: ten sam styl, krój pisma, kolory i układ. Bez karty, gotowe po około minucie.",
+  points: [
+    "Prawdziwy skład, a nie podgląd tekstu",
+    "Styl i kolory dobrane do tematu (albo Twoje)",
+    "Płacisz dopiero, gdy plan i próbka Ci odpowiadają",
+  ],
+};
 
 const useCaseIcons = [
   "M6 3v8a6 6 0 0 0 12 0V3M6 3h4v8a2 2 0 0 0 4 0V3h4M6 7h4m4 0h4",
@@ -113,10 +152,46 @@ const useCaseIcons = [
 
       <!-- The top of the real app — localized "My Books" dashboard -->
       <div class="relative mx-auto w-full max-w-md lg:max-w-none">
-        <HeroMock lang={lang} />
+        {
+          isPL ? (
+            <div class="relative pb-10 pl-8 sm:pl-14">
+              <Shot src="/app/pl/h-sample" w={760} h={574} eager zoom={false} url="app.inkmagnet.com — próbka książki" alt="Próbka dwóch pierwszych stron książki złożonej przez InkMagnet" />
+              <Shot src="/app/pl/h-plan" w={240} h={511} kind="phone" eager zoom={false} class="absolute -bottom-2 left-0 w-[34%] max-w-[170px] rotate-[-3deg]" alt="Plan książki w aplikacji InkMagnet na Androida" />
+            </div>
+          ) : (
+            <HeroMock lang={lang} />
+          )
+        }
       </div>
     </div>
   </section>
+
+  {
+    isPL && (
+      <section class="border-t border-ink-100">
+        <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+          <div class="mx-auto max-w-2xl text-center">
+            <p class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+              <span class="inline-block h-2.5 w-4 overflow-hidden rounded-sm ring-1 ring-red-200" aria-hidden="true"><span class="block h-1/2 bg-white" /><span class="block h-1/2 bg-red-600" /></span>
+              {plProduct.badge}
+            </p>
+            <h2 class="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">{plProduct.title}</h2>
+            <p class="mt-4 text-lg text-ink-600">{plProduct.sub}</p>
+          </div>
+          <div class="mt-12 grid gap-6 md:grid-cols-3">
+            {
+              plProduct.items.map((it) => (
+                <div class="rounded-2xl border border-ink-100 bg-ink-50/50 p-7">
+                  <h3 class="font-display text-lg font-bold text-ink-900">{it.title}</h3>
+                  <p class="mt-3 text-[15px] leading-relaxed text-ink-600">{it.desc}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <!-- ━━━ How it works — real app screens ━━━ -->
   <section id="how" class="scroll-mt-20 border-t border-ink-100 bg-ink-50">
@@ -139,15 +214,55 @@ const useCaseIcons = [
                 <h3 class="mt-4 font-display text-2xl font-bold text-ink-900">{step.title}</h3>
                 <p class="mt-3 max-w-md leading-relaxed text-ink-600">{step.desc}</p>
               </div>
-              <div class="rounded-2xl border border-ink-200 bg-white p-2 shadow-lg shadow-ink-900/5">
-                <StepMock i={i} lang={lang} />
-              </div>
+              {isPL && plSteps[i] ? (
+                <div class="relative pb-8 pr-6 sm:pr-16">
+                  <Shot src={`/app/pl/${plSteps[i]!.web}`} w={1100} h={plSteps[i]!.wh} url={plSteps[i]!.url} alt={plSteps[i]!.alt} />
+                  {plSteps[i]!.phone && (
+                    <Shot src={`/app/pl/${plSteps[i]!.phone}`} w={390} h={831} kind="phone" class="absolute -bottom-2 right-0 w-[30%] max-w-[150px] rotate-[3deg]" alt={`${plSteps[i]!.alt} — aplikacja na Androida`} />
+                  )}
+                </div>
+              ) : (
+                <div class="rounded-2xl border border-ink-200 bg-white p-2 shadow-lg shadow-ink-900/5">
+                  <StepMock i={i} lang={lang} />
+                </div>
+              )}
             </li>
           ))
         }
       </ol>
     </div>
   </section>
+
+  {
+    isPL && (
+      <section class="border-t border-ink-100">
+        <div class="mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-5 lg:gap-14 lg:px-8 lg:py-24">
+          <div class="lg:col-span-2">
+            <p class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+              {plSample.badge}
+            </p>
+            <h2 class="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">{plSample.title}</h2>
+            <p class="mt-4 text-lg leading-relaxed text-ink-600">{plSample.sub}</p>
+            <ul class="mt-6 space-y-3">
+              {
+                plSample.points.map((pt) => (
+                  <li class="flex items-start gap-3 text-[15px] text-ink-700">
+                    <svg viewBox="0 0 20 20" fill="currentColor" class="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
+                    {pt}
+                  </li>
+                ))
+              }
+            </ul>
+            <a href={registerUrl} class="mt-8 inline-block rounded-xl bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/25 transition-colors hover:bg-brand-700">{t.hero.ctaPrimary}</a>
+          </div>
+          <div class="lg:col-span-3">
+            <Shot src="/app/pl/w-sample" w={1100} h={831} url="app.inkmagnet.com — próbka 2 stron" alt="Próbka: dwie pierwsze strony książki w docelowym stylu i składzie" />
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <!-- ━━━ Deep dive — why it's more than a chatbot ━━━ -->
   <section class="border-t border-ink-100">
@@ -329,6 +444,11 @@ const useCaseIcons = [
       </div>
 
       <p class="mx-auto mt-8 max-w-2xl text-center text-[15px] leading-relaxed text-ink-600">{t.compare.note}</p>
+      <p class="mt-3 text-center text-sm">
+        <a href={isPL ? "/pl/vs/chatgpt/" : "/vs/chatgpt/"} class="font-semibold text-brand-700 underline-offset-4 hover:underline">
+          {isPL ? "Pełne porównanie: InkMagnet czy ChatGPT →" : "Full comparison: InkMagnet vs ChatGPT →"}
+        </a>
+      </p>
       <div class="mt-8 text-center">
         <a
           href={registerUrl}
@@ -340,8 +460,8 @@ const useCaseIcons = [
     </div>
   </section>
 
-  <!-- ━━━ App showcase — real dashboard ━━━ -->
-  <section class="border-t border-ink-100">
+  <!-- ━━━ App showcase — dashboard mock (EN; PL shows the real screens) ━━━ -->
+  <section class:list={["border-t border-ink-100", isPL && "hidden"]}>
     <div class="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
       <div class="mx-auto max-w-2xl text-center">
         <h2 class="font-display text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
@@ -421,14 +541,14 @@ const useCaseIcons = [
           <figure class="mt-14">
             <div class="overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-2xl shadow-ink-900/10">
               <img
-                src="/app/pl-book-page.webp"
+                src="/app/pl/w-book.webp"
                 alt={t.realApp.items[0].alt}
                 width="1100"
-                height="515"
+                height="533"
                 loading="lazy"
                 decoding="async"
                 data-zoom
-                data-zoom-src="/app/pl-book-page-lg.webp"
+                data-zoom-src="/app/pl/w-book-lg.webp"
                 class="block w-full cursor-zoom-in"
               />
             </div>

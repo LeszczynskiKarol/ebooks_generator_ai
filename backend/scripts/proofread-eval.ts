@@ -1,7 +1,7 @@
 /**
  * Eval of the editorial proofread (Phase 4.6) on a book's ORIGINAL chapters:
  * runs proofreadConsistency + proofreadLanguage and reports which known
- * errors were fixed. PAID (Sonnet, ~$0.4 per 55-page book).
+ * errors were fixed. PAID (Sonnet 5 with thinking, ~$1.1 per 55-page book).
  *
  *   npx tsx scripts/proofread-eval.ts <chapters.json>
  *
@@ -10,6 +10,7 @@
 import "dotenv/config";
 import fs from "fs";
 import { proofreadConsistency, proofreadLanguage } from "../src/services/contentGenerator";
+import { llmCostUsd } from "../src/lib/costTracker";
 
 // Errors found by hand in the 2026-10-06 example book (cmuwrniff0001jw5odmeggjo0).
 const KNOWN = [
@@ -57,7 +58,7 @@ async function main() {
     if (was && !still) fixed++;
     console.log(`${was ? (still ? "✗ MISSED" : "✓ fixed ") : "  (absent)"}  ${k}`);
   }
-  const cost = (usage.in * 3 + usage.out * 15) / 1e6;
+  const cost = llmCostUsd("claude-sonnet-5", { input_tokens: usage.in, output_tokens: usage.out });
   console.log(`\n${fixed}/${KNOWN.length} known errors fixed; tokens in ${usage.in}, out ${usage.out}; ≈ $${cost.toFixed(3)}`);
   fs.writeFileSync(process.argv[2].replace(/\.json$/, ".proofed.json"), JSON.stringify(final), "utf-8");
 }

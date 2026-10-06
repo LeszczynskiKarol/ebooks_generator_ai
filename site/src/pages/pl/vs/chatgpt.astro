@@ -1,0 +1,101 @@
+---
+import ArticleLayout from "../../../layouts/ArticleLayout.astro";
+
+const title = "InkMagnet czy ChatGPT — czym się różni generator ebooków od czatu?";
+const description =
+  "ChatGPT napisze tekst. InkMagnet oddaje gotową książkę: spis treści, rozdziały z researchem i przypisami, redakcję językową, okładkę, PDF i EPUB. Uczciwe porównanie.";
+
+const faq = [
+  {
+    q: "Czy nie wystarczy poprosić ChatGPT o ebooka?",
+    a: "Do krótkiego tekstu — tak. Przy książce na kilkadziesiąt stron czat urywa odpowiedzi, gubi wątek między rozdziałami i oddaje tekst do samodzielnego złożenia. InkMagnet planuje całą książkę, pisze ją rozdział po rozdziale z researchem, redaguje i składa do PDF i EPUB z okładką.",
+  },
+  {
+    q: "Czy InkMagnet używa tych samych modeli AI?",
+    a: "Tak — tej samej klasy czołowych modeli językowych. Różnica nie leży w modelu, tylko w procesie wokół niego: research źródeł, plan, pisanie rozdziałami, recenzja, redakcja językowa, skład LaTeX i projekt okładki.",
+  },
+  {
+    q: "Co jest tańsze?",
+    a: "ChatGPT Plus to abonament miesięczny plus Twój czas na kopiowanie, formatowanie i eksport. InkMagnet to jedna stała cena za gotową książkę, bez abonamentu — a spis treści i dwustronicową próbkę widzisz za darmo, zanim zapłacisz.",
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+---
+
+<ArticleLayout
+  title={title}
+  description={description}
+  heading="InkMagnet czy ChatGPT: tekst a gotowa książka"
+  subheading="ChatGPT świetnie pisze akapity. Tyle że ebook to nie akapity, tylko spis treści, spójne rozdziały, źródła, redakcja, skład i okładka. Oto, co dostajesz w każdym z tych narzędzi."
+  translated
+  hreflangEnPath="/vs/chatgpt/"
+  hreflangPlPath="/pl/vs/chatgpt/"
+  crumbs={[
+    { name: "InkMagnet", href: "/pl/" },
+    { name: "Porównania", href: "/pl/vs/chatgpt/" },
+    { name: "vs ChatGPT", href: "/pl/vs/chatgpt/" },
+  ]}
+  jsonLd={jsonLd}
+>
+  <h2>W skrócie</h2>
+  <p>
+    ChatGPT to rozmowa: zadajesz pytanie, dostajesz odpowiedź. Żeby z tego powstała książka,
+    sam planujesz rozdziały, pilnujesz spójności między nimi, sprawdzasz fakty, poprawiasz
+    język, przenosisz tekst do edytora, składasz, projektujesz okładkę i eksportujesz pliki.
+  </p>
+  <p>
+    InkMagnet robi tę całą drogę za Ciebie. Opisujesz temat, za darmo dostajesz tytuł i spis
+    treści (oraz próbkę dwóch stron), a po akceptacji planu powstaje gotowa książka: zbadana w
+    aktualnych źródłach, napisana rozdział po rozdziale, zredagowana i złożona do PDF i EPUB.
+  </p>
+
+  <h2>Porównanie</h2>
+  <table>
+    <thead>
+      <tr><th></th><th>ChatGPT</th><th>InkMagnet</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Co dostajesz</td><td>Wiadomości z czatu do skopiowania</td><td>Gotowy PDF i EPUB z okładką</td></tr>
+      <tr><td>Plan książki</td><td>Układasz sam w rozmowie</td><td>Edytowalny spis treści przed płatnością, za darmo</td></tr>
+      <tr><td>Długie książki</td><td>Urywa odpowiedzi, gubi wątek między rozdziałami</td><td>Cała książka rozdział po rozdziale, spójna do końca</td></tr>
+      <tr><td>Fakty i źródła</td><td>Z pamięci modelu, cytowania bywają zmyślone</td><td>Research w aktualnych źródłach, przypisy</td></tr>
+      <tr><td>Język</td><td>Bez osobnej redakcji</td><td>Redakcja językowa i kontrola spójności całej książki</td></tr>
+      <tr><td>Skład</td><td>Czysty tekst — formatujesz sam</td><td>Skład LaTeX: spis treści, marginesy, dzielenie wyrazów, ramki, tabele</td></tr>
+      <tr><td>Okładka</td><td>Brak</td><td>Projekt okładki dla tej jednej książki</td></tr>
+      <tr><td>Koszt</td><td>Abonament miesięczny + Twój czas</td><td>Jedna cena za książkę, bez abonamentu</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Kiedy wystarczy ChatGPT</h2>
+  <p>
+    Jeśli potrzebujesz krótkiej notatki, kilku akapitów do wklejenia albo burzy mózgów nad
+    tematem — czat zrobi to szybciej i taniej. InkMagnet ma sens wtedy, gdy na końcu ma powstać
+    książka, którą komuś dasz lub sprzedasz: lead magnet, materiał dla kursantów, poradnik,
+    książka ekspercka.
+  </p>
+
+  <h2>Zobacz na przykładzie</h2>
+  <p>
+    Pełne, darmowe do pobrania książki wygenerowane w InkMagnet znajdziesz w
+    <a href="/pl/przyklady/">galerii przykładów</a> — na przykład
+    <a href="/pl/przyklady/klienci-z-google-bez-budzetu-na-reklamy/">„Klienci z Google bez budżetu na reklamy”</a>,
+    55-stronicowy poradnik dla lokalnych firm usługowych.
+  </p>
+
+  <h2>Najczęstsze pytania</h2>
+  {faq.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+</ArticleLayout>

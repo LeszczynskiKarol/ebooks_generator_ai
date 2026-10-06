@@ -4,6 +4,7 @@
 import { useTranslations, type Lang } from "../i18n/ui";
 import { playHref, appPagePath } from "../lib/play";
 import PhoneMock from "./mock/PhoneMock.astro";
+import Shot from "./Shot.astro";
 
 interface Props {
   lang: Lang;
@@ -62,10 +63,19 @@ const badge = lang === "pl" ? "/badges/google-play-pl.png" : "/badges/google-pla
     </div>
 
     <div class="relative flex justify-center lg:justify-end">
-      <div class="flex items-center">
-        <PhoneMock lang={lang} screen="books" class="z-10 -mr-16 hidden rotate-[-4deg] sm:block" />
-        <PhoneMock lang={lang} screen="detail" class="z-20 rotate-[3deg]" />
-      </div>
+      {
+        lang === "pl" ? (
+          <div class="flex items-center">
+            <Shot src="/app/pl/m-books" w={390} h={831} kind="phone" class="z-10 -mr-10 hidden w-[200px] rotate-[-4deg] sm:block" alt="Lista książek w aplikacji InkMagnet na Androida" />
+            <Shot src="/app/pl/m-book" w={390} h={831} kind="phone" class="z-20 w-[220px] rotate-[3deg]" alt="Gotowa książka w aplikacji: pobieranie PDF i EPUB" />
+          </div>
+        ) : (
+          <div class="flex items-center">
+            <PhoneMock lang={lang} screen="books" class="z-10 -mr-16 hidden rotate-[-4deg] sm:block" />
+            <PhoneMock lang={lang} screen="detail" class="z-20 rotate-[3deg]" />
+          </div>
+        )
+      }
     </div>
   </div>
 </section>

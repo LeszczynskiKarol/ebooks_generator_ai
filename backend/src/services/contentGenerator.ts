@@ -819,8 +819,9 @@ export async function generateContent(
   // language and logic (2026-10-06 example: an English word mid-sentence,
   // wrong inflections, "the second case" for the first, one name for two
   // people). Whole-book consistency first, then per-chapter language.
-  // OFF until it passes its eval (scripts/proofread-eval.ts: 2/10 on the first
-  // run, 2026-10-06) — enable with PROOFREAD=on.
+  // Gated by PROOFREAD=on (prod: on since 2026-10-06). Eval
+  // (scripts/proofread-eval.ts): 2/10 with thinking off, 8/10 with adaptive
+  // thinking and no harmful edits; ~$1.1 per 55-page book.
   if (process.env.PROOFREAD === "on") {
     setCostStage("proofread");
     log.phase(4.6, "Editorial proofread");

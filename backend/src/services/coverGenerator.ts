@@ -1773,6 +1773,24 @@ export async function mergeCoverWithBook(
 // S3 helper
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+/**
+ * Make an externally produced cover PDF (the AI cover designer's) THE
+ * project's cover: S3 + coverPdf* fields, so the app thumbnail and the cover
+ * download show it — not a stale fallback from an earlier build (2026-10-06:
+ * the book PDF had the new cover, the app list still the old template).
+ */
+export async function adoptCoverPdf(projectId: string, pdfPath: string): Promise<void> {
+  let s3Key: string | undefined;
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.S3_BUCKET) {
+    s3Key = `books/${projectId}/cover.pdf`;
+    await uploadToS3(pdfPath, s3Key);
+  }
+  await prisma.project.update({
+    where: { id: projectId },
+    data: { coverPdfS3Key: s3Key || null, coverPdfLocalPath: pdfPath },
+  });
+}
+
 async function uploadToS3(filePath: string, key: string): Promise<string> {
   const s3 = new S3Client({
     region: process.env.AWS_REGION || "eu-north-1",

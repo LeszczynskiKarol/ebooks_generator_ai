@@ -1,0 +1,98 @@
+---
+import ArticleLayout from "../../layouts/ArticleLayout.astro";
+
+const title = "InkMagnet vs ChatGPT for writing an ebook (2026)";
+const description =
+  "ChatGPT writes text. InkMagnet delivers a finished book: table of contents, researched chapters with citations, language editing, a designed cover, PDF and EPUB. An honest comparison.";
+
+const faq = [
+  {
+    q: "Can't I just ask ChatGPT to write my ebook?",
+    a: "For a short piece, yes. For a 40–150 page book the chat truncates answers, loses the thread between chapters and hands you raw text to assemble yourself. InkMagnet plans the whole book, writes it chapter by chapter on top of web research, edits it and typesets it into PDF and EPUB with a cover.",
+  },
+  {
+    q: "Does InkMagnet use the same AI models?",
+    a: "The same class of frontier language models. The difference is the process around the model: source research, an editable plan, chapter-by-chapter writing, review, language editing, LaTeX typesetting and cover design.",
+  },
+  {
+    q: "Which is cheaper?",
+    a: "ChatGPT Plus is a monthly subscription plus your time copying, formatting and exporting. InkMagnet is one fixed price per finished book, no subscription — and you see the table of contents and a two-page sample for free before paying.",
+  },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+---
+
+<ArticleLayout
+  title={title}
+  description={description}
+  heading="InkMagnet vs ChatGPT: text versus a finished book"
+  subheading="ChatGPT writes great paragraphs. An ebook, though, is a table of contents, consistent chapters, sources, editing, typesetting and a cover. Here is what each tool actually hands you."
+  translated
+  hreflangEnPath="/vs/chatgpt/"
+  hreflangPlPath="/pl/vs/chatgpt/"
+  crumbs={[
+    { name: "InkMagnet", href: "/" },
+    { name: "Compare", href: "/vs/chatgpt/" },
+    { name: "vs ChatGPT", href: "/vs/chatgpt/" },
+  ]}
+  jsonLd={jsonLd}
+>
+  <h2>The short version</h2>
+  <p>
+    ChatGPT is a conversation. To turn it into a book you plan the chapters, keep them consistent,
+    check the facts, fix the language, move the text into an editor, lay it out, design a cover and
+    export the files — yourself.
+  </p>
+  <p>
+    InkMagnet does that whole path. Describe the topic, get a free title, table of contents and
+    two-page sample, and once you approve the plan you receive a finished book: researched on the
+    live web, written chapter by chapter, edited and typeset into PDF and EPUB.
+  </p>
+
+  <h2>Side by side</h2>
+  <table>
+    <thead>
+      <tr><th></th><th>ChatGPT</th><th>InkMagnet</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>What you get</td><td>Chat messages to copy out</td><td>Finished PDF and EPUB with a cover</td></tr>
+      <tr><td>Book plan</td><td>Built by you in the conversation</td><td>Editable table of contents before you pay, free</td></tr>
+      <tr><td>Long books</td><td>Truncates, repeats, loses the thread</td><td>Whole book chapter by chapter, consistent to the end</td></tr>
+      <tr><td>Facts and sources</td><td>From model memory; citations can be invented</td><td>Live web research with citations</td></tr>
+      <tr><td>Language</td><td>No separate editing pass</td><td>Language editing and a whole-book consistency check</td></tr>
+      <tr><td>Typesetting</td><td>Plain text — you format it</td><td>LaTeX layout: TOC, margins, hyphenation, boxes, tables</td></tr>
+      <tr><td>Cover</td><td>None</td><td>A cover designed for that one book</td></tr>
+      <tr><td>Cost</td><td>Monthly subscription + your time</td><td>One price per book, no subscription</td></tr>
+    </tbody>
+  </table>
+
+  <h2>When ChatGPT is enough</h2>
+  <p>
+    For a short note, a few paragraphs or brainstorming a topic, the chat is faster and cheaper.
+    InkMagnet makes sense when the end result is a book you give away or sell: a lead magnet,
+    course material, a guide, an expert book.
+  </p>
+
+  <h2>See real output</h2>
+  <p>
+    Full books generated with InkMagnet are free to download in the
+    <a href="/examples/">examples gallery</a>.
+  </p>
+
+  <h2>FAQ</h2>
+  {faq.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+</ArticleLayout>

@@ -1,0 +1,45 @@
+---
+// A real app screenshot in a browser or phone frame (matury-online style).
+// Every image ships as <base>.webp (shown) + <base>-lg.webp (Lightbox zoom),
+// with explicit width/height so it never shifts the layout, lazy by default.
+interface Props {
+  src: string; // "/app/pl/w-plan" — no extension
+  w: number; // intrinsic size of <src>.webp
+  h: number;
+  alt: string;
+  kind?: "browser" | "phone";
+  url?: string; // address shown in the browser bar
+  eager?: boolean; // above the fold: load now, high priority
+  zoom?: boolean;
+  class?: string;
+}
+const { src, w, h, alt, kind = "browser", url = "app.inkmagnet.com", eager = false, zoom = true, class: cls = "" } = Astro.props;
+const imgAttrs = {
+  src: `${src}.webp`,
+  alt,
+  width: w,
+  height: h,
+  loading: eager ? "eager" : "lazy",
+  decoding: "async",
+  ...(eager ? { fetchpriority: "high" } : {}),
+  ...(zoom ? { "data-zoom": "", "data-zoom-src": `${src}-lg.webp` } : {}),
+} as Record<string, unknown>;
+---
+
+{
+  kind === "browser" ? (
+    <div class={`overflow-hidden rounded-2xl border border-ink-200 bg-white shadow-2xl shadow-ink-900/10 ${cls}`}>
+      <div class="flex items-center gap-1.5 border-b border-ink-100 bg-ink-50 px-4 py-2.5">
+        <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+        <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+        <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+        <span class="ml-3 hidden truncate rounded-md bg-white px-3 py-0.5 text-[11px] text-ink-400 ring-1 ring-ink-100 sm:block">{url}</span>
+      </div>
+      <img {...imgAttrs} class={`block h-auto w-full ${zoom ? "cursor-zoom-in" : ""}`} />
+    </div>
+  ) : (
+    <div class={`rounded-[2.4rem] bg-ink-900 p-2 shadow-2xl shadow-ink-900/25 ring-1 ring-ink-800 ${cls}`}>
+      <img {...imgAttrs} class={`block h-auto w-full rounded-[1.9rem] bg-white ${zoom ? "cursor-zoom-in" : ""}`} />
+    </div>
+  )
+}

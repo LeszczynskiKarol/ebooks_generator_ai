@@ -762,18 +762,18 @@ export const ui = {
       app: "Aplikacja Android",
     },
     hero: {
-      badge: "Ebook AI Creator",
-      title1: "Generator ebooków AI, który zamienia temat w",
-      titleAccent: "profesjonalną książkę",
-      title2: "w około godzinę",
-      sub: "InkMagnet to generator ebooków AI: opisz temat, a on zbada go w internecie, napisze każdy rozdział z weryfikowalnymi źródłami, zaprojektuje okładkę i odda PDF w jakości drukarskiej oraz EPUB. To nie wypełniacz szablonu ani eksport z worda — prawdziwa, złożona książka.",
+      badge: "Polski generator ebooków AI",
+      title1: "Gotowa książka",
+      titleAccent: "jak z wydawnictwa",
+      title2: "— z jednego opisu",
+      sub: "Opisz temat, a InkMagnet zbada go w aktualnych źródłach, napisze każdy rozdział, przeprowadzi redakcję językową i złoży całość w PDF i EPUB — z okładką, spisem treści i przypisami. Bez abonamentu: płacisz za jedną książkę, i to dopiero wtedy, gdy zobaczysz jej plan.",
       ctaPrimary: "Zaplanuj książkę za darmo",
       ctaSecondary: "Zobacz, jak to działa",
       bullets: [
-        "PDF + EPUB w jakości wydawniczej",
-        "Research w sieci z cytowanymi źródłami",
-        "Darmowy spis treści przed płatnością",
-        "Jedna stała cena za książkę",
+        "Darmowy spis treści i próbka 2 stron",
+        "Przypisy do prawdziwych źródeł",
+        "Redakcja językowa w każdej książce",
+        "PDF + EPUB, pełne prawa komercyjne",
       ],
     },
     how: {
@@ -790,7 +790,7 @@ export const ui = {
         },
         {
           title: "Płacisz, a AI bada temat i pisze",
-          desc: "Płacisz dopiero wtedy, gdy plan Ci odpowiada. Silnik bada temat w aktualnych źródłach internetowych i rozwija Twój plan w szczegółowy konspekt, który możesz poprawić (albo raz wygenerować od nowa), zanim powstanie jakikolwiek rozdział. Potem każdy rozdział zostaje napisany, zrecenzowany i złożony.",
+          desc: "Płacisz dopiero wtedy, gdy plan Ci odpowiada. Silnik bada temat w aktualnych źródłach internetowych i rozwija Twój plan w szczegółowy konspekt, który możesz poprawić (albo raz wygenerować od nowa), zanim powstanie jakikolwiek rozdział. Potem każdy rozdział zostaje napisany i zrecenzowany, a całość przechodzi redakcję językową i kontrolę spójności, zanim trafi do składu.",
         },
         {
           title: "Pobierz i publikuj",
@@ -918,7 +918,7 @@ export const ui = {
     realApp: {
       title: "Tak wygląda praca z InkMagnet",
       sub: "Prawdziwe ekrany z gotowej książki — bez makiet.",
-      note: "Ekrany z książki „Thermomix — proste obiady dla zabieganych”, wygenerowanej w InkMagnet.",
+      note: "Ekrany z książek wygenerowanych w InkMagnet.",
       items: [
         {
           title: "Każda książka ma własną stronę",
