@@ -72,7 +72,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (!captcha.ok) {
       return reply
         .status(400)
-        .send({ success: false, error: "Verification failed — please retry" });
+        .send({ success: false, error: "Verification failed, please retry" });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -129,7 +129,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (user.emailVerified) {
       return reply
         .status(400)
-        .send({ success: false, error: "Already verified — just log in" });
+        .send({ success: false, error: "Already verified, just log in" });
     }
 
     const result = await checkEmailCode(user.id, String(code));
@@ -181,7 +181,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (!captcha.ok) {
       return reply
         .status(400)
-        .send({ success: false, error: "Verification failed — please retry" });
+        .send({ success: false, error: "Verification failed, please retry" });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -210,7 +210,7 @@ export async function authRoutes(app: FastifyInstance) {
     if (!captcha.ok) {
       return reply
         .status(400)
-        .send({ success: false, error: "Verification failed — please retry" });
+        .send({ success: false, error: "Verification failed, please retry" });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });

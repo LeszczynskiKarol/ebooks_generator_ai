@@ -78,7 +78,7 @@ export async function materialRoutes(app: FastifyInstance) {
         return reply.status(429).send({
           success: false,
           code: "too_many",
-          error: "Too many unattached files — remove some first",
+          error: "Too many unattached files, remove some first",
         });
       }
 

@@ -104,13 +104,13 @@ export function sendVerificationCodeEmail(
 // ── Password reset ──
 export function sendPasswordResetEmail(to: string, link: string, lang: Lang) {
   const pl = lang === "pl";
-  const subject = pl ? "Reset hasła — InkMagnet" : "Password reset — InkMagnet";
+  const subject = pl ? "Reset hasła | InkMagnet" : "Password reset | InkMagnet";
   const intro = pl
     ? "Otrzymaliśmy prośbę o reset hasła. Kliknij przycisk, aby ustawić nowe:"
     : "We received a password reset request. Click the button to set a new one:";
   const cta = pl ? "Ustaw nowe hasło" : "Set a new password";
   const ttl = pl
-    ? "Link wygasa po 30 minutach. Jeśli to nie Ty — zignoruj tę wiadomość."
+    ? "Link wygasa po 30 minutach. Jeśli to nie Ty, zignoruj tę wiadomość."
     : "The link expires in 30 minutes. If this wasn't you, ignore this email.";
   const html = shell(`
 <p style="font-size:15px;margin:0 0 20px">${intro}</p>
@@ -147,8 +147,8 @@ export function sendStructureReadyEmail(
     ? `Plan książki gotowy: ${bookTitle}`
     : `Book plan ready: ${bookTitle}`;
   const intro = pl
-    ? `Plan Twojej książki <strong>„${bookTitle}"</strong> jest gotowy. Przejrzyj rozdziały i sekcje — możesz je edytować — a potem zatwierdź plan, aby ruszyło pisanie treści.`
-    : `The plan for your book <strong>"${bookTitle}"</strong> is ready. Review the chapters and sections — you can edit them — then approve the plan to start the writing.`;
+    ? `Plan Twojej książki <strong>„${bookTitle}"</strong> jest gotowy. Przejrzyj rozdziały i sekcje (możesz je edytować), a potem zatwierdź plan, aby ruszyło pisanie treści.`
+    : `The plan for your book <strong>"${bookTitle}"</strong> is ready. Review the chapters and sections (you can edit them), then approve the plan to start the writing.`;
   const cta = pl ? "Przejrzyj i zatwierdź plan" : "Review and approve the plan";
   const note = pl
     ? "Pisanie ruszy dopiero po Twoim zatwierdzeniu."
@@ -179,8 +179,8 @@ export function sendBookCompletedEmail(
     ? `Twoja książka „${bookTitle}" jest gotowa`
     : `Your book "${bookTitle}" is ready`;
   const intro = pl
-    ? `Gotowe! <strong>„${bookTitle}"</strong> jest napisana, złożona i czeka na Ciebie — PDF do druku i EPUB na czytniki.`
-    : `Done! <strong>"${bookTitle}"</strong> is written, typeset and waiting for you — a print-ready PDF and an EPUB for e-readers.`;
+    ? `Gotowe! <strong>„${bookTitle}"</strong> jest napisana, złożona i czeka na Ciebie: PDF do druku i EPUB na czytniki.`
+    : `Done! <strong>"${bookTitle}"</strong> is written, typeset and waiting for you: a print-ready PDF and an EPUB for e-readers.`;
   const cta = pl ? "Pobierz książkę" : "Download your book";
   const note = pl
     ? "Plik znajdziesz też w każdej chwili na swoim koncie."
@@ -218,8 +218,8 @@ export function sendPaymentReminderEmail(args: {
   const subject =
     kind === 1
       ? pl
-        ? `„${bookTitle}" — Twoja książka czeka na finalizację`
-        : `"${bookTitle}" — your book is waiting for you`
+        ? `Twoja książka „${bookTitle}" czeka na finalizację`
+        : `Your book "${bookTitle}" is waiting for you`
       : pl
         ? `Dokończ zamówienie: „${bookTitle}"`
         : `Finish your order: "${bookTitle}"`;
@@ -227,11 +227,11 @@ export function sendPaymentReminderEmail(args: {
   const intro =
     kind === 1
       ? pl
-        ? `Twoje zamówienie jest w całości wypełnione — <strong>„${bookTitle}"</strong>, ok. ${pages} stron, ${priceLabel}. Brakuje tylko płatności. Po niej od razu przygotujemy plan książki do Twojej akceptacji, a po akceptacji dostaniesz gotowy PDF z okładką.`
-        : `Your order is fully set up — <strong>"${bookTitle}"</strong>, ~${pages} pages, ${priceLabel}. Only the payment is missing. Right after it we prepare the book plan for your approval, and once you approve it you get the finished PDF with a cover.`
+        ? `Twoje zamówienie jest w całości wypełnione: <strong>„${bookTitle}"</strong>, ok. ${pages} stron, ${priceLabel}. Brakuje tylko płatności. Po niej od razu przygotujemy plan książki do Twojej akceptacji, a po akceptacji dostaniesz gotowy PDF z okładką.`
+        : `Your order is fully set up: <strong>"${bookTitle}"</strong>, ~${pages} pages, ${priceLabel}. Only the payment is missing. Right after it we prepare the book plan for your approval, and once you approve it you get the finished PDF with a cover.`
       : pl
-        ? `Twoje zamówienie na <strong>„${bookTitle}"</strong> (ok. ${pages} stron, ${priceLabel}) wciąż czeka. Jeśli chcesz najpierw zobaczyć, jakie książki wychodzą z generatora, pobierz darmowe przykłady — a potem dokończ swoje zamówienie jednym kliknięciem.`
-        : `Your order for <strong>"${bookTitle}"</strong> (~${pages} pages, ${priceLabel}) is still waiting. If you'd like to see what the generator produces first, download the free sample books — then finish your order in one click.`;
+        ? `Twoje zamówienie na <strong>„${bookTitle}"</strong> (ok. ${pages} stron, ${priceLabel}) wciąż czeka. Jeśli chcesz najpierw zobaczyć, jakie książki wychodzą z generatora, pobierz darmowe przykłady, a potem dokończ swoje zamówienie jednym kliknięciem.`
+        : `Your order for <strong>"${bookTitle}"</strong> (~${pages} pages, ${priceLabel}) is still waiting. If you'd like to see what the generator produces first, download the free sample books, then finish your order in one click.`;
 
   const cta = pl ? "Dokończ zamówienie" : "Finish my order";
   const samplesUrl = pl
@@ -246,11 +246,11 @@ export function sendPaymentReminderEmail(args: {
   const note =
     kind === 1
       ? pl
-        ? "Nie chcesz dokończyć tego zamówienia? Zignoruj tę wiadomość — nic nie zostanie pobrane."
-        : "Don't want to finish this order? Just ignore this email — nothing will be charged."
+        ? "Nie chcesz dokończyć tego zamówienia? Zignoruj tę wiadomość, nic nie zostanie pobrane."
+        : "Don't want to finish this order? Just ignore this email and nothing will be charged."
       : pl
-        ? "To ostatnie przypomnienie o tym zamówieniu. Jeśli nie chcesz go dokończyć, zignoruj tę wiadomość — nic nie zostanie pobrane i nie napiszemy w tej sprawie ponownie."
-        : "This is the last reminder about this order. If you don't want to finish it, ignore this email — nothing will be charged and we won't write about it again.";
+        ? "To ostatnie przypomnienie o tym zamówieniu. Jeśli nie chcesz go dokończyć, zignoruj tę wiadomość. Nic nie zostanie pobrane i nie napiszemy w tej sprawie ponownie."
+        : "This is the last reminder about this order. If you don't want to finish it, ignore this email. Nothing will be charged and we won't write about it again.";
 
   const html = shell(`
 <p style="font-size:15px;margin:0 0 20px">${intro}</p>

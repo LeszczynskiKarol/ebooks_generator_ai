@@ -192,7 +192,7 @@ export async function coverRoutes(app: FastifyInstance) {
             coverParams: params,
             previewUrl: null,
             compiled: false,
-            error: "Cover compilation failed — will retry during book build",
+            error: "Cover compilation failed, it will be retried during the book build",
           },
         });
       }

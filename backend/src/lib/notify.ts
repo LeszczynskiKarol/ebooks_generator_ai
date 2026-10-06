@@ -35,8 +35,8 @@ export async function notifyStructureReady(projectId: string): Promise<void> {
       ? "Plan książki gotowy do zatwierdzenia"
       : "Book plan ready for your approval";
     const body = pl
-      ? `„${bookName}" — przejrzyj rozdziały i zatwierdź plan, aby ruszyło pisanie.`
-      : `"${bookName}" — review the chapters and approve the plan to start the writing.`;
+      ? `„${bookName}”: przejrzyj rozdziały i zatwierdź plan, aby ruszyło pisanie.`
+      : `"${bookName}": review the chapters and approve the plan to start the writing.`;
 
     await prisma.notification.create({
       data: {
@@ -85,8 +85,8 @@ export async function notifyBookCompleted(projectId: string): Promise<void> {
     const bookName = project.title || project.topic;
     const title = pl ? "Twoja książka jest gotowa" : "Your book is ready";
     const body = pl
-      ? `„${bookName}" — PDF i EPUB czekają do pobrania.`
-      : `"${bookName}" — the PDF and EPUB are ready to download.`;
+      ? `„${bookName}”: PDF i EPUB czekają do pobrania.`
+      : `"${bookName}": the PDF and EPUB are ready to download.`;
 
     await prisma.notification.create({
       data: {

@@ -51,6 +51,8 @@ function subjectTitle(title: string | null, topic: string): string {
   return (lastSpace > 30 ? cut.slice(0, lastSpace) : cut) + "…";
 }
 
+const REVIEW_ACCOUNTS = new Set(["play.review@inkmagnet.com"]);
+
 export async function sweepPaymentReminders(): Promise<void> {
   const now = Date.now();
   const adminEmail = process.env.ADMIN_EMAIL || "";
@@ -87,7 +89,8 @@ export async function sweepPaymentReminders(): Promise<void> {
   const seenUsers = new Set<string>();
 
   for (const p of candidates) {
-    if (!p.user?.email || p.user.email === adminEmail) continue;
+    // Store reviewers' test accounts (Google Play review) never get nudged.
+    if (!p.user?.email || p.user.email === adminEmail || REVIEW_ACCOUNTS.has(p.user.email)) continue;
     if (seenUsers.has(p.userId)) continue;
     // An order whose free preview was refused (gibberish/spam) is not a
     // customer to chase.
