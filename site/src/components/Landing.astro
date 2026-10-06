@@ -111,6 +111,12 @@ const sampleSection = isPL
       alt: "Sample: the first two pages of a book in its final style and layout",
     };
 
+// Use-case cards link to their segment landing (internal links for SEO).
+// Order follows t.useCases.items; null = no dedicated page yet.
+const useCaseLinks: (string | null)[] = isPL
+  ? ["/pl/ebook-dla-firmy-uslugowej/", null, "/pl/ebook-dla-trenera-i-dietetyka/", null, "/pl/generator-ksiazek/", null]
+  : ["/lead-magnet-generator/", null, "/ebook-for-coaches/", null, null, null];
+
 const useCaseIcons = [
   "M6 3v8a6 6 0 0 0 12 0V3M6 3h4v8a2 2 0 0 0 4 0V3h4M6 7h4m4 0h4",
   "M4.3 9.7 12 5.5l7.7 4.2L12 13.9 4.3 9.7Zm0 0V15m3-3.6v4.3c0 .6 2.1 2.3 4.7 2.3s4.7-1.7 4.7-2.3v-4.3",
@@ -691,6 +697,11 @@ const useCaseIcons = [
               </span>
               <h3 class="mt-4 font-display text-lg font-bold text-white">{u.title}</h3>
               <p class="mt-2 text-sm leading-relaxed text-ink-400">{u.desc}</p>
+              {useCaseLinks[i] && (
+                <a href={useCaseLinks[i]} class="mt-4 inline-block text-sm font-semibold text-brand-400 underline-offset-4 hover:text-brand-300 hover:underline">
+                  {isPL ? "Zobacz, jak to wygląda →" : "See how it works →"}
+                </a>
+              )}
             </div>
           ))
         }
