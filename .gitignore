@@ -65,3 +65,5 @@ coverage/
 tunnel/frpc.exe
 tunnel/frpc.toml
 tunnel/_setup.log
+# Wyeksportowane książki (PDF/TeX/EPUB) — repo jest publiczne, nie publikujemy ich
+exports/
