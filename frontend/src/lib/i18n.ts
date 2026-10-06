@@ -91,7 +91,7 @@ const en: Dict = {
   resendCode: "Resend code",
   resendCodeIn: "Resend code ({s}s)",
   useDifferentEmail: "Use a different email",
-  codeSent: "Code sent — check your inbox",
+  codeSent: "Code sent. Check your inbox",
   couldNotResend: "Could not resend the code",
   invalidCode: "Invalid code",
   // validation
@@ -140,7 +140,7 @@ const pl: Dict = {
   resendCode: "Wyślij kod ponownie",
   resendCodeIn: "Wyślij ponownie ({s}s)",
   useDifferentEmail: "Użyj innego adresu",
-  codeSent: "Kod wysłany — sprawdź skrzynkę",
+  codeSent: "Kod wysłany. Sprawdź skrzynkę",
   couldNotResend: "Nie udało się wysłać kodu",
   invalidCode: "Nieprawidłowy kod",
   // validation

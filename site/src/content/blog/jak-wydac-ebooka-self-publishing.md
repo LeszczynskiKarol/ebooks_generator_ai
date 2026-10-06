@@ -21,7 +21,7 @@ Wydanie papierowe potrzebuje odwrotności: sztywnego PDF-a klasy drukarskiej z o
 
 ## Matematyka tantiem, która ustawia cenę
 
-**Amazon KDP** płaci za ebooki według dwóch stawek: **70%** przy cenie katalogowej między 2,99 a 9,99 dolara (minus drobna opłata za transfer liczona od megabajta) i **35%** poza tym przedziałem. Konsekwencje są brutalnie proste: ebook za 12,99 zarabia około 4,55 dolara, a ebook za 9,99 około 6,90. Ten przedział tłumaczy, czemu tyle ebooków kosztuje równo 9,99 — to sufit strefy 70%, nie zbieg okoliczności. Przy książkach pełnych zdjęć patrz na opłatę transferową: schodzi z każdego pobrania przy stawce 70%, więc plik 50 MB po cichu zjada marżę.
+**Amazon KDP** płaci za ebooki według dwóch stawek: **70%** przy cenie katalogowej między 2,99 a 9,99 dolara (minus drobna opłata za transfer liczona od megabajta) i **35%** poza tym przedziałem. Konsekwencje są brutalnie proste: ebook za 12,99 zarabia około 4,55 dolara, a ebook za 9,99 około 6,90. Ten przedział tłumaczy, czemu tyle ebooków kosztuje równo 9,99: to sufit strefy 70%, nie zbieg okoliczności. Przy książkach pełnych zdjęć patrz na opłatę transferową: schodzi z każdego pobrania przy stawce 70%, więc plik 50 MB po cichu zjada marżę.
 
 **Apple Books** płaci płaskie **70% przy każdej cenie**, bez opłat transferowych. **Kobo** płaci 70% powyżej około 2,99 dolara na większości rynków. Żaden z tych dwóch nie wymaga wyłączności.
 

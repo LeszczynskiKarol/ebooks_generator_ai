@@ -74,12 +74,12 @@ Erste Ausgabe
 };
 
 const FONT_SIZES = [
-  { value: 8, label: "8pt — Tiny" },
-  { value: 9, label: "9pt — Small" },
-  { value: 10, label: "10pt — Standard" },
-  { value: 11, label: "11pt — Medium" },
-  { value: 12, label: "12pt — Large" },
-  { value: 14, label: "14pt — Extra large" },
+  { value: 8, label: "8pt (tiny)" },
+  { value: 9, label: "9pt (small)" },
+  { value: 10, label: "10pt (standard)" },
+  { value: 11, label: "11pt (medium)" },
+  { value: 12, label: "12pt (large)" },
+  { value: 14, label: "14pt (extra large)" },
 ];
 
 const PREVIEW_FONT_MAP: Record<number, string> = {

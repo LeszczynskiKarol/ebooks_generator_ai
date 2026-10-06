@@ -43,30 +43,30 @@ export const COVER_LAYOUTS: {
     id: "techgrid",
     label: "TechGrid",
     description:
-      "Dark background with subtle grid, geometric circles, glow effects — modern & impactful",
+      "Dark background with subtle grid, geometric circles, glow effects. Modern & impactful",
   },
   {
     id: "luxe",
     label: "Luxe",
     description:
-      "Ornamental double frame, corner dots, diagonal texture — formal & authoritative",
+      "Ornamental double frame, corner dots, diagonal texture. Formal & authoritative",
   },
   {
     id: "aurora",
     label: "Aurora",
     description:
-      "Gradient aurora waves with floating particles — creative & atmospheric",
+      "Gradient aurora waves with floating particles. Creative & atmospheric",
   },
   {
     id: "architect",
     label: "Architect",
     description:
-      "Clean white with bold sidebar, accent stripe, large initial — structured & professional",
+      "Clean white with bold sidebar, accent stripe, large initial. Structured & professional",
   },
   {
     id: "monolith",
     label: "Monolith",
     description:
-      "Full-bleed primary color, centered typography, ring accents — bold & distinctive",
+      "Full-bleed primary color, centered typography, ring accents. Bold & distinctive",
   },
 ];

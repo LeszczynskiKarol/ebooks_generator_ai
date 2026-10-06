@@ -39,7 +39,7 @@ import {
 function useSEO() {
   useEffect(() => {
     document.title =
-      "InkMagnet — AI Ebook Generator | Create Professional Ebooks with Artificial Intelligence";
+      "InkMagnet: AI Ebook Generator | Create Professional Ebooks with Artificial Intelligence";
     const set = (name: string, content: string) => {
       let el = document.querySelector(
         `meta[name="${name}"]`,
@@ -313,7 +313,7 @@ export default function Landing() {
               <p className="mt-6 text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
                 InkMagnet is the AI ebook maker that scrapes real sources,
                 generates LaTeX-typeset content, and delivers publication-ready
-                PDF&nbsp;&amp;&nbsp;EPUB — in&nbsp;8&nbsp;languages.
+                PDF&nbsp;&amp;&nbsp;EPUB in&nbsp;8&nbsp;languages.
               </p>
             </Reveal>
 
@@ -375,7 +375,7 @@ export default function Landing() {
                 <div>
                   <span className="text-gray-600 select-none mr-3">1</span>
                   <span className="text-gray-600 italic">
-                    {"// InkMagnet pipeline — your topic becomes a book"}
+                    {"// InkMagnet pipeline: your topic becomes a book"}
                   </span>
                 </div>
                 <div>
@@ -449,17 +449,17 @@ export default function Landing() {
               {
                 icon: FileText,
                 color: "text-primary-500",
-                label: "PDF — LaTeX typeset",
+                label: "PDF, LaTeX typeset",
               },
               {
                 icon: Smartphone,
                 color: "text-emerald-500",
-                label: "EPUB — Kindle, Apple Books, Kobo",
+                label: "EPUB for Kindle, Apple Books, Kobo",
               },
               {
                 icon: Code2,
                 color: "text-amber-500",
-                label: "LaTeX Source — Full editorial control",
+                label: "LaTeX Source: full editorial control",
               },
             ].map(({ icon: Icon, color, label }) => (
               <div
@@ -490,7 +490,7 @@ export default function Landing() {
             </h2>
             <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
               No templates. No copy-paste. You see the plan for free, pay only
-              when you like it, and InkMagnet runs the rest — research, outline,
+              when you like it, and InkMagnet runs the rest: research, outline,
               write, design, compile.
             </p>
           </Reveal>
@@ -501,7 +501,7 @@ export default function Landing() {
                 icon: BookOpen,
                 num: "01",
                 title: "Free Plan",
-                desc: "Describe your book in one field. Before paying you get the title and full table of contents — edit it, get one AI redo with your notes, and order a free 2-page style sample.",
+                desc: "Describe your book in one field. Before paying you get the title and full table of contents. Edit it, get one AI redo with your notes, and order a free 2-page style sample.",
               },
               {
                 icon: Search,
@@ -519,7 +519,7 @@ export default function Landing() {
                 icon: Palette,
                 num: "04",
                 title: "Design & Compile",
-                desc: "Professional LaTeX typesetting in your chosen style and palette — or one AI matched to your topic. Self-healing compiler fixes AI output errors automatically.",
+                desc: "Professional LaTeX typesetting in your chosen style and palette, or one AI matched to your topic. Self-healing compiler fixes AI output errors automatically.",
               },
               {
                 icon: Package,
@@ -574,7 +574,7 @@ export default function Landing() {
                   </h2>
                   <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                     Most AI ebook generators rely on the model's training data
-                    alone — producing vague, generic content. InkMagnet runs a
+                    alone, producing vague, generic content. InkMagnet runs a
                     two-level research pipeline before a single word is written.
                   </p>
                   <ul className="mt-6 space-y-3">
@@ -622,28 +622,28 @@ export default function Landing() {
                     {" "}
                     <span className="text-emerald-400">nature.com</span>{" "}
                     <span className="text-gray-600">
-                      — 12,400 chars — clinical trial data
+                      · 12,400 chars · clinical trial data
                     </span>
                   </div>
                   <div>
                     {" "}
                     <span className="text-emerald-400">mckinsey.com</span>{" "}
                     <span className="text-gray-600">
-                      — 8,200 chars — market analysis
+                      · 8,200 chars · market analysis
                     </span>
                   </div>
                   <div>
                     {" "}
                     <span className="text-emerald-400">who.int</span>{" "}
                     <span className="text-gray-600">
-                      — 6,800 chars — global statistics
+                      · 6,800 chars · global statistics
                     </span>
                   </div>
                   <div>
                     {" "}
                     <span className="text-emerald-400">arxiv.org</span>{" "}
                     <span className="text-gray-600">
-                      — 15,100 chars — recent paper
+                      · 15,100 chars · recent paper
                     </span>
                   </div>
                   <div className="mt-2">
@@ -668,14 +668,14 @@ export default function Landing() {
                     {" "}
                     <span className="text-emerald-400">jama.com</span>{" "}
                     <span className="text-gray-600">
-                      — surgery outcomes meta-analysis
+                      · surgery outcomes meta-analysis
                     </span>
                   </div>
                   <div>
                     {" "}
                     <span className="text-emerald-400">intuitive.com</span>{" "}
                     <span className="text-gray-600">
-                      — procedure count data 2024
+                      · procedure count data 2024
                     </span>
                   </div>
                 </div>
@@ -704,7 +704,7 @@ export default function Landing() {
                         💡 Key Insight
                       </div>
                       <div className="text-sm text-gray-700 dark:text-gray-300">
-                        Da Vinci systems performed 1.2M procedures in 2024 — a
+                        Da Vinci systems performed 1.2M procedures in 2024, a
                         23% year-over-year increase.
                       </div>
                     </div>
@@ -714,7 +714,7 @@ export default function Landing() {
                         ⚠️ Common Mistake
                       </div>
                       <div className="text-sm text-gray-700 dark:text-gray-300">
-                        Assuming robotic surgery always reduces recovery time —
+                        Assuming robotic surgery always reduces recovery time;
                         outcomes depend heavily on procedure type.
                       </div>
                     </div>
@@ -746,7 +746,7 @@ export default function Landing() {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 text-center mt-4">
-                    Actual chapter output — colored boxes, data tables, real
+                    Actual chapter output: colored boxes, data tables, real
                     statistics
                   </p>
                 </div>
@@ -763,14 +763,14 @@ export default function Landing() {
                   </h2>
                   <p className="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                     While other AI ebook makers convert markdown to a plain PDF,
-                    InkMagnet generates real LaTeX — the same typesetting system
+                    InkMagnet generates real LaTeX, the same typesetting system
                     used by academic publishers, technical authors, and research
                     institutions worldwide.
                   </p>
                   <ul className="mt-6 space-y-3">
                     {[
                       "Professional booktabs tables, tcolorbox colored callouts, fancyhdr headers",
-                      "5 design presets: Modern, Academic, Creative, Business, Minimal — each with distinct font choices",
+                      "5 design presets: Modern, Academic, Creative, Business, Minimal, each with distinct font choices",
                       "Custom color palette: pick 1–3 colors and the algorithm derives a complete, harmonious scheme",
                       "Microtype character protrusion and font expansion for optically perfect margins",
                       "4 page formats (A5, B5, A4, Letter) with proper inner/outer margins for print binding",
@@ -829,12 +829,12 @@ export default function Landing() {
                     The #1 problem with AI-generated long-form content? Chapter
                     5 sounds nothing like Chapter 1. InkMagnet solves this by
                     passing the complete text of all previous chapters as
-                    context — up to 400,000 characters — when generating each
+                    context (up to 400,000 characters) when generating each
                     new chapter.
                   </p>
                   <ul className="mt-6 space-y-3">
                     {[
-                      "Full previous chapter text included in every generation call — not summaries, the real thing",
+                      "Full previous chapter text included in every generation call. Not summaries, the real thing",
                       "Explicit anti-repetition rules prevent recycling examples, statistics, or arguments",
                       'Natural cross-references: "As we explored in Chapter 2…" emerge organically',
                       'deAIfy™ post-processing strips AI-isms like "In today\'s rapidly evolving…" in both English and Polish',
@@ -864,21 +864,21 @@ export default function Landing() {
                     ch.1 <span className="text-emerald-400">
                       14,200 words
                     </span>{" "}
-                    <span className="text-gray-600">— full LaTeX</span>
+                    <span className="text-gray-600">(full LaTeX)</span>
                   </div>
                   <div>
                     {" "}
                     ch.2 <span className="text-emerald-400">
                       11,800 words
                     </span>{" "}
-                    <span className="text-gray-600">— full LaTeX</span>
+                    <span className="text-gray-600">(full LaTeX)</span>
                   </div>
                   <div>
                     {" "}
                     ch.3 <span className="text-emerald-400">
                       12,500 words
                     </span>{" "}
-                    <span className="text-gray-600">— full LaTeX</span>
+                    <span className="text-gray-600">(full LaTeX)</span>
                   </div>
                   <div>
                     {" "}
@@ -1050,12 +1050,12 @@ export default function Landing() {
                     AI-generated content is a starting point, not a final
                     product. InkMagnet gives you a full CodeMirror editor with
                     LaTeX syntax highlighting, live preview, and instant
-                    recompilation — with every version preserved.
+                    recompilation, with every version preserved.
                   </p>
                   <ul className="mt-6 space-y-3">
                     {[
                       "Syntax-highlighted LaTeX editor with line numbers, search, bracket matching, and code folding",
-                      "Preview mode renders LaTeX as formatted HTML — no compilation needed to see changes",
+                      "Preview mode renders LaTeX as formatted HTML, no compilation needed to see changes",
                       "Recompile generates a new PDF + EPUB + LaTeX source in one click",
                       "Full version history: download any format (PDF, EPUB, LaTeX) from any previous version",
                       "Self-healing compiler: three-layer LaTeX sanitization + auto-fix from pdflatex logs",
@@ -1089,9 +1089,9 @@ export default function Landing() {
                 </span>
               </h2>
               <p className="mt-4 text-gray-600 dark:text-gray-400">
-                Every part of the pipeline — research queries, structure
+                Every part of the pipeline (research queries, structure
                 generation, content writing, deAIfy patterns, and LaTeX babel
-                configuration — adapts to your chosen language.
+                configuration) adapts to your chosen language.
               </p>
               <div className="flex flex-wrap gap-3 justify-center mt-8">
                 {[
@@ -1271,7 +1271,7 @@ export default function Landing() {
               {
                 icon: BarChart3,
                 title: "Marketing Teams",
-                desc: "Produce data-driven whitepapers and industry reports. The research pipeline ensures every claim is backed by real sources — not AI hallucinations.",
+                desc: "Produce data-driven whitepapers and industry reports. The research pipeline ensures every claim is backed by real sources, not AI hallucinations.",
               },
               {
                 icon: PenTool,
@@ -1421,19 +1421,19 @@ export default function Landing() {
             <div>
               <FAQItem
                 q="How is this different from just asking ChatGPT to write a book?"
-                a="ChatGPT generates text from its training data in a single session with limited context. InkMagnet runs a full pipeline: live web research to find current data, structured chapter planning you can edit, content generation with up to 400K characters of context for style consistency, professional LaTeX typesetting, and output in PDF + EPUB. The result is a researched, professionally designed book — not a long chat response."
+                a="ChatGPT generates text from its training data in a single session with limited context. InkMagnet runs a full pipeline: live web research to find current data, structured chapter planning you can edit, content generation with up to 400K characters of context for style consistency, professional LaTeX typesetting, and output in PDF + EPUB. The result is a researched, professionally designed book, not a long chat response."
               />
               <FAQItem
                 q="Can I see my book before I pay?"
-                a="Yes. For free, you get the title and the full table of contents — chapters and sections with short descriptions — and can edit any of it. One AI redo with your notes is included, and you choose version 1 or version 2. You can also order a free 2-page sample of chapter 1, written and typeset exactly like the final book. You pay only when you like the plan."
+                a="Yes. For free, you get the title and the full table of contents (chapters and sections with short descriptions) and can edit any of it. One AI redo with your notes is included, and you choose version 1 or version 2. You can also order a free 2-page sample of chapter 1, written and typeset exactly like the final book. You pay only when you like the plan."
               />
               <FAQItem
                 q="Are the sources real? Can I verify them?"
-                a="Yes. InkMagnet uses Google Custom Search API to find live web pages, then scrapes their content through a dedicated microservice. The AI selects sources based on data density — prioritizing statistics, case studies, and named examples. Every claim in the output comes from real, publicly accessible web content."
+                a="Yes. InkMagnet uses Google Custom Search API to find live web pages, then scrapes their content through a dedicated microservice. The AI selects sources based on data density, prioritizing statistics, case studies, and named examples. Every claim in the output comes from real, publicly accessible web content."
               />
               <FAQItem
                 q="Can I edit the content after generation?"
-                a='Absolutely. The built-in editor features syntax-highlighted LaTeX editing with line numbers, search, and bracket matching. You also get a preview mode that renders your changes as formatted HTML. After editing, click "Regenerate" to compile a new PDF + EPUB. Every version is saved — you can always go back.'
+                a='Absolutely. The built-in editor features syntax-highlighted LaTeX editing with line numbers, search, and bracket matching. You also get a preview mode that renders your changes as formatted HTML. After editing, click "Regenerate" to compile a new PDF + EPUB. Every version is saved, so you can always go back.'
               />
               <FAQItem
                 q="What if I don't know LaTeX?"
@@ -1441,11 +1441,11 @@ export default function Landing() {
               />
               <FAQItem
                 q='Will the output look "AI-generated"?'
-                a='InkMagnet actively fights against it. The deAIfy post-processing removes dozens of known AI patterns ("In todays rapidly evolving…", "Its worth noting…", "game-changer") in multiple languages. Combined with real research data, specific examples with company names and statistics, and professional typography — the output reads like expert-authored content, not AI filler.'
+                a='InkMagnet actively fights against it. The deAIfy post-processing removes dozens of known AI patterns ("In todays rapidly evolving…", "Its worth noting…", "game-changer") in multiple languages. Combined with real research data, specific examples with company names and statistics, and professional typography, the output reads like expert-authored content, not AI filler.'
               />
               <FAQItem
                 q="Can I use the generated book commercially?"
-                a="Yes. You own full commercial rights to every book you generate. Use it as a lead magnet, sell it on Amazon KDP, include it in your course, distribute it to clients — it's yours. You also get the LaTeX source code for complete editorial control."
+                a="Yes. You own full commercial rights to every book you generate. Use it as a lead magnet, sell it on Amazon KDP, include it in your course, distribute it to clients. It's yours. You also get the LaTeX source code for complete editorial control."
               />
               <FAQItem
                 q="Why one-time payment instead of a subscription?"
@@ -1453,7 +1453,7 @@ export default function Landing() {
               />
               <FAQItem
                 q="What languages are supported?"
-                a="English, Polish, German, Spanish, French, Italian, Portuguese, and Dutch. The entire pipeline adapts — research queries, content generation, AI pattern removal, and LaTeX typography (hyphenation, babel configuration) are all language-aware."
+                a="English, Polish, German, Spanish, French, Italian, Portuguese, and Dutch. The entire pipeline adapts: research queries, content generation, AI pattern removal, and LaTeX typography (hyphenation, babel configuration) are all language-aware."
               />
             </div>
           </Reveal>
@@ -1485,7 +1485,7 @@ export default function Landing() {
                 to="/auth/register"
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-lg shadow-xl shadow-primary-600/30 hover:shadow-primary-500/40 transition-all hover:-translate-y-0.5"
               >
-                Start Creating — From $9.99
+                Start Creating from $9.99
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
@@ -1536,7 +1536,7 @@ export default function Landing() {
           </div>
           <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800 text-center">
             <p className="text-xs text-gray-400">
-              &copy; 2025 InkMagnet — AI-powered ebook generation. All rights
+              &copy; 2025 InkMagnet. AI-powered ebook generation. All rights
               reserved.
             </p>
           </div>

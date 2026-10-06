@@ -23,7 +23,7 @@ Two different jobs, two different scoreboards. A checklist is built to win the o
 
 ## What a branded book buys that a 2-pager can't
 
-A checklist is a list of things you already knew, reformatted. A book has room for the thing your prospect didn't know: the number from your own client data, the mistake you've watched three companies make, the framework nobody else in your niche has written down. That's not a length argument, it's a content argument — 900 words of genuine insight beats 9,000 words of restated best practice, and a two-page PDF structurally can't hold the former.
+A checklist is a list of things you already knew, reformatted. A book has room for the thing your prospect didn't know: the number from your own client data, the mistake you've watched three companies make, the framework nobody else in your niche has written down. That's not a length argument, it's a content argument: 900 words of genuine insight beats 9,000 words of restated best practice, and a two-page PDF structurally can't hold the former.
 
 It also compounds differently. A checklist gets skimmed once and archived. A branded book gets handed to a colleague, cited in a proposal, kept on a shelf next to the two or three other resources a buyer actually trusts. [Our own breakdown of lead-magnet formats](/blog/lead-magnet-ideas/) makes the same split: shallow formats earn the email address, deep ones earn the reply, and the two aren't competing, they're sequential. Offer the checklist to the cold visitor; offer the book, on the thank-you page or in week two of the nurture sequence, to the one who's actually shopping.
 

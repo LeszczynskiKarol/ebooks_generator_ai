@@ -20,7 +20,7 @@ const { book } = Astro.props;
 const extra = (pagesData as Record<string, { toc: { title: string; sections: string[] }[]; pages: string[]; previewFrom: number }>)[book.slug];
 if (!extra) throw new Error(`No examplePages.json data for ${book.slug} — run scripts/build-example-pages.py`);
 
-const title = `${book.title} — sample AI-generated ebook (free PDF)`;
+const title = `${book.title} (sample AI-generated ebook, free PDF)`;
 const description = `${book.desc.en} Full table of contents, page previews and the free ${book.pages}-page PDF generated with InkMagnet.`;
 const canonical = `${siteConfig.url}/examples/${book.slug}/`;
 

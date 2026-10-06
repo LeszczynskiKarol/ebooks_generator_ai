@@ -1,6 +1,6 @@
 # InkMagnet
 
-> InkMagnet is an AI ebook generator that delivers a finished, professionally typeset book — not chat text. Describe a topic; you get a free title, editable table of contents and a two-page typeset sample before paying. After you approve the plan, InkMagnet researches the topic on the live web, writes the book chapter by chapter, runs a language edit and a whole-book consistency check, designs a cover, and exports a print-ready PDF and an EPUB. One fixed price per book, no subscription. Built in Poland; writes natively in Polish and English.
+> InkMagnet is an AI ebook generator that delivers a finished, professionally typeset book, not chat text. Describe a topic; you get a free title, editable table of contents and a two-page typeset sample before paying. After you approve the plan, InkMagnet researches the topic on the live web, writes the book chapter by chapter, runs a language edit and a whole-book consistency check, designs a cover, and exports a print-ready PDF and an EPUB. One fixed price per book, no subscription. Built in Poland; writes natively in Polish and English.
 
 ## What makes it different
 
@@ -9,7 +9,7 @@
 - Language editing on every book: per-chapter proofreading plus a whole-book consistency pass (names, numbers, cross-references between chapters).
 - See it before paying: free title + table of contents (editable, one AI redo, choose between versions) and a free 2-page sample typeset exactly like the final book.
 - No subscription: pay per book. Full commercial rights, no watermark.
-- Native Polish: Polish typography („…” quotes, en dashes, hyphenation) — written in Polish, not translated. Made by a Polish proofreader/editor.
+- Native Polish: Polish typography („…” quotes, en dashes, hyphenation). Written in Polish, not translated. Made by a Polish proofreader/editor.
 - Edit after generation: WYSIWYG chapter editor, add your own photos, recompile any time. Android app available.
 
 ## Pricing (one-time, per book)
@@ -31,10 +31,10 @@
 ## Key pages
 
 - [Product overview and pricing (EN)](https://inkmagnet.com/)
-- [Generator ebooków AI — strona po polsku](https://inkmagnet.com/pl/)
-- [Generator ebooków — opis produktu (PL)](https://inkmagnet.com/pl/generator-ebookow/)
+- [Generator ebooków AI: strona po polsku](https://inkmagnet.com/pl/)
+- [Generator ebooków: opis produktu (PL)](https://inkmagnet.com/pl/generator-ebookow/)
 - [AI lead magnet generator](https://inkmagnet.com/lead-magnet-generator/)
-- [Sample books — full PDFs, free to download (EN)](https://inkmagnet.com/examples/)
+- [Sample books: full PDFs, free to download (EN)](https://inkmagnet.com/examples/)
 - [Przykładowe książki po polsku (pełne PDF)](https://inkmagnet.com/pl/przyklady/)
 - [Android app](https://inkmagnet.com/mobile-app/)
 
@@ -47,14 +47,14 @@
 
 ## Example books (full PDFs)
 
-- [Klienci z Google bez budżetu na reklamy (PL, 55 pages) — Google Business Profile guide for local service businesses](https://inkmagnet.com/pl/przyklady/klienci-z-google-bez-budzetu-na-reklamy/)
-- [How to Build Habits — A 30-Day Implementation Plan (EN)](https://inkmagnet.com/examples/how-to-build-habits-30-day-implementation-plan/)
-- [ChatGPT at Work — A Practical Guide for the Office (EN)](https://inkmagnet.com/examples/chatgpt-at-work-practical-office-guide/)
-- [Strength Training at Home — 30 Exercises (EN)](https://inkmagnet.com/examples/strength-training-at-home-30-exercises/)
+- [Klienci z Google bez budżetu na reklamy (PL, 55 pages): Google Business Profile guide for local service businesses](https://inkmagnet.com/pl/przyklady/klienci-z-google-bez-budzetu-na-reklamy/)
+- [How to Build Habits: A 30-Day Implementation Plan (EN)](https://inkmagnet.com/examples/how-to-build-habits-30-day-implementation-plan/)
+- [ChatGPT at Work: A Practical Guide for the Office (EN)](https://inkmagnet.com/examples/chatgpt-at-work-practical-office-guide/)
+- [Strength Training at Home: 30 Exercises (EN)](https://inkmagnet.com/examples/strength-training-at-home-30-exercises/)
 
 ## FAQ
 
 - Is there a free trial? The title, table of contents and a 2-page typeset sample are free; you pay only for the finished book.
 - Which languages? Polish and English, each written natively.
-- Who owns the book? You do — full commercial rights, no watermark.
+- Who owns the book? You do, with full commercial rights and no watermark.
 - How long does it take? Typically under an hour from approving the plan to a finished PDF and EPUB.

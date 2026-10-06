@@ -25,7 +25,7 @@ None of that is a bug in any of these products. It's what happens when version h
 
 A finished InkMagnet book opens in a [WYSIWYG editor with a raw LaTeX mode one click away](/blog/what-latex-does-for-your-book/), and regenerating works at the chapter level, not the whole-book level. Rewrite a paragraph in chapter 4, then ask the engine to regenerate chapter 9's illustration or reword chapter 2's opening, and chapter 4 is never in scope. Your hand edit becomes the chapter's canonical text the moment you save it, not a suggestion the next AI pass is free to overwrite.
 
-Every regenerate is saved as its own version rather than replacing what came before, and there's no 7-day clock counting down on it. [Pricing includes unlimited edits and recompiles](/#pricing) of every book you've bought, which is a deliberate design choice, not a side effect: a book you're still selling six months from now needs the same guarantee on day 180 that it had on day one. Switching between the visual editor and the raw LaTeX view doesn't reset that either — both are two windows onto the same saved chapter, not two competing copies of it.
+Every regenerate is saved as its own version rather than replacing what came before, and there's no 7-day clock counting down on it. [Pricing includes unlimited edits and recompiles](/#pricing) of every book you've bought, which is a deliberate design choice, not a side effect: a book you're still selling six months from now needs the same guarantee on day 180 that it had on day one. Switching between the visual editor and the raw LaTeX view doesn't reset that either, because both are windows onto the same saved chapter, not two competing copies of it.
 
 ## Why this compounds in a book and barely shows up in a blog post
 

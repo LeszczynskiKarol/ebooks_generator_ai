@@ -14,7 +14,7 @@ const PANEL_COPY = {
     badge: "Od tematu do gotowego PDF",
     line1: "Twoja książka.",
     line2: "Napisana przez AI.",
-    lead: "Research, pisanie, ilustracje i profesjonalny skład — jeden przepływ, od tematu do ebooka gotowego do sprzedaży.",
+    lead: "Research, pisanie, ilustracje i profesjonalny skład w jednym przepływie, od tematu do ebooka gotowego do sprzedaży.",
     features: [
       { title: "Pełne książki 30–200 stron", sub: "Struktura, rozdziały, spis treści" },
       { title: "Research z prawdziwych źródeł", sub: "Fakty i liczby zamiast konfabulacji" },
@@ -31,7 +31,7 @@ const PANEL_COPY = {
     badge: "From topic to finished PDF",
     line1: "Your book.",
     line2: "Written by AI.",
-    lead: "Research, writing, illustrations and professional typesetting — one flow, from topic to a sale-ready ebook.",
+    lead: "Research, writing, illustrations and professional typesetting in one flow, from topic to a sale-ready ebook.",
     features: [
       { title: "Complete 30–200 page books", sub: "Structure, chapters, table of contents" },
       { title: "Research from real sources", sub: "Facts and numbers, not confabulation" },

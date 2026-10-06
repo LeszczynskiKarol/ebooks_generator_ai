@@ -10,7 +10,7 @@ const posts = (await getCollection("blog", (p) => p.data.lang === "en" && !p.dat
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 
-const title = "Blog — lead magnets, ebooks and AI publishing";
+const title = "Blog: lead magnets, ebooks and AI publishing";
 const description =
   "Practical, source-backed guides on lead magnet ebooks, list building and AI book creation from the InkMagnet team.";
 const fmt = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "numeric" });

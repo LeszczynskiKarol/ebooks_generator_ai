@@ -191,7 +191,7 @@ export default function MaterialsUpload({
                 <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
               )}
               <span className="truncate">
-                {p.fileName && `${p.fileName}${p.error ? " — " : ""}`}
+                {p.fileName && `${p.fileName}${p.error ? ": " : ""}`}
                 {p.error || t("newProject.materialsReading")}
               </span>
               {p.error && (

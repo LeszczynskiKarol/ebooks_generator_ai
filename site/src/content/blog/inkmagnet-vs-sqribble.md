@@ -39,6 +39,6 @@ InkMagnet charges once per book, scaled to length: $9.99 for a 30–45 page book
 
 ## When Sqribble is the right tool
 
-If the words already exist, a drag-and-drop canvas with a commercial license sounds right, and a PDF is genuinely all that's needed, Sqribble's base $67 is a fair trade for the speed. It's a real product with a 4.7 rating on Trustpilot from roughly 350 reviews, not a scam — just a template pack priced and marketed like more than it is. [Our full side-by-side](/vs/sqribble/) goes through every upsell and export claim with sources.
+If the words already exist, a drag-and-drop canvas with a commercial license sounds right, and a PDF is genuinely all that's needed, Sqribble's base $67 is a fair trade for the speed. It's a real product with a 4.7 rating on Trustpilot from roughly 350 reviews, not a scam, just a template pack priced and marketed like more than it is. [Our full side-by-side](/vs/sqribble/) goes through every upsell and export claim with sources.
 
 Choose InkMagnet when the book doesn't exist yet and an afternoon spent forcing your own words into someone else's template isn't the plan, or when the shared article bank behind Sqribble's "content engine" is exactly the risk you're trying to avoid. [Compare it against the rest of the market](/blog/best-ai-ebook-generators/) if Sqribble isn't the only tool on the shortlist, or [start from a single topic](https://app.inkmagnet.com/auth/register) and see the finished, researched chapters before committing to anything.

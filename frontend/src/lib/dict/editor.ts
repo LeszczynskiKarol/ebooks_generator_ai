@@ -2,7 +2,7 @@
 export const en: Record<string, string> = {
   // BookEditor — modes
   "editor.modeVisual": "Visual",
-  "editor.modeVisualDesc": "Word-like editor — no LaTeX knowledge needed",
+  "editor.modeVisualDesc": "Word-like editor, no LaTeX knowledge needed",
   "editor.modeCode": "Code",
   "editor.modeCodeDesc": "LaTeX source with syntax highlighting",
   "editor.modeSuffix": "mode",
@@ -29,7 +29,7 @@ export const en: Record<string, string> = {
   "editor.save": "Save",
   "editor.saved": "Saved",
   "editor.visualHint":
-    "Visual editor — edit like in Word. Click an image to resize, reposition, or delete. Switch to Code mode for raw LaTeX.",
+    "Visual editor: edit like in Word. Click an image to resize, reposition, or delete. Switch to Code mode for raw LaTeX.",
 
   // BookEditor — toasts
   "editor.chapterSaved": "Chapter {n} saved",
@@ -80,7 +80,7 @@ export const en: Record<string, string> = {
 export const pl: Record<string, string> = {
   // BookEditor — modes
   "editor.modeVisual": "Wizualny",
-  "editor.modeVisualDesc": "Edytor jak w Wordzie — bez znajomości LaTeX-a",
+  "editor.modeVisualDesc": "Edytor jak w Wordzie, bez znajomości LaTeX-a",
   "editor.modeCode": "Kod",
   "editor.modeCodeDesc": "Źródło LaTeX z podświetlaniem składni",
   "editor.modeSuffix": "tryb",
@@ -107,7 +107,7 @@ export const pl: Record<string, string> = {
   "editor.save": "Zapisz",
   "editor.saved": "Zapisano",
   "editor.visualHint":
-    "Edytor wizualny — edytuj jak w Wordzie. Kliknij obraz, aby zmienić rozmiar, położenie lub go usunąć. Przełącz na tryb Kod, aby edytować surowy LaTeX.",
+    "Edytor wizualny: edytuj jak w Wordzie. Kliknij obraz, aby zmienić rozmiar, położenie lub go usunąć. Przełącz na tryb Kod, aby edytować surowy LaTeX.",
 
   // BookEditor — toasts
   "editor.chapterSaved": "Rozdział {n} zapisany",

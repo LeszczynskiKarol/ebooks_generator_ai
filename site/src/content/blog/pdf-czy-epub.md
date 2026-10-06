@@ -1,6 +1,6 @@
 ---
 title: "PDF czy EPUB: który format ebooka wybrać i kiedy potrzebujesz obu"
-seoTitle: "PDF czy EPUB — który format ebooka"
+seoTitle: "PDF czy EPUB: który format ebooka"
 description: "Stały układ kontra płynący tekst, wymagania sklepów, dostępność i praktyka lead magnetów. Roboczy przewodnik po formatach ebooków na 2026 rok."
 lang: pl
 pubDate: 2026-06-11
@@ -64,4 +64,4 @@ Nasza własna odpowiedź jest nudna: [każda książka z InkMagnet](/pl/) wychod
 | Wydanie drukowane | PDF (klasy drukarskiej) |
 | Workbooki, układy projektowe | PDF |
 | Długa lektura na urządzeniach | EPUB |
-| „Mogę wybrać tylko jeden", odbiorcy mieszani | Oba — założenie jest błędne |
+| „Mogę wybrać tylko jeden", odbiorcy mieszani | Oba, bo założenie jest błędne |

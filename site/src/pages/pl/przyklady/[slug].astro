@@ -19,7 +19,7 @@ const { book } = Astro.props;
 const extra = (pagesData as Record<string, { toc: { title: string; sections: string[] }[]; pages: string[]; previewFrom: number }>)[book.slug];
 if (!extra) throw new Error(`Brak danych w examplePages.json dla ${book.slug} — uruchom scripts/build-example-pages.py`);
 
-const title = `${book.title} — przykładowy ebook z generatora AI (PDF za darmo)`;
+const title = `${book.title} (przykładowy ebook z generatora AI, PDF za darmo)`;
 const description = `${book.desc.pl} Pełny spis treści, podgląd stron i darmowy PDF (${book.pages} stron) wygenerowany przez InkMagnet.`;
 const canonical = `${siteConfig.url}/pl/przyklady/${book.slug}/`;
 

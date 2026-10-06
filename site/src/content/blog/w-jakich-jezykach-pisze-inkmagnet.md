@@ -11,7 +11,7 @@ coverPrompt: "A stack of three closed hardcover books of different sizes on a da
 eyebrow: "PORADNIK"
 ---
 
-Otwórz formularz nowego projektu w InkMagnet, a lista języków ma dwie pozycje: angielski i polski. To cała lista. Żadnej ukrytej opcji beta, żadnego "wkrótce" przy portugalskim czy niemieckim. Wygląda to skromnie obok strony konkurenta, która wymienia dziesięć języków albo obiecuje pisanie "w dowolnym języku" — dopóki nie sprawdzisz, co te dłuższe listy naprawdę dają.
+Otwórz formularz nowego projektu w InkMagnet, a lista języków ma dwie pozycje: angielski i polski. To cała lista. Żadnej ukrytej opcji beta, żadnego "wkrótce" przy portugalskim czy niemieckim. Wygląda to skromnie obok strony konkurenta, która wymienia dziesięć języków albo obiecuje pisanie "w dowolnym języku". Przynajmniej dopóki nie sprawdzisz, co te dłuższe listy naprawdę dają.
 
 ## Dwa języki, celowo
 
@@ -33,7 +33,7 @@ Jest też prostszy powód, dla którego lista to akurat angielski i polski, a ni
 
 ## Dlaczego lista zostaje krótka, a nie długa
 
-Każdy język na liście "obsługujemy X języków" to język, który trzeba stale weryfikować, gdy zmieniają się modele AI, gdy dopracowuje się styl firmowy i gdy dochodzą nowe szablony rozdziałów. Dodanie języka, którego nie da się zredagować, oznacza, że każda przyszła funkcja musi być sprawdzana też pod niego — albo po cichu zaczyna odstawać od angielskiego, mimo że wciąż widnieje na stronie marketingowej. To rachunek za utrzymanie, który konkurenci odkładają na później, a nie taki, który już opłacili.
+Każdy język na liście "obsługujemy X języków" to język, który trzeba stale weryfikować, gdy zmieniają się modele AI, gdy dopracowuje się styl firmowy i gdy dochodzą nowe szablony rozdziałów. Dodanie języka, którego nie da się zredagować, oznacza, że każda przyszła funkcja musi być sprawdzana też pod niego, albo po cichu zaczyna odstawać od angielskiego, mimo że wciąż widnieje na stronie marketingowej. To rachunek za utrzymanie, który konkurenci odkładają na później, a nie taki, który już opłacili.
 
 Trzymanie się angielskiego i polskiego oznacza, że oba dostają tę samą uwagę: tę samą kontrolę idiomów i rejestru, tę samą staranność przy wyjątkach w dzieleniu wyrazów, te same szablony otwarć rozdziałów i ramek sprawdzane na prawdziwych książkach w danym języku, a nie zakładane jako "przetłumaczy się samo". Lista dziesięciu języków, z których dziewięć przeszło tylko etap generowania, to nie większy produkt. To ten sam produkt z dziewięcioma dodatkowymi sposobami na rozczarowanie czytelnika.
 

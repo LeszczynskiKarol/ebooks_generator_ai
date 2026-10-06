@@ -42,9 +42,9 @@ const t = pl
       download: "Pobierz pełny PDF (za darmo)",
       makeOwn: "Stwórz podobną książkę",
       tocHeading: "Co znajdziesz w środku",
-      tocSub: "Pełny spis treści — dokładnie te rozdziały i sekcje znajdziesz w pliku.",
+      tocSub: "Pełny spis treści. Dokładnie te rozdziały i sekcje znajdziesz w pliku.",
       peekHeading: "Zajrzyj do środka",
-      peekSub: `Okładka i pierwsze strony pierwszego rozdziału (od s. ${previewFrom}) — surowe rendery z finalnego PDF-a, bez retuszu. Kliknij, aby powiększyć.`,
+      peekSub: `Okładka i pierwsze strony pierwszego rozdziału (od s. ${previewFrom}). Surowe rendery z finalnego PDF-a, bez retuszu. Kliknij, aby powiększyć.`,
       chapterWord: "Rozdział",
       ctaHeading: "Ta książka powstała z jednego tematu",
       ctaBody: "Generator napisał treść, dobrał ilustracje, złożył całość w PDF i EPUB. Twoja książka może być następna.",
@@ -60,9 +60,9 @@ const t = pl
       download: "Download the full PDF (free)",
       makeOwn: "Create a book like this",
       tocHeading: "What's inside",
-      tocSub: "The complete table of contents — exactly the chapters and sections you'll find in the file.",
+      tocSub: "The complete table of contents: exactly the chapters and sections you'll find in the file.",
       peekHeading: "Look inside",
-      peekSub: `The cover and the first pages of chapter one (from p. ${previewFrom}) — raw renders from the final PDF, unretouched. Click to enlarge.`,
+      peekSub: `The cover and the first pages of chapter one (from p. ${previewFrom}). Raw renders from the final PDF, unretouched. Click to enlarge.`,
       chapterWord: "Chapter",
       ctaHeading: "This book started as a single topic",
       ctaBody: "The generator wrote the content, matched the illustrations and typeset the whole thing into a PDF and EPUB. Your book can be next.",
@@ -171,7 +171,7 @@ const coverUrl = `/samples/covers/${book.slug}.webp`;
           pageImages.map((p, i) => (
             <img
               src={`/samples/pages/${book.slug}/${p}`}
-              alt={`${book.title} — ${i === 0 ? (pl ? "okładka" : "cover") : (pl ? "strona" : "page") + " " + (previewFrom + i - 1)}`}
+              alt={`${book.title} (${i === 0 ? (pl ? "okładka" : "cover") : (pl ? "strona" : "page") + " " + (previewFrom + i - 1)})`}
               width="760"
               height="1075"
               loading="lazy"

@@ -11,7 +11,7 @@ coverPrompt: "A row of identical blank paper subscription tokens stacked inside 
 eyebrow: "COMPARISON"
 ---
 
-Most AI ebook tools bill like a streaming service: pay every month, whether you open the app or not. That works fine for something you use continuously. It works badly for a book, a project with a start date and an end date. Write one nonfiction guide, forget to cancel, and the charge keeps landing long after the manuscript is done — or, just as often, long before it is, while you wait out credit resets. InkMagnet charges once per book instead. The reason is arithmetic, not a marketing angle.
+Most AI ebook tools bill like a streaming service: pay every month, whether you open the app or not. That works fine for something you use continuously. It works badly for a book, a project with a start date and an end date. Write one nonfiction guide, forget to cancel, and the charge keeps landing long after the manuscript is done. Or, just as often, long before it is, while you wait out credit resets. InkMagnet charges once per book instead. The reason is arithmetic, not a marketing angle.
 
 ## What a subscription actually bills you for one book
 
@@ -23,7 +23,7 @@ None of those figures describe what a book costs. They describe what a month cos
 
 Subscriptions are also easy to forget you're paying for, and that's a cost by itself, not a metaphor. [One 2026 analysis of app subscriptions](https://gcn.com/unused-app-subscriptions-15-billion-drain/21479/) puts the annual US drain from unused, forgotten subscriptions at **$15.5 billion**, and finds close to half of subscribers have been charged after a free trial rolled over unnoticed. A writing tool billed monthly for a project that takes a few weeks fits that pattern exactly: the trial converts, the book gets finished or shelved, and the charge keeps landing every 30 days until someone remembers to go cancel it.
 
-That's the cost a "$29.99/month, cancel anytime" plan never puts in its own pricing table — the months you keep paying after you've stopped needing the tool, because canceling requires you to notice and act, and a subscription business is built expecting a fair share of customers won't.
+That's the cost a "$29.99/month, cancel anytime" plan never puts in its own pricing table: the months you keep paying after you've stopped needing the tool, because canceling requires you to notice and act, and a subscription business is built expecting a fair share of customers won't.
 
 ## Why we priced this per book instead
 

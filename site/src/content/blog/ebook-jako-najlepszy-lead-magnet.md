@@ -23,7 +23,7 @@ Dwa różne zadania, dwa różne liczniki wyników. Checklista ma wygrać zapis.
 
 ## Co daje branded book, czego nie da dwustronicowiec
 
-Checklista to lista rzeczy, które i tak już znałeś, tylko przeformatowana. Książka ma miejsce na coś, czego twój odbiorca nie wiedział: liczbę z własnych danych klientów, błąd, który obserwowałeś u trzech firm, framework, którego nikt inny w twojej niszy jeszcze nie spisał. To nie jest argument o długości, to argument o treści — 900 słów prawdziwego wglądu bije 9000 słów przepisanych dobrych praktyk, a dwustronicowy PDF strukturalnie nie ma gdzie zmieścić tego pierwszego.
+Checklista to lista rzeczy, które i tak już znałeś, tylko przeformatowana. Książka ma miejsce na coś, czego twój odbiorca nie wiedział: liczbę z własnych danych klientów, błąd, który obserwowałeś u trzech firm, framework, którego nikt inny w twojej niszy jeszcze nie spisał. To nie jest argument o długości, to argument o treści: 900 słów prawdziwego wglądu bije 9000 słów przepisanych dobrych praktyk, a dwustronicowy PDF strukturalnie nie ma gdzie zmieścić tego pierwszego.
 
 Działa też inaczej w czasie. Checklistę przegląda się raz i archiwizuje. Branded book podaje się koledze, cytuje w ofercie, trzyma na półce obok dwóch albo trzech innych materiałów, którym kupujący naprawdę ufa. [Nasze własne zestawienie formatów lead magnetów](/pl/blog/pomysly-na-lead-magnet/) prowadzi do tego samego podziału: płytkie formaty zdobywają adres mailowy, głębokie zdobywają odpowiedź, a te dwa nie konkurują ze sobą, tylko następują po sobie. Checklistę pokaż zimnemu odwiedzającemu; książkę zaproponuj, na stronie podziękowania albo w drugim tygodniu sekwencji lead nurturing, temu, kto już naprawdę kupuje i szuka powodu, żeby zaufać akurat tobie.
 

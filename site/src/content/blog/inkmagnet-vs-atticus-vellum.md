@@ -1,5 +1,5 @@
 ---
-title: "Atticus and Vellum cost $147–250 — and neither writes a single word of your book"
+title: "Atticus and Vellum cost $147–250, and neither writes a single word of your book"
 seoTitle: "Atticus & Vellum: $147–250, No Words Written"
 description: "Atticus ($147) and Vellum ($199.99–249.99) format a manuscript you already wrote. InkMagnet researches and writes the book too, PDF and EPUB included, from $9.99."
 lang: en
@@ -19,7 +19,7 @@ Search "vellum alternative" or "atticus alternative" and the price shows up in t
 
 [Vellum](https://vellum.pub) works differently: you can write, design and preview a book inside it for free, and only pay when you export final files. That's $199.99 for ebook formats alone, or $249.99 for the "Vellum Press" bundle that adds print-ready PDF. The catch is the platform: Vellum is Mac-only and needs macOS 13 or newer, with no Windows version planned, ever. In exchange you get a typesetting engine that handles widows, orphans, ligatures and optical margin alignment at a level reviewers consistently rate above Atticus's output.
 
-Both numbers land inside the $147–250 range InkMagnet's own [cost breakdown](/blog/cost-to-create-an-ebook/) already cites as the going rate for dedicated formatting software, and neither price includes anything upstream of formatting. No research pass, no drafting, no editorial review — just the tool that turns a finished Word file into a distributable book.
+Both numbers land inside the $147–250 range InkMagnet's own [cost breakdown](/blog/cost-to-create-an-ebook/) already cites as the going rate for dedicated formatting software, and neither price includes anything upstream of formatting. No research pass, no drafting, no editorial review. Just the tool that turns a finished Word file into a distributable book.
 
 ## Where the words are supposed to come from
 

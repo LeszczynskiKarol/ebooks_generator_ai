@@ -9,7 +9,7 @@ const posts = (await getCollection("blog", (p) => p.data.lang === "pl" && !p.dat
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 
-const title = "Blog — lead magnety, ebooki i publikowanie z AI";
+const title = "Blog: lead magnety, ebooki i publikowanie z AI";
 const description =
   "Praktyczne, oparte na źródłach poradniki o ebookach lead magnetowych, budowaniu listy mailowej i tworzeniu książek z AI.";
 const fmt = new Intl.DateTimeFormat("pl-PL", { year: "numeric", month: "long", day: "numeric" });

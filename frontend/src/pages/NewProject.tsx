@@ -536,7 +536,7 @@ export default function NewProject() {
         data?.data?.session_url ||
         data?.data?.url;
       toast.success(
-        "Rutyna odpalona (subskrypcja) — książka pojawi się na liście po jej zakończeniu",
+        "Rutyna odpalona (subskrypcja). Książka pojawi się na liście po jej zakończeniu",
         { duration: 8000 },
       );
       if (sessionUrl) window.open(sessionUrl, "_blank");
@@ -979,7 +979,7 @@ export default function NewProject() {
                 desc: t("newProject.coverUploadDesc", {
                   s:
                     t(FORMAT_KEYS[watch("bookFormat") || "a5"] || "newProject.formatA5")
-                      .split("—")[0]
+                      .split(",")[0]
                       ?.trim() || "A5",
                 }),
                 icon: <Upload className="w-4 h-4" />,
@@ -1323,7 +1323,7 @@ export default function NewProject() {
               className="w-full py-3 border-2 border-dashed border-amber-400 text-amber-700 dark:text-amber-300 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             >
               {autopilotLoading && <Loader2 className="w-5 h-5 animate-spin" />}
-              ⚡ Autopilot (Routines) — admin, bez płatności
+              ⚡ Autopilot (Routines): admin, bez płatności
             </button>
             {/* Ta sama rutyna po QA wersji źródłowej tłumaczy jej FINALNY
                 LaTeX 1:1 (z figurami wstawionymi przez backend) i ingestuje

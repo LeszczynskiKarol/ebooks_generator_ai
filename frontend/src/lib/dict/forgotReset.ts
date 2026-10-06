@@ -1,7 +1,7 @@
 // i18n strings for: forgotReset  (keys prefixed "forgotReset.")
 export const en: Record<string, string> = {
   "forgotReset.errEmail": "Invalid email",
-  "forgotReset.somethingWrong": "Something went wrong — try again",
+  "forgotReset.somethingWrong": "Something went wrong. Try again",
   "forgotReset.title": "Reset your password",
   "forgotReset.subtitle": "We'll email you a link to set a new one",
   "forgotReset.checkInbox": "Check your inbox",
@@ -30,7 +30,7 @@ export const en: Record<string, string> = {
 
 export const pl: Record<string, string> = {
   "forgotReset.errEmail": "Nieprawidłowy adres e-mail",
-  "forgotReset.somethingWrong": "Coś poszło nie tak — spróbuj ponownie",
+  "forgotReset.somethingWrong": "Coś poszło nie tak. Spróbuj ponownie",
   "forgotReset.title": "Zresetuj hasło",
   "forgotReset.subtitle": "Wyślemy Ci e-mailem link do ustawienia nowego",
   "forgotReset.checkInbox": "Sprawdź skrzynkę",

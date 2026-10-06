@@ -34,7 +34,7 @@ Pięć wariantów długości w InkMagnet to jednocześnie pięć progów cenowyc
 - Comprehensive, 116-160 stron, ok. 13 900-19 200 słów: 27,99 dolara (~104 zł)
 - Complete, 161-200 stron, ok. 19 300-24 000 słów: 34,99 dolara (~129 zł)
 
-60 stron mieści się wygodnie w środku progu Standard, nie na jego granicy, więc temat wymagający odrobinę więcej materiału nie przesuwa automatycznie książki do droższego progu. [Pełny podział tego, co faktycznie wchodzi w każdą z tych cen](/pl/blog/co-obejmuje-cena-inkmagnet/) — research, pisanie, skład, okładka, PDF i EPUB — pokazuje, że to jedna suma, nie punkt wejścia do kolejnych dopłat, jak bywa przy narzędziach liczących osobno za każdy element.
+60 stron mieści się wygodnie w środku progu Standard, nie na jego granicy, więc temat wymagający odrobinę więcej materiału nie przesuwa automatycznie książki do droższego progu. [Pełny podział tego, co faktycznie wchodzi w każdą z tych cen](/pl/blog/co-obejmuje-cena-inkmagnet/) (research, pisanie, skład, okładka, PDF i EPUB) pokazuje, że to jedna suma, nie punkt wejścia do kolejnych dopłat, jak bywa przy narzędziach liczących osobno za każdy element.
 
 ## Ile to faktycznie trwa
 

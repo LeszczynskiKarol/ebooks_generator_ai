@@ -31,17 +31,17 @@ export const en: Record<string, string> = {
   "projectDetail.paymentPending": "Payment Pending",
   "projectDetail.paymentNotCompleted":
     "Your payment of {s} hasn't been completed yet.",
-  "projectDetail.completePayment": "Complete Payment — {s}",
+  "projectDetail.completePayment": "Complete Payment: {s}",
   "projectDetail.securePayment": "Secure payment via Stripe",
   // ready to write
   "projectDetail.readyToWrite": "Ready to write your book",
   "projectDetail.structureApprovedStart":
-    "The structure is approved — start the AI generation.",
+    "The structure is approved. Start the AI generation.",
   "projectDetail.startGeneration": "Start Generation",
   // compiling
   "projectDetail.compilingBook": "Compiling Your Book",
   "projectDetail.compilingDesc":
-    "Designing the cover and typesetting the print-ready PDF. This can take a few minutes for a full book — you can keep this tab open.",
+    "Designing the cover and typesetting the print-ready PDF. This can take a few minutes for a full book; you can keep this tab open.",
   // not found
   "projectDetail.notFound": "Project not found",
   // edit content
@@ -49,7 +49,7 @@ export const en: Record<string, string> = {
   "projectDetail.editChapterHint": "Edit any chapter, then regenerate a new PDF",
   // toasts
   "projectDetail.toast.structureApproved":
-    "Structure approved — writing your book!",
+    "Structure approved. Writing your book!",
   "projectDetail.toast.generationStarted": "Generation started!",
   "projectDetail.toast.failed": "Failed",
   "projectDetail.toast.checkoutFailed": "Checkout failed",
@@ -87,17 +87,17 @@ export const pl: Record<string, string> = {
   "projectDetail.paymentPending": "Oczekiwanie na płatność",
   "projectDetail.paymentNotCompleted":
     "Twoja płatność w wysokości {s} nie została jeszcze zrealizowana.",
-  "projectDetail.completePayment": "Dokończ płatność — {s}",
+  "projectDetail.completePayment": "Dokończ płatność: {s}",
   "projectDetail.securePayment": "Bezpieczna płatność przez Stripe",
   // ready to write
   "projectDetail.readyToWrite": "Gotowe do napisania książki",
   "projectDetail.structureApprovedStart":
-    "Struktura jest zatwierdzona — rozpocznij generowanie przez AI.",
+    "Struktura jest zatwierdzona. Rozpocznij generowanie przez AI.",
   "projectDetail.startGeneration": "Rozpocznij generowanie",
   // compiling
   "projectDetail.compilingBook": "Składanie Twojej książki",
   "projectDetail.compilingDesc":
-    "Projektujemy okładkę i składamy plik PDF gotowy do druku. W przypadku pełnej książki może to potrwać kilka minut — możesz pozostawić tę kartę otwartą.",
+    "Projektujemy okładkę i składamy plik PDF gotowy do druku. W przypadku pełnej książki może to potrwać kilka minut. Możesz pozostawić tę kartę otwartą.",
   // not found
   "projectDetail.notFound": "Nie znaleziono projektu",
   // edit content
@@ -106,7 +106,7 @@ export const pl: Record<string, string> = {
     "Edytuj dowolny rozdział, a następnie wygeneruj nowy plik PDF",
   // toasts
   "projectDetail.toast.structureApproved":
-    "Struktura zatwierdzona — piszemy Twoją książkę!",
+    "Struktura zatwierdzona. Piszemy Twoją książkę!",
   "projectDetail.toast.generationStarted": "Generowanie rozpoczęte!",
   "projectDetail.toast.failed": "Nie powiodło się",
   "projectDetail.toast.checkoutFailed": "Płatność nie powiodła się",

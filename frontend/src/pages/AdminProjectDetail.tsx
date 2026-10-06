@@ -225,7 +225,7 @@ export default function AdminProjectDetail() {
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-green-600" />
             <span className="text-sm font-medium text-green-800 dark:text-green-300">
-              Book completed — PDF ready
+              Book completed, PDF ready
             </span>
           </div>
           <a
@@ -290,7 +290,7 @@ export default function AdminProjectDetail() {
       {project.costBreakdown?.length > 0 && (
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 mb-6 overflow-x-auto">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-            Cost by stage — ${(project.totalCostUsd || 0).toFixed(4)}
+            Cost by stage: ${(project.totalCostUsd || 0).toFixed(4)}
           </h3>
           <table className="w-full text-xs">
             <thead className="text-gray-400 text-left">
@@ -329,7 +329,7 @@ export default function AdminProjectDetail() {
           <ResearchView data={researchData} projectId={id!} />
         ) : (
           <div className="text-gray-400 text-sm italic flex items-center gap-2">
-            <XCircle className="w-4 h-4" /> No research data — pipeline hasn't
+            <XCircle className="w-4 h-4" /> No research data: pipeline hasn't
             run or API keys not configured
           </div>
         )}
@@ -445,7 +445,7 @@ function ResearchView({ data, projectId }: { data: any; projectId: string }) {
 
       {/* Google search results (target lang) */}
       <SubSection
-        title={`Google Results — Target Language (${data.searchResults?.length || 0})`}
+        title={`Google Results: Target Language (${data.searchResults?.length || 0})`}
         icon={Globe}
       >
         {data.searchResults?.length > 0 ? (
@@ -481,7 +481,7 @@ function ResearchView({ data, projectId }: { data: any; projectId: string }) {
       {/* English search results (if supplement ran) */}
       {data.englishSearchResults?.length > 0 && (
         <SubSection
-          title={`Google Results — English Supplement (${data.englishSearchResults.length})`}
+          title={`Google Results: English Supplement (${data.englishSearchResults.length})`}
           icon={Globe}
         >
           <div className="space-y-2">
@@ -799,7 +799,7 @@ function ChapterBlock({
             chapter.prompts.map((p: any, i: number) => (
               <PromptBlock
                 key={i}
-                label={`${p.step === "main" ? "🔵" : "🟡"} ${p.role.toUpperCase()} — ${p.step}`}
+                label={`${p.step === "main" ? "🔵" : "🟡"} ${p.role.toUpperCase()}: ${p.step}`}
                 content={p.content}
                 timestamp={p.timestamp}
               />
@@ -812,7 +812,7 @@ function ChapterBlock({
             chapter.responses.map((r: any, i: number) => (
               <ResponseBlock
                 key={i}
-                label={`${r.step === "main" ? "🟢" : "🟠"} Response — ${r.step}`}
+                label={`${r.step === "main" ? "🟢" : "🟠"} Response: ${r.step}`}
                 content={
                   r.content?.slice(0, 3000) +
                   (r.content?.length > 3000 ? "\n\n... [truncated]" : "")

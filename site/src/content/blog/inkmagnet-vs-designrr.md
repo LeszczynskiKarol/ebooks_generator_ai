@@ -15,7 +15,7 @@ Search "designrr alternative" and you'll find dozens of comparison posts that sk
 
 ## What you actually feed each tool
 
-Designrr's workflow starts with your material: a blog archive, a Word document, a podcast transcript, a recorded webinar. You import it, pick from more than 300 templates, and the software reflows your existing text into a designed PDF. That's a real, useful job — an agency sitting on years of published content can turn it into lead magnets fast, and its transcription step and flipbook viewer serve that exact audience: marketers repurposing an archive, not authors starting from nothing. The template library itself is broad enough to match a brand's look without hiring a designer.
+Designrr's workflow starts with your material: a blog archive, a Word document, a podcast transcript, a recorded webinar. You import it, pick from more than 300 templates, and the software reflows your existing text into a designed PDF. That's a real, useful job: an agency sitting on years of published content can turn it into lead magnets fast, and its transcription step and flipbook viewer serve that exact audience: marketers repurposing an archive, not authors starting from nothing. The template library itself is broad enough to match a brand's look without hiring a designer.
 
 Its AI layer, Wordgenie, can draft new text from a topic and an outline, in ten languages including Polish. But Designrr's own documentation frames it as a drafting assistant, not a finished writer: it fills gaps and expands prompts from patterns in its training data, with no live web research step and no citations. Paid plans include 100,000 free generation credits, and running out costs $17 for more, a second meter stacked on top of the subscription itself.
 

@@ -66,7 +66,7 @@ export const en: Record<string, string> = {
   // Phase meta
   "generation.phase.research.label": "Research & Source Analysis",
   "generation.phase.research.description":
-    "Web search, source scraping, AI-powered source selection — building the knowledge base for your book",
+    "Web search, source scraping, AI-powered source selection: building the knowledge base for your book",
   "generation.phase.writing.label": "Content Generation",
   "generation.phase.writing.description":
     "AI writing each chapter with expert voice, rich LaTeX formatting, tables, and colored insight boxes",
@@ -86,9 +86,9 @@ export const en: Record<string, string> = {
   "generation.phase.done.description": "Your book is ready!",
 
   // StructureProgress
-  "generation.structure.title": "Payment confirmed — building your book plan",
+  "generation.structure.title": "Payment confirmed. Building your book plan",
   "generation.structure.subtitle":
-    "This usually takes 1–2 minutes. You can safely leave this page — we'll keep working.",
+    "This usually takes 1–2 minutes. You can safely leave this page; we'll keep working.",
   "generation.structure.0.label": "Researching the web",
   "generation.structure.0.desc":
     "Searching and reading the best sources on your topic",
@@ -171,7 +171,7 @@ export const pl: Record<string, string> = {
   // Phase meta
   "generation.phase.research.label": "Badania i analiza źródeł",
   "generation.phase.research.description":
-    "Wyszukiwanie w sieci, pobieranie źródeł, dobór źródeł przez AI — budujemy bazę wiedzy dla Twojej książki",
+    "Wyszukiwanie w sieci, pobieranie źródeł, dobór źródeł przez AI. Budujemy bazę wiedzy dla Twojej książki",
   "generation.phase.writing.label": "Generowanie treści",
   "generation.phase.writing.description":
     "AI pisze każdy rozdział eksperckim głosem, z bogatym formatowaniem LaTeX, tabelami i kolorowymi ramkami z wnioskami",
@@ -191,9 +191,9 @@ export const pl: Record<string, string> = {
   "generation.phase.done.description": "Twoja książka jest gotowa!",
 
   // StructureProgress
-  "generation.structure.title": "Płatność potwierdzona — tworzymy plan Twojej książki",
+  "generation.structure.title": "Płatność potwierdzona. Tworzymy plan Twojej książki",
   "generation.structure.subtitle":
-    "Zwykle trwa to 1–2 minuty. Możesz spokojnie opuścić tę stronę — pracujemy dalej.",
+    "Zwykle trwa to 1–2 minuty. Możesz spokojnie opuścić tę stronę, pracujemy dalej.",
   "generation.structure.0.label": "Przeszukiwanie sieci",
   "generation.structure.0.desc":
     "Wyszukiwanie i czytanie najlepszych źródeł na Twój temat",

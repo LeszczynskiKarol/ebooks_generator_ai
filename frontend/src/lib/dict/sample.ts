@@ -1,7 +1,7 @@
 // i18n strings for: sample  (free pre-payment style sample, keys "sample.")
 export const en: Record<string, string> = {
   "sample.ctaTitle": "See what your book will look like",
-  "sample.ctaText": "Two finished pages of chapter 1 in your chosen style and format — written and typeset like the final book. Free.",
+  "sample.ctaText": "Two finished pages of chapter 1 in your chosen style and format, written and typeset like the final book. Free.",
   "sample.cta": "Show me a sample",
   "sample.runningTitle": "Writing and typesetting your sample…",
   "sample.runningText": "Usually 1–1.5 minutes. You can keep editing the outline meanwhile.",
@@ -17,12 +17,12 @@ export const en: Record<string, string> = {
   "sample.failedRetry": "The sample didn't work out this time. You can try once more.",
   "sample.failedFinal": "The sample couldn't be prepared for this order. The book itself is not affected.",
   "sample.failed": "Couldn't start the sample. Please try again in a moment.",
-  "sample.limit": "Today's free samples are used up. You can still order — after payment you review the full outline before writing starts.",
+  "sample.limit": "Today's free samples are used up. You can still order: after payment you review the full outline before writing starts.",
 };
 
 export const pl: Record<string, string> = {
   "sample.ctaTitle": "Zobacz, jak będzie wyglądać Twoja książka",
-  "sample.ctaText": "Dwie gotowe strony rozdziału 1 w wybranym stylu i formacie — napisane i złożone jak finalna książka. Za darmo.",
+  "sample.ctaText": "Dwie gotowe strony rozdziału 1 w wybranym stylu i formacie, napisane i złożone jak finalna książka. Za darmo.",
   "sample.cta": "Pokaż próbkę",
   "sample.runningTitle": "Piszemy i składamy próbkę…",
   "sample.runningText": "Zwykle 1–1,5 minuty. W tym czasie możesz dalej poprawiać spis treści.",
@@ -38,5 +38,5 @@ export const pl: Record<string, string> = {
   "sample.failedRetry": "Tym razem próbka się nie udała. Możesz spróbować jeszcze raz.",
   "sample.failedFinal": "Nie udało się przygotować próbki dla tego zamówienia. Nie ma to wpływu na samą książkę.",
   "sample.failed": "Nie udało się uruchomić próbki. Spróbuj za chwilę.",
-  "sample.limit": "Dzisiejsze darmowe próbki są wykorzystane. Książkę nadal możesz zamówić — po płatności zobaczysz i poprawisz pełny konspekt, zanim zaczniemy pisać.",
+  "sample.limit": "Dzisiejsze darmowe próbki są wykorzystane. Książkę nadal możesz zamówić: po płatności zobaczysz i poprawisz pełny konspekt, zanim zaczniemy pisać.",
 };

@@ -11,7 +11,7 @@ coverPrompt: "A stack of three closed hardcover books of different sizes on a da
 eyebrow: "GUIDE"
 ---
 
-Open InkMagnet's project form and the language dropdown has two options: English and Polish. That's the whole list. No beta flag hiding a third option, no "coming soon" for Portuguese or German. It looks stingy next to a competitor's landing page that lists ten languages or claims to write in "any language" at all — until you look at what those longer lists actually deliver.
+Open InkMagnet's project form and the language dropdown has two options: English and Polish. That's the whole list. No beta flag hiding a third option, no "coming soon" for Portuguese or German. It looks stingy next to a competitor's landing page that lists ten languages or claims to write in "any language" at all. At least until you look at what those longer lists actually deliver.
 
 ## Two languages, on purpose
 
@@ -21,7 +21,7 @@ Compare that to Designrr's AI drafting layer, Wordgenie, which drafts an ebook i
 
 ## What a claimed language actually has to cover
 
-"Supports French" can mean three very different things: the AI can produce grammatically correct French sentences, the finished PDF hyphenates French words correctly at line breaks, and someone who reads French professionally has checked the output for the small things a fluent non-native speaker gets subtly wrong — word order, register, the difference between formal and informal address. A tool that only clears the first bar can still hand you a manuscript riddled with typographic errors a native reader notices in the first paragraph.
+"Supports French" can mean three very different things: the AI can produce grammatically correct French sentences, the finished PDF hyphenates French words correctly at line breaks, and someone who reads French professionally has checked the output for the small things a fluent non-native speaker gets subtly wrong: word order, register, the difference between formal and informal address. A tool that only clears the first bar can still hand you a manuscript riddled with typographic errors a native reader notices in the first paragraph.
 
 The typesetting layer is where the gap shows up fastest. [LaTeX's hyphenation system](/blog/what-latex-does-for-your-book/) is built on pattern sets trained for one specific language at a time; the underlying babel engine ships hyphenation patterns for roughly 170 languages across around 40 scripts, so the raw typesetting capability to break words correctly in dozens of languages already exists in the toolchain InkMagnet runs on. Having the pattern file is not the hard part. Verifying that a book actually reads like it was written by someone fluent in that language, chapter after chapter, is.
 
