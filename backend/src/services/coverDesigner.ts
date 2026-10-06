@@ -418,6 +418,16 @@ function imgBlock(filePath: string) {
  * gradient) plus the text. Non-rectangle fills (small icons) survive.
  */
 function enforceBgTex(tex: string, paper: { w: number; h: number }): string {
+  // The model sometimes skips the photo altogether (concept "flat vector, no
+  // photo") and paints its own full-bleed fill instead — which the stripping
+  // below removes, leaving white text on a white page (2026-10-06, score 1/10
+  // three times in a row). Put the photo in ourselves when it is missing.
+  if (!/\{bg\.jpg\}/.test(tex)) {
+    tex = tex.replace(
+      /\\begin\{document\}/,
+      `\\begin{document}%\n\\noindent\\begin{tikzpicture}[remember picture, overlay]\n\\node[anchor=center, inner sep=0] at (current page.center)\n  {\\includegraphics[width=${paper.w}mm,height=${paper.h}mm]{bg.jpg}};\n\\end{tikzpicture}%`,
+    );
+  }
   return tex
     .replace(
       /\\includegraphics\[[^\]]*\]\{bg\.jpg\}/g,
@@ -523,8 +533,11 @@ Respond ONLY with JSON:
   // ━━━ Phase 2: background — ALWAYS use a photo (vector-only covers look worse) ━━━
   let hasBg = false;
   if (!opts.disableBackground) {
+    // A "no photo" concept fills the field with junk ("placeholder unused") —
+    // FLUX would then render exactly that. Fall back to a topic prompt.
+    const given = concept.data.background.prompt.trim();
     const bgPrompt =
-      concept.data.background.prompt ||
+      (given.length >= 40 && !/placeholder|unused|\bnone\b|n\/a/i.test(given) ? given : "") ||
       `professional photographic book cover background for a book about: ${book.topic}; evenly lit, calm lower area for a title, no text in the image`;
     hasBg = await generateBackground(
       bgPrompt,
