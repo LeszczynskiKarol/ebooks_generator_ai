@@ -10,7 +10,7 @@
 // this one-way publishing conversion.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { repairControlCharLatex, repairEditorArtifacts } from "./latexFixes";
+import { repairControlCharLatex, repairEditorArtifacts, protectCodeSpans } from "./latexFixes";
 
 export function escapeXml(text: string): string {
   return text
@@ -104,6 +104,11 @@ export function latexToXhtml(
     /\\underline\{([^}]*)\}/g,
     '<span class="underline">$1</span>',
   );
+  // code spans: straight quotes, no break hints (both carry {} that would
+  // cut the [^}]* match short)
+  html = protectCodeSpans(html, (s) => s)
+    .replace(/\\textquotedbl\{\}/g, '"')
+    .replace(/\\allowbreak\{\}/g, "");
   html = html.replace(/\\texttt\{([^}]*)\}/g, "<code>$1</code>");
   // Nested: \textbf{\textit{...}}
   html = html.replace(

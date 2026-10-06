@@ -139,3 +139,59 @@ export function urlifyTexttt(latex: string): string {
     "\\url{$1}",
   );
 }
+
+/**
+ * Inline code (\texttt{…}: Excel formulas, shell commands) must keep straight
+ * quotes and may break after separators. The prose quote passes turned
+ * =IF(A2="Yes";…) into =IF(A2='' Yes'';…) (typographic quote plus the
+ * "space after closing quote" fix) and a long formula ran past the margin,
+ * since \texttt never breaks a line (2026-10-07, Excel workbook).
+ *
+ * protectCodeSpans swaps every \texttt{…} (balanced braces) for a placeholder,
+ * runs `transform` on the rest, then restores the spans with:
+ *  - quotes (", '', ,, ``) → \textquotedbl{} (" is an active babel-polish char),
+ *    dropping the space the closing-quote pass glued after an opening quote;
+ *  - \allowbreak{} after ; , ( in spans longer than 24 characters.
+ * Idempotent: running it again on its own output changes nothing.
+ */
+export function protectCodeSpans(latex: string, transform: (s: string) => string): string {
+  const spans: string[] = [];
+  let out = "";
+  let i = 0;
+  const OPEN = "\\texttt{";
+  while (true) {
+    const at = latex.indexOf(OPEN, i);
+    if (at < 0) break;
+    let depth = 1;
+    let j = at + OPEN.length;
+    for (; j < latex.length && depth > 0; j++) {
+      const ch = latex[j];
+      if (ch === "\\") {
+        j++;
+        continue;
+      } // \{ \} \% are escaped, not braces
+      if (ch === "{") depth++;
+      else if (ch === "}") depth--;
+    }
+    if (depth !== 0) break; // unbalanced: leave the rest untouched
+    out += latex.slice(i, at) + `\uE000${spans.length}\uE001`;
+    spans.push(latex.slice(at + OPEN.length, j - 1));
+    i = j;
+  }
+  out += latex.slice(i);
+  if (!spans.length) return transform(latex);
+  return transform(out).replace(/\uE000(\d+)\uE001/g, (_m, n) => `\\texttt{${fixCodeSpan(spans[+n])}}`);
+}
+
+function fixCodeSpan(code: string): string {
+  let c = code
+    .replace(/\\textquotedbl\{\}/g, "\uE002")
+    // opening quote after a separator: the closing-quote pass glued a space after it
+    .replace(/([=;,(<>&])\s*(?:''|,,|``|")\s?/g, "$1\uE002")
+    .replace(/(?:''|,,|``|")/g, "\uE002")
+    .replace(/\uE002/g, "\\textquotedbl{}");
+  if (c.replace(/\\[a-zA-Z]+\{\}|\\./g, "x").length > 24) {
+    c = c.replace(/([;,(])(?!\\allowbreak)/g, "$1\\allowbreak{}");
+  }
+  return c;
+}

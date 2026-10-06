@@ -25,6 +25,7 @@ import {
   mergeSplitTableHeaders,
   repairEditorArtifacts,
   urlifyTexttt,
+  protectCodeSpans,
 } from "../lib/latexFixes";
 import { footnotesEnabled } from "../lib/types";
 
@@ -839,7 +840,7 @@ export function assembleLatexDocument(p: AssembleParams): string {
         "  \\par\\Needspace*{6\\baselineskip}%",
         "  \\refstepcounter{bookitem}%",
         "  \\vspace{1.6em}{\\noindent\\sffamily\\bfseries\\footnotesize\\color{sectioncolor}\\MakeUppercase{\\itemlabel}~\\thebookitem\\par}%",
-        "  \\vspace{-1.5em}\\subsection*{#1}%",
+        "  \\vspace{-0.9em}\\subsection*{#1}%",
         "  \\addcontentsline{toc}{subsection}{\\protect\\numberline{\\thebookitem}#1}}",
       );
       break;
@@ -2159,12 +2160,15 @@ export function sanitizeChapterLatex(
   // A straight `"` is an ACTIVE character under babel/polish (shorthand system):
   // `" j` eats the following space, `" -` becomes an invisible optional hyphen.
   // Normalize: closing straight quote → '' , opening straight quote → ,, (pl) / `` (else).
-  result = result.replace(/(?<![\s\\])"/g, "''");
-  result = result.replace(/(?<!\\)"(?=\S)/g, language === "pl" ? ",," : "``");
-  // Model sometimes CLOSES a quote with ,, (opening mark) — flip to ''
-  result = result.replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1''");
-  // Ensure a space after a closing quote glued to the next word: ''word → '' word
-  result = result.replace(/''(?=[\p{L}\d])/gu, "'' ");
+  // Inline code (\texttt) is skipped: formulas keep straight quotes.
+  result = protectCodeSpans(result, (r) => {
+    r = r.replace(/(?<![\s\\])"/g, "''");
+    r = r.replace(/(?<!\\)"(?=\S)/g, language === "pl" ? ",," : "``");
+    // Model sometimes CLOSES a quote with ,, (opening mark) — flip to ''
+    r = r.replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1''");
+    // Ensure a space after a closing quote glued to the next word: ''word → '' word
+    return r.replace(/''(?=[\p{L}\d])/gu, "'' ");
+  });
   // Polish typography: tie single-letter words (a/i/o/u/w/z) to the next
   // word with ~ so they never hang at line ends ("sierotki")
   result = result.replace(
@@ -2203,7 +2207,9 @@ export function sanitizeChapterLatex(
   result = result.replace(/\u201E/g, ",,"); // „ → ,,
   result = result.replace(/\u201D/g, "''"); // " → ''
   // ASCII straight quotes → Polish LaTeX quotes (short strings only)
-  result = result.replace(/(?<!,)"([^"\n]{1,300}?)"(?!')/g, ",,$1''");
+  result = protectCodeSpans(result, (r) =>
+    r.replace(/(?<!,)"([^"\n]{1,300}?)"(?!')/g, ",,$1''"),
+  );
 
   // ━━━ FIX 6b: Table & meta-commentary hardening (compile-survival) ━━━
   // The biggest source of fatal compile errors. Robust passes:

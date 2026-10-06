@@ -40,6 +40,7 @@ import {
 import {
   repairControlCharLatex,
   mergeSplitTableHeaders,
+  protectCodeSpans,
 } from "../lib/latexFixes";
 
 const anthropic = createLLMClient();
@@ -2232,10 +2233,14 @@ function deAIfy(latex: string, language: string): string {
   // ── Typographic normalization (PDF + EPUB read this content) ──
   // Straight `"` is an ACTIVE babel character under polish (eats the following
   // space, `" -` becomes an invisible optional hyphen) — normalize to ,,/''/``.
-  latex = latex.replace(/(?<![\s\\])"/g, "''");
-  latex = latex.replace(/(?<!\\)"(?=\S)/g, language === "pl" ? ",," : "``");
-  // A quote CLOSED with ,, (opening mark) → ''
-  latex = latex.replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1''");
+  // Inline code (\texttt) keeps straight quotes (Excel formulas etc.).
+  latex = protectCodeSpans(latex, (s) =>
+    s
+      .replace(/(?<![\s\\])"/g, "''")
+      .replace(/(?<!\\)"(?=\S)/g, language === "pl" ? ",," : "``")
+      // A quote CLOSED with ,, (opening mark) → ''
+      .replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1''"),
+  );
   // Number ranges stay tight: "228 -- 229" → "228--229"
   latex = latex.replace(/(\d)\s*---?\s*(\d)/g, "$1--$2");
   latex = latex.replace(/\b([IVX]{1,4})\s+---?\s+([IVX]{1,4})\b/g, "$1--$2");

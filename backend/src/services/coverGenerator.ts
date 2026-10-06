@@ -1317,6 +1317,10 @@ function layoutPhotoOverlay(p: CoverParams, _c: ColorSet): string {
   const yAccent = yTitleTop + 10;
   const yPanelTop = yAccent + 14;
 
+  // Tekst na zdjęciu zawsze jasny: panel pod spodem jest czarny, a kolory
+  // palety (covtextbright/covprimarylight) w jasnych presetach są ciemne.
+  const PHOTO_TEXT = "white";
+  const PHOTO_ACCENT = "covaccent!35!white";
   // Panel: solidna baza + 4 pasy fade w górę — kontrast niezależny od zdjęcia.
   const panel = `
 \\fill[black, opacity=0.66] (0, 0) rectangle (210, ${yPanelTop});
@@ -1339,7 +1343,7 @@ ${lines
   .map((ln, i) => {
     const y = yTitleBase + (lines.length - 1 - i) * gapMm;
     const color =
-      i === lines.length - 1 && lines.length > 1 ? "covprimarylight" : "covtextbright";
+      i === lines.length - 1 && lines.length > 1 ? PHOTO_ACCENT : PHOTO_TEXT;
     return `\\node[anchor=south west] at (15, ${y}) {%
   \\fontsize{${size}}{${Math.round(size * 1.1)}}\\selectfont\\bfseries\\sffamily\\color{${color}}%
   ${escTitle(ln)}%
@@ -1351,28 +1355,48 @@ ${
     ? `
 % === Podtytuł ===
 \\node[anchor=south west, text width=172mm] at (15, ${ySubtitleBase}) {%
-  \\fontsize{14}{19}\\selectfont\\sffamily\\color{covtextbright!88}%
+  \\fontsize{14}{19}\\selectfont\\sffamily\\color{white!88!black}%
   ${esc(sub)}%
 };`
     : ""
 }
 
 % === Separator + autor / rok ===
-\\fill[covprimarylight, opacity=0.65] (15, ${yDivider}) rectangle (195, ${yDivider + 0.4});
+\\fill[white, opacity=0.65] (15, ${yDivider}) rectangle (195, ${yDivider + 0.4});
 ${
   p.authorName
     ? `
 \\node[anchor=south west] at (15, ${yFooter - 4}) {%
-  \\fontsize{13}{13}\\selectfont\\sffamily\\color{covtextbright}%
+  \\fontsize{13}{13}\\selectfont\\sffamily\\color{${PHOTO_TEXT}}%
   ${esc(p.authorName)}%
 };`
     : ""
 }
 \\node[anchor=south east] at (195, ${yFooter - 4}) {%
-  \\fontsize{12}{12}\\selectfont\\sffamily\\color{covprimarylight}%
+  \\fontsize{12}{12}\\selectfont\\sffamily\\color{${PHOTO_ACCENT}}%
   ${yr}%
 };
 `;
+}
+
+/**
+ * Covers saved before 2026-10-07 coloured the photo-overlay text with the
+ * palette (covtextbright), which light presets (Minimal) define as near-black:
+ * black title on a darkened photo. Rewrite the colours inside the photo branch
+ * only (the TikZ fallback branch keeps its palette).
+ */
+export function lightenPhotoBranch(latex: string): string {
+  const start = latex.indexOf("\\IfFileExists{cover-bg.jpg}{%");
+  if (start < 0) return latex;
+  const end = latex.indexOf("}{%", start + 30);
+  if (end < 0) return latex;
+  const branch = latex
+    .slice(start, end)
+    .replace(/\\color\{covtextbright!88\}/g, "\\color{white!88!black}")
+    .replace(/\\color\{covtextbright\}/g, "\\color{white}")
+    .replace(/\\color\{covprimarylight\}/g, "\\color{covaccent!35!white}")
+    .replace(/\\fill\[covprimarylight,/g, "\\fill[white,");
+  return latex.slice(0, start) + branch + latex.slice(end);
 }
 
 export function generateCoverLatex(
@@ -1534,7 +1558,7 @@ export async function compileCover(projectId: string): Promise<{
 
   const texPath = path.join(coverDir, "cover.tex");
   const pdfPath = path.join(coverDir, "cover.pdf");
-  fs.writeFileSync(texPath, (project as any).coverLatex, "utf-8");
+  fs.writeFileSync(texPath, lightenPhotoBranch((project as any).coverLatex), "utf-8");
 
   // ── Tło fotograficzne (FLUX ultra raw + recenzja Sonneta) ──
   // coverLatex z markerem INKMAGNET-PHOTO-COVER renderuje zdjęcie, gdy
