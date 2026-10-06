@@ -27,6 +27,8 @@ export interface Segment {
   fragment: { title: string; sub: string };
   /** practical advice: how to use the finished book in this business */
   playbook: { title: string; sub: string; items: { title: string; desc: string }[] };
+  /** optional strip of more example books (slugs from examples.js) */
+  moreExamples?: { title: string; sub: string; slugs: string[] };
   faq: { q: string; a: string }[];
   cta: { title: string; sub: string; button: string };
 }
