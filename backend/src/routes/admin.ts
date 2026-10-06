@@ -105,6 +105,12 @@ export async function adminRoutes(app: FastifyInstance) {
       where: { paymentStatus: "PAID" },
       _sum: { priceUsdCents: true, totalTokensUsed: true, totalCostUsd: true },
     });
+    // What unpaid orders (previews, samples, design picks) cost us — money
+    // spent on people who never bought.
+    const unpaidCost = await prisma.project.aggregate({
+      where: { paymentStatus: { not: "PAID" } },
+      _sum: { totalCostUsd: true },
+    });
 
     return reply.send({
       success: true,
@@ -117,6 +123,7 @@ export async function adminRoutes(app: FastifyInstance) {
           revenue: (totalRevenue._sum.priceUsdCents || 0) / 100,
           totalTokens: totalRevenue._sum.totalTokensUsed || 0,
           totalCost: totalRevenue._sum.totalCostUsd || 0,
+          unpaidCost: unpaidCost._sum.totalCostUsd || 0,
         },
         recentProjects: recentProjects.map((p) => ({
           id: p.id,
@@ -175,12 +182,32 @@ export async function adminRoutes(app: FastifyInstance) {
       } catch {}
     }
 
+    // Cost ledger by stage (lib/costTracker; projects before 2026-10-06 have none).
+    const costRows = await prisma.costEntry.groupBy({
+      by: ["stage", "provider"],
+      where: { projectId: id },
+      _sum: { costUsd: true, inputTokens: true, outputTokens: true, units: true },
+      _count: { _all: true },
+    });
+    const costBreakdown = costRows
+      .map((r) => ({
+        stage: r.stage,
+        provider: r.provider,
+        calls: r._count._all,
+        inputTokens: r._sum.inputTokens || 0,
+        outputTokens: r._sum.outputTokens || 0,
+        units: r._sum.units || 0,
+        costUsd: r._sum.costUsd || 0,
+      }))
+      .sort((a, b) => b.costUsd - a.costUsd);
+
     return reply.send({
       success: true,
       data: {
         ...project,
         researchData: undefined, // Don't send raw blob in overview
         researchSummary,
+        costBreakdown,
         priceFormatted: project.priceUsdCents
           ? `$${(project.priceUsdCents / 100).toFixed(2)}`
           : null,

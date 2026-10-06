@@ -13,6 +13,7 @@
 //   OLLAMA_MODEL (def gemma4:latest), OLLAMA_NUM_CTX (def 8192).
 // ─────────────────────────────────────────────────────────────────────────────
 import Anthropic from "@anthropic-ai/sdk";
+import { recordLLM } from "./costTracker";
 import fs from "fs";
 import path from "path";
 
@@ -285,12 +286,16 @@ async function unifiedCreate(
   if (opt?.provider === "ollama") return withRetry(() => ollamaCreate(params));
   if (opt?.provider === "anthropic" && opt.model) {
     const forcedModel = opt.model;
-    return withRetry(() =>
+    const res = await withRetry(() =>
       anthropicCreate({ ...params, model: forcedModel }),
     );
+    recordLLM(res.model || forcedModel, res.usage);
+    return res;
   }
   // auto / produkcja → model taki, jaki podał serwis
-  return withRetry(() => anthropicCreate(params));
+  const res = await withRetry(() => anthropicCreate(params));
+  recordLLM(res.model || params.model, res.usage);
+  return res;
 }
 
 let _client: Anthropic | null = null;

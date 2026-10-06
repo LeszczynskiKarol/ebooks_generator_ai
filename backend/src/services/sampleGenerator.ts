@@ -13,6 +13,7 @@
 // CloudFront origin timeout. One job at a time, so samples never compete
 // with each other for the CPU the paid books need.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import { withCost } from "../lib/costTracker";
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
@@ -77,7 +78,7 @@ export async function startSample(projectId: string, userId: string, ip: string 
     where: { id: projectId },
     data: { sample: state as any },
   });
-  enqueue(() => runSample(projectId, userId, ip, state.attempts));
+  enqueue(() => withCost(projectId, "sample", () => runSample(projectId, userId, ip, state.attempts)));
   return state;
 }
 
@@ -97,7 +98,25 @@ async function runSample(projectId: string, userId: string, ip: string | null, a
   try {
     await resolveAutoDesign(projectId, log);
     const project = await prisma.project.findUniqueOrThrow({ where: { id: projectId } });
-    const preview = normalizePreview(project.preview);
+    // A paid book samples its CURRENT plan (the customer may have edited it
+    // after paying); before payment, the free preview.
+    const struct =
+      project.paymentStatus === "PAID"
+        ? await prisma.projectStructure.findUnique({ where: { projectId } })
+        : null;
+    let fromStructure = null;
+    if (struct) {
+      try {
+        fromStructure = normalizePreview({
+          ...JSON.parse(struct.structureJson),
+          suggestedTitle: project.title || undefined,
+        });
+      } catch {}
+    }
+    const preview =
+      fromStructure && !fromStructure.rejected && fromStructure.chapters.length
+        ? fromStructure
+        : normalizePreview(project.preview);
     if (!preview || preview.rejected || !preview.chapters.length) {
       throw new Error("no preview to sample");
     }
@@ -182,7 +201,6 @@ async function runSample(projectId: string, userId: string, ip: string | null, a
           costUsd,
           rev: Date.now(),
         } as any,
-        totalCostUsd: { increment: costUsd },
       },
     });
     log.ok(`Sample ready: ${pages} pages, $${costUsd.toFixed(4)}`);

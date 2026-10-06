@@ -6,6 +6,7 @@
 // Pipeline: (scena) → FLUX ultra raw → downscale → recenzja Sonneta (wizja)
 // → akceptacja albo kolejna próba (max_attempts) → Buffer jpg.
 // ─────────────────────────────────────────────────────────────────────────────
+import { recordLLM } from "../lib/costTracker";
 import fs from "fs";
 import path from "path";
 import { generateFluxImage } from "./illustrationService";
@@ -73,6 +74,7 @@ export async function reviewCoverPhoto(
   });
   if (!res.ok) throw new Error(`anthropic HTTP ${res.status}`);
   const data: any = await res.json();
+  recordLLM(cfg.review.model, data.usage);
   const txt = (data.content || []).map((c: any) => c.text || "").join(" ").trim();
   // Werdykt regexem — ucięty JSON akceptacji nie może liczyć się jako odrzut.
   const acc = txt.match(/"accept"\s*:\s*(true|false)/);
@@ -137,6 +139,7 @@ export async function buildBookCoverScene(
     });
     if (!res.ok) return fallback;
     const data: any = await res.json();
+    recordLLM(cfg.book.scene_builder.model, data.usage);
     const txt = (data.content?.[0]?.text || "").trim().replace(/^["']|["']$/g, "");
     return txt.length > 20 ? txt : fallback;
   } catch {

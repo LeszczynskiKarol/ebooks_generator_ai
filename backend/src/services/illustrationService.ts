@@ -13,6 +13,7 @@
 // Failures are non-fatal — a chapter simply stays unillustrated.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { recordUnits } from "../lib/costTracker";
 import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
@@ -167,6 +168,7 @@ export async function generateFluxImage(
     log?.warn?.(`FLUX prediction ${prediction.status}: ${prediction.error || ""}`);
     return null;
   }
+  recordUnits("flux-1.1-pro-ultra"); // Replicate bills every succeeded prediction
 
   const url = Array.isArray(prediction.output)
     ? prediction.output[0]

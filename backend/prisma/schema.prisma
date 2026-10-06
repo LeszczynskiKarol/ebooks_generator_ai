@@ -438,6 +438,24 @@ model FunnelEvent {
 
 // One row per free preview LLM call — the ledger behind the abuse limits
 // (per user / per IP / global per day) and the cost report.
+// Every paid call made for a project (Claude / FLUX / Serper), by stage —
+// see src/lib/costTracker.ts. Project.totalCostUsd is the running sum.
+model CostEntry {
+  id           String   @id @default(cuid())
+  projectId    String
+  stage        String
+  provider     String
+  model        String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  units        Int      @default(0)
+  costUsd      Float    @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
 model PreviewLog {
   id           String   @id @default(cuid())
   userId       String

@@ -7,11 +7,11 @@
 // Runs once per order (designResolvedAt): alongside the free preview, or —
 // for orders that never had one (mobile app) — before the paid structure.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import { withCost } from "../lib/costTracker";
 import { z } from "zod";
 import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { prisma } from "../lib/prisma";
 import { parseLLMJson } from "../lib/llmJson";
-import { previewCostUsd } from "./previewGenerator";
 
 const anthropic = createLLMClient();
 
@@ -32,7 +32,11 @@ const HEX = /^#[0-9A-Fa-f]{6}$/;
 
 /** Picks style and/or colours for an order whose customer left them on auto.
  *  No-op when nothing is on auto or it was already resolved. Never throws. */
-export async function resolveAutoDesign(projectId: string, log?: any): Promise<void> {
+export function resolveAutoDesign(projectId: string, log?: any): Promise<void> {
+  return withCost(projectId, "design", () => pickDesign(projectId, log));
+}
+
+async function pickDesign(projectId: string, log?: any): Promise<void> {
   try {
     const p = await prisma.project.findUnique({ where: { id: projectId } });
     if (!p || p.designResolvedAt || (!p.autoStyle && !p.autoColors)) return;
@@ -62,18 +66,12 @@ Respond with RAW JSON only: {"stylePreset":"<key>","colors":["#RRGGBB","#RRGGBB"
 
     const style = p.autoStyle && PRESETS[parsed.data.stylePreset] ? parsed.data.stylePreset : p.stylePreset;
     const colors = parsed.data.colors.filter((c) => HEX.test(c)).slice(0, 3);
-    const cost = previewCostUsd(
-      SONNET_MODEL,
-      res.usage?.input_tokens || 0,
-      res.usage?.output_tokens || 0,
-    );
     await prisma.project.update({
       where: { id: projectId },
       data: {
         stylePreset: style,
         ...(p.autoColors && colors.length ? { customColors: JSON.stringify(colors) } : {}),
         designResolvedAt: new Date(),
-        totalCostUsd: { increment: cost },
       },
     });
     log?.ok?.(`Auto design: ${style} ${colors.join(" ")}`);

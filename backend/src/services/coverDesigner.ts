@@ -12,6 +12,7 @@
 // so a paid generation can never end up coverless because of this module.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { recordUnits } from "../lib/costTracker";
 import * as fs from "fs";
 import * as path from "path";
 import { exec } from "child_process";
@@ -311,6 +312,7 @@ async function generateBackground(
       prediction = await poll.json();
     }
     if (prediction.status !== "succeeded") return false;
+    recordUnits("flux-1.1-pro-ultra"); // Replicate bills every succeeded prediction
     const url = Array.isArray(prediction.output)
       ? prediction.output[0]
       : prediction.output;

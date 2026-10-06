@@ -3,6 +3,7 @@
 // Assemble .tex → pdflatex → version → upload S3
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { withCost } from "../lib/costTracker";
 import { prisma } from "../lib/prisma";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -237,17 +238,19 @@ export async function compileBook(projectId: string) {
         ) {
           try {
             const { designCover } = await import("./coverDesigner");
-            coverResult = await designCover(projectId, {
-              step: (m: string) => console.log(m),
-              ok: (m: string) => console.log(m),
-              warn: (m: string) => console.warn(m),
-            });
+            coverResult = await withCost(projectId, "cover", () =>
+              designCover(projectId, {
+                step: (m: string) => console.log(m),
+                ok: (m: string) => console.log(m),
+                warn: (m: string) => console.warn(m),
+              }),
+            );
           } catch (e: any) {
             console.warn(`  🎨 Cover designer failed (${e.message}) — falling back`);
           }
         }
         if (!coverResult) {
-          coverResult = await compileCover(projectId);
+          coverResult = await withCost(projectId, "cover", () => compileCover(projectId));
         }
         if (fs.existsSync(coverResult.pdfPath)) {
           const dest = path.join(buildDir, "cover.pdf");

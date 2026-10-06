@@ -34,6 +34,7 @@ import StructureEditor from "@/components/StructureEditor";
 import BookEditor, { type BookEditorHandle } from "@/components/BookEditor";
 import NumberingSettings from "@/components/NumberingSettings";
 import BookPreviewPanel from "@/components/BookPreviewPanel";
+import SamplePages from "@/components/SamplePages";
 
 // Visual flow steps — several backend stages collapse into one user-facing
 // step (the legacy IMAGES stage maps onto "Writing").
@@ -507,6 +508,11 @@ export default function ProjectDetail() {
                 onApprove={handleApproveStructure}
                 onRefetch={() => refetch()}
               />
+              {project.paymentStatus === "PAID" && (
+                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+                  <SamplePages projectId={project.id} initial={project.sample} />
+                </div>
+              )}
             </div>
           )}
 

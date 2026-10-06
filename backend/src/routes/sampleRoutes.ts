@@ -25,10 +25,17 @@ export async function sampleRoutes(app: FastifyInstance) {
       const project = await prisma.project.findFirst({ where: { id, userId } });
       if (!project)
         return reply.status(404).send({ success: false, error: "Not found" });
-      if (project.paymentStatus === "PAID")
-        return reply.status(400).send({ success: false, error: "Already paid" });
+      // Paid books get the sample too while the plan is still being reviewed
+      // (it is built from the current structure then) — not once writing starts.
+      const paid = project.paymentStatus === "PAID";
+      if (paid && project.currentStage !== "STRUCTURE" && project.currentStage !== "STRUCTURE_REVIEW")
+        return reply.status(400).send({ success: false, error: "Book already in writing" });
       const pv = project.preview as any;
-      if (!pv || pv.rejected || !Array.isArray(pv.chapters) || !pv.chapters.length)
+      const hasPreview =
+        !!pv && !pv.rejected && Array.isArray(pv.chapters) && pv.chapters.length > 0;
+      const hasStructure =
+        paid && !!(await prisma.projectStructure.findUnique({ where: { projectId: id }, select: { id: true } }));
+      if (!hasPreview && !hasStructure)
         return reply.status(400).send({ success: false, error: "No preview yet" });
 
       const current = readSample(project.sample);
@@ -40,6 +47,8 @@ export async function sampleRoutes(app: FastifyInstance) {
       const admin =
         !!process.env.ADMIN_EMAIL && request.user.email === process.env.ADMIN_EMAIL;
       if (!admin) {
+        // Paying customers skip the per-user/IP abuse caps; the global daily
+        // cap (render capacity) still applies.
         const since = new Date(Date.now() - 24 * 3600 * 1000);
         const samplesToday = await prisma.previewLog.count({
           where: { model: "sample", createdAt: { gte: since } },
@@ -49,7 +58,7 @@ export async function sampleRoutes(app: FastifyInstance) {
             .status(429)
             .send({ success: false, code: "SAMPLE_BUSY", error: "Try later" });
         }
-        const limit = await checkPreviewLimits({
+        const limit = paid ? null : await checkPreviewLimits({
           userId,
           ip: request.ip || null,
           isAdmin: false,

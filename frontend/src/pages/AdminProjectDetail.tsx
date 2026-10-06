@@ -286,6 +286,41 @@ export default function AdminProjectDetail() {
         ))}
       </div>
 
+      {/* ═══ COST BREAKDOWN (lib/costTracker) ═══ */}
+      {project.costBreakdown?.length > 0 && (
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 mb-6 overflow-x-auto">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            Cost by stage — ${(project.totalCostUsd || 0).toFixed(4)}
+          </h3>
+          <table className="w-full text-xs">
+            <thead className="text-gray-400 text-left">
+              <tr>
+                <th className="py-1 pr-3">Stage</th>
+                <th className="py-1 pr-3">Provider</th>
+                <th className="py-1 pr-3 text-right">Calls</th>
+                <th className="py-1 pr-3 text-right">In tok</th>
+                <th className="py-1 pr-3 text-right">Out tok</th>
+                <th className="py-1 pr-3 text-right">Units</th>
+                <th className="py-1 text-right">USD</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-700 dark:text-gray-300">
+              {project.costBreakdown.map((r: any) => (
+                <tr key={r.stage + r.provider} className="border-t border-gray-100 dark:border-gray-800">
+                  <td className="py-1 pr-3">{r.stage}</td>
+                  <td className="py-1 pr-3">{r.provider}</td>
+                  <td className="py-1 pr-3 text-right">{r.calls}</td>
+                  <td className="py-1 pr-3 text-right">{r.inputTokens.toLocaleString()}</td>
+                  <td className="py-1 pr-3 text-right">{r.outputTokens.toLocaleString()}</td>
+                  <td className="py-1 pr-3 text-right">{r.units || ""}</td>
+                  <td className="py-1 text-right font-semibold">${r.costUsd.toFixed(4)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* ═══ 0. RESEARCH PIPELINE ═══ */}
       <Section title="0. Research Pipeline" icon={Search} defaultOpen={true}>
         {loadingResearch ? (

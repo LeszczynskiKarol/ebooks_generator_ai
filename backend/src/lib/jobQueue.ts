@@ -1,4 +1,5 @@
 import { Queue, Worker } from "bullmq";
+import { withCost } from "./costTracker";
 import { prisma } from "./prisma";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -171,7 +172,7 @@ export function startGenerationWorker() {
     QUEUE_NAME,
     async (job) => {
       console.log(`[WORKER] ▶ ${job.name}:${job.data.projectId} started`);
-      await processJob(job.name, job.data);
+      await withCost(job.data.projectId, job.name, () => processJob(job.name, job.data));
       console.log(`[WORKER] ✔ ${job.name}:${job.data.projectId} done`);
     },
     {

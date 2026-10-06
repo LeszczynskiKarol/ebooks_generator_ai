@@ -610,10 +610,6 @@ export async function projectRoutes(app: FastifyInstance) {
           previewActiveVersion: regenerate ? 2 : 1,
           previewCount: { increment: 1 },
           ...(regenerate ? { previewRedoUsed: true } : {}),
-          totalTokensUsed: {
-            increment: result.inputTokens + result.outputTokens,
-          },
-          totalCostUsd: { increment: result.costUsd },
         },
       });
       request.log.info(

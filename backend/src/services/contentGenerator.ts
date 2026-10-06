@@ -5,6 +5,7 @@
 // + LaTeX sanitization to prevent compilation failures
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { setCostStage } from "../lib/costTracker";
 import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { reviewAndReviseBook } from "./reviewService";
 import { prisma } from "../lib/prisma";
@@ -342,6 +343,7 @@ export async function generateContent(
   }
 
   // ── Phase 1: Load global research ──
+  setCostStage("research");
   log.phase(1, "Load Global Research Data");
   const globalResearch = await loadResearch(projectId);
   const hasGlobalResearch =
@@ -463,6 +465,7 @@ export async function generateContent(
   );
 
   // ── Phase 4: Generate chapters ──
+  setCostStage("writing");
   log.phase(4, "Generate Chapter Content");
   const previousSummaries: string[] = [];
   const chapterRegistries: ChapterRegistry[] = []; // ← ADD
@@ -741,6 +744,7 @@ export async function generateContent(
   }
 
   // ── Phase 4.5: Review & Revise ──
+  setCostStage("review");
   log.phase(4.5, "Book Review & Targeted Revision");
   const reviewTimer = log.timer();
   await prisma.project.update({
@@ -810,8 +814,48 @@ export async function generateContent(
     log.warn(`Review failed (non-critical): ${reviewError.message}`);
   }
 
+  // ── Phase 4.6: Editorial proofread (non-fatal) ──
+  // The review above judges completeness only; nothing read the paid book for
+  // language and logic (2026-10-06 example: an English word mid-sentence,
+  // wrong inflections, "the second case" for the first, one name for two
+  // people). Whole-book consistency first, then per-chapter language.
+  // OFF until it passes its eval (scripts/proofread-eval.ts: 2/10 on the first
+  // run, 2026-10-06) — enable with PROOFREAD=on.
+  if (process.env.PROOFREAD === "on") {
+    setCostStage("proofread");
+    log.phase(4.6, "Editorial proofread");
+    const proofTimer = log.timer();
+    const editable = previousChaptersContent.filter(
+      (c) => !recordByNumber.get(c.number)?.userEditedAt,
+    );
+    const consistent = await proofreadConsistency(
+      editable.map((c) => ({ number: c.number, latex: c.latex })),
+      project.language,
+      log,
+    );
+    const proofed = await Promise.all(
+      editable.map(async (c) => ({
+        number: c.number,
+        latex: await proofreadLanguage(consistent.get(c.number) ?? c.latex, project.language, log),
+      })),
+    );
+    let changed = 0;
+    for (const p of proofed) {
+      const pc = previousChaptersContent.find((c) => c.number === p.number)!;
+      if (p.latex === pc.latex) continue;
+      pc.latex = p.latex;
+      await prisma.chapter.updateMany({
+        where: { projectId, chapterNumber: p.number },
+        data: { latexContent: p.latex },
+      });
+      changed++;
+    }
+    log.ok(`Proofread: ${changed} chapter(s) corrected (${proofTimer()})`);
+  }
+
   // ── Phase 4.7: AI Illustrations (optional, non-fatal) ──
   if (project.useAiImages) {
+    setCostStage("illustrations");
     log.phase(4.7, "AI Illustrations (FLUX)");
     const illuTimer = log.timer();
     try {
@@ -832,20 +876,20 @@ export async function generateContent(
   // ── Phase 5: Finalize ──
   log.phase(5, "Compilation");
 
-  const estimatedCost = (totalTokens / 1_000_000) * 3;
-  await prisma.project.update({
+  // Cost is recorded per call by lib/costTracker (all stages, real prices).
+  const done = await prisma.project.update({
     where: { id: projectId },
     data: {
       generationStatus: "CONTENT_READY",
       currentStage: "COMPILING",
       generationProgress: 1,
-      totalTokensUsed: totalTokens,
-      totalCostUsd: estimatedCost,
     },
+    select: { totalCostUsd: true },
   });
+  setCostStage("compile");
 
-  log.data("Total tokens", totalTokens.toLocaleString());
-  log.data("Estimated cost", `$${estimatedCost.toFixed(4)}`);
+  log.data("Total tokens (content)", totalTokens.toLocaleString());
+  log.data("Cost so far (all stages)", `$${(done.totalCostUsd || 0).toFixed(4)}`);
   log.step("Starting PDF compilation...");
 
   // ── Auto-generate cover if the user ticked "Generate cover" in the order form ──
@@ -889,9 +933,14 @@ export async function generateContent(
   const { compileBook } = await import("./bookCompiler");
   await compileBook(projectId);
 
+  const final = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { totalCostUsd: true },
+  });
+  const estimatedCost = final?.totalCostUsd || 0;
   log.footer(
     "SUCCESS",
-    `${chapters.length} chapters, ${totalTokens.toLocaleString()} tokens, ~$${estimatedCost.toFixed(4)}`,
+    `${chapters.length} chapters, ${totalTokens.toLocaleString()} tokens, $${estimatedCost.toFixed(4)} total`,
   );
   return { totalTokens, estimatedCost };
 }
@@ -1692,6 +1741,31 @@ RULES FOR CONTINUATION:
  * are applied, so LaTeX structure is never rewritten wholesale.
  * (2026-10-06: Sonnet wrote "Later, w czasach renesansu…" in a Polish book.)
  */
+// Proofreading needs the model to actually read: with thinking off (the
+// client's default) it skimmed a 55-page book in ~1.3k output tokens and
+// caught 2 of 10 known errors (eval 2026-10-06).
+const PROOF_THINKING = { type: "adaptive" } as any;
+
+function responseText(res: any): string {
+  const block = (res.content || []).find((b: any) => b.type === "text");
+  return block?.text || "";
+}
+
+/** `find` located in `text` with spaces, "~" and line breaks interchangeable
+ *  (models retype "w~rozdziale" as "w rozdziale"). Returns the exact source
+ *  span only when it occurs exactly once. */
+export function locateOnce(text: string, find: string): string | null {
+  if (text.split(find).length === 2) return find;
+  const pattern = find
+    .trim()
+    .split(/[\s~]+/)
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("[\\s~]+");
+  if (!pattern) return null;
+  const hits = text.match(new RegExp(pattern, "g"));
+  return hits && hits.length === 1 ? hits[0] : null;
+}
+
 export async function proofreadLanguage(
   latex: string,
   language: string,
@@ -1705,7 +1779,11 @@ Find EVERY place where the prose is not correct, natural ${lang}:
 - grammar, inflection, agreement, spelling and punctuation errors;
 - calques and unnatural phrasing a native editor would change.
 
-Fix ONLY real errors. Do NOT touch LaTeX commands, environment names, labels or math. Do not rewrite correct sentences for style, do not change meaning, and do not add gender alternatives such as "(-eś)" or "/a".
+Text inside braces that the reader sees IS prose too: chapter/section titles, box titles such as \begin{checklistbox}{...}, table cells, captions — check them like any sentence (an English label like "Checklist:" in a ${lang} book is an error). Number ranges such as "16 -- 17" are text: the words around them must agree (plural noun for a range).
+
+Go through the passage sentence by sentence; do not stop after the first few findings.
+
+Fix ONLY real errors. Do NOT change LaTeX command or environment names, labels or math. Do not rewrite correct sentences for style, do not change meaning, and do not add gender alternatives such as "(-eś)" or "/a".
 
 Return RAW JSON only: {"fixes":[{"find":"<exact substring copied from the source, long enough to be unique>","replace":"<the same span, corrected>"}]}
 Return {"fixes":[]} if the text is already correct.
@@ -1715,11 +1793,12 @@ ${latex}`;
   try {
     const res = await anthropic.messages.create({
       model: SONNET_MODEL,
-      max_tokens: 4000,
+      max_tokens: 16000,
+      thinking: PROOF_THINKING,
       messages: [{ role: "user", content: prompt }],
     });
     log.api?.(SONNET_MODEL, res.usage?.input_tokens || 0, res.usage?.output_tokens || 0);
-    const text = res.content[0]?.type === "text" ? res.content[0].text : "";
+    const text = responseText(res);
     const parsed = parseLLMJson(
       text,
       z.object({
@@ -1734,8 +1813,9 @@ ${latex}`;
     let applied = 0;
     for (const f of fixes) {
       if (!f?.find || typeof f.replace !== "string" || f.find === f.replace) continue;
-      if (!out.includes(f.find)) continue;
-      out = out.split(f.find).join(f.replace);
+      const span = out.includes(f.find) ? f.find : locateOnce(out, f.find);
+      if (!span) continue;
+      out = out.split(span).join(f.replace);
       applied++;
       log.step?.(`  ✎ "${f.find.slice(0, 80)}" → "${f.replace.slice(0, 80)}"`);
     }
@@ -1746,6 +1826,85 @@ ${latex}`;
     log.warn?.(`Language proofread skipped: ${e?.message}`);
     return latex;
   }
+}
+
+/**
+ * Whole-book editorial check for what a per-chapter proofreader cannot see:
+ * contradictions and broken logic ACROSS chapters. Found on the 2026-10-06
+ * example book: one name used for two different people, "the second case"
+ * pointing at the wrong case, numbers that do not add up, "as shown in
+ * chapter 1" for something chapter 1 never says, a list of "four schemes"
+ * that differs from the chapter that defined them. Returns find/replace
+ * fixes per chapter; never throws.
+ */
+export async function proofreadConsistency(
+  chapters: Array<{ number: number; latex: string }>,
+  language: string,
+  log: any,
+): Promise<Map<number, string>> {
+  const lang = getLangName(language);
+  const out = new Map(chapters.map((c) => [c.number, c.latex]));
+  const book = chapters
+    .map((c) => `═══ CHAPTER ${c.number} ═══\n${c.latex}`)
+    .join("\n\n");
+  const prompt = `You are the final editor of a ${lang} book. Below is the LaTeX source of the whole book. Read it as one text and find places where the book contradicts itself or its logic fails:
+- the same name used for different people/businesses, or one person's details (job, city, business) changing between chapters;
+- a sentence whose logic is wrong in context (e.g. "the second case" when the described situation is the first case);
+- numbers that do not add up or contradict each other (counts, before/after figures, totals, timelines);
+- references to another chapter ("as shown in chapter N") for something that chapter does not contain — fix the reference or drop it;
+- lists that must match another chapter (e.g. "the four schemes from chapter 2") but name different items;
+- a statement that contradicts an earlier one.
+
+Work methodically: (1) list every named person and business with their details per chapter; (2) check every reference to another chapter against that chapter; (3) check every count and before/after number; (4) re-read each case/example and test whether its sentences follow from each other. Report everything you find, not a sample.
+
+Fix ONLY clear errors, with the smallest edit, in correct ${lang}. Copy "find" character for character from the source (keep "~" and LaTeX as written). Do not touch style, LaTeX commands or anything that is merely debatable.
+
+Return RAW JSON only: {"fixes":[{"chapter":<number>,"find":"<exact substring copied from that chapter's source, long enough to be unique>","replace":"<the same span, corrected>","why":"<short reason>"}]}
+Return {"fixes":[]} if there is nothing to fix.
+
+BOOK:
+${book}`;
+  try {
+    const res = await anthropic.messages.create({
+      model: SONNET_MODEL,
+      max_tokens: 32000,
+      thinking: PROOF_THINKING,
+      messages: [{ role: "user", content: prompt }],
+    });
+    log.api?.(SONNET_MODEL, res.usage?.input_tokens || 0, res.usage?.output_tokens || 0);
+    const text = responseText(res);
+    const parsed = parseLLMJson(
+      text,
+      z.object({
+        fixes: z
+          .array(
+            z.object({
+              chapter: z.coerce.number(),
+              find: z.string(),
+              replace: z.string(),
+              why: z.string().optional(),
+            }),
+          )
+          .default([]),
+      }),
+    );
+    if (!parsed.ok) throw new Error(parsed.error);
+    let applied = 0;
+    for (const f of parsed.data.fixes) {
+      const cur = out.get(f.chapter);
+      if (cur === undefined || !f.find || f.find === f.replace) continue;
+      // Exactly one hit, so a short find can never rewrite other passages.
+      const span = locateOnce(cur, f.find);
+      if (!span) continue;
+      out.set(f.chapter, cur.replace(span, () => f.replace));
+      applied++;
+      log.step?.(`  ✎ Ch${f.chapter}: "${f.find.slice(0, 70)}" → "${f.replace.slice(0, 70)}" (${f.why || ""})`);
+    }
+    log.step?.(`Consistency check: ${applied}/${parsed.data.fixes.length} fixes applied`);
+  } catch (e: any) {
+    log.warn?.(`Consistency check skipped: ${e?.message}`);
+  }
+  return out;
 }
 
 /**

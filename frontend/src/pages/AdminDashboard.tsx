@@ -119,8 +119,11 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
-          <span className="text-sm text-gray-500 dark:text-gray-400">API Cost</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">API Cost (paid books)</span>
           <p className="text-2xl font-bold text-orange-600 mt-1">${(stats.totalCost || 0).toFixed(4)}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            + ${(stats.unpaidCost || 0).toFixed(2)} on unpaid orders (previews, samples)
+          </p>
         </div>
       </div>
 

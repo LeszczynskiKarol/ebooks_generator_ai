@@ -3,6 +3,7 @@
 // Global research (book-level) + Per-chapter research
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { recordUnits } from "../lib/costTracker";
 import axios from "axios";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
@@ -937,6 +938,7 @@ async function searchSerper(
       timeout: 15000,
     },
   );
+  recordUnits("serper");
   const organic: any[] = res.data?.organic || [];
   log.step?.(`  → ${organic.length} results (serper)`);
   return organic.slice(0, 15).map((item: any) => ({

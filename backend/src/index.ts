@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import { runInCost } from "./lib/costTracker";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import dotenv from "dotenv";
@@ -64,6 +65,16 @@ async function start() {
   });
 
   // ── Routes ──
+  // Cost ledger context for routes that act on one project
+  // (/api/projects/:id/<stage>, /api/admin/books/:id/<stage>): every paid
+  // call made while serving them is recorded against that project.
+  app.addHook("preHandler", (request, _reply, done) => {
+    const id = (request.params as any)?.id;
+    const m = request.url.match(/^\/api\/(?:projects|admin\/books|admin\/projects)\/[^/?]+\/?([a-z-]*)/);
+    if (typeof id === "string" && m) runInCost(id, m[1] || "api", done);
+    else done();
+  });
+
   await app.register(webhookRoutes);
   await app.register(authRoutes);
   await app.register(exchangeRateRoutes);
