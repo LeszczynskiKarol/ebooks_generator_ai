@@ -245,7 +245,7 @@ export const examples = [
     lang: "pl",
     category: "tech",
     style: "Minimal",
-    pages: 57,
+    pages: 60,
     desc: {
       pl: "Materiał dla kursantów: 30 ćwiczeń krok po kroku, od formatowania tabel przez JEŻELI i WYSZUKAJ.PIONOWO po tabele przestawne, z rozwiązaniami.",
       en: "Workbook for training participants: 30 step-by-step exercises, from table formatting through IF and VLOOKUP to pivot tables, with solutions (in Polish).",
