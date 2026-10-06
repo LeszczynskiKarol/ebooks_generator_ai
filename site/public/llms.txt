@@ -38,6 +38,10 @@
 - [Przykładowe książki po polsku (pełne PDF)](https://inkmagnet.com/pl/przyklady/)
 - [Android app](https://inkmagnet.com/mobile-app/)
 
+## For specific audiences
+
+- [Ebook dla firmy usługowej (PL): poradnik dla klientów gabinetu, warsztatu, salonu](https://inkmagnet.com/pl/ebook-dla-firmy-uslugowej/)
+
 ## Comparisons
 
 - [InkMagnet vs ChatGPT](https://inkmagnet.com/vs/chatgpt/) · [po polsku](https://inkmagnet.com/pl/vs/chatgpt/)
