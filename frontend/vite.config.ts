@@ -16,7 +16,11 @@ export default defineConfig({
       "dev.torweb.pl",
     ],
     proxy: {
-      "/api": { target: "http://localhost:3000", changeOrigin: true },
+      // VITE_API_TARGET: run the backend on another port when 3000 is taken.
+      "/api": {
+        target: process.env.VITE_API_TARGET || "http://localhost:3000",
+        changeOrigin: true,
+      },
     },
   },
 });

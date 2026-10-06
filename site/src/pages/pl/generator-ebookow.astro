@@ -8,7 +8,7 @@ import exMapa from "../../assets/psy-mgr/07-mapa-testow.webp";
 
 const title = "Generator ebooków AI — prawdziwe książki";
 const description =
-  "Generator ebooków z researchem, składem typograficznym i ilustracjami AI. Opisz temat, po godzinie pobierz PDF i EPUB. Po polsku, od 9,99 USD, bez abonamentu.";
+  "Generator ebooków z researchem, składem i ilustracjami AI. Opisz książkę, za darmo zobacz spis treści, a po płatności w godzinę pobierz PDF i EPUB. Od 9,99 USD.";
 
 const faq = [
   {
@@ -17,7 +17,7 @@ const faq = [
   },
   {
     q: "Ile kosztuje wygenerowanie ebooka?",
-    a: "Od 9,99 do 34,99 dolara za książkę, zależnie od objętości (30–200 stron). Płacisz raz, za konkretną książkę. W cenie jest research, pisanie, recenzja, ilustracje AI, okładka oraz PDF i EPUB. Żadnego abonamentu.",
+    a: "Od 9,99 do 34,99 dolara za książkę, zależnie od objętości (30–200 stron). Płacisz raz, za konkretną książkę, i to dopiero wtedy, gdy za darmo obejrzysz jej tytuł i pełny spis treści (a jeśli chcesz, także dwustronicową próbkę). W cenie jest research, pisanie, recenzja, ilustracje AI, okładka oraz PDF i EPUB. Żadnego abonamentu.",
   },
   {
     q: "Czym to się różni od poproszenia ChatGPT o ebooka?",
@@ -64,7 +64,7 @@ const jsonLd = [
   title={title}
   description={description}
   heading="Generator ebooków, który oddaje książkę, nie półprodukt"
-  subheading="Opisujesz temat i odbiorców. Silnik robi research w polskich źródłach, pisze rozdziały, recenzuje własny szkic, generuje fotografie, projektuje okładkę i składa całość typograficznie. Po godzinie pobierasz PDF jakości drukarskiej i EPUB."
+  subheading="Opisujesz temat i odbiorców, a za darmo, jeszcze przed płatnością, dostajesz tytuł i spis treści do poprawienia. Potem silnik robi research w polskich źródłach, pisze rozdziały, recenzuje własny szkic, generuje fotografie, projektuje okładkę i składa całość typograficznie. Po godzinie pobierasz PDF jakości drukarskiej i EPUB."
   crumbs={[
     { name: "InkMagnet", href: "/pl/" },
     { name: "Generator ebooków", href: "/pl/generator-ebookow/" },
@@ -74,7 +74,7 @@ const jsonLd = [
   hreflangPlPath="/pl/generator-ebookow/"
   jsonLd={jsonLd}
 >
-  <h2>Problem z „generatorami ebooków", które znasz</h2>
+  <h2>Problem z „generatorami ebooków”, które znasz</h2>
   <p>
     Większość narzędzi z tą nazwą to edytory szablonów: dostajesz makietę,
     a pisanie, źródła i sens zostają po twojej stronie. Druga grupa to nakładki
@@ -91,13 +91,23 @@ const jsonLd = [
   <h2>Jak wygląda proces</h2>
   <ol>
     <li>
-      <strong>Opisujesz książkę.</strong> Temat, dla kogo, ile stron (30–200),
-      styl graficzny, paleta kolorów. Tytuł możesz podać albo zostawić silnikowi.
+      <strong>Opisujesz książkę.</strong> W jednym polu piszesz, o czym ma być,
+      dla kogo i co koniecznie ma się w niej znaleźć (do 15 000 znaków, możesz
+      też dołączyć pliki), i wybierasz objętość od 30 do 200 stron. Styl
+      graficzny i paleta kolorów są opcjonalne: jeśli zostawisz je na automacie,
+      silnik dobierze je do tematu.
     </li>
     <li>
-      <strong>Zatwierdzasz strukturę.</strong> Po kilku minutach dostajesz plan
-      rozdział po rozdziale, oparty na researchu w aktualnych źródłach. Edytujesz
-      go dowolnie; pisanie rusza dopiero po twoim zatwierdzeniu.
+      <strong>Za darmo dostajesz plan.</strong> Jeszcze przed płatnością widzisz
+      tytuł i pełny spis treści z krótkim opisem każdego rozdziału
+      i podrozdziału. Poprawiasz w nim, co chcesz, możesz raz poprosić o nową
+      wersję według swoich uwag i wybrać lepszą, a także zamówić darmową,
+      dwustronicową próbkę złożoną tak jak gotowa książka.
+    </li>
+    <li>
+      <strong>Płacisz, a silnik bada temat.</strong> Po płatności research
+      w aktualnych źródłach rozwija zatwierdzony plan w szczegółowy konspekt.
+      Edytujesz go dowolnie; pisanie rusza dopiero po twoim zatwierdzeniu.
     </li>
     <li>
       <strong>Silnik pisze, recenzuje i ilustruje.</strong> Rozdziały powstają

@@ -10,6 +10,7 @@ import { autopilotRoutes } from "./routes/autopilotRoutes";
 import { downloadRoutes } from "./routes/downloads";
 import { versionRoutes } from "./routes/versionRoutes";
 import { coverRoutes } from "./routes/coverRoutes";
+import { sampleRoutes } from "./routes/sampleRoutes";
 import { chapterEditRoutes } from "./routes/chapterEditRoutes";
 import { epubDownloadRoutes } from "./routes/epubDownloadRoutes";
 import { playBillingRoutes } from "./routes/playBilling";
@@ -69,6 +70,7 @@ async function start() {
   await app.register(funnelRoutes);
   await app.register(notificationRoutes);
   await app.register(adminRoutes);
+  await app.register(sampleRoutes);
   await app.register(autopilotRoutes);
   await app.register(coverRoutes);
   await app.register(downloadRoutes);
@@ -116,16 +118,25 @@ async function start() {
     process.exit(1);
   }
 
-  // ── Generation job worker + crash recovery ──
-  const worker = startGenerationWorker();
-  recoverInterruptedJobs().catch((err) => {
-    console.error("[RECOVERY] Failed to recover interrupted jobs:", err);
-  });
-  scheduleBuildCleanup();
+  // BACKGROUND_JOBS=off: API only — no worker, no crash recovery, no
+  // reminder emails. For local testing against a DB/Redis that still holds
+  // old jobs (starting normally resumes them on the paid API).
+  const backgroundJobs = process.env.BACKGROUND_JOBS !== "off";
+  let worker: ReturnType<typeof startGenerationWorker> | null = null;
+  if (backgroundJobs) {
+    // ── Generation job worker + crash recovery ──
+    worker = startGenerationWorker();
+    recoverInterruptedJobs().catch((err) => {
+      console.error("[RECOVERY] Failed to recover interrupted jobs:", err);
+    });
+    scheduleBuildCleanup();
 
-  // ── Abandoned-checkout reminder emails ──
-  const { startPaymentReminderSweep } = await import("./lib/paymentReminders");
-  startPaymentReminderSweep();
+    // ── Abandoned-checkout reminder emails ──
+    const { startPaymentReminderSweep } = await import("./lib/paymentReminders");
+    startPaymentReminderSweep();
+  } else {
+    console.log("⏸️  BACKGROUND_JOBS=off — worker, recovery and reminders disabled");
+  }
 
   let shuttingDown = false;
   const shutdown = async (signal: string) => {
@@ -133,7 +144,7 @@ async function start() {
     shuttingDown = true;
     console.log(`\n${signal} received — shutting down...`);
     try {
-      await worker.close();
+      await worker?.close();
       await app.close();
     } finally {
       process.exit(0);

@@ -28,11 +28,15 @@ import {
   repairTruncatedJson,
   BookStructureSchema,
 } from "../lib/llmJson";
+import { formatPreviewForStructurePrompt } from "./previewGenerator";
+import { resolveAutoDesign } from "./designPicker";
 
 const anthropic = createLLMClient();
 
 export async function generateStructure(projectId: string) {
   const log = createPipelineLogger("STRUCTURE", projectId);
+  // Orders that never had a preview (mobile app) still get the auto look.
+  await resolveAutoDesign(projectId, log);
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new Error("Project not found");
 
@@ -108,6 +112,39 @@ export async function generateStructure(projectId: string) {
   log.data("Words/page", wpp);
   log.data("Total target words", totalWords.toLocaleString());
 
+  // The customer's one AI redo: show the version they rejected and their
+  // notes (the redo route keeps it in altStructureJson).
+  let redoText = "";
+  if (project.structureRedoUsed) {
+    const st = await prisma.projectStructure.findUnique({
+      where: { projectId },
+      select: { altStructureJson: true },
+    });
+    let outline = "";
+    try {
+      const prev = JSON.parse(st?.altStructureJson || "null");
+      outline = (prev?.chapters || [])
+        .map(
+          (c: any) =>
+            `${c.number}. ${c.title}${(c.sections || [])
+              .map((s: any) => `\n   - ${s.title}`)
+              .join("")}`,
+        )
+        .join("\n");
+    } catch {
+      outline = "";
+    }
+    if (outline || project.structureRedoFeedback) {
+      redoText = `THIS IS THE CUSTOMER'S REDO. They saw this structure and asked for a new one:
+${outline}
+${
+  project.structureRedoFeedback
+    ? `Their notes: ${project.structureRedoFeedback}\nApply them fully; where they conflict with the preview contract above, the notes win.`
+    : "They gave no notes: propose a genuinely different arc, not a reworded copy."
+}`;
+    }
+  }
+
   const prompt = buildStructurePrompt({
     topic: project.topic,
     title: project.title,
@@ -124,6 +161,8 @@ export async function generateStructure(projectId: string) {
     hasResearch,
     brief,
     numbering,
+    previewText: formatPreviewForStructurePrompt(project.preview),
+    redoText,
   });
 
   log.data("Prompt length", `${prompt.length.toLocaleString()} chars`);
@@ -330,6 +369,10 @@ interface StructurePromptParams {
   hasResearch: boolean;
   brief: BookBrief;
   numbering: NumberingSpec;
+  /** the free pre-payment preview the customer approved ("" when none) */
+  previewText: string;
+  /** the customer's redo request with the version they rejected ("" when none) */
+  redoText: string;
 }
 
 /**
@@ -357,7 +400,11 @@ ${p.title ? `Title: ${p.title}` : ""}
 Target: ${p.targetPages} pages (${p.bookFormat.toUpperCase()}, ~${p.wpp} words/page = ~${p.totalWords} total words)
 Language: ${p.language} | Style: ${p.stylePreset}
 ${p.guidelines ? `Author guidelines: ${p.guidelines}` : ""}
-
+${p.previewText ? `
+${p.previewText}
+` : ""}${p.redoText ? `
+${p.redoText}
+` : ""}
 ${formatBriefForPrompt(p.brief)}
 
 ${formatNumberingForPrompt(p.numbering)}

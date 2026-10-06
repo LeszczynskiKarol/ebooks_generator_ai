@@ -1,5 +1,5 @@
 //
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   BookOpen,
   ChevronDown,
@@ -11,6 +11,7 @@ import {
   Plus,
   Trash2,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
@@ -33,7 +34,7 @@ interface Chapter {
   sections: Section[];
 }
 
-interface StructureData {
+export interface StructureData {
   suggestedTitle?: string;
   chapters: Chapter[];
 }
@@ -42,8 +43,21 @@ interface Props {
   projectId: string;
   structureJson: string;
   canRedo: boolean;
-  onApprove: () => void;
+  /** receives the structure as currently shown (incl. unsaved edits) */
+  onApprove: (structure: StructureData) => void;
   onRefetch: () => void;
+  // ── Overrides for the pre-payment preview (defaults = paid structure) ──
+  onSave?: (structure: StructureData) => Promise<void>;
+  onRedo?: (feedback: string) => Promise<void>;
+  approveLabel?: string;
+  approveLoading?: boolean;
+  redoLabel?: string;
+  /** shown next to the redo button, e.g. how many versions are left */
+  redoHint?: string;
+  /** rendered under the action buttons */
+  footer?: ReactNode;
+  /** two versions after the one AI redo: which is shown, and how to swap */
+  versions?: { active: number; onSwitch: () => Promise<void> };
 }
 
 export default function StructureEditor({
@@ -52,6 +66,14 @@ export default function StructureEditor({
   canRedo,
   onApprove,
   onRefetch,
+  onSave,
+  onRedo,
+  approveLabel,
+  approveLoading,
+  redoLabel,
+  redoHint,
+  footer,
+  versions,
 }: Props) {
   const t = useT();
   const [structure, setStructure] = useState<StructureData>(() =>
@@ -66,7 +88,6 @@ export default function StructureEditor({
   const [redoFeedback, setRedoFeedback] = useState("");
   const [showRedo, setShowRedo] = useState(false);
 
-  const totalPages = structure.chapters.reduce((s, c) => s + c.targetPages, 0);
 
   // ── Toggle chapter expand ──
   const toggleChapter = (id: string) => {
@@ -114,38 +135,6 @@ export default function StructureEditor({
     setStructure(updated);
     setEditingField(null);
     setEditValue("");
-  };
-
-  // ── Pages editing ──
-  const updateChapterPages = (chapterId: string, pages: number) => {
-    setStructure((prev) => ({
-      ...prev,
-      chapters: prev.chapters.map((c) =>
-        c.id === chapterId ? { ...c, targetPages: Math.max(1, pages) } : c,
-      ),
-    }));
-  };
-
-  const updateSectionPages = (
-    chapterId: string,
-    sectionId: string,
-    pages: number,
-  ) => {
-    setStructure((prev) => ({
-      ...prev,
-      chapters: prev.chapters.map((c) =>
-        c.id === chapterId
-          ? {
-              ...c,
-              sections: c.sections.map((s) =>
-                s.id === sectionId
-                  ? { ...s, targetPages: Math.max(0.5, pages) }
-                  : s,
-              ),
-            }
-          : c,
-      ),
-    }));
   };
 
   // ── Add/Remove ──
@@ -224,12 +213,34 @@ export default function StructureEditor({
   };
 
   // ── Save to backend ──
+  const persist = async (s: StructureData) => {
+    if (onSave) await onSave(s);
+    else
+      await apiClient.put(`/projects/${projectId}/structure`, {
+        suggestedTitle: s.suggestedTitle,
+        chapters: s.chapters,
+      });
+  };
+
+  // Keep this version's edits, then show the other one.
+  const [switching, setSwitching] = useState(false);
+  const switchVersion = async () => {
+    if (!versions) return;
+    setSwitching(true);
+    try {
+      await persist(structure);
+      await versions.onSwitch();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || t("structure.saveFailed"));
+    } finally {
+      setSwitching(false);
+    }
+  };
+
   const saveStructure = async () => {
     setSaving(true);
     try {
-      await apiClient.put(`/projects/${projectId}/structure`, {
-        chapters: structure.chapters,
-      });
+      await persist(structure);
       toast.success(t("structure.savedToast"));
     } catch (err: any) {
       toast.error(err.response?.data?.error || t("structure.saveFailed"));
@@ -239,7 +250,19 @@ export default function StructureEditor({
   };
 
   // ── Redo ──
+  const [redoing, setRedoing] = useState(false);
   const handleRedo = async () => {
+    if (onRedo) {
+      setRedoing(true);
+      try {
+        await onRedo(redoFeedback);
+        setShowRedo(false);
+        setRedoFeedback("");
+      } finally {
+        setRedoing(false);
+      }
+      return;
+    }
     try {
       await apiClient.post(`/projects/${projectId}/structure/redo`, {
         feedback: redoFeedback,
@@ -317,13 +340,39 @@ export default function StructureEditor({
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-gray-500 dark:text-gray-400">
-            {t("structure.countLine", {
-              chapters: structure.chapters.length,
-              pages: totalPages,
-            })}
+            {t("structure.chapterCount", { s: structure.chapters.length })}
           </span>
         </div>
       </div>
+
+      {/* Version choice after the AI redo */}
+      {versions && (
+        <div className="mb-6 p-4 rounded-xl border border-amber-200 dark:border-amber-800/60 bg-amber-50 dark:bg-amber-900/20">
+          <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+            {t("structure.versionsIntro")}
+          </p>
+          <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
+            {[1, 2].map((v) => (
+              <button
+                key={v}
+                type="button"
+                disabled={switching || v === versions.active}
+                onClick={switchVersion}
+                className={`px-4 py-2 text-sm font-medium inline-flex items-center gap-2 ${
+                  v === versions.active
+                    ? "bg-primary-600 text-white"
+                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                }`}
+              >
+                {switching && v !== versions.active && (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                )}
+                {t(v === 1 ? "structure.versionFirst" : "structure.versionRedo")}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Book title */}
       {structure.suggestedTitle && (
@@ -363,7 +412,7 @@ export default function StructureEditor({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-primary-600 dark:text-primary-400 flex-shrink-0">
-                    CH {chapter.number}
+                    {t("structure.chapterLabel", { s: chapter.number })}
                   </span>
                   <EditableText
                     fieldKey={`${chapter.id}.title`}
@@ -378,29 +427,10 @@ export default function StructureEditor({
                 />
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() =>
-                      updateChapterPages(chapter.id, chapter.targetPages - 1)
-                    }
-                    className="w-6 h-6 flex items-center justify-center rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 text-xs"
-                  >
-                    -
-                  </button>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 w-8 text-center">
-                    {chapter.targetPages}p
-                  </span>
-                  <button
-                    onClick={() =>
-                      updateChapterPages(chapter.id, chapter.targetPages + 1)
-                    }
-                    className="w-6 h-6 flex items-center justify-center rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 text-xs"
-                  >
-                    +
-                  </button>
-                </div>
                 <button
                   onClick={() => removeChapter(chapter.id)}
+                  title={t("structure.removeChapter")}
+                  aria-label={t("structure.removeChapter")}
                   className="p-1 text-red-400 hover:text-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -430,37 +460,10 @@ export default function StructureEditor({
                       />
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() =>
-                            updateSectionPages(
-                              chapter.id,
-                              section.id,
-                              section.targetPages - 0.5,
-                            )
-                          }
-                          className="w-5 h-5 flex items-center justify-center rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 text-xs"
-                        >
-                          -
-                        </button>
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-6 text-center">
-                          {section.targetPages}p
-                        </span>
-                        <button
-                          onClick={() =>
-                            updateSectionPages(
-                              chapter.id,
-                              section.id,
-                              section.targetPages + 0.5,
-                            )
-                          }
-                          className="w-5 h-5 flex items-center justify-center rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 text-xs"
-                        >
-                          +
-                        </button>
-                      </div>
                       <button
                         onClick={() => removeSection(chapter.id, section.id)}
+                        title={t("structure.removeSection")}
+                        aria-label={t("structure.removeSection")}
                         className="p-0.5 text-red-400 hover:text-red-600"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -506,8 +509,10 @@ export default function StructureEditor({
               <div className="flex gap-2">
                 <button
                   onClick={handleRedo}
-                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium"
+                  disabled={redoing}
+                  className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium disabled:opacity-50 inline-flex items-center gap-2"
                 >
+                  {redoing && <Loader2 className="w-4 h-4 animate-spin" />}
                   {t("structure.regenerate")}
                 </button>
                 <button
@@ -523,7 +528,10 @@ export default function StructureEditor({
               onClick={() => setShowRedo(true)}
               className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700"
             >
-              <RotateCcw className="w-4 h-4" /> {t("structure.regenerateWithAi")}
+              <RotateCcw className="w-4 h-4" /> {redoLabel ?? t("structure.regenerateWithAi")}
+              {redoHint && (
+                <span className="text-gray-500 dark:text-gray-400">· {redoHint}</span>
+              )}
             </button>
           )}
         </div>
@@ -539,12 +547,19 @@ export default function StructureEditor({
           {saving ? t("structure.saving") : t("structure.saveChanges")}
         </button>
         <button
-          onClick={onApprove}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg shadow-green-600/25"
+          onClick={() => onApprove(structure)}
+          disabled={approveLoading}
+          className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg shadow-green-600/25 disabled:opacity-50"
         >
-          <Check className="w-5 h-5" /> {t("structure.approveContinue")}
+          {approveLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <Check className="w-5 h-5" />
+          )}{" "}
+          {approveLabel ?? t("structure.approveContinue")}
         </button>
       </div>
+      {footer}
     </div>
   );
 }

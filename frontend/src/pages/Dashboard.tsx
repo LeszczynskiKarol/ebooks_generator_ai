@@ -128,7 +128,7 @@ function CoverThumb({ project }: { project: ProjectSummary }) {
           <div className="relative flex-1 flex flex-col justify-center p-5">
             <div className="w-8 h-0.5 bg-white/60 mb-3" aria-hidden="true" />
             <p className="text-white font-display font-bold leading-snug line-clamp-4 text-[15px]">
-              {project.title || project.topic}
+              {project.title || project.preview?.suggestedTitle || project.topic}
             </p>
           </div>
         </div>
@@ -184,7 +184,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
 
       <div className="p-4">
         <h3 className="font-semibold text-gray-900 dark:text-white leading-snug line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-          {project.title || project.topic}
+          {project.title || project.preview?.suggestedTitle || project.topic}
         </h3>
         {project.title && (
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">

@@ -28,6 +28,8 @@ export interface ProjectSummary {
   id: string;
   title: string | null;
   topic: string;
+  /** free pre-payment plan; its title names the book until one is set */
+  preview?: { suggestedTitle?: string } | null;
   targetPages: number;
   language?: string;
   bookFormat?: string;

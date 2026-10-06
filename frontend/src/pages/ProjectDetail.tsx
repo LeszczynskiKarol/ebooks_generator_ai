@@ -33,6 +33,7 @@ import { useRef, useState, useEffect } from "react";
 import StructureEditor from "@/components/StructureEditor";
 import BookEditor, { type BookEditorHandle } from "@/components/BookEditor";
 import NumberingSettings from "@/components/NumberingSettings";
+import BookPreviewPanel from "@/components/BookPreviewPanel";
 
 // Visual flow steps — several backend stages collapse into one user-facing
 // step (the legacy IMAGES stage maps onto "Writing").
@@ -258,7 +259,7 @@ export default function ProjectDetail() {
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-3xl font-bold font-display text-gray-900 dark:text-white">
-              {project.title || project.topic}
+              {project.title || project.preview?.suggestedTitle || project.topic}
             </h1>
             {project.title && (
               <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -353,8 +354,15 @@ export default function ProjectDetail() {
           <dl className="space-y-3">
             {[
               ["projectDetail.pages", project.targetPages],
-              ["projectDetail.language", project.language.toUpperCase()],
-              ["projectDetail.style", project.stylePreset],
+              [
+                "projectDetail.language",
+                ({ pl: t("newProject.langPl"), en: t("newProject.langEn") } as Record<string, string>)[project.language] ??
+                  project.language.toUpperCase(),
+              ],
+              [
+                "projectDetail.style",
+                t(`newProject.styleName${project.stylePreset.charAt(0).toUpperCase()}${project.stylePreset.slice(1)}`),
+              ],
               ["projectDetail.format", project.bookFormat.toUpperCase()],
             ].map(([label, val]) => (
               <div key={label as string} className="flex justify-between">
@@ -381,7 +389,7 @@ export default function ProjectDetail() {
             <span
               className={`font-medium ${project.paymentStatus === "PAID" ? "text-green-600" : "text-amber-600"}`}
             >
-              {project.paymentStatus}
+              {t(`projectDetail.payment.${project.paymentStatus}`)}
             </span>
           </p>
           {project.guidelines && (
@@ -413,8 +421,28 @@ export default function ProjectDetail() {
 
       {/* ═══ Action area ═══ */}
       <div className="space-y-6">
+        {/* PAYMENT — the free preview the customer saw before paying */}
+        {project.paymentStatus !== "PAID" &&
+          project.currentStage === "PAYMENT" &&
+          project.preview &&
+          !project.preview.rejected && (
+            <BookPreviewPanel
+              projectId={project.id}
+              preview={project.preview}
+              priceLabel={priceStr}
+              remaining={project.previewRemaining ?? 0}
+              onPreviewChange={() => refetch()}
+              initialVersions={{
+                hasAlt: !!project.previewAlt,
+                active: project.previewActiveVersion ?? 1,
+              }}
+              initialSample={project.sample}
+            />
+          )}
+
         {/* PAYMENT — waiting or cancelled */}
         {project.paymentStatus !== "PAID" &&
+          !(project.preview && !project.preview.rejected) &&
           (project.currentStage === "PRICING" ||
             project.currentStage === "PAYMENT") && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 text-center">
@@ -462,8 +490,20 @@ export default function ProjectDetail() {
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6">
               <StructureEditor
                 projectId={project.id}
+                key={project.structure.version}
                 structureJson={project.structure.structureJson}
                 canRedo={!project.structureRedoUsed}
+                versions={
+                  project.structure.altStructureJson
+                    ? {
+                        active: project.structure.activeVersion ?? 1,
+                        onSwitch: async () => {
+                          await apiClient.post(`/projects/${project.id}/structure/switch`);
+                          await refetch();
+                        },
+                      }
+                    : undefined
+                }
                 onApprove={handleApproveStructure}
                 onRefetch={() => refetch()}
               />

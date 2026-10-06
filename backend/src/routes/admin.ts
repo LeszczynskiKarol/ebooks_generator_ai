@@ -7,7 +7,13 @@ const FUNNEL_RANK: Record<string, number> = {
   dashboard_empty: 0,
   new_project_open: 1,
   new_project_abandon: 2,
+  look_opened: 2.5,
   new_project_filled: 3,
+  preview_requested: 3.5,
+  preview_edit: 3.6,
+  preview_shown: 3.7,
+  preview_regenerate: 3.8,
+  sample_requested: 3.9,
   checkout_start: 4,
   checkout_created: 5,
 };
@@ -639,11 +645,19 @@ export async function adminRoutes(app: FastifyInstance) {
     });
     const usersByEvent: Record<string, number> = {};
     for (const r of perUser) usersByEvent[r.event] = (usersByEvent[r.event] ?? 0) + 1;
+    // Free-preview spend: what the pre-payment previews cost us in this window.
+    const previews = await prisma.previewLog.aggregate({
+      where: { createdAt: { gte: since } },
+      _count: { _all: true },
+      _sum: { costUsd: true },
+    });
     return reply.send({
       success: true,
       data: {
         days,
         signups,
+        previewCalls: previews._count._all,
+        previewCostUsd: Math.round((previews._sum.costUsd ?? 0) * 10000) / 10000,
         events: Object.fromEntries(grouped.map((g) => [g.event, g._count._all])),
         usersByEvent,
         recent,

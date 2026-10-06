@@ -653,6 +653,8 @@ interface AssembleParams {
   coverPdfFile?: string; // pre-compiled cover PDF (relative to build dir) — included via pdfpages
   /** Heading numbering scheme (lib/numbering.ts). Defaults to hierarchical. */
   numbering?: NumberingSpec;
+  /** free pre-payment style sample: chapter pages only, no TOC */
+  skipToc?: boolean;
   chapters: {
     chapterNumber: number;
     title: string;
@@ -1417,14 +1419,16 @@ export function assembleLatexDocument(p: AssembleParams): string {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Use temporary chapter format (black) for the TOC heading,
   // then set the real colored chapter format for book content.
-  add(
-    "{",
-    "  \\hypersetup{linkcolor=black}",
-    "  \\tableofcontents",
-    "}",
-    "\\clearpage",
-    "",
-  );
+  if (!p.skipToc) {
+    add(
+      "{",
+      "  \\hypersetup{linkcolor=black}",
+      "  \\tableofcontents",
+      "}",
+      "\\clearpage",
+      "",
+    );
+  }
 
   // ── Chapter content ──
   for (const ch of p.chapters) {
@@ -1956,6 +1960,19 @@ export function sanitizeChapterLatex(
   format: string = "a5",
 ): string {
   let result = repairControlCharLatex(latex);
+  // Box environment written as a COMMAND: "\warningbox{Title}" + a paragraph
+  // with no \begin/\end (2026-10-06, style-sample eval: the unclosed
+  // tcolorbox killed the whole compile). Wrap the paragraph that follows
+  // (up to the next blank line) in the real environment.
+  const boxFixed = result.replace(
+    /(^|\n)[ \t]*\\(tipbox|keyinsight|warningbox|examplebox|checklistbox)\{([^{}\n]*)\}[ \t]*\n([\s\S]*?)(?=\n[ \t]*\n|$)/g,
+    (_m: string, lead: string, box: string, title: string, body: string) =>
+      `${lead}\\begin{${box}}[${title.trim()}]\n${body.trim()}\n\\end{${box}}`,
+  );
+  if (boxFixed !== result) {
+    console.log("  🔧 Box written as a command → wrapped in its environment");
+    result = boxFixed;
+  }
   // WYSIWYG round-trip damage (leaked footnote HTML, orphan [*], escaped
   // control spaces, $ in \bignumber) — belt and braces: the PUT route repairs
   // on save too; this catches content saved before that fix existed.

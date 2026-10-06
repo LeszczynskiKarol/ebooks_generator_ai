@@ -148,6 +148,31 @@ model Project {
   materials        ProjectMaterial[]
   materialsDigest  String? @db.Text
 
+  // Free pre-payment preview (title + table of contents) — see
+  // src/services/previewGenerator.ts. After payment the full structure is
+  // generated with this preview as the contract the customer paid for.
+  preview      Json?
+  previewCount Int     @default(0)
+  previewHash  String?
+  // One AI redo per order, same rule as structureRedoUsed after payment.
+  previewRedoUsed Boolean @default(false)
+  // After the redo the customer keeps both versions and picks one:
+  // `preview` is the chosen one, `previewAlt` the other, and
+  // previewActiveVersion says which (1 = first, 2 = redo) is chosen.
+  previewAlt           Json?
+  previewActiveVersion Int     @default(1)
+  // What the customer asked to change when redoing the paid structure.
+  structureRedoFeedback String? @db.Text
+  // Look left on "auto" by the customer: the model picks style and/or
+  // colours for the topic (services/designPicker.ts), once.
+  autoStyle        Boolean   @default(false)
+  autoColors       Boolean   @default(false)
+  designResolvedAt DateTime?
+  // Free pre-payment style sample (2-3 rendered pages of chapter 1):
+  // {status: RUNNING|READY|FAILED, attempts, pages, costUsd, error, rev}
+  // — see src/services/sampleGenerator.ts.
+  sample Json?
+
   totalTokensUsed Int   @default(0)
   totalCostUsd    Float @default(0)
 
@@ -298,6 +323,11 @@ model ProjectStructure {
   version      Int     @default(1)
   isUserEdited Boolean @default(false)
 
+  // The other version after the one AI redo (customer picks either);
+  // activeVersion: 1 = original, 2 = redo — which one structureJson holds.
+  altStructureJson String? @db.Text
+  activeVersion    Int     @default(1)
+
   approvedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -404,6 +434,25 @@ model FunnelEvent {
 
   @@index([userId, createdAt])
   @@index([event, createdAt])
+}
+
+// One row per free preview LLM call — the ledger behind the abuse limits
+// (per user / per IP / global per day) and the cost report.
+model PreviewLog {
+  id           String   @id @default(cuid())
+  userId       String
+  projectId    String
+  ip           String?
+  model        String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  costUsd      Float    @default(0)
+  ok           Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([ip, createdAt])
+  @@index([createdAt])
 }
 
 // In-app notifications (web + mobile read the same feed). One row per event

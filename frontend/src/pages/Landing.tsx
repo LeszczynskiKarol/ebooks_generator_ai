@@ -485,28 +485,29 @@ export default function Landing() {
               How It Works
             </p>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-              From topic to finished ebook
+              From description to finished ebook
               <br className="hidden md:block" /> in five steps.
             </h2>
             <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-              No templates. No copy-paste. InkMagnet runs a complete AI
-              publishing pipeline — research, structure, write, design, compile.
+              No templates. No copy-paste. You see the plan for free, pay only
+              when you like it, and InkMagnet runs the rest — research, outline,
+              write, design, compile.
             </p>
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-0">
             {[
               {
-                icon: Search,
+                icon: BookOpen,
                 num: "01",
-                title: "Web Research",
-                desc: "AI generates targeted queries, scrapes up to 20 live web sources, and selects the most data-rich content — both globally and per-chapter.",
+                title: "Free Plan",
+                desc: "Describe your book in one field. Before paying you get the title and full table of contents — edit it, get one AI redo with your notes, and order a free 2-page style sample.",
               },
               {
-                icon: BookOpen,
+                icon: Search,
                 num: "02",
-                title: "Structure",
-                desc: "A full book outline is generated with chapter descriptions, page allocations, and writing instructions. You review, edit, or regenerate it.",
+                title: "Research & Outline",
+                desc: "After payment, AI scrapes up to 20 live web sources and expands your plan into a detailed outline with automatic page budgets. You review and edit it before writing starts.",
               },
               {
                 icon: Sparkles,
@@ -518,7 +519,7 @@ export default function Landing() {
                 icon: Palette,
                 num: "04",
                 title: "Design & Compile",
-                desc: "Professional LaTeX typesetting with your chosen style preset and color palette. Self-healing compiler fixes AI output errors automatically.",
+                desc: "Professional LaTeX typesetting in your chosen style and palette — or one AI matched to your topic. Self-healing compiler fixes AI output errors automatically.",
               },
               {
                 icon: Package,
@@ -1315,7 +1316,8 @@ export default function Landing() {
               Pay per book. No subscriptions.
             </h2>
             <p className="mt-3 text-gray-600 dark:text-gray-400">
-              One-time payment. All formats included. Edit and recompile as many
+              See the title and full table of contents for free before you pay.
+              One-time payment, all formats included, edit and recompile as many
               times as you need.
             </p>
           </Reveal>
@@ -1327,38 +1329,33 @@ export default function Landing() {
                   tier: "Compact",
                   price: "9.99",
                   pages: "30–45",
-                  chapters: 3,
                   featured: false,
                 },
                 {
                   tier: "Standard",
                   price: "14.99",
                   pages: "46–75",
-                  chapters: 4,
                   featured: false,
                 },
                 {
                   tier: "Extended",
                   price: "19.99",
                   pages: "76–115",
-                  chapters: 6,
                   featured: true,
                 },
                 {
                   tier: "Comprehensive",
                   price: "27.99",
                   pages: "116–160",
-                  chapters: 8,
                   featured: false,
                 },
                 {
                   tier: "Complete",
                   price: "34.99",
                   pages: "161–200",
-                  chapters: 10,
                   featured: false,
                 },
-              ].map(({ tier, price, pages, chapters, featured }) => (
+              ].map(({ tier, price, pages, featured }) => (
                 <div
                   key={tier}
                   className={`relative p-5 rounded-2xl text-center transition-all hover:-translate-y-1 hover:shadow-xl ${
@@ -1379,14 +1376,11 @@ export default function Landing() {
                     <span className="text-lg align-top">$</span>
                     {price}
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">
+                  <div className="text-sm text-gray-500 mt-1 mb-4">
                     <span className="font-semibold text-gray-700 dark:text-gray-300">
                       {pages}
                     </span>{" "}
                     pages
-                  </div>
-                  <div className="text-xs text-gray-400 mb-4">
-                    {chapters} chapters
                   </div>
                   <div className="border-t border-gray-100 dark:border-gray-800 pt-3 space-y-1.5 text-left">
                     {[
@@ -1428,6 +1422,10 @@ export default function Landing() {
               <FAQItem
                 q="How is this different from just asking ChatGPT to write a book?"
                 a="ChatGPT generates text from its training data in a single session with limited context. InkMagnet runs a full pipeline: live web research to find current data, structured chapter planning you can edit, content generation with up to 400K characters of context for style consistency, professional LaTeX typesetting, and output in PDF + EPUB. The result is a researched, professionally designed book — not a long chat response."
+              />
+              <FAQItem
+                q="Can I see my book before I pay?"
+                a="Yes. For free, you get the title and the full table of contents — chapters and sections with short descriptions — and can edit any of it. One AI redo with your notes is included, and you choose version 1 or version 2. You can also order a free 2-page sample of chapter 1, written and typeset exactly like the final book. You pay only when you like the plan."
               />
               <FAQItem
                 q="Are the sources real? Can I verify them?"
@@ -1478,8 +1476,9 @@ export default function Landing() {
               Your ebook is 15 minutes away.
             </h2>
             <p className="mt-4 text-gray-400 text-lg">
-              Pick a topic. Review the structure. Get a publication-ready book
-              with real research, professional design, and full editing control.
+              Describe your book. See its table of contents for free. Pay only
+              when you like the plan, and get a publication-ready book with real
+              research, professional design, and full editing control.
             </p>
             <div className="mt-8">
               <Link

@@ -10,7 +10,18 @@ import {
   MAX_PAGES,
 } from "../lib/types";
 import { getUsdPlnRate } from "../services/exchangeRateService";
+import { Prisma } from "@prisma/client";
 import { attachMaterials } from "./materialRoutes";
+import { rebalancePages, carryStoredPages } from "../lib/pageBudget";
+import { resolveAutoDesign } from "../services/designPicker";
+import {
+  generatePreview,
+  previewInputHash,
+  checkPreviewLimits,
+  acquirePreviewSlot,
+  releasePreviewSlot,
+  normalizePreview,
+} from "../services/previewGenerator";
 
 /** Build a Stripe price_data line in the project's currency (USD base, or PLN
  *  converted at the given rate). PLN minor unit is grosze. */
@@ -99,6 +110,26 @@ async function ensureStripeCustomer(
   return customer.id;
 }
 
+/**
+ * The web order form has ONE description field (topic + guidelines merged,
+ * 2026-10-06 — customers pasted long briefs into "topic" anyway). The first
+ * sentence or line becomes the topic (what research and titles key on), the
+ * rest the guidelines. Older clients still send topic/guidelines separately.
+ */
+export function splitDescription(text: string): { topic: string; guidelines: string } {
+  const t = text.trim();
+  const firstLine = t.split(/\r?\n/)[0].trim();
+  const sentence = (firstLine.match(/^[\s\S]{20,}?[.!?…](?=\s|$)/)?.[0] ?? firstLine).trim();
+  if (sentence.length <= 300) {
+    return {
+      topic: sentence.replace(/\.$/, ""),
+      guidelines: t.slice(sentence.length).trim(),
+    };
+  }
+  // A first sentence this long is the brief itself: short topic, keep it all.
+  return { topic: sentence.slice(0, 300).replace(/\s+\S*$/, "") + "…", guidelines: t };
+}
+
 export async function projectRoutes(app: FastifyInstance) {
   // All routes need auth
   app.addHook("preHandler", authenticate);
@@ -119,6 +150,9 @@ export async function projectRoutes(app: FastifyInstance) {
       coverOption,
       currency: reqCurrency,
       paymentProvider,
+      deferCheckout,
+      draftProjectId,
+      description,
     } = request.body as any;
 
     // A book needs a subject, but the user may express it either way: as a
@@ -126,7 +160,18 @@ export async function projectRoutes(app: FastifyInstance) {
     // ("The 12-Week Weight Loss Blueprint"). Either one alone is enough —
     // a title-only order becomes its own topic, so research and structure
     // downstream always have something to work from.
-    const topicInput = typeof topic === "string" ? topic.trim() : "";
+    const fromDescription =
+      typeof description === "string" && description.trim()
+        ? splitDescription(description.slice(0, 15000))
+        : null;
+    const topicInput = fromDescription
+      ? fromDescription.topic
+      : typeof topic === "string"
+        ? topic.trim()
+        : "";
+    const guidelinesInput = fromDescription
+      ? fromDescription.guidelines || null
+      : guidelines || null;
     const titleInput = typeof title === "string" ? title.trim() : "";
     const effectiveTopic = topicInput || titleInput;
     if (effectiveTopic.length < 5) {
@@ -139,6 +184,9 @@ export async function projectRoutes(app: FastifyInstance) {
     // Mobile app pays through Google Play (POST /api/play/verify) — no Stripe
     // session is created; the app gets the SKU to buy instead.
     const viaPlay = paymentProvider === "play";
+    // Web order form: create the order first, show the free preview, and
+    // only then open Stripe via POST /:id/checkout.
+    const deferred = !viaPlay && deferCheckout === true;
     const stripeConfig = viaPlay ? null : getStripeConfig(request);
     if (!viaPlay && !stripeConfig) {
       return reply
@@ -172,21 +220,37 @@ export async function projectRoutes(app: FastifyInstance) {
     const usePln = reqCurrency === "pln";
     const fxRate = usePln ? (await getUsdPlnRate()).rate : null;
 
-    // ── Create project ──
-    const project = await prisma.project.create({
-      data: {
-        userId: request.user.userId,
+    // Editing the order after seeing its preview updates the same unpaid
+    // order instead of leaving an orphan behind.
+    const draft =
+      typeof draftProjectId === "string" && draftProjectId
+        ? await prisma.project.findFirst({
+            where: {
+              id: draftProjectId,
+              userId: request.user.userId,
+              paymentStatus: { not: "PAID" },
+            },
+          })
+        : null;
+
+    // ── Create (or update the draft) project ──
+    const orderData = {
         topic: effectiveTopic,
         title: titleInput || null,
         targetPages: pages,
         language: language || "en",
-        guidelines: guidelines || null,
-        stylePreset: stylePreset || "modern",
+        guidelines: guidelinesInput,
+        // "auto" (or nothing chosen): the model picks the look for the topic.
+        stylePreset:
+          stylePreset && stylePreset !== "auto" ? stylePreset : "modern",
+        autoStyle: !stylePreset || stylePreset === "auto",
+        autoColors: !serializedColors,
+        designResolvedAt: null,
         bookFormat: bookFormat || "a5",
         priceUsdCents: pricing.priceUsdCents,
         currency: usePln ? "pln" : "usd",
         exchangeRate: fxRate,
-        currentStage: "PAYMENT",
+        currentStage: "PAYMENT" as const,
         authorName: authorName || null,
         subtitle: subtitle || null,
         customColors: serializedColors,
@@ -206,8 +270,27 @@ export async function projectRoutes(app: FastifyInstance) {
         )
           ? (request.body as any).footnoteMode
           : "auto",
-      },
-    });
+    };
+    // Re-sending an unchanged description with the look still on auto keeps
+    // the look already picked for it (no reset, no second pick).
+    if (
+      draft &&
+      draft.designResolvedAt &&
+      orderData.autoStyle === draft.autoStyle &&
+      orderData.autoColors === draft.autoColors &&
+      orderData.topic === draft.topic &&
+      (orderData.guidelines ?? null) === (draft.guidelines ?? null)
+    ) {
+      const keep = orderData as Record<string, unknown>;
+      if (draft.autoStyle) delete keep.stylePreset;
+      if (draft.autoColors) delete keep.customColors;
+      delete keep.designResolvedAt;
+    }
+    const project = draft
+      ? await prisma.project.update({ where: { id: draft.id }, data: orderData })
+      : await prisma.project.create({
+          data: { userId: request.user.userId, ...orderData },
+        });
 
     // Files attached in the order form (uploaded before the project existed).
     await attachMaterials(
@@ -215,6 +298,16 @@ export async function projectRoutes(app: FastifyInstance) {
       project.id,
       (request.body as any).materialIds,
     );
+
+    if (deferred) {
+      return reply.status(201).send({
+        success: true,
+        data: {
+          project: formatProject(project),
+          pricing: { ...pricing, tierLabel: pricing.tier.label },
+        },
+      });
+    }
 
     if (viaPlay) {
       const { skuForPages } = await import("../lib/playBilling");
@@ -290,6 +383,8 @@ export async function projectRoutes(app: FastifyInstance) {
           select: {
             id: true,
             structureJson: true,
+            altStructureJson: true,
+            activeVersion: true,
             version: true,
             isUserEdited: true,
             approvedAt: true,
@@ -374,7 +469,10 @@ export async function projectRoutes(app: FastifyInstance) {
     if (body.authorName !== undefined)
       data.authorName = body.authorName || null;
     if (body.subtitle !== undefined) data.subtitle = body.subtitle || null;
-    if (body.stylePreset) data.stylePreset = body.stylePreset;
+    if (body.stylePreset && body.stylePreset !== "auto") {
+      data.stylePreset = body.stylePreset;
+      data.autoStyle = false; // an explicit choice ends the auto look
+    }
     if (body.bookFormat) data.bookFormat = body.bookFormat;
     if (body.targetPages) {
       const rawPages = Math.max(
@@ -401,6 +499,242 @@ export async function projectRoutes(app: FastifyInstance) {
     }
 
     const updated = await prisma.project.update({ where: { id }, data });
+    return reply.send({ success: true, data: formatProject(updated) });
+  });
+
+  // ━━━ POST /api/projects/:id/preview ━━━
+  // Free title + table of contents before payment. Same inputs return the
+  // stored preview (no LLM call); `regenerate: true` asks for a new version.
+  app.post("/api/projects/:id/preview", async (request, reply) => {
+    const { id } = request.params as any;
+    const regenerate = (request.body as any)?.regenerate === true;
+    const feedback =
+      typeof (request.body as any)?.feedback === "string"
+        ? (request.body as any).feedback.slice(0, 2000)
+        : "";
+    const userId = request.user.userId;
+    const project = await prisma.project.findFirst({ where: { id, userId } });
+    if (!project)
+      return reply.status(404).send({ success: false, error: "Not found" });
+    if (project.paymentStatus === "PAID")
+      return reply.status(400).send({ success: false, error: "Already paid" });
+
+    const input = {
+      topic: project.topic,
+      title: project.title,
+      guidelines: project.guidelines,
+      language: project.language,
+      targetPages: project.targetPages,
+      stylePreset: project.stylePreset,
+    };
+    const hash = previewInputHash(input);
+    const remaining = project.previewRedoUsed ? 0 : 1;
+
+    if (project.preview && project.previewHash === hash && !regenerate) {
+      // An edited order (draftProjectId) resets the auto look even when the
+      // description is unchanged — pick it again without the customer waiting.
+      void resolveAutoDesign(project.id);
+      return reply.send({
+        success: true,
+        data: {
+          preview: normalizePreview(project.preview),
+          cached: true,
+          remaining,
+        },
+      });
+    }
+
+    const admin = isAdmin(request.user.email);
+    if (regenerate && project.previewRedoUsed && !admin) {
+      return reply.status(429).send({
+        success: false,
+        code: "PREVIEW_PROJECT_LIMIT",
+        error: "The AI redo for this order was already used",
+        data: { preview: normalizePreview(project.preview) },
+      });
+    }
+    const limit = await checkPreviewLimits({
+      userId,
+      ip: request.ip || null,
+      isAdmin: admin,
+    });
+    if (limit) {
+      return reply.status(429).send({
+        success: false,
+        code: limit,
+        error: "Preview limit reached",
+        // The customer can always still order without a (new) preview.
+        data: { preview: normalizePreview(project.preview) },
+      });
+    }
+    if (!acquirePreviewSlot(userId)) {
+      return reply
+        .status(409)
+        .send({ success: false, code: "PREVIEW_IN_PROGRESS", error: "Busy" });
+    }
+
+    try {
+      const previous = regenerate ? normalizePreview(project.preview) : null;
+      // The auto look is picked alongside — no extra wait for the customer.
+      const [result] = await Promise.all([
+        generatePreview(
+          input,
+          undefined,
+          previous && !previous.rejected ? { feedback, previous } : undefined,
+        ),
+        resolveAutoDesign(project.id),
+      ]);
+      await prisma.previewLog.create({
+        data: {
+          userId,
+          projectId: project.id,
+          ip: request.ip || null,
+          model: result.model,
+          inputTokens: result.inputTokens,
+          outputTokens: result.outputTokens,
+          costUsd: result.costUsd,
+          ok: !result.preview.rejected,
+        },
+      });
+      const updated = await prisma.project.update({
+        where: { id: project.id },
+        data: {
+          preview: result.preview as any,
+          previewHash: hash,
+          // The redo keeps the first version to choose from; a fresh preview
+          // (new description) starts over.
+          previewAlt:
+            regenerate && project.preview
+              ? (project.preview as any)
+              : Prisma.DbNull,
+          previewActiveVersion: regenerate ? 2 : 1,
+          previewCount: { increment: 1 },
+          ...(regenerate ? { previewRedoUsed: true } : {}),
+          totalTokensUsed: {
+            increment: result.inputTokens + result.outputTokens,
+          },
+          totalCostUsd: { increment: result.costUsd },
+        },
+      });
+      request.log.info(
+        `preview ${project.id} ${result.model} in=${result.inputTokens} out=${result.outputTokens} $${result.costUsd.toFixed(4)}`,
+      );
+      return reply.send({
+        success: true,
+        data: {
+          preview: result.preview,
+          cached: false,
+          remaining: updated.previewRedoUsed ? 0 : 1,
+          hasAlt: !!updated.previewAlt,
+          activeVersion: updated.previewActiveVersion,
+        },
+      });
+    } catch (err: any) {
+      request.log.error(`preview ${project.id} failed: ${err?.message}`);
+      await prisma.previewLog
+        .create({
+          data: {
+            userId,
+            projectId: project.id,
+            ip: request.ip || null,
+            model: "error",
+            ok: false,
+          },
+        })
+        .catch(() => {});
+      return reply.status(502).send({
+        success: false,
+        code: "PREVIEW_FAILED",
+        error: "Preview generation failed",
+      });
+    } finally {
+      releasePreviewSlot(userId);
+    }
+  });
+
+  // ━━━ PUT /api/projects/:id/preview ━━━
+  // The customer's own edits in the StructureEditor (titles, descriptions,
+  // pages, added/removed chapters and sections). No LLM call, no limit.
+  app.put("/api/projects/:id/preview", async (request, reply) => {
+    const { id } = request.params as any;
+    const project = await prisma.project.findFirst({
+      where: { id, userId: request.user.userId },
+    });
+    if (!project)
+      return reply.status(404).send({ success: false, error: "Not found" });
+    if (project.paymentStatus === "PAID")
+      return reply.status(400).send({ success: false, error: "Already paid" });
+    const current = normalizePreview(project.preview);
+    if (!current || current.rejected)
+      return reply.status(400).send({ success: false, error: "No preview" });
+
+    const body = request.body as any;
+    // Page budgets: weights from the stored version, ordered total — never
+    // what the request says.
+    const chapters = Array.isArray(body?.chapters)
+      ? rebalancePages(
+          carryStoredPages(body.chapters, current.chapters),
+          project.targetPages,
+        )
+      : [];
+    const edited = normalizePreview({
+      suggestedTitle: body?.suggestedTitle ?? current.suggestedTitle,
+      subtitle: current.subtitle,
+      promise: current.promise,
+      chapters,
+    });
+    if (!edited || edited.chapters.length === 0)
+      return reply
+        .status(400)
+        .send({ success: false, error: "The book needs at least one chapter" });
+
+    const saved = { ...edited, editedByCustomer: true };
+    // A retitled book is retitled everywhere (cover, structure prompt); the
+    // input hash follows so the edited preview still counts as current.
+    const titleChanged =
+      edited.suggestedTitle && edited.suggestedTitle !== current.suggestedTitle;
+    const title = titleChanged ? edited.suggestedTitle : project.title;
+    await prisma.project.update({
+      where: { id },
+      data: {
+        preview: saved as any,
+        ...(titleChanged
+          ? {
+              title,
+              previewHash: previewInputHash({
+                topic: project.topic,
+                title,
+                guidelines: project.guidelines,
+                language: project.language,
+                targetPages: project.targetPages,
+                stylePreset: project.stylePreset,
+              }),
+            }
+          : {}),
+      },
+    });
+    return reply.send({ success: true, data: { preview: saved } });
+  });
+
+  // ━━━ POST /api/projects/:id/preview/switch ━━━
+  // Two versions after the AI redo: make the other one the chosen one.
+  app.post("/api/projects/:id/preview/switch", async (request, reply) => {
+    const { id } = request.params as any;
+    const project = await prisma.project.findFirst({
+      where: { id, userId: request.user.userId },
+    });
+    if (!project)
+      return reply.status(404).send({ success: false, error: "Not found" });
+    if (project.paymentStatus === "PAID" || !project.previewAlt || !project.preview)
+      return reply.status(400).send({ success: false, error: "Nothing to switch" });
+    const updated = await prisma.project.update({
+      where: { id },
+      data: {
+        preview: project.previewAlt as any,
+        previewAlt: project.preview as any,
+        previewActiveVersion: project.previewActiveVersion === 2 ? 1 : 2,
+      },
+    });
     return reply.send({ success: true, data: formatProject(updated) });
   });
 
@@ -484,7 +818,7 @@ export async function projectRoutes(app: FastifyInstance) {
         .status(404)
         .send({ success: false, error: "Structure not found" });
 
-    const { chapters } = request.body as any;
+    const { chapters, suggestedTitle } = request.body as any;
     const { z } = await import("zod");
     const { StructureChapterSchema } = await import("../lib/llmJson");
     const validation = z
@@ -497,14 +831,37 @@ export async function projectRoutes(app: FastifyInstance) {
         error: `Invalid structure: ${validation.error.issues[0]?.message || "bad chapters"}`,
       });
     }
+    let prevTitle: string | undefined;
+    let prevChapters: any[] = [];
+    try {
+      const prev = JSON.parse(project.structure.structureJson);
+      prevTitle = prev.suggestedTitle;
+      prevChapters = Array.isArray(prev.chapters) ? prev.chapters : [];
+    } catch {
+      prevTitle = undefined;
+    }
+    const title =
+      typeof suggestedTitle === "string" && suggestedTitle.trim()
+        ? suggestedTitle.trim().slice(0, 300)
+        : prevTitle;
     await prisma.projectStructure.update({
       where: { id: project.structure.id },
       data: {
-        structureJson: JSON.stringify({ chapters: validation.data }),
+        structureJson: JSON.stringify({
+          ...(title ? { suggestedTitle: title } : {}),
+          // Pages are ours to allocate: redistribute the ordered page count.
+          chapters: rebalancePages(
+            carryStoredPages(validation.data as any[], prevChapters),
+            project.targetPages,
+          ),
+        }),
         isUserEdited: true,
         version: { increment: 1 },
       },
     });
+    if (title && title !== prevTitle) {
+      await prisma.project.update({ where: { id }, data: { title } });
+    }
     return reply.send({ success: true, message: "Structure updated" });
   });
 
@@ -595,6 +952,7 @@ export async function projectRoutes(app: FastifyInstance) {
     const { feedback } = request.body as any;
     const project = await prisma.project.findFirst({
       where: { id, userId: request.user.userId },
+      include: { structure: true },
     });
     if (!project)
       return reply.status(404).send({ success: false, error: "Not found" });
@@ -614,12 +972,59 @@ export async function projectRoutes(app: FastifyInstance) {
       });
     }
 
+    // Keep the current version so the customer can go back to it, and pass
+    // their notes to the generator.
+    if (project.structure) {
+      await prisma.projectStructure.update({
+        where: { id: project.structure.id },
+        data: {
+          altStructureJson: project.structure.structureJson,
+          activeVersion: 2,
+        },
+      });
+    }
     await prisma.project.update({
       where: { id },
-      data: { structureRedoUsed: true, currentStage: "STRUCTURE" },
+      data: {
+        structureRedoUsed: true,
+        currentStage: "STRUCTURE",
+        structureRedoFeedback:
+          typeof feedback === "string" && feedback.trim()
+            ? feedback.trim().slice(0, 2000)
+            : null,
+      },
     });
 
     return reply.send({ success: true, message: "Regeneration started" });
+  });
+
+  // ━━━ POST /api/projects/:id/structure/switch ━━━
+  // After the one AI redo: make the other version the one that gets written.
+  app.post("/api/projects/:id/structure/switch", async (request, reply) => {
+    const { id } = request.params as any;
+    const project = await prisma.project.findFirst({
+      where: { id, userId: request.user.userId },
+      include: { structure: true },
+    });
+    const st = project?.structure;
+    if (!project || !st)
+      return reply.status(404).send({ success: false, error: "Not found" });
+    if (
+      !st.altStructureJson ||
+      st.approvedAt ||
+      project.currentStage !== "STRUCTURE_REVIEW"
+    )
+      return reply.status(400).send({ success: false, error: "Nothing to switch" });
+    await prisma.projectStructure.update({
+      where: { id: st.id },
+      data: {
+        structureJson: st.altStructureJson,
+        altStructureJson: st.structureJson,
+        activeVersion: st.activeVersion === 2 ? 1 : 2,
+        version: { increment: 1 },
+      },
+    });
+    return reply.send({ success: true });
   });
 
   // ━━━ POST /api/projects/:id/generate ━━━
@@ -735,5 +1140,14 @@ function formatProject(p: any) {
     numbering: resolveNumbering(p),
     // Parse customColors back to array for frontend
     customColors: p.customColors ? JSON.parse(p.customColors) : null,
+    previewRemaining: p.previewRedoUsed ? 0 : 1,
+    // Always in the editor's shape (older previews had bare-string sections).
+    preview: p.preview
+      ? {
+          ...normalizePreview(p.preview),
+          editedByCustomer: !!(p.preview as any)?.editedByCustomer,
+        }
+      : null,
+    previewAlt: p.previewAlt ? normalizePreview(p.previewAlt) : null,
   };
 }

@@ -251,7 +251,7 @@ async function anthropicCreate(
 //  - nowy tokenizer liczy ten sam tekst jako ~30% więcej tokenów, więc limity
 //    max_tokens strojone pod 4.6 dostają zapas (płaci się za faktyczne tokeny,
 //    nie za limit).
-const NEW_SURFACE_MODEL = /^claude-(sonnet-5|opus-4-[78]|opus-5|fable)/;
+const NEW_SURFACE_MODEL = /^claude-(sonnet-5|opus-4-[78]|opus-5|fable)/; // sonnet-5 also matches sonnet-5-5
 const TOKENIZER_HEADROOM = 1.35;
 const MAX_OUTPUT_TOKENS = 128_000;
 
@@ -260,7 +260,13 @@ function adaptForModel<T extends Anthropic.MessageCreateParams>(params: T): T {
   const { temperature: _t, top_p: _p, top_k: _k, ...rest } = params as any;
   return {
     ...rest,
-    thinking: rest.thinking ?? { type: "disabled" },
+    // Sonnet 5.5 rejects {type:"disabled"} (400); its thinking-off mode is
+    // {type:"between_tools"} (allowed at the default effort).
+    thinking:
+      rest.thinking ??
+      (/^claude-sonnet-5-5/.test(String(params.model))
+        ? ({ type: "between_tools" } as any)
+        : { type: "disabled" }),
     max_tokens: Math.min(
       MAX_OUTPUT_TOKENS,
       Math.ceil(rest.max_tokens * TOKENIZER_HEADROOM),

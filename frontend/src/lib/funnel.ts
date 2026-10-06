@@ -9,7 +9,13 @@ export type FunnelEvent =
   | "new_project_filled"
   | "new_project_abandon"
   | "checkout_start"
-  | "checkout_created";
+  | "checkout_created"
+  | "preview_requested"
+  | "preview_shown"
+  | "preview_regenerate"
+  | "preview_edit"
+  | "sample_requested"
+  | "look_opened";
 
 export function track(
   event: FunnelEvent,

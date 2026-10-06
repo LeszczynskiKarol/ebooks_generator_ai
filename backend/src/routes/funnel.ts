@@ -13,6 +13,12 @@ export const FUNNEL_EVENTS = [
   "new_project_abandon",
   "checkout_start",
   "checkout_created",
+  "preview_requested",
+  "preview_shown",
+  "preview_regenerate",
+  "preview_edit",
+  "sample_requested",
+  "look_opened",
 ] as const;
 
 const bodySchema = z.object({

@@ -29,6 +29,7 @@ import {
   NumberingSpec,
 } from "../lib/numbering";
 import { parseLLMJson, ChapterRegistrySchema } from "../lib/llmJson";
+import { z } from "zod";
 import {
   getOrCreateMaterialsDigest,
   loadProjectMaterials,
@@ -1034,6 +1035,8 @@ interface GenParams {
    *  chapters of a mixed book (intro, theory, weekly plan) use plain
    *  \section and must never emit \itemsection. */
   chapterHasItems?: boolean;
+  /** free pre-payment style sample: only the chapter opening, this long */
+  sample?: { words: number };
   log: any;
 }
 
@@ -1054,8 +1057,12 @@ CRITICAL CORRECTION (previous attempt was rejected):
 ${p.correctionNote}
 `
     : "";
-  const realTargetWords = p.chapter.targetPages * p.wpp;
-  const targetWords = Math.round(realTargetWords * 1.2);
+  const realTargetWords = p.sample
+    ? p.sample.words
+    : p.chapter.targetPages * p.wpp;
+  const targetWords = p.sample
+    ? p.sample.words
+    : Math.round(realTargetWords * 1.2);
   const lang = getLangName(p.language);
   const prompts: PromptLog[] = [];
   const responses: ResponseLog[] = [];
@@ -1087,6 +1094,15 @@ ${p.correctionNote}
   // SYSTEM PROMPT
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const systemPrompt = `You are a seasoned subject-matter expert and published author writing a professional book chapter. You write like a human expert — not like an AI. You produce richly formatted, typographically professional LaTeX output.
+
+LANGUAGE — NON-NEGOTIABLE:
+The customer ordered this book in ${lang}. Every sentence, heading, box title, table cell
+and caption must be correct, natural ${lang}, as written by a professional native ${lang}
+author and checked by a native proofreader: correct grammar, inflection, agreement,
+spelling, punctuation and idiom. Never insert a word or phrase from another language — no
+English connectors, phrases or calques — except proper names, titles of works and
+technical terms that ${lang} professionals genuinely use untranslated. If you catch a
+foreign word while writing, rewrite the sentence in ${lang}.
 
 BOOK CONTEXT:
 Book: "${p.bookTitle}" | Topic: ${p.bookTopic} | Language: ${lang} | Style: ${p.stylePreset}
@@ -1261,7 +1277,7 @@ ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "
 ${lang === "Polish" ? '- Polish typography: quotations ALWAYS as „..." (U+201E/U+201D) — NEVER "..." or “...”' : ""}
 - NO \\usepackage, NO custom command definitions
 - NO decorative comment separators (lines like "% ────") — they leak into print
-- ALL text in ${lang}
+- ALL text in correct, natural ${lang} (see LANGUAGE above)
 - NEVER leave a section or sentence unfinished
 
 ⚠️ CRITICAL LATEX RULES — ENVIRONMENT MATCHING:
@@ -1452,6 +1468,19 @@ QUALITY CHECKLIST — verify before finishing:
 - Do NOT end with a generic "the future is bright" statement — end with something actionable and specific`;
   }
 
+  if (p.sample) {
+    userPrompt += `
+
+SAMPLE MODE — this text is a free style sample the customer sees BEFORE buying the book.
+Write ONLY the opening of this chapter: the chapter heading, its opening paragraphs and the
+first section — about ${p.sample.words} words — in exactly the voice, formatting and kind of
+visual elements the full book will have (one box or visual element where the brief allows it
+and the content calls for it). Stop at a natural paragraph end inside or at the end of the
+first section. No summary, no "in the next section", no text about this being a sample.
+No research is available for this sample: do NOT state precise statistics, prices, dates,
+study or report names, or quotes. Concrete methods, steps and worked examples are fine.`;
+  }
+
   userPrompt += `\n\nBegin LaTeX output now. Start with \\chapter{${p.chapter.title}}. Write exactly ${targetWords} words (±10%), entirely in ${lang}. Remember: the voice and evidence policy from the AUTHOR BRIEF, no AI filler, visual elements where the brief and the content call for them. NO \\includegraphics. Close every opened environment properly.`;
 
   // ── Logging ──
@@ -1487,7 +1516,9 @@ QUALITY CHECKLIST — verify before finishing:
   // Polish LaTeX with tables/commands runs ~3 tokens/word; 6x margin so the
   // model can FINISH the chapter cleanly instead of being cut off mid-table
   // (truncation mid-environment is the #1 cause of broken LaTeX / compile fails).
-  const maxTok = Math.max(10000, Math.min(32000, Math.ceil(targetWords * 6)));
+  const maxTok = p.sample
+    ? 6000
+    : Math.max(10000, Math.min(32000, Math.ceil(targetWords * 6)));
   p.log.step(
     `Calling Claude API (max_tokens: ${maxTok}, target: ${targetWords}w)...`,
   );
@@ -1543,7 +1574,11 @@ QUALITY CHECKLIST — verify before finishing:
 
   // Continue ONLY when the chapter is genuinely short of the REAL page target
   // or visibly truncated — every continuation is a risk of meta-text leakage.
-  if ((wc < realTargetWords * 0.8 || !endsCleanly) && p.chapter.targetPages > 2) {
+  if (
+    !p.sample &&
+    (wc < realTargetWords * 0.8 || !endsCleanly) &&
+    p.chapter.targetPages > 2
+  ) {
     p.log.warn(
       `Needs continuation: ${wc}/${targetWords} words, endsCleanly=${endsCleanly}`,
     );
@@ -1635,7 +1670,7 @@ RULES FOR CONTINUATION:
   latex = sanitizeGeneratedLatex(latex);
 
   // ── Summary ──
-  const summary = await chapterSummary(latex, p.language, p.log);
+  const summary = p.sample ? "" : await chapterSummary(latex, p.language, p.log);
   p.log.step(`Summary: ${summary.substring(0, 100)}...`);
 
   return {
@@ -1645,6 +1680,120 @@ RULES FOR CONTINUATION:
     prompts,
     responses,
   };
+}
+
+/**
+ * Language proofreading by the model: the text must be correct, natural
+ * prose in the book's language — no foreign words or phrases (except proper
+ * names and established terms), no grammar or spelling errors. The model
+ * returns exact find/replace pairs; only pairs whose `find` occurs verbatim
+ * are applied, so LaTeX structure is never rewritten wholesale.
+ * (2026-10-06: Sonnet wrote "Later, w czasach renesansu…" in a Polish book.)
+ */
+export async function proofreadLanguage(
+  latex: string,
+  language: string,
+  log: any,
+): Promise<string> {
+  const lang = getLangName(language);
+  const prompt = `You are a professional proofreader of ${lang} books. Below is LaTeX source of a book passage written in ${lang}.
+
+Find EVERY place where the prose is not correct, natural ${lang}:
+- words or phrases in another language (e.g. an English word in ${lang} text), unless it is a proper name, a title, or an established technical term that ${lang} writers really use;
+- grammar, inflection, agreement, spelling and punctuation errors;
+- calques and unnatural phrasing a native editor would change.
+
+Fix ONLY real errors. Do NOT touch LaTeX commands, environment names, labels or math. Do not rewrite correct sentences for style, do not change meaning, and do not add gender alternatives such as "(-eś)" or "/a".
+
+Return RAW JSON only: {"fixes":[{"find":"<exact substring copied from the source, long enough to be unique>","replace":"<the same span, corrected>"}]}
+Return {"fixes":[]} if the text is already correct.
+
+SOURCE:
+${latex}`;
+  try {
+    const res = await anthropic.messages.create({
+      model: SONNET_MODEL,
+      max_tokens: 4000,
+      messages: [{ role: "user", content: prompt }],
+    });
+    log.api?.(SONNET_MODEL, res.usage?.input_tokens || 0, res.usage?.output_tokens || 0);
+    const text = res.content[0]?.type === "text" ? res.content[0].text : "";
+    const parsed = parseLLMJson(
+      text,
+      z.object({
+        fixes: z
+          .array(z.object({ find: z.string(), replace: z.string() }))
+          .default([]),
+      }),
+    );
+    if (!parsed.ok) throw new Error(parsed.error);
+    const fixes = parsed.data.fixes;
+    let out = latex;
+    let applied = 0;
+    for (const f of fixes) {
+      if (!f?.find || typeof f.replace !== "string" || f.find === f.replace) continue;
+      if (!out.includes(f.find)) continue;
+      out = out.split(f.find).join(f.replace);
+      applied++;
+      log.step?.(`  ✎ "${f.find.slice(0, 80)}" → "${f.replace.slice(0, 80)}"`);
+    }
+    log.step?.(`Language proofread: ${applied}/${fixes.length} fixes applied`);
+    return out;
+  } catch (e: any) {
+    // Proofreading must never lose the text it was asked to check.
+    log.warn?.(`Language proofread skipped: ${e?.message}`);
+    return latex;
+  }
+}
+
+/**
+ * Free pre-payment style sample: the opening of chapter 1 written by the
+ * SAME writer as the book (same system prompt, brief, macros, sanitizers),
+ * without research. See services/sampleGenerator.ts.
+ */
+export async function writeSampleOpening(a: {
+  bookTitle: string;
+  topic: string;
+  language: string;
+  stylePreset: string;
+  guidelines: string;
+  brief: BookBrief;
+  bookFormat: string;
+  chapters: ChapterStructure[];
+  allowFootnotes: boolean;
+  numbering: NumberingSpec;
+  words: number;
+  log: any;
+}): Promise<string> {
+  const itemChapters =
+    a.numbering.mode === "items"
+      ? planItemChapters(a.chapters, a.numbering.itemCount)
+      : new Set<number>();
+  const result = await generateChapterLatex({
+    bookTitle: a.bookTitle,
+    bookTopic: a.topic,
+    numbering: a.numbering,
+    chapterHasItems: itemChapters.has(a.chapters[0].number),
+    language: a.language,
+    stylePreset: a.stylePreset,
+    guidelines: a.guidelines,
+    brief: a.brief,
+    bookFormat: a.bookFormat,
+    chapter: a.chapters[0],
+    chapterIndex: 0,
+    totalChapters: a.chapters.length,
+    previousSummaries: [],
+    previousChaptersContent: [],
+    chapterRegistries: [],
+    allChapters: a.chapters,
+    sourcesText: "",
+    hasResearch: false,
+    wpp: getWordsPerPage(a.bookFormat),
+    allowFootnotes: a.allowFootnotes,
+    sample: { words: a.words },
+    log: a.log,
+  });
+  return proofreadLanguage(result.latexContent, a.language, a.log);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

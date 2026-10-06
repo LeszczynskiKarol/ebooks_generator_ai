@@ -33,33 +33,34 @@ export const ui = {
       titleAccent: "professional book",
       title2: "in about an hour",
       sub: "InkMagnet is an AI ebook generator: describe a topic and it researches it on the web, writes every chapter with verifiable sources, designs the cover and delivers a print-quality PDF and EPUB. Not a template filler or a docx export — a real, typeset book.",
-      ctaPrimary: "Start your book",
+      ctaPrimary: "Plan my book for free",
       ctaSecondary: "See how it works",
       bullets: [
         "Print-quality PDF + EPUB",
         "Web research with cited sources",
+        "Free table of contents before you pay",
         "One fixed price per book",
       ],
     },
     how: {
-      title: "From topic to finished book in four steps",
-      sub: "You make the decisions. The pipeline does the work.",
+      title: "From a description to a finished book in four steps",
+      sub: "You see the plan before you pay. The pipeline does the rest.",
       steps: [
         {
           title: "Describe your book",
-          desc: "Topic, audience, language, target length, visual style. A title is optional — InkMagnet can propose one.",
+          desc: "One field, up to 15,000 characters: the topic, who it is for and what must be inside. Attach notes or files if you have them, then pick a length. Style, format, colours, cover and illustrations are optional — leave them on automatic and the AI picks a style and palette that suit your topic.",
         },
         {
-          title: "Approve the structure",
-          desc: "The engine researches your topic on the live web, then drafts a chapter-by-chapter outline. You edit or approve it.",
+          title: "See your table of contents — free",
+          desc: "Before you pay, you get a title and the full contents: chapters and sections, each with a short description. Edit anything, add or remove chapters, or ask the AI for one new version with your notes and keep whichever you prefer. Curious how it reads? A free two-page sample of chapter 1, typeset exactly like the final book, is ready in about a minute.",
         },
         {
-          title: "AI writes and designs",
-          desc: "Every chapter is written, reviewed and typeset with professional book software. Optional AI illustrations are matched to your content.",
+          title: "Pay, then the AI researches and writes",
+          desc: "You pay only once you like the plan. The engine researches your topic on the live web and expands your plan into a detailed outline, which you can edit (or have redone once) before any chapter is written. Then every chapter is written, reviewed and typeset.",
         },
         {
           title: "Download and publish",
-          desc: "You get a press-ready PDF and a store-ready EPUB, with a designed cover. Edit any chapter in the built-in editor and recompile anytime.",
+          desc: "You get a press-ready PDF and a store-ready EPUB, with a designed cover. Edit any chapter in the built-in editor, add your own photos and recompile anytime.",
         },
       ],
     },
@@ -190,7 +191,7 @@ export const ui = {
       items: [
         {
           title: "Every book has its own page",
-          text: "Cover, page count, language, style and a six-step progress bar: payment, structure, review, writing, typesetting, done. You always know what stage your book is at.",
+          text: "Cover, page count, language, style and a progress bar. Before you pay, this page holds your free table of contents and two-page sample; after payment you follow research, writing and typesetting until the book is done.",
           alt: "InkMagnet book page with cover and progress bar",
         },
         {
@@ -291,7 +292,7 @@ export const ui = {
         title: "The Lean SaaS Launch Playbook",
         author: "Jordan Rivera",
         topic:
-          "A practical guide to launching a profitable SaaS in 2025 — for non-technical founders.",
+          "A practical guide to launching a profitable SaaS in 2025 — for non-technical founders. Validating the idea, a lean MVP, the first ten customers and pricing. Plain language, real examples, a checklist after every chapter.",
         chapters: [
           {
             n: 1,
@@ -343,19 +344,22 @@ export const ui = {
       },
       ui: {
         createNewBook: "Create New Book",
-        topicLabel: "Topic / Subject",
+        topicLabel: "Describe your book",
+        topicCounter: "412 / 15000",
         bookSize: "Book Size",
         popular: "Popular",
         tierStandard: "Standard · 60 pages",
         tierComprehensive: "Comprehensive · 120 pages",
-        colorScheme: "Color Scheme",
-        selected: "3/3 selected",
-        continuePayment: "Continue to Payment — {price}",
-        bookStructure: "Book Structure",
+        colorScheme: "Colours",
+        optional: "optional",
+        colorAuto: "Automatic — matched to your topic",
+        seeContents: "See my book's table of contents — free",
+        bookStructure: "Table of contents",
+        freePreview: "Free preview",
         bookTitleLabel: "Book Title",
         addChapter: "Add Chapter",
-        saveChanges: "Save Changes",
-        approveContinue: "Approve & Continue",
+        redoOnce: "New version (1×)",
+        payAndWrite: "I like it — pay {price} and write",
         generatingBook: "Generating Your Book",
         remaining: "~6m remaining",
         phaseResearch: "Research & Source Analysis",
@@ -509,7 +513,7 @@ export const ui = {
     },
     pricing: {
       title: "One price per book. Nothing recurring.",
-      sub: "Pay only when you create a book. Research, writing, illustrations, cover, PDF and EPUB — everything is included.",
+      sub: "You pay only once you like the plan — the title, full table of contents and a two-page style sample are free. Research, writing, illustrations, cover, PDF and EPUB — everything is included.",
       perBook: "per book",
       pages: "pages",
       tiers: [
@@ -525,7 +529,7 @@ export const ui = {
         { label: "Complete", pages: "161–200", price: "$34.99", usd: 34.99 },
       ],
       note: "Full commercial rights. Unlimited edits and recompiles of every book you've bought.",
-      cta: "Create your first book",
+      cta: "Plan your first book for free",
     },
     faq: {
       title: "Frequently asked questions",
@@ -536,7 +540,11 @@ export const ui = {
         },
         {
           q: "How long does it take?",
-          a: "Structure is ready for your review within minutes. A complete book — written, illustrated, typeset and compiled — typically takes under an hour.",
+          a: "The title and table of contents are ready in under a minute, before you pay, and the optional two-page sample takes about a minute more. After payment, a complete book — researched, written, illustrated, typeset and compiled — typically takes under an hour.",
+        },
+        {
+          q: "Can I see my book before I pay?",
+          a: "Yes. For free, you get the title and the full table of contents — chapters and sections, each with a short description. Edit it like any document: rename, rewrite descriptions, add or remove chapters and sections. If you want a different take, the AI makes one new version based on your notes and you choose version 1 or version 2. You can also order a free two-page sample: the opening of chapter 1, written and typeset exactly like the final book. If you leave style and colours on automatic, the AI picks ones that suit your topic. You pay only when you are happy with the plan.",
         },
         {
           q: "Which languages are supported?",
@@ -564,14 +572,14 @@ export const ui = {
         },
         {
           q: "Do I need writing, design or formatting skills?",
-          a: "No. You describe the book in a short form and the pipeline handles research, writing, layout, cover and export. If you want to change anything, the built-in editor is plain WYSIWYG — no LaTeX, no design software.",
+          a: "No. You describe the book in a single field — a sentence is enough, a detailed brief is better — and everything else, from style to colours, can stay on automatic. The pipeline handles research, writing, layout, cover and export. If you want to change anything, the built-in editor is plain WYSIWYG — no LaTeX, no design software.",
         },
       ],
     },
     finalCta: {
       title: "Your book is one form away",
-      sub: "Describe the topic today, download the finished ebook within the hour.",
-      cta: "Start writing — from $9.99",
+      sub: "Describe your book today, see its table of contents for free, and download the finished ebook within an hour of paying.",
+      cta: "See your plan free — books from $9.99",
     },
     phone: {
       // The Android screens, recreated in HTML so both languages stay in sync
@@ -587,9 +595,10 @@ export const ui = {
       },
       create: {
         title: "New book",
-        topicLabel: "What should the book be about?",
-        topicPlaceholder: "e.g. Air fryer — 60 simple everyday recipes",
-        titleLabel: "Title (optional — we can suggest one)",
+        topicLabel: "Describe your book",
+        topicPlaceholder: "e.g. Air fryer — 60 simple everyday recipes for busy families, with shopping lists",
+        styleLabel: "Style and colours",
+        styleValue: "Automatic",
         langLabel: "Book language",
         langs: ["English", "Polski"],
         sizeLabel: "Length",
@@ -603,7 +612,7 @@ export const ui = {
         title: "Strength Training at Home",
         status: "Completed",
         progressLabel: "Progress",
-        steps: ["Payment", "Plan", "Review", "Writing", "Typeset", "Ready"],
+        steps: ["Plan", "Sample", "Payment", "Writing", "Typeset", "Ready"],
         downloadLabel: "Download",
         pdf: "Open PDF",
         epub: "Open EPUB",
@@ -613,9 +622,9 @@ export const ui = {
     appPromo: {
       badge: "New — Android",
       title: "Now you can start a book from your phone",
-      sub: "InkMagnet has an Android app. Order a book on the bus, approve the outline over coffee, open the finished PDF on the train home. Same account, same books, same engine as the web app.",
+      sub: "InkMagnet has an Android app. Describe a book on the bus, check its free table of contents over coffee, open the finished PDF on the train home. Same account, same books, same engine as the web app.",
       points: [
-        "Order a book and follow every stage live: research, writing, typesetting.",
+        "See the free plan and a two-page sample before you buy, then follow every stage live: research, writing, typesetting.",
         "Open the finished PDF and EPUB straight on your phone.",
         "Pay once per book through Google Play. No subscription.",
         "Chapters you edited on the web stay exactly as you left them.",
@@ -641,11 +650,11 @@ export const ui = {
           },
           {
             title: "Order a new book",
-            text: "Topic, an optional title, language and length. Five sizes from 30 to 200 pages. Pick one, pay through Google Play, and the pipeline starts within seconds.",
+            text: "Describe your book in one field and pick one of five sizes, from 30 to 200 pages. You get a free plan with the full table of contents, one AI redo with your notes and a free two-page sample. Only then do you pay through Google Play, and the pipeline starts within seconds.",
           },
           {
             title: "Track it, then download",
-            text: "A six-stage strip shows exactly where your book is: payment, plan, review, writing, typesetting, ready. When it finishes, the PDF and the EPUB open straight from the app.",
+            text: "A six-stage strip shows exactly where your book is: plan, sample, payment, writing, typesetting, ready. When it finishes, the PDF and the EPUB open straight from the app.",
           },
         ],
       },
@@ -658,8 +667,8 @@ export const ui = {
             desc: "A queue, a commute, a waiting room. Describing the book takes a minute, and the engine works while you get on with your day.",
           },
           {
-            title: "Approve the outline where you are",
-            desc: "The chapter plan is the one decision that gates everything else. A task that small should not need a laptop.",
+            title: "Check the plan where you are",
+            desc: "The table of contents is the one decision that shapes everything else, and you see it free, before paying. Edit it, ask the AI for one new version, look at a two-page sample — none of that should need a laptop.",
           },
           {
             title: "Read it on the device you read on",
@@ -667,7 +676,7 @@ export const ui = {
           },
           {
             title: "Pay through Google Play",
-            desc: "Payment goes through the Play account you already have, in your local currency, with Google handling the receipt and the refund policy.",
+            desc: "Once you like the plan, payment goes through the Play account you already have, in your local currency, with Google handling the receipt and the refund policy.",
           },
         ],
       },
@@ -676,8 +685,9 @@ export const ui = {
         sub: "Two windows onto the same books, and each is better at something.",
         appTitle: "Do it in the app",
         appItems: [
-          "Order a new book and pay through Google Play",
-          "Approve or reject the chapter outline",
+          "Describe a book and see its free plan and two-page sample",
+          "Edit the table of contents, or get one new version from AI",
+          "Pay through Google Play when you like the plan",
           "Follow the build stage by stage",
           "Open, read and share the finished PDF and EPUB",
         ],
@@ -757,33 +767,34 @@ export const ui = {
       titleAccent: "profesjonalną książkę",
       title2: "w około godzinę",
       sub: "InkMagnet to generator ebooków AI: opisz temat, a on zbada go w internecie, napisze każdy rozdział z weryfikowalnymi źródłami, zaprojektuje okładkę i odda PDF w jakości drukarskiej oraz EPUB. To nie wypełniacz szablonu ani eksport z worda — prawdziwa, złożona książka.",
-      ctaPrimary: "Zacznij swoją książkę",
+      ctaPrimary: "Zaplanuj książkę za darmo",
       ctaSecondary: "Zobacz, jak to działa",
       bullets: [
         "PDF + EPUB w jakości wydawniczej",
         "Research w sieci z cytowanymi źródłami",
+        "Darmowy spis treści przed płatnością",
         "Jedna stała cena za książkę",
       ],
     },
     how: {
-      title: "Od tematu do gotowej książki w czterech krokach",
-      sub: "Ty podejmujesz decyzje, resztę wykonuje silnik.",
+      title: "Od opisu do gotowej książki w czterech krokach",
+      sub: "Plan widzisz, zanim zapłacisz. Resztę robi silnik.",
       steps: [
         {
           title: "Opisz swoją książkę",
-          desc: "Temat, odbiorcy, język, docelowa objętość i styl graficzny. Tytuł możesz podać albo zostawić do zaproponowania.",
+          desc: "Jedno pole, do 15 000 znaków: temat, dla kogo jest książka i co koniecznie ma się w niej znaleźć. Możesz dołączyć notatki lub pliki, a potem wybierasz objętość. Styl, format, kolory, okładka i ilustracje są opcjonalne — jeśli zostawisz je na automacie, AI dobierze styl i paletę barw pasujące do tematu.",
         },
         {
-          title: "Zatwierdź strukturę",
-          desc: "Silnik bada temat w aktualnych źródłach internetowych i przygotowuje plan rozdział po rozdziale. Edytujesz go albo zatwierdzasz jednym kliknięciem.",
+          title: "Zobacz spis treści — za darmo",
+          desc: "Zanim zapłacisz, dostajesz tytuł i pełny spis treści: rozdziały i podrozdziały, każdy z krótkim opisem. Możesz zmienić w nim wszystko, dodać lub usunąć rozdziały albo poprosić AI o jedną nową wersję według Twoich uwag i zostawić tę, która bardziej Ci odpowiada. Chcesz sprawdzić, jak to się czyta? Darmowa, dwustronicowa próbka początku rozdziału 1, złożona dokładnie tak jak gotowa książka, jest gotowa po mniej więcej minucie.",
         },
         {
-          title: "AI pisze i projektuje",
-          desc: "Każdy rozdział zostaje napisany, zrecenzowany i złożony oprogramowaniem do profesjonalnego składu. Opcjonalne ilustracje AI powstają pod treść konkretnych rozdziałów.",
+          title: "Płacisz, a AI bada temat i pisze",
+          desc: "Płacisz dopiero wtedy, gdy plan Ci odpowiada. Silnik bada temat w aktualnych źródłach internetowych i rozwija Twój plan w szczegółowy konspekt, który możesz poprawić (albo raz wygenerować od nowa), zanim powstanie jakikolwiek rozdział. Potem każdy rozdział zostaje napisany, zrecenzowany i złożony.",
         },
         {
           title: "Pobierz i publikuj",
-          desc: "Dostajesz PDF gotowy do druku i EPUB gotowy do sklepów, z zaprojektowaną okładką. Każdy rozdział możesz poprawić we wbudowanym edytorze i przekompilować książkę w dowolnym momencie.",
+          desc: "Dostajesz PDF gotowy do druku i EPUB gotowy do sklepów, z zaprojektowaną okładką. Każdy rozdział możesz poprawić we wbudowanym edytorze, dodać własne zdjęcia i przekompilować książkę w dowolnym momencie.",
         },
       ],
     },
@@ -911,7 +922,7 @@ export const ui = {
       items: [
         {
           title: "Każda książka ma własną stronę",
-          text: "Okładka, liczba stron, język, styl i pasek postępu w sześciu krokach: płatność, struktura, przegląd, pisanie, składanie, gotowe. Zawsze wiesz, na jakim etapie jest Twoja książka.",
+          text: "Okładka, liczba stron, język, styl i pasek postępu. Przed płatnością na tej stronie czekają darmowy spis treści i dwustronicowa próbka, a po płatności śledzisz research, pisanie i skład, aż książka będzie gotowa.",
           alt: "Strona książki w InkMagnet z okładką i paskiem postępu",
         },
         {
@@ -1012,7 +1023,7 @@ export const ui = {
         title: "Rentowny SaaS od zera",
         author: "Jan Kowalski",
         topic:
-          "Praktyczny przewodnik, jak wystartować z rentownym SaaS-em w 2025 roku — dla nietechnicznych założycieli.",
+          "Praktyczny przewodnik, jak wystartować z rentownym SaaS-em w 2025 roku — dla nietechnicznych założycieli. Walidacja pomysłu, skromne MVP, pierwszych dziesięciu klientów i cennik. Prosty język, prawdziwe przykłady, lista kontrolna po każdym rozdziale.",
         chapters: [
           {
             n: 1,
@@ -1059,19 +1070,22 @@ export const ui = {
       },
       ui: {
         createNewBook: "Nowa książka",
-        topicLabel: "Temat / Zagadnienie",
+        topicLabel: "Opisz swoją książkę",
+        topicCounter: "412 / 15000",
         bookSize: "Rozmiar książki",
         popular: "Popularne",
         tierStandard: "Standard · 60 stron",
         tierComprehensive: "Kompleksowa · 120 stron",
         colorScheme: "Kolorystyka",
-        selected: "wybrano 3/3",
-        continuePayment: "Przejdź do płatności — {price}",
-        bookStructure: "Struktura książki",
+        optional: "opcjonalnie",
+        colorAuto: "Automatycznie — dobrana do tematu",
+        seeContents: "Zobacz spis treści mojej książki — za darmo",
+        bookStructure: "Spis treści",
+        freePreview: "Darmowy podgląd",
         bookTitleLabel: "Tytuł książki",
         addChapter: "Dodaj rozdział",
-        saveChanges: "Zapisz zmiany",
-        approveContinue: "Zatwierdź i kontynuuj",
+        redoOnce: "Nowa wersja (1×)",
+        payAndWrite: "Podoba mi się — płacę {price} i piszemy",
         generatingBook: "Generujemy Twoją książkę",
         remaining: "~6 min do końca",
         phaseResearch: "Badania i analiza źródeł",
@@ -1225,7 +1239,7 @@ export const ui = {
     },
     pricing: {
       title: "Jedna cena za książkę. Żadnych abonamentów.",
-      sub: "Płacisz tylko wtedy, gdy tworzysz książkę. Research, pisanie, ilustracje, okładka, PDF i EPUB — wszystko w cenie.",
+      sub: "Płacisz dopiero wtedy, gdy plan Ci odpowiada — tytuł, pełny spis treści i dwustronicowa próbka stylu są za darmo. Research, pisanie, ilustracje, okładka, PDF i EPUB — wszystko w cenie.",
       perBook: "za książkę",
       pages: "stron",
       tiers: [
@@ -1241,7 +1255,7 @@ export const ui = {
         { label: "Complete", pages: "161–200", price: "$34.99", usd: 34.99 },
       ],
       note: "Pełne prawa komercyjne. Edycje i ponowne kompilacje kupionych książek bez limitu.",
-      cta: "Stwórz pierwszą książkę",
+      cta: "Zaplanuj pierwszą książkę za darmo",
     },
     faq: {
       title: "Częste pytania",
@@ -1252,7 +1266,11 @@ export const ui = {
         },
         {
           q: "Ile to trwa?",
-          a: "Struktura do zatwierdzenia pojawia się po kilku minutach. Cała książka (napisana, zilustrowana, złożona i skompilowana) powstaje zwykle w mniej niż godzinę.",
+          a: "Tytuł i spis treści są gotowe w niecałą minutę, jeszcze przed płatnością, a opcjonalna dwustronicowa próbka zajmuje mniej więcej minutę więcej. Po płatności cała książka (zbadana, napisana, zilustrowana, złożona i skompilowana) powstaje zwykle w mniej niż godzinę.",
+        },
+        {
+          q: "Czy zobaczę książkę, zanim zapłacę?",
+          a: "Tak. Za darmo dostajesz tytuł i pełny spis treści: rozdziały i podrozdziały, każdy z krótkim opisem. Poprawiasz go jak zwykły dokument — zmieniasz tytuły i opisy, dodajesz albo usuwasz rozdziały i podrozdziały. Jeśli chcesz innego ujęcia, AI raz przygotuje nową wersję według Twoich uwag, a Ty wybierasz wersję 1 albo 2. Możesz też zamówić darmową, dwustronicową próbkę: początek rozdziału 1 napisany i złożony dokładnie tak jak gotowa książka. Jeśli styl i kolory zostawisz na automacie, AI dobierze je do tematu. Płacisz dopiero wtedy, gdy plan Ci odpowiada.",
         },
         {
           q: "Jakie języki są obsługiwane?",
@@ -1280,14 +1298,14 @@ export const ui = {
         },
         {
           q: "Czy muszę umieć pisać, projektować albo składać?",
-          a: "Nie. Opisujesz książkę w krótkim formularzu, a proces ogarnia research, pisanie, układ, okładkę i eksport. Jeśli chcesz coś zmienić, wbudowany edytor jest zwykłym WYSIWYG — bez LaTeX-a i programów graficznych.",
+          a: "Nie. Opisujesz książkę w jednym polu (wystarczy zdanie, choć szczegółowy opis da lepszy efekt), a całą resztę, od stylu po kolory, możesz zostawić na automacie. Research, pisanie, układ, okładkę i eksport bierze na siebie silnik. Jeśli chcesz coś zmienić, wbudowany edytor jest zwykłym WYSIWYG — bez LaTeX-a i programów graficznych.",
         },
       ],
     },
     finalCta: {
       title: "Od Twojej książki dzieli Cię jeden formularz",
-      sub: "Opisz temat dzisiaj, a gotowego ebooka pobierzesz w ciągu godziny.",
-      cta: "Zacznij pisać — od $9.99",
+      sub: "Opisz książkę dzisiaj, za darmo obejrzyj jej spis treści, a gotowego ebooka pobierzesz w ciągu godziny od płatności.",
+      cta: "Zobacz plan za darmo — książki od $9.99",
     },
     phone: {
       // Ekrany aplikacji odtworzone w HTML, żeby obie wersje językowe
@@ -1303,9 +1321,10 @@ export const ui = {
       },
       create: {
         title: "Nowa książka",
-        topicLabel: "O czym ma być książka?",
-        topicPlaceholder: "np. Air fryer — 60 prostych przepisów na każdy dzień",
-        titleLabel: "Tytuł (opcjonalnie — możemy zaproponować)",
+        topicLabel: "Opisz swoją książkę",
+        topicPlaceholder: "np. Air fryer — 60 prostych przepisów na każdy dzień dla zabieganej rodziny, z listami zakupów",
+        styleLabel: "Styl i kolory",
+        styleValue: "Automatycznie",
         langLabel: "Język książki",
         langs: ["English", "Polski"],
         sizeLabel: "Rozmiar",
@@ -1319,7 +1338,7 @@ export const ui = {
         title: "Trening siłowy w domu",
         status: "Gotowa",
         progressLabel: "Postęp",
-        steps: ["Płatność", "Plan", "Przegląd", "Pisanie", "Składanie", "Gotowe"],
+        steps: ["Plan", "Próbka", "Płatność", "Pisanie", "Składanie", "Gotowe"],
         downloadLabel: "Pobieranie",
         pdf: "Otwórz PDF",
         epub: "Otwórz EPUB",
@@ -1329,9 +1348,9 @@ export const ui = {
     appPromo: {
       badge: "Nowość — Android",
       title: "Książkę zamówisz teraz z telefonu",
-      sub: "InkMagnet ma aplikację na Androida. Zamówisz książkę w autobusie, zatwierdzisz plan przy kawie, a gotowy PDF otworzysz w drodze do domu. To samo konto, te same książki i ten sam silnik co w wersji web.",
+      sub: "InkMagnet ma aplikację na Androida. Opiszesz książkę w autobusie, przy kawie przejrzysz jej darmowy spis treści, a gotowy PDF otworzysz w drodze do domu. To samo konto, te same książki i ten sam silnik co w wersji web.",
       points: [
-        "Zamawiasz książkę i na żywo śledzisz każdy etap: research, pisanie, skład.",
+        "Przed zakupem widzisz darmowy plan i dwustronicową próbkę, a potem na żywo śledzisz każdy etap: research, pisanie, skład.",
         "Gotowy PDF i EPUB otwierasz bezpośrednio w telefonie.",
         "Płacisz raz za książkę przez Google Play. Bez abonamentu.",
         "Rozdziały poprawione w wersji web zostają dokładnie takie, jak je zostawiłeś.",
@@ -1357,11 +1376,11 @@ export const ui = {
           },
           {
             title: "Zamówienie nowej książki",
-            text: "Temat, opcjonalny tytuł, język i objętość. Pięć rozmiarów od 30 do 200 stron. Wybierasz, płacisz przez Google Play i po kilku sekundach silnik rusza.",
+            text: "Opisujesz książkę w jednym polu i wybierasz jeden z pięciu rozmiarów, od 30 do 200 stron. Dostajesz darmowy plan z pełnym spisem treści, jedną nową wersję od AI według Twoich uwag i darmową, dwustronicową próbkę. Dopiero wtedy płacisz przez Google Play, a silnik rusza po kilku sekundach.",
           },
           {
             title: "Śledzenie i pobranie",
-            text: "Sześcioetapowy pasek pokazuje dokładnie, gdzie jest książka: płatność, plan, przegląd, pisanie, składanie, gotowe. Po zakończeniu PDF i EPUB otwierasz wprost z aplikacji.",
+            text: "Sześcioetapowy pasek pokazuje dokładnie, gdzie jest książka: plan, próbka, płatność, pisanie, składanie, gotowe. Po zakończeniu PDF i EPUB otwierasz wprost z aplikacji.",
           },
         ],
       },
@@ -1374,8 +1393,8 @@ export const ui = {
             desc: "Kolejka, dojazd, poczekalnia. Opisanie książki zajmuje minutę, a silnik pracuje, kiedy ty robisz swoje.",
           },
           {
-            title: "Plan zatwierdzasz tam, gdzie jesteś",
-            desc: "Struktura rozdziałów to jedyna decyzja, która blokuje wszystko dalej. Zadanie tej wielkości nie powinno wymagać laptopa.",
+            title: "Plan sprawdzasz tam, gdzie jesteś",
+            desc: "Spis treści to jedyna decyzja, od której zależy cała reszta, a widzisz go za darmo, jeszcze przed płatnością. Poprawiasz go, prosisz AI o jedną nową wersję, oglądasz dwustronicową próbkę — do niczego z tego nie potrzeba laptopa.",
           },
           {
             title: "Czytasz na urządzeniu, na którym czytasz",
@@ -1383,7 +1402,7 @@ export const ui = {
           },
           {
             title: "Płatność przez Google Play",
-            desc: "Płacisz kontem Play, które już masz, w złotówkach, a paragon i zasady zwrotów obsługuje Google.",
+            desc: "Gdy plan Ci odpowiada, płacisz kontem Play, które już masz, w złotówkach, a paragon i zasady zwrotów obsługuje Google.",
           },
         ],
       },
@@ -1392,8 +1411,9 @@ export const ui = {
         sub: "Dwa okna na te same książki, a każde jest w czymś lepsze.",
         appTitle: "Zrób w aplikacji",
         appItems: [
-          "Zamów nową książkę i zapłać przez Google Play",
-          "Zatwierdź albo odrzuć plan rozdziałów",
+          "Opisz książkę i obejrzyj jej darmowy plan oraz dwustronicową próbkę",
+          "Popraw spis treści albo poproś AI o jedną nową wersję",
+          "Zapłać przez Google Play, gdy plan Ci odpowiada",
           "Śledź powstawanie etap po etapie",
           "Otwórz, przeczytaj i wyślij gotowy PDF oraz EPUB",
         ],

@@ -18,6 +18,7 @@ import {
   BookDashed,
   CreditCard,
   ArrowRight,
+  ChevronDown,
 } from "lucide-react";
 import {
   calculatePrice,
@@ -33,6 +34,10 @@ import { useT, useLangStore, translate, type AppLang } from "@/lib/i18n";
 import { useMoney } from "@/lib/money";
 import { track } from "@/lib/funnel";
 import { suggestTitleFix } from "@/lib/titleTypo";
+import BookPreviewPanel, {
+  BookPreviewLoading,
+  type BookPreview,
+} from "@/components/BookPreviewPanel";
 
 // Language keys → i18n label keys (the select VALUES en/pl/de… stay code)
 // Only the two languages the product is edited/proofread in. Default follows
@@ -42,6 +47,8 @@ const LANGUAGE_KEYS: Record<string, string> = {
   pl: "newProject.langPl",
 };
 const STYLE_KEYS: Record<string, string> = {
+  // default: the model picks the style for the topic (designPicker.ts)
+  auto: "newProject.styleAuto",
   modern: "newProject.styleModern",
   academic: "newProject.styleAcademic",
   minimal: "newProject.styleMinimal",
@@ -127,7 +134,9 @@ const COLOR_ROLE_KEYS = [
 // topic field so research and structure still have a subject.
 const makeSchema = (lang: AppLang) =>
   z.object({
-    topic: z.string().max(500).optional(),
+    // The ONE description field (topic + guidelines merged, 2026-10-06);
+    // the backend splits it (routes/projects.ts splitDescription).
+    topic: z.string().max(15000).optional(),
     title: z.string().max(200).optional(),
     targetPages: z.number().min(MIN_PAGES).max(MAX_PAGES),
     language: z.string().default("en"),
@@ -171,6 +180,16 @@ export default function NewProject() {
   const [autopilotEnglish, setAutopilotEnglish] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedTierIdx, setSelectedTierIdx] = useState(1);
+  const [showLook, setShowLook] = useState(false);
+  const lookTracked = useRef(false);
+
+  // Free preview before payment: the order is saved unpaid (draftId), its
+  // title + table of contents are shown, and only then Stripe opens.
+  const [step, setStep] = useState<"form" | "loading" | "preview">("form");
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<BookPreview | null>(null);
+  const [previewRemaining, setPreviewRemaining] = useState(0);
+  const [previewNotice, setPreviewNotice] = useState<string | null>(null);
 
   // Admin-only: enable the "Autopilot (Routines)" button that bypasses payment.
   useEffect(() => {
@@ -199,6 +218,10 @@ export default function NewProject() {
     staleTime: 0,
   });
 
+  // The order this form just saved (awaiting its preview) is not "another"
+  // unpaid order to nag about.
+  const otherPendingOrders = pendingOrders.filter((p: any) => p.id !== draftId);
+
   // Color state
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [showCustomInput, setShowCustomInput] = useState(false);
@@ -225,7 +248,7 @@ export default function NewProject() {
       // Default the BOOK language to the UI locale — a PL visitor most likely
       // wants a Polish book (was hardcoded "en" even on /pl).
       language: lang === "pl" ? "pl" : "en",
-      stylePreset: "modern",
+      stylePreset: "auto",
       bookFormat: "a5",
       useAiImages: false,
       imageDensity: "standard",
@@ -251,7 +274,12 @@ export default function NewProject() {
           d?.form &&
           (d.form.topic || d.form.title || d.form.guidelines || d.materials?.length)
         ) {
-          reset({ ...d.form });
+          const form = { ...d.form };
+          if (form.guidelines) {
+            form.topic = [form.topic, form.guidelines].filter(Boolean).join("\n\n");
+            delete form.guidelines;
+          }
+          reset(form);
           if (Array.isArray(d.selectedColors)) {
             setSelectedColors(d.selectedColors.slice(0, 3));
           }
@@ -395,62 +423,96 @@ export default function NewProject() {
     setShowCustomInput(false);
   };
 
+  const requestPreview = async (projectId: string, regenerate: boolean) => {
+    try {
+      const { data } = await apiClient.post(`/projects/${projectId}/preview`, {
+        regenerate,
+      });
+      setPreview(data.data.preview);
+      setPreviewRemaining(data.data.remaining ?? 0);
+      setPreviewNotice(null);
+      track("preview_shown", {
+        cached: data.data.cached === true,
+        rejected: data.data.preview?.rejected === true,
+        chapters: data.data.preview?.chapters?.length ?? 0,
+        regenerate,
+      });
+    } catch (err: any) {
+      const res = err.response;
+      if (res?.status === 429) {
+        if (res.data?.data?.preview) setPreview(res.data.data.preview);
+        setPreviewRemaining(0);
+        setPreviewNotice(t("newProject.previewLimit"));
+      } else if (res?.status !== 409) {
+        setPreviewNotice(t("newProject.previewFailed"));
+      }
+    }
+    setStep("preview");
+  };
+
+  // Form submit → save the order unpaid and show its free preview.
   const onSubmit = async (form: FormData) => {
     setLoading(true);
     try {
       const payload: Record<string, unknown> = { ...form };
-      payload.currency = currency; // "pln" for the Polish UI → Stripe charges in zł
-      if (selectedColors.length > 0) {
-        payload.customColors = selectedColors;
-      }
-      if (coverOption !== "none") {
-        payload.coverOption = coverOption;
-      }
+      payload.currency = currency;
+      if (selectedColors.length > 0) payload.customColors = selectedColors;
+      if (coverOption !== "none") payload.coverOption = coverOption;
       if (materials.length > 0) {
         payload.materialIds = materials.map((m) => m.id);
       }
-      track("checkout_start", {
+      payload.description = form.topic ?? "";
+      delete payload.topic;
+      delete payload.guidelines;
+      payload.deferCheckout = true;
+      if (draftId) payload.draftProjectId = draftId;
+      track("preview_requested", {
         tier: pricing.tier?.label ?? null,
         pages: pages ?? null,
         priceUsdCents: pricing.priceUsdCents,
-        currency,
+        edit: !!draftId,
+        language: form.language ?? null,
+        style: form.stylePreset ?? null,
+        format: form.bookFormat ?? null,
+        cover: coverOption,
+        aiImages: !!form.useAiImages,
+        footnotes: form.footnoteMode ?? null,
+        colors: selectedColors.length,
+        lookOpened: lookTracked.current,
+        descChars: (form.topic ?? "").length,
+        hasTitle: !!(form.title ?? "").trim(),
+        files: materials.length,
       });
       const { data } = await apiClient.post("/projects", payload);
       funnel.current.submitted = true;
-      track("checkout_created", {
-        projectId: data.data?.project?.id ?? null,
-        priceUsdCents: pricing.priceUsdCents,
-      });
-
-      // Project created — the draft served its purpose
-      localStorage.removeItem(DRAFT_KEY);
-      // The dashboard renders this very form while the project list is empty,
-      // so a stale-but-fresh [] cache would show it again right after creating.
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-
-      // Redirect to Stripe checkout immediately. Rewrite this history entry
-      // to the order page first: Back from Stripe then lands on the saved
-      // order (with its pay button), not on this form — which is empty by
-      // then, since the draft was just cleared.
-      if (data.data.sessionUrl) {
-        const orderPath = `/projects/${data.data.project.id}`;
-        window.history.replaceState(window.history.state, "", orderPath);
-        // bfcache would resurrect the filled form under the new URL — reload
-        // so the router renders the order page for real.
-        window.addEventListener("pageshow", (e) => {
-          if (e.persisted) window.location.reload();
-        });
-        window.location.href = data.data.sessionUrl;
-      } else {
-        // Fallback if Stripe session wasn't created (shouldn't happen)
-        toast.success(t("newProject.projectCreated"));
-        navigate(`/projects/${data.data.project.id}`);
-      }
+      const id: string = data.data.project.id;
+      setDraftId(id);
+      setStep("loading");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      await requestPreview(id, false);
     } catch (err: any) {
       toast.error(err.response?.data?.error || t("newProject.failed"));
+      setStep("form");
     } finally {
       setLoading(false);
     }
+  };
+
+  const onEditOrder = () => {
+    track("preview_edit");
+    setStep("form");
+    setPreviewNotice(null);
+  };
+
+  // Leaving for Stripe from the preview: the draft is done, and Back from
+  // Stripe must land on the saved order page, not on this (empty) form.
+  const onBeforeCheckout = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
+    window.history.replaceState(window.history.state, "", `/projects/${draftId}`);
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted) window.location.reload();
+    });
   };
 
   // Admin "Autopilot (Routines)" — same form, but skips payment + the manual
@@ -505,9 +567,26 @@ export default function NewProject() {
         </p>
       </div>
 
-      {pendingOrders.length > 0 && (
+      {step === "loading" && <BookPreviewLoading />}
+      {step === "preview" && draftId && (
+        <BookPreviewPanel
+          projectId={draftId}
+          preview={preview}
+          priceLabel={formatUsdCents(pricing.priceUsdCents)}
+          remaining={previewRemaining}
+          onPreviewChange={(pv, left) => {
+            setPreview(pv);
+            setPreviewRemaining(left);
+          }}
+          onEdit={onEditOrder}
+          onBeforeCheckout={onBeforeCheckout}
+          notice={previewNotice}
+        />
+      )}
+
+      {step === "form" && otherPendingOrders.length > 0 && (
         <div className="mb-8 space-y-3">
-          {pendingOrders.slice(0, 3).map((p: any) => (
+          {otherPendingOrders.slice(0, 1).map((p: any) => (
             <Link
               key={p.id}
               to={`/projects/${p.id}`}
@@ -520,7 +599,7 @@ export default function NewProject() {
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300 truncate">
                   {t("newProject.pendingOrderBody", {
-                    s: p.title || p.topic,
+                    s: p.title || p.preview?.suggestedTitle || p.topic,
                   })}
                 </p>
               </div>
@@ -533,94 +612,86 @@ export default function NewProject() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className={step === "form" ? "space-y-8" : "hidden"}
+      >
         {/* Book Details */}
         <div className={cardCls}>
           <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
             <BookOpen className="w-5 h-5 text-primary-600 dark:text-primary-400" />{" "}
             {t("newProject.bookDetails")}
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 -mt-2">
-            {t("newProject.titleOrTopicHint")}
-          </p>
-
-          <div>
-            <label className={labelCls}>{t("newProject.bookTitleLabel")}</label>
-            <input
-              type="text"
-              {...register("title")}
-              className={inputCls}
-              placeholder={t("newProject.bookTitlePlaceholder")}
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              {t("newProject.bookTitleHelp")}
-            </p>
-            {titleSuggestion && (
-              <p className="mt-1.5 text-xs text-amber-700 dark:text-amber-400">
-                {t("newProject.titleTypoHint")}{" "}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setValue("title", titleSuggestion, { shouldDirty: true })
-                  }
-                  className="font-semibold underline underline-offset-2 hover:no-underline"
-                >
-                  {titleSuggestion}
-                </button>
-              </p>
-            )}
-            {errors.title && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.title.message}
-              </p>
-            )}
-          </div>
-
           <div>
             <div className="flex items-baseline justify-between">
-              <label className={labelCls}>{t("newProject.topicLabel")}</label>
+              <label className={labelCls}>{t("newProject.descriptionLabel")}</label>
               <span
-                className={`text-xs ${(watch("topic")?.length || 0) > 450 ? "text-amber-600 dark:text-amber-400" : "text-gray-400 dark:text-gray-500"}`}
+                className={`text-xs ${(watch("topic")?.length || 0) > 14500 ? "text-amber-600 dark:text-amber-400" : "text-gray-400 dark:text-gray-500"}`}
               >
-                {watch("topic")?.length || 0}/500
+                {watch("topic")?.length || 0}/15000
               </span>
             </div>
             <textarea
               {...register("topic")}
-              rows={3}
-              maxLength={500}
-              className={inputCls + " resize-none"}
-              placeholder={t("newProject.topicPlaceholder")}
+              rows={6}
+              maxLength={15000}
+              className={inputCls + " resize-y"}
+              placeholder={t("newProject.descriptionPlaceholder")}
             />
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              {t("newProject.topicHelp")}
+              {t("newProject.descriptionHelp")}
             </p>
             {errors.topic && (
               <p className="text-red-500 text-xs mt-1">
                 {errors.topic.message}
               </p>
             )}
-          </div>
-
-          <div>
-            <div className="flex items-baseline justify-between">
-              <label className={labelCls}>{t("newProject.guidelinesLabel")}</label>
-              <span className="text-xs text-gray-400 dark:text-gray-500">
-                {watch("guidelines")?.length || 0}/5000
-              </span>
-            </div>
-            <textarea
-              {...register("guidelines")}
-              rows={3}
-              maxLength={5000}
-              className={inputCls + " resize-none"}
-              placeholder={t("newProject.guidelinesPlaceholder")}
-            />
             <MaterialsUpload
               value={materials}
               onChange={setMaterials}
               onBusyChange={setMaterialsBusy}
             />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>{t("newProject.languageLabel")}</label>
+              <select {...register("language")} className={inputCls}>
+                {Object.entries(LANGUAGE_KEYS).map(([k, vKey]) => (
+                  <option key={k} value={k}>
+                    {t(vKey)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>{t("newProject.titleOptionalLabel")}</label>
+              <input
+                type="text"
+                {...register("title")}
+                className={inputCls}
+                placeholder={t("newProject.bookTitleHelp")}
+              />
+              {titleSuggestion && (
+                <p className="mt-1.5 text-xs text-amber-700 dark:text-amber-400">
+                  {t("newProject.titleTypoHint")}{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setValue("title", titleSuggestion, { shouldDirty: true })
+                    }
+                    className="font-semibold underline underline-offset-2 hover:no-underline"
+                  >
+                    {titleSuggestion}
+                  </button>
+                </p>
+              )}
+              {errors.title && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.title.message}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -633,7 +704,6 @@ export default function NewProject() {
 
           <div className="grid gap-3">
             {PAGE_SIZE_TIERS.map((tier, idx) => {
-              const tierPrice = calculatePrice(tier.targetPages);
               const isSelected = selectedTierIdx === idx;
               return (
                 <button
@@ -672,17 +742,6 @@ export default function NewProject() {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-xl font-bold font-display ${isSelected ? "text-primary-600 dark:text-primary-400" : "text-gray-700 dark:text-gray-300"}`}
-                    >
-                      {formatUsdCents(tierPrice.priceUsdCents)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatUsdCents(tierPrice.perPageCents)}
-                      {t("newProject.perPage")}
-                    </p>
-                  </div>
                 </button>
               );
             })}
@@ -694,6 +753,35 @@ export default function NewProject() {
           />
         </div>
 
+        {/* Look & settings — collapsed: the defaults are good and every one of
+            them can be changed later; the summary shows what's chosen. */}
+        <div id="look-settings">
+          <button
+            type="button"
+            onClick={() => {
+              if (!showLook && !lookTracked.current) {
+                lookTracked.current = true;
+                track("look_opened");
+              }
+              setShowLook((v) => !v);
+            }}
+            className="w-full flex items-center justify-between gap-3 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-left cursor-pointer hover:border-gray-300 dark:hover:border-gray-600"
+            aria-expanded={showLook}
+          >
+            <span>
+              <span className="block font-semibold text-gray-900 dark:text-white">
+                {t("newProject.lookTitle")}
+              </span>
+              <span className="block text-sm text-gray-500 dark:text-gray-400">
+                {t("newProject.lookHint")}
+              </span>
+            </span>
+            <ChevronDown
+              className={`w-5 h-5 text-gray-500 shrink-0 transition-transform ${showLook ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
+        <div className={showLook ? "space-y-8" : "hidden"}>
         {/* ━━━ COLOR SCHEME ━━━ */}
         <div className={cardCls}>
           <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
@@ -884,7 +972,6 @@ export default function NewProject() {
                 label: t("newProject.coverGenerateLabel"),
                 desc: t("newProject.coverGenerateDesc"),
                 icon: <Sparkles className="w-4 h-4" />,
-                recommended: true,
               },
               {
                 value: "upload" as const,
@@ -929,11 +1016,6 @@ export default function NewProject() {
                 <div className="flex-1">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300 inline-flex items-center gap-2">
                     {opt.label}
-                    {opt.recommended && (
-                      <span className="px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300 text-[10px] font-bold uppercase tracking-wide">
-                        {t("newProject.recommended")}
-                      </span>
-                    )}
                   </span>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {opt.desc}
@@ -1021,16 +1103,6 @@ export default function NewProject() {
           </h2>
 
           <div className="grid gap-5">
-            <div>
-              <label className={labelCls}>{t("newProject.languageLabel")}</label>
-              <select {...register("language")} className={inputCls}>
-                {Object.entries(LANGUAGE_KEYS).map(([k, vKey]) => (
-                  <option key={k} value={k}>
-                    {t(vKey)}
-                  </option>
-                ))}
-              </select>
-            </div>
             <div>
               <label className={labelCls}>{t("newProject.pageFormatLabel")}</label>
               <input type="hidden" {...register("bookFormat")} />
@@ -1162,6 +1234,8 @@ export default function NewProject() {
           </div>
         </div>
 
+        </div>
+
         {/* Order summary */}
         <div className="bg-gray-50 dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between gap-4">
@@ -1173,10 +1247,28 @@ export default function NewProject() {
                 })}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLook(true);
+                    setTimeout(
+                      () =>
+                        document
+                          .getElementById("look-settings")
+                          ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                      0,
+                    );
+                  }}
+                  className="text-primary-600 dark:text-primary-400 font-medium underline underline-offset-2 hover:no-underline mr-1.5 cursor-pointer"
+                >
+                  {t("newProject.lookChange")}
+                </button>
                 {(watch("bookFormat") || "a5").toUpperCase()} ·{" "}
                 {t(LANGUAGE_KEYS[watch("language") || "en"] || "newProject.langEn")} ·{" "}
-                {t(STYLE_NAME_KEYS[watch("stylePreset") || "modern"] || "newProject.styleNameModern")}{" "}
-                {t("newProject.styleSuffix")} ·{" "}
+                {(watch("stylePreset") || "auto") === "auto"
+                  ? t("newProject.styleAutoSummary")
+                  : `${t(STYLE_NAME_KEYS[watch("stylePreset")] || "newProject.styleNameModern")} ${t("newProject.styleSuffix")}`}{" "}
+                ·{" "}
                 {coverOption === "generate"
                   ? t("newProject.summaryAiCover")
                   : coverOption === "upload"
@@ -1213,8 +1305,11 @@ export default function NewProject() {
           className="w-full py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary-600/25 cursor-pointer"
         >
           {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-          {t("newProject.continueToPayment", { s: formatUsdCents(pricing.priceUsdCents) })}
+          {t("newProject.continueToPreview")}
         </button>
+        <p className="text-sm text-center text-gray-600 dark:text-gray-400 -mt-4">
+          {t("newProject.previewHint")}
+        </p>
 
         {/* Admin-only: separate Autopilot/Routines trigger — skips payment and
             runs the whole pipeline unattended. Standard payment flow above is

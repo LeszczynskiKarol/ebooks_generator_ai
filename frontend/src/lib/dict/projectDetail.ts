@@ -21,6 +21,10 @@ export const en: Record<string, string> = {
   // payment card
   "projectDetail.payment": "Payment",
   "projectDetail.status": "Status:",
+  "projectDetail.payment.PENDING": "awaiting payment",
+  "projectDetail.payment.PAID": "paid",
+  "projectDetail.payment.FAILED": "payment failed",
+  "projectDetail.payment.REFUNDED": "refunded",
   "projectDetail.guidelines": "Guidelines",
   "projectDetail.materials": "Attached files",
   // payment pending
@@ -73,6 +77,10 @@ export const pl: Record<string, string> = {
   // payment card
   "projectDetail.payment": "Płatność",
   "projectDetail.status": "Status:",
+  "projectDetail.payment.PENDING": "czeka na płatność",
+  "projectDetail.payment.PAID": "opłacone",
+  "projectDetail.payment.FAILED": "płatność nieudana",
+  "projectDetail.payment.REFUNDED": "zwrócone",
   "projectDetail.guidelines": "Wytyczne",
   "projectDetail.materials": "Załączone pliki",
   // payment pending

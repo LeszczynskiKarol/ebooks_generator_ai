@@ -6,20 +6,8 @@ export const en: Record<string, string> = {
 
   // Section: Book Details
   "newProject.bookDetails": "Book Details",
-  "newProject.bookTitleLabel": "Book Title",
-  "newProject.bookTitlePlaceholder": "e.g., The SaaS Playbook",
   "newProject.bookTitleHelp":
     "Leave empty — we'll suggest one based on your topic",
-  "newProject.topicLabel": "Topic / Subject",
-  "newProject.topicPlaceholder":
-    "e.g., A comprehensive guide to starting a SaaS business in 2025...",
-  "newProject.topicHelp":
-    "The more specific the topic, the better the book — audience, scope, angle.",
-  "newProject.titleOrTopicHint":
-    "Fill in the title or the topic — either one is enough.",
-  "newProject.guidelinesLabel": "Guidelines (optional)",
-  "newProject.guidelinesPlaceholder":
-    "e.g., Focus on practical examples, include case studies...",
   "newProject.materialsButton": "Attach files",
   "newProject.materialsHint":
     "or drop them here — guidelines, examples, sources, inspirations",
@@ -39,22 +27,21 @@ export const en: Record<string, string> = {
   // Section: Book Size
   "newProject.bookSize": "Book Size",
   "newProject.popular": "Popular",
-  "newProject.perPage": "/page",
   "newProject.tierLabel.compact": "Compact",
   "newProject.tierLabel.standard": "Standard",
   "newProject.tierLabel.extended": "Extended",
   "newProject.tierLabel.comprehensive": "Comprehensive",
   "newProject.tierLabel.complete": "Complete",
-  "newProject.tierDesc.compact": "30–40 pages · 3 chapters",
-  "newProject.tierDesc.standard": "50–70 pages · 4 chapters",
-  "newProject.tierDesc.extended": "80–100 pages · 6 chapters",
-  "newProject.tierDesc.comprehensive": "130–150 pages · 8 chapters",
-  "newProject.tierDesc.complete": "170–200 pages · 10 chapters",
+  "newProject.tierDesc.compact": "30–40 pages",
+  "newProject.tierDesc.standard": "50–70 pages",
+  "newProject.tierDesc.extended": "80–100 pages",
+  "newProject.tierDesc.comprehensive": "130–150 pages",
+  "newProject.tierDesc.complete": "170–200 pages",
 
   // Section: Color Scheme
   "newProject.colorScheme": "Color Scheme",
   "newProject.colorSchemeDesc":
-    "Pick 1–3 accent colors for headings, boxes, and tables. Leave empty for style defaults.",
+    "Pick 1–3 accent colours for headings, boxes and tables. Leave empty and we\'ll pick colours that suit your topic.",
   "newProject.rolePrimary": "Primary",
   "newProject.roleSecondary": "Secondary",
   "newProject.roleTertiary": "Tertiary",
@@ -103,15 +90,14 @@ export const en: Record<string, string> = {
   "newProject.coverGenerateDesc":
     "AI-designed professional cover based on your book details",
   "newProject.coverUploadLabel": "Upload own cover",
-  "newProject.coverUploadDesc": "Provide your own image ({s} format)",
+  "newProject.coverUploadDesc": "Provide your own image in {s} format",
   "newProject.coverNoneLabel": "No cover",
   "newProject.coverNoneDesc":
     "Start without a cover — add one later in the editor",
-  "newProject.recommended": "Recommended",
   "newProject.aiIllustrations": "AI illustrations inside the book",
   "newProject.included": "Included",
   "newProject.aiIllustrationsDesc":
-    "AI-generated images matched to the content and your visual style. No extra cost.",
+    "AI-generated images matched to the content and your visual style. No extra cost. After generation you can also add your own photos anywhere in the book editor.",
   "newProject.howManyIllustrations": "How many illustrations?",
   "newProject.densityStandardLabel": "Standard",
   "newProject.densityStandardDesc": "~1 image per 5 pages",
@@ -126,7 +112,7 @@ export const en: Record<string, string> = {
 
   // Section: Settings
   "newProject.settings": "Settings",
-  "newProject.languageLabel": "Language",
+  "newProject.languageLabel": "Book language",
   "newProject.pageFormatLabel": "Page Format",
   "newProject.visualStyleLabel": "Book Style",
   "newProject.visualStyleHelp":
@@ -152,6 +138,8 @@ export const en: Record<string, string> = {
   "newProject.langNl": "Dutch",
 
   // Styles
+  "newProject.styleAuto": "Automatic — we pick the style and colours that suit your topic",
+  "newProject.styleAutoSummary": "style matched to the topic",
   "newProject.styleModern": "Modern — clean design, direct contemporary writing",
   "newProject.styleAcademic": "Academic — scholarly layout, precise formal prose",
   "newProject.styleMinimal": "Minimal — elegant simplicity, spare calm prose",
@@ -185,6 +173,26 @@ export const en: Record<string, string> = {
 
   // Submit
   "newProject.continueToPayment": "Continue to Payment — {s}",
+  "newProject.continueToPreview": "See my book's table of contents — free",
+  "newProject.previewHint": "Free, no card needed. You pay only if you like the plan.",
+  "newProject.descriptionLabel": "Describe your book",
+  "newProject.descriptionPlaceholder": "e.g. A practical 30-day program for beginners who sit at a desk all day: short daily exercises for the back, hips and neck, desk ergonomics and micro-breaks. Friendly tone, no jargon, with a tracker at the end.",
+  "newProject.descriptionHelp": "What it's about, who it's for and what must be inside — as much or as little as you like. A sentence is enough; a detailed brief is better.",
+  "newProject.titleOptionalLabel": "Title (optional)",
+  "newProject.lookTitle": "Look & settings",
+  "newProject.lookHint": "Style, format, colours, cover, illustrations, footnotes — the defaults are good and you can change them later.",
+  "newProject.lookChange": "Change",
+  "newProject.previewBadge": "Free preview of your book",
+  "newProject.previewPay": "I like it — pay {s} and write my book",
+  "newProject.previewAssurance": "Before writing starts you review the full outline and can change it (plus one free re-plan). If generation fails for technical reasons, we refund you.",
+  "newProject.previewEdit": "Change the description",
+  "newProject.previewEditHint": "This is your book's plan. Click any title or description to change it, add or remove chapters and sections, set pages — or ask the AI for a new version with your notes. After payment we research the topic and expand exactly this plan.",
+  "newProject.previewRedo": "New version from AI with your notes (one time)",
+  "newProject.previewRejectedTitle": "We couldn't plan a book from this description",
+  "newProject.previewLoadingTitle": "Planning your book…",
+  "newProject.previewLoadingText": "Title, chapters and what each one covers. Usually 20–40 seconds.",
+  "newProject.previewLimit": "You've used today's free previews. You can still order the book — after payment you'll see and edit the full outline before writing starts.",
+  "newProject.previewFailed": "The preview didn't load this time. You can try again or order straight away — after payment you'll see and edit the full outline before writing starts.",
 
   // Toasts
   "newProject.draftRestored": "Draft restored",
@@ -200,7 +208,7 @@ export const en: Record<string, string> = {
   // Validation
   "newProject.titleTypoHint": "The topic spells this differently — did you mean:",
   "newProject.errMinChars": "Min 5 chars",
-  "newProject.errTitleOrTopic": "Fill in the title or the topic",
+  "newProject.errTitleOrTopic": "Describe the book or give its title",
 };
 
 export const pl: Record<string, string> = {
@@ -211,20 +219,8 @@ export const pl: Record<string, string> = {
 
   // Section: Book Details
   "newProject.bookDetails": "Szczegóły książki",
-  "newProject.bookTitleLabel": "Tytuł książki",
-  "newProject.bookTitlePlaceholder": "np. Poradnik SaaS",
   "newProject.bookTitleHelp":
     "Zostaw puste — zaproponujemy tytuł na podstawie tematu",
-  "newProject.titleOrTopicHint":
-    "Wypełnij tytuł albo temat — wystarczy jedno z dwóch.",
-  "newProject.topicLabel": "Temat / Zagadnienie",
-  "newProject.topicPlaceholder":
-    "np. Kompleksowy przewodnik po zakładaniu firmy SaaS w 2025 roku...",
-  "newProject.topicHelp":
-    "Im bardziej szczegółowy temat, tym lepsza książka — odbiorca, zakres, ujęcie.",
-  "newProject.guidelinesLabel": "Wytyczne (opcjonalnie)",
-  "newProject.guidelinesPlaceholder":
-    "np. Skup się na praktycznych przykładach, dodaj studia przypadków...",
   "newProject.materialsButton": "Dołącz pliki",
   "newProject.materialsHint":
     "lub przeciągnij je tutaj — wskazówki, przykłady, źródła, inspiracje",
@@ -244,22 +240,21 @@ export const pl: Record<string, string> = {
   // Section: Book Size
   "newProject.bookSize": "Rozmiar książki",
   "newProject.popular": "Popularne",
-  "newProject.perPage": "/strona",
   "newProject.tierLabel.compact": "Kompaktowa",
   "newProject.tierLabel.standard": "Standardowa",
   "newProject.tierLabel.extended": "Rozszerzona",
   "newProject.tierLabel.comprehensive": "Obszerna",
   "newProject.tierLabel.complete": "Kompletna",
-  "newProject.tierDesc.compact": "30–40 stron · 3 rozdziały",
-  "newProject.tierDesc.standard": "50–70 stron · 4 rozdziały",
-  "newProject.tierDesc.extended": "80–100 stron · 6 rozdziałów",
-  "newProject.tierDesc.comprehensive": "130–150 stron · 8 rozdziałów",
-  "newProject.tierDesc.complete": "170–200 stron · 10 rozdziałów",
+  "newProject.tierDesc.compact": "30–40 stron",
+  "newProject.tierDesc.standard": "50–70 stron",
+  "newProject.tierDesc.extended": "80–100 stron",
+  "newProject.tierDesc.comprehensive": "130–150 stron",
+  "newProject.tierDesc.complete": "170–200 stron",
 
   // Section: Color Scheme
   "newProject.colorScheme": "Kolorystyka",
   "newProject.colorSchemeDesc":
-    "Wybierz 1–3 kolory akcentu dla nagłówków, ramek i tabel. Zostaw puste, aby użyć domyślnych dla stylu.",
+    "Wybierz 1–3 kolory akcentu dla nagłówków, ramek i tabel. Zostaw puste — dobierzemy kolory pasujące do tematu.",
   "newProject.rolePrimary": "Podstawowy",
   "newProject.roleSecondary": "Drugorzędny",
   "newProject.roleTertiary": "Trzeciorzędny",
@@ -310,15 +305,14 @@ export const pl: Record<string, string> = {
   "newProject.coverGenerateDesc":
     "Profesjonalna okładka zaprojektowana przez AI na podstawie szczegółów książki",
   "newProject.coverUploadLabel": "Prześlij własną okładkę",
-  "newProject.coverUploadDesc": "Dodaj własny obraz (format {s})",
+  "newProject.coverUploadDesc": "Dodaj własny obraz w formacie {s}",
   "newProject.coverNoneLabel": "Bez okładki",
   "newProject.coverNoneDesc":
     "Zacznij bez okładki — dodasz ją później w edytorze",
-  "newProject.recommended": "Zalecane",
   "newProject.aiIllustrations": "Ilustracje AI wewnątrz książki",
   "newProject.included": "W cenie",
   "newProject.aiIllustrationsDesc":
-    "Obrazy generowane przez AI dopasowane do treści i Twojego stylu wizualnego. Bez dodatkowych kosztów.",
+    "Obrazy generowane przez AI dopasowane do treści i Twojego stylu wizualnego. Bez dodatkowych kosztów. Po wygenerowaniu możesz też w edytorze dodać własne zdjęcia w dowolnym miejscu książki.",
   "newProject.howManyIllustrations": "Ile ilustracji?",
   "newProject.densityStandardLabel": "Standardowo",
   "newProject.densityStandardDesc": "~1 obraz na 5 stron",
@@ -333,7 +327,7 @@ export const pl: Record<string, string> = {
 
   // Section: Settings
   "newProject.settings": "Ustawienia",
-  "newProject.languageLabel": "Język",
+  "newProject.languageLabel": "Język książki",
   "newProject.pageFormatLabel": "Format strony",
   "newProject.visualStyleLabel": "Styl książki",
   "newProject.visualStyleHelp":
@@ -360,6 +354,8 @@ export const pl: Record<string, string> = {
   "newProject.langNl": "Holenderski",
 
   // Styles
+  "newProject.styleAuto": "Automatycznie — dobierzemy styl i kolory do tematu",
+  "newProject.styleAutoSummary": "styl dobrany do tematu",
   "newProject.styleModern": "Nowoczesny — czysty design, bezpośredni współczesny język",
   "newProject.styleAcademic": "Akademicki — naukowy skład, precyzyjna formalna proza",
   "newProject.styleMinimal": "Minimalistyczny — elegancka prostota, oszczędny spokojny styl",
@@ -393,6 +389,26 @@ export const pl: Record<string, string> = {
 
   // Submit
   "newProject.continueToPayment": "Przejdź do płatności — {s}",
+  "newProject.continueToPreview": "Zobacz spis treści mojej książki — za darmo",
+  "newProject.previewHint": "Za darmo, bez karty. Płacisz dopiero, gdy plan Ci się spodoba.",
+  "newProject.descriptionLabel": "Opisz swoją książkę",
+  "newProject.descriptionPlaceholder": "np. Praktyczny 30-dniowy program dla początkujących, którzy cały dzień siedzą przy biurku: krótkie codzienne ćwiczenia na plecy, biodra i szyję, ergonomia stanowiska i mikroprzerwy. Przystępny język, bez żargonu, na końcu tracker postępów.",
+  "newProject.descriptionHelp": "O czym ma być, dla kogo i co koniecznie ma się w niej znaleźć — tyle, ile chcesz. Wystarczy jedno zdanie, a szczegółowy opis da lepszą książkę.",
+  "newProject.titleOptionalLabel": "Tytuł (opcjonalnie)",
+  "newProject.lookTitle": "Wygląd i ustawienia",
+  "newProject.lookHint": "Styl, format, kolory, okładka, ilustracje, przypisy — domyślne są dobre, a zmienisz je także później.",
+  "newProject.lookChange": "Zmień",
+  "newProject.previewBadge": "Darmowy podgląd Twojej książki",
+  "newProject.previewPay": "Podoba mi się — płacę {s} i piszemy",
+  "newProject.previewAssurance": "Zanim zaczniemy pisać, zobaczysz pełny konspekt i możesz go zmienić (plus jedno darmowe ponowne planowanie). Jeśli generowanie nie powiedzie się z przyczyn technicznych, zwracamy pieniądze.",
+  "newProject.previewEdit": "Zmień opis",
+  "newProject.previewEditHint": "To plan Twojej książki. Kliknij dowolny tytuł lub opis, żeby go zmienić, dodawaj i usuwaj rozdziały i podrozdziały, ustawiaj strony — albo poproś AI o nową wersję z Twoimi uwagami. Po płatności robimy research i rozwijamy dokładnie ten plan.",
+  "newProject.previewRedo": "Nowa wersja od AI z Twoimi uwagami (jednorazowo)",
+  "newProject.previewRejectedTitle": "Z tego opisu nie da się zaplanować książki",
+  "newProject.previewLoadingTitle": "Planujemy Twoją książkę…",
+  "newProject.previewLoadingText": "Tytuł, rozdziały i to, co w każdym znajdziesz. Zwykle 20–40 sekund.",
+  "newProject.previewLimit": "Wykorzystano dzisiejsze darmowe podglądy. Książkę nadal możesz zamówić — po płatności zobaczysz i poprawisz pełny konspekt, zanim zaczniemy pisać.",
+  "newProject.previewFailed": "Tym razem podgląd się nie wczytał. Spróbuj ponownie albo zamów od razu — po płatności zobaczysz i poprawisz pełny konspekt, zanim zaczniemy pisać.",
 
   // Toasts
   "newProject.draftRestored": "Przywrócono wersję roboczą",
@@ -408,5 +424,5 @@ export const pl: Record<string, string> = {
   // Validation
   "newProject.titleTypoHint": "W temacie jest inna pisownia — czy chodziło o:",
   "newProject.errMinChars": "Min. 5 znaków",
-  "newProject.errTitleOrTopic": "Wypełnij tytuł albo temat",
+  "newProject.errTitleOrTopic": "Opisz książkę albo podaj jej tytuł",
 };

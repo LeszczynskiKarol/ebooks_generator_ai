@@ -76,6 +76,7 @@ export async function sweepPaymentReminders(): Promise<void> {
       paymentRemindersSent: true,
       lastPaymentReminderAt: true,
       userId: true,
+      preview: true,
       user: { select: { email: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -88,6 +89,9 @@ export async function sweepPaymentReminders(): Promise<void> {
   for (const p of candidates) {
     if (!p.user?.email || p.user.email === adminEmail) continue;
     if (seenUsers.has(p.userId)) continue;
+    // An order whose free preview was refused (gibberish/spam) is not a
+    // customer to chase.
+    if ((p.preview as { rejected?: boolean } | null)?.rejected) continue;
 
     const age = now - p.createdAt.getTime();
     let kind: 1 | 2 | null = null;

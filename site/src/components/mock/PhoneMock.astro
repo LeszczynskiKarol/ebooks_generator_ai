@@ -93,8 +93,10 @@ const langIdx = lang === "pl" ? 1 : 0;
               {p.create.topicPlaceholder}
             </div>
 
-            <p class="mt-2.5 text-[9.5px] font-medium text-ink-600">{p.create.titleLabel}</p>
-            <div class="mt-1 h-[26px] rounded-xl border border-ink-200 bg-white" />
+            <div class="mt-2.5 flex h-[26px] items-center justify-between rounded-xl border border-ink-200 bg-white px-2.5">
+              <span class="text-[9.5px] font-medium text-ink-600">{p.create.styleLabel}</span>
+              <span class="rounded-full bg-violet-50 px-2 py-[2px] text-[8.5px] font-semibold text-violet-700">{p.create.styleValue}</span>
+            </div>
 
             <p class="mt-3 text-[10.5px] font-bold text-ink-900">{p.create.langLabel}</p>
             <div class="mt-1.5 flex gap-2">

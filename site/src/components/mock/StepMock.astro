@@ -21,7 +21,7 @@ const book = m.book;
 const isPL = lang === "pl";
 const rate = isPL ? await getUsdPlnRate() : 0;
 const money = (usd: number) => (isPL ? formatZl(usd, rate) : `$${usd}`);
-const cpParts = ui.continuePayment.split("{price}");
+const payParts = ui.payAndWrite.split("{price}");
 
 const genChapters = book.chapters.map((c, idx) => ({
   n: c.n,
@@ -55,7 +55,7 @@ const genChapters = book.chapters.map((c, idx) => ({
           <div>
             <div class="mb-1 flex items-baseline justify-between">
               <span class="text-[10px] font-semibold text-ink-700">{ui.topicLabel} *</span>
-              <span class="text-[9px] text-ink-400">142 / 500</span>
+              <span class="text-[9px] text-ink-400">{ui.topicCounter}</span>
             </div>
             <div class="rounded-lg border border-violet-300 bg-white px-2.5 py-2 ring-2 ring-violet-100">
               <p class="text-[10px] leading-relaxed text-ink-600">{book.topic}</p>
@@ -86,30 +86,22 @@ const genChapters = book.chapters.map((c, idx) => ({
           </div>
 
           <div>
-            <span class="text-[10px] font-semibold text-ink-700">{ui.colorScheme} <span class="font-normal text-ink-400">— {ui.selected}</span></span>
-            <div class="mt-1 grid grid-cols-11 gap-1">
-              {[
-                { c: "#1E40AF", n: 0 }, { c: "#2563EB", n: 0 }, { c: "#0EA5E9", n: 0 },
-                { c: "#06B6D4", n: 0 }, { c: "#7C3AED", n: 1 }, { c: "#9333EA", n: 0 },
-                { c: "#EC4899", n: 0 }, { c: "#059669", n: 2 }, { c: "#16A34A", n: 0 },
-                { c: "#D97706", n: 3 }, { c: "#DC2626", n: 0 },
-              ].map((s) => (
-                <span
-                  class={`relative aspect-square rounded ${s.n ? "ring-2 ring-ink-400 ring-offset-1" : ""}`}
-                  style={`background:${s.c}`}
-                >
-                  {s.n ? (
-                    <span class="absolute inset-0 flex items-center justify-center">
-                      <span class="flex h-2.5 w-2.5 items-center justify-center rounded-full bg-white/90 text-[6px] font-bold text-ink-900">{s.n}</span>
-                    </span>
-                  ) : null}
-                </span>
-              ))}
+            <span class="text-[10px] font-semibold text-ink-700">{ui.colorScheme} <span class="font-normal text-ink-400">— {ui.optional}</span></span>
+            <div class="mt-1 flex items-center gap-2">
+              <span class="flex flex-shrink-0 items-center gap-1.5 rounded-lg border-2 border-violet-500 bg-violet-50 px-2.5 py-1.5 text-[9px] font-bold text-violet-700">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3 w-3"><path stroke-linecap="round" stroke-linejoin="round" d="M9.8 15.9 9 18.8l-.8-2.9a4.5 4.5 0 0 0-3.1-3.1L2.2 12l2.9-.8a4.5 4.5 0 0 0 3.1-3.1L9 5.2l.8 2.9a4.5 4.5 0 0 0 3.1 3.1l2.9.8-2.9.8a4.5 4.5 0 0 0-3.1 3.1Z" /></svg>
+                {ui.colorAuto}
+              </span>
+              <span class="flex flex-1 gap-1 opacity-40">
+                {["#1E40AF", "#0EA5E9", "#7C3AED", "#EC4899", "#059669", "#D97706"].map((c) => (
+                  <span class="h-3 flex-1 rounded" style={`background:${c}`} />
+                ))}
+              </span>
             </div>
           </div>
 
           <div class="flex h-9 items-center justify-center rounded-lg bg-violet-600 text-[11px] font-bold text-white shadow-sm shadow-violet-600/30">
-            {cpParts[0]}{isPL ? <span class="js-zl" data-usd="14.99">{money(14.99)}</span> : money(14.99)}{cpParts[1] ?? ""}
+            {ui.seeContents}
           </div>
         </div>
       )
@@ -124,7 +116,7 @@ const genChapters = book.chapters.map((c, idx) => ({
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4 text-violet-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.25c-1.6-1-3.8-1.5-6-1.5-1 0-1.9.1-2.8.3v12.7c.9-.2 1.8-.3 2.8-.3 2.2 0 4.4.5 6 1.5m0-12.7c1.6-1 3.8-1.5 6-1.5 1 0 1.9.1 2.8.3v12.7c-.9-.2-1.8-.3-2.8-.3-2.2 0-4.4.5-6 1.5m0-12.7v12.7" /></svg>
               <span class="text-[13px] font-extrabold text-ink-900">{ui.bookStructure}</span>
             </span>
-            <span class="text-[9px] text-ink-400">8 {m.chaptersWord} · 60 {m.pagesWord}</span>
+            <span class="rounded-full bg-green-50 px-2 py-0.5 text-[8px] font-bold text-green-700 ring-1 ring-green-200">{ui.freePreview}</span>
           </div>
 
           <div class="rounded-lg border border-violet-100 bg-violet-50 px-3 py-2">
@@ -139,18 +131,12 @@ const genChapters = book.chapters.map((c, idx) => ({
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5 text-ink-400"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" /></svg>
               <span class="text-[8px] font-bold text-violet-600">CH {book.chapters[0].n}</span>
               <span class="flex-1 truncate text-[10px] font-semibold text-ink-900">{book.chapters[0].title}</span>
-              <span class="flex items-center gap-0.5 text-ink-400">
-                <span class="flex h-3.5 w-3.5 items-center justify-center rounded bg-ink-200 text-[9px] leading-none">−</span>
-                <span class="w-5 text-center text-[9px] font-medium text-ink-600">{book.chapters[0].pages}p</span>
-                <span class="flex h-3.5 w-3.5 items-center justify-center rounded bg-ink-200 text-[9px] leading-none">+</span>
-              </span>
             </div>
             <div class="border-t border-ink-200 bg-white">
               {book.chapters[0].sections.map((s) => (
                 <div class="flex items-center gap-2 border-b border-ink-100 px-2.5 py-1.5 pl-7 last:border-b-0">
                   <span class="h-1 w-1 flex-shrink-0 rounded-full bg-violet-400" />
                   <span class="flex-1 truncate text-[9px] font-medium text-ink-700">{s}</span>
-                  <span class="text-[8px] text-ink-400">2p</span>
                 </div>
               ))}
             </div>
@@ -162,7 +148,6 @@ const genChapters = book.chapters.map((c, idx) => ({
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5 text-ink-400"><path stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7" /></svg>
             <span class="text-[8px] font-bold text-violet-600">CH {book.chapters[1].n}</span>
             <span class="flex-1 truncate text-[10px] font-semibold text-ink-900">{book.chapters[1].title}</span>
-            <span class="text-[9px] font-medium text-ink-500">{book.chapters[1].pages}p</span>
           </div>
 
           <div class="flex h-7 items-center justify-center gap-1 rounded-lg border-2 border-dashed border-ink-200 text-[9px] font-medium text-ink-400">
@@ -171,10 +156,10 @@ const genChapters = book.chapters.map((c, idx) => ({
           </div>
 
           <div class="flex gap-2 pt-0.5">
-            <span class="flex h-8 items-center rounded-lg bg-ink-100 px-3 text-[10px] font-medium text-ink-600">{ui.saveChanges}</span>
-            <span class="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600 text-[11px] font-bold text-white shadow-sm shadow-green-600/30">
+            <span class="flex h-8 flex-shrink-0 items-center rounded-lg bg-ink-100 px-3 text-[10px] font-medium text-ink-600">{ui.redoOnce}</span>
+            <span class="flex min-h-8 flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600 px-2 py-1 text-center text-[10px] font-bold leading-tight text-white shadow-sm shadow-green-600/30">
               <svg viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0 1 1 1.4-1.4l2.8 2.8 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd" /></svg>
-              {ui.approveContinue}
+              <span>{payParts[0]}{isPL ? <span class="js-zl" data-usd="14.99">{money(14.99)}</span> : money(14.99)}{payParts[1] ?? ""}</span>
             </span>
           </div>
         </div>

@@ -18,6 +18,7 @@ import * as cover from "./dict/cover";
 import * as titlePage from "./dict/titlePage";
 import * as imageLibrary from "./dict/imageLibrary";
 import * as admin from "./dict/admin";
+import * as sample from "./dict/sample";
 
 export type AppLang = "en" | "pl";
 
@@ -155,7 +156,7 @@ const pl: Dict = {
   recaptchaPost: "Google.",
 };
 
-const AREAS = [common, layout, dashboard, newProject, projectDetail, forgotReset, generation, structure, download, editor, cover, titlePage, imageLibrary, admin];
+const AREAS = [common, layout, dashboard, newProject, projectDetail, forgotReset, generation, structure, download, editor, cover, titlePage, imageLibrary, admin, sample];
 
 const DICT: Record<AppLang, Dict> = {
   en: Object.assign({}, en, ...AREAS.map((a) => a.en)),
