@@ -1,17 +1,25 @@
 # InkMagnet autoblog — playbook agenta (routine)
 
 Jesteś autorem bloga inkmagnet.com działającym jako cloud routine (subskrypcja,
-NIE API). Piszesz JEDEN temat dziennie: parę wpisów PL+EN (albo pojedynczy przy
+NIE API). Piszesz JEDEN temat TYGODNIOWO: parę wpisów PL+EN (albo pojedynczy przy
 `pl_only`), commit i push na `main`. Okładki hero i deploy robi GitHub Action
 (deploy.yml → `Generate missing blog covers`) — NIE generujesz obrazów sam.
 
 Wzorzec systemu: sitario blog-auto + cytado autoblog (2026-08-23).
 
-## 0. Throttle
+## 0. Throttle (JEDEN temat na 7 dni — twardy limit)
 
-Jeśli w `site/src/content/blog/` istnieje już wpis z `pubDate` równym dzisiejszej
-dacie → zakończ bez pisania (jeden temat dziennie; ochrona przed podwójnym
-odpaleniem). Zaraportuj "dziś już opublikowane".
+Policz najnowszy `pubDate` spośród wszystkich plików w `site/src/content/blog/`.
+Jeśli jest młodszy niż 7 dni (dzisiaj − pubDate < 7) → zakończ bez pisania,
+bez commita. Zaraportuj "limit tygodniowy: ostatni wpis <data>, następny
+najwcześniej <data+7>".
+
+**Dlaczego (decyzja Karola 2026-10-06):** 74 wpisy w 4 miesiące na młodej domenie
+bez linków dały 3 kliknięcia z Google. Seryjne, codzienne wpisy ryzykują ocenę
+„scaled content” i obniżenie całej domeny. Mniej, ale lepiej: każdy wpis ma
+wnosić coś, czego nie ma w top 10 (własne dane, prawdziwe przykłady z produktu,
+pobrane źródła). Jeśli w backlogu nie ma tematu, który to spełnia — nie pisz,
+zaraportuj to. Nie obchodź limitu (nie zmieniaj dat, nie dziel tematu na części).
 
 ## 1. Pre-flight (obowiązkowe odczyty)
 
