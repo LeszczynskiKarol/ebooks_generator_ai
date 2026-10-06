@@ -240,6 +240,30 @@ export const examples = [
     },
   },
   {
+    slug: "excel-w-pracy-biurowej",
+    title: "Excel w pracy biurowej: zeszyt ćwiczeń dla uczestników szkolenia",
+    lang: "pl",
+    category: "tech",
+    style: "Minimal",
+    pages: 57,
+    desc: {
+      pl: "Materiał dla kursantów: 30 ćwiczeń krok po kroku, od formatowania tabel przez JEŻELI i WYSZUKAJ.PIONOWO po tabele przestawne, z rozwiązaniami.",
+      en: "Workbook for training participants: 30 step-by-step exercises, from table formatting through IF and VLOOKUP to pivot tables, with solutions (in Polish).",
+    },
+  },
+  {
+    slug: "excel-for-office-work",
+    title: "Excel for Office Work: An Exercise Workbook for Training Participants",
+    lang: "en",
+    category: "tech",
+    style: "Minimal",
+    pages: 57,
+    desc: {
+      pl: "Angielskie wydanie zeszytu ćwiczeń z Excela: 30 zadań krok po kroku dla uczestników szkolenia, z rozwiązaniami.",
+      en: "Course material for trainees: 30 step-by-step exercises, from formatting tables through IF and VLOOKUP to pivot tables, with solutions.",
+    },
+  },
+  {
     slug: "chatgpt-at-work-practical-office-guide",
     title: "ChatGPT at Work: A Practical Guide for the Office",
     lang: "en",

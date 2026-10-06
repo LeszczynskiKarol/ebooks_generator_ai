@@ -5,7 +5,7 @@ const seg: Segment = {
   lang: "en",
   path: "/course-workbook/",
   altPath: "/pl/materialy-dla-kursantow/",
-  exampleSlug: "TODO",
+  exampleSlug: "excel-for-office-work",
   seo: {
     title: "Course Workbook Maker: Participant Books in PDF | InkMagnet",
     description:

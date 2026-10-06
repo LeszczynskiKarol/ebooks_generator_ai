@@ -1,0 +1,15 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SegmentLanding from "../../components/SegmentLanding.astro";
+import seg from "../../data/segments/kursanci-pl";
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: seg.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+};
+---
+
+<BaseLayout title={seg.seo.title} description={seg.seo.description} jsonLd={jsonLd} translated hreflangEnPath="/course-workbook/" hreflangPlPath="/pl/materialy-dla-kursantow/">
+  <SegmentLanding seg={seg} />
+</BaseLayout>

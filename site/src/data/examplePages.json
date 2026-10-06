@@ -1464,6 +1464,244 @@
   ],
   "previewFrom": 5
  },
+ "excel-w-pracy-biurowej": {
+  "toc": [
+   {
+    "title": "Jak korzystać z tego zeszytu",
+    "sections": [
+     "Zanim zaczniesz",
+     "Jak czytać zapis formuł",
+     "Struktura jednego ćwiczenia"
+    ]
+   },
+   {
+    "title": "Formatowanie i tabele",
+    "sections": [
+     "Dlaczego zaczynamy od wyglądu arkusza",
+     "Czyszczenie arkusza i formatowanie liczb oraz dat",
+     "Zamiana zakresu na Tabelę Excela",
+     "Style tabeli i filtrowanie nagłówków"
+    ]
+   },
+   {
+    "title": "Formuły i odwołania",
+    "sections": [
+     "Dwa typy odwołań, jeden częsty błąd",
+     "Pierwsza formuła: cena netto na cenę brutto",
+     "Odwołania względne przy kopiowaniu formuły w dół",
+     "Odwołania absolutne do stałej stawki"
+    ]
+   },
+   {
+    "title": "Funkcja JEŻELI",
+    "sections": [
+     "Jedna decyzja, trzy warianty trudności",
+     "Prosty warunek: status realizacji zamówienia",
+     "Zagnieżdżone JEŻELI: trzy progi premii",
+     "JEŻELI z ORAZ i LUB: kwalifikacja do rabatu"
+    ]
+   },
+   {
+    "title": "WYSZUKAJ.PIONOWO i X.WYSZUKAJ",
+    "sections": [
+     "Szukanie danych w innej tabeli",
+     "Pierwsze WYSZUKAJ.PIONOWO: cena produktu z cennika",
+     "Pułapka #N/D i czwarty argument",
+     "Przejście na X.WYSZUKAJ"
+    ]
+   },
+   {
+    "title": "Funkcje warunkowe: SUMA.WARUNKÓW i rodzina",
+    "sections": [
+     "Sumowanie, liczenie i uśrednianie po warunku",
+     "SUMA.WARUNKÓW z jednym warunkiem",
+     "SUMA.WARUNKÓW z wieloma warunkami",
+     "LICZ.WARUNKI i ŚREDNIA.WARUNKÓW"
+    ]
+   },
+   {
+    "title": "Sortowanie i filtrowanie",
+    "sections": [
+     "Porządkowanie dużej listy",
+     "Sortowanie wielopoziomowe listy zamówień",
+     "Filtr niestandardowy: przedział wartości",
+     "Autofiltr z wielu kolumn jednocześnie"
+    ]
+   },
+   {
+    "title": "Tabele przestawne",
+    "sections": [
+     "Podsumowanie bez pisania formuł",
+     "Pierwsza tabela przestawna: sprzedaż po działach",
+     "Grupowanie dat w tabeli przestawnej",
+     "Pole obliczeniowe i udział procentowy"
+    ]
+   },
+   {
+    "title": "Wykresy",
+    "sections": [
+     "Kiedy liczby lepiej pokazać, nie wypisać",
+     "Wykres kolumnowy porównujący działy",
+     "Wykres liniowy trendu w czasie",
+     "Wykres przestawny z tabeli przestawnej"
+    ]
+   },
+   {
+    "title": "Formatowanie warunkowe",
+    "sections": [
+     "Kolor jako sygnał, nie dekoracja",
+     "Skale kolorów dla wartości sprzedaży",
+     "Reguła z własną formułą: przekroczone terminy",
+     "Paski danych i zarządzanie regułami"
+    ]
+   },
+   {
+    "title": "Projekt końcowy: raport miesięczny działu",
+    "sections": [
+     "Jeden zestaw danych, wszystkie poznane umiejętności",
+     "Przygotowanie i uporządkowanie danych źródłowych",
+     "Podsumowania formułami i tabelą przestawną",
+     "Wizualizacja i sygnalizacja: wykres i formatowanie warunkowe"
+    ]
+   },
+   {
+    "title": "Podsumowanie i dalsze kroki",
+    "sections": [
+     "Mapa trzydziestu ćwiczeń",
+     "Co dalej, kiedy ten zeszyt się skończy",
+     "Zanim zamkniesz ten zeszyt"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
+ },
+ "excel-for-office-work": {
+  "toc": [
+   {
+    "title": "How to Use This Workbook",
+    "sections": [
+     "Before You Start",
+     "How to Read the Formula Notation",
+     "Structure of One Exercise"
+    ]
+   },
+   {
+    "title": "Formatting and Tables",
+    "sections": [
+     "Why We Start With How the Sheet Looks",
+     "Cleaning Up a Worksheet and Formatting Numbers and Dates",
+     "Converting a Range Into an Excel Table",
+     "Table Styles and Filtering Headers"
+    ]
+   },
+   {
+    "title": "Formulas and References",
+    "sections": [
+     "Two Kinds of References, One Common Mistake",
+     "Your First Formula: Net Price to Gross Price",
+     "Relative References When Copying a Formula Down",
+     "Absolute References to a Fixed Rate"
+    ]
+   },
+   {
+    "title": "The IF Function",
+    "sections": [
+     "One Decision, Three Levels of Difficulty",
+     "A Simple Condition: Order Fulfillment Status",
+     "Nested IF: Three Bonus Tiers",
+     "IF With AND and OR: Discount Qualification"
+    ]
+   },
+   {
+    "title": "VLOOKUP and XLOOKUP",
+    "sections": [
+     "Finding Data in Another Table",
+     "Your First VLOOKUP: a Product's Price from the Price List",
+     "The #N/A Trap and the Fourth Argument",
+     "Switching to XLOOKUP"
+    ]
+   },
+   {
+    "title": "Conditional Functions: SUMIFS and Its Family",
+    "sections": [
+     "Summing, Counting, and Averaging by Condition",
+     "SUMIFS With a Single Condition",
+     "SUMIFS With Multiple Conditions",
+     "COUNTIFS and AVERAGEIFS"
+    ]
+   },
+   {
+    "title": "Sorting and Filtering",
+    "sections": [
+     "Putting a Large List in Order",
+     "Multi-Level Sorting of an Order List",
+     "Custom Filter: a Range of Values",
+     "An Autofilter Across Multiple Columns at Once"
+    ]
+   },
+   {
+    "title": "PivotTables",
+    "sections": [
+     "Summarizing Without Writing Formulas",
+     "Your First PivotTable: Sales by Department",
+     "Grouping Dates in a PivotTable",
+     "A Calculated Column and Percentage Share"
+    ]
+   },
+   {
+    "title": "Charts",
+    "sections": [
+     "When Numbers Are Better Shown Than Listed",
+     "A Column Chart Comparing Departments",
+     "A Line Chart for a Trend Over Time",
+     "A Chart From a PivotTable"
+    ]
+   },
+   {
+    "title": "Conditional Formatting",
+    "sections": [
+     "Color as a Signal, Not Decoration",
+     "Color Scales for Sales Values",
+     "A Rule With Its Own Formula: Overdue Deadlines",
+     "Data Bars and Managing Rules"
+    ]
+   },
+   {
+    "title": "Final Project: Monthly Department Report",
+    "sections": [
+     "One Data Set, Every Skill Learned",
+     "Preparing and Cleaning the Source Data",
+     "Summarizing With Formulas and a PivotTable",
+     "Visualization and Signaling: a Chart and Conditional Formatting"
+    ]
+   },
+   {
+    "title": "Summary and Next Steps",
+    "sections": [
+     "A Map of Thirty Exercises",
+     "What Comes Next When This Workbook Is Done",
+     "Before You Close This Workbook"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 6
+ },
  "chatgpt-at-work-practical-office-guide": {
   "toc": [
    {

@@ -5,7 +5,7 @@ const seg: Segment = {
   lang: "pl",
   path: "/pl/materialy-dla-kursantow/",
   altPath: "/course-workbook/",
-  exampleSlug: "TODO",
+  exampleSlug: "excel-w-pracy-biurowej",
   seo: {
     title: "Materiały dla kursantów: skrypt i zeszyt ćwiczeń | InkMagnet",
     description:
