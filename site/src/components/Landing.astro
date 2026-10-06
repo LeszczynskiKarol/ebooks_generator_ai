@@ -49,6 +49,7 @@ const featureIcons = [
 // Real light-theme screens (web + Android) instead of HTML mocks, per language.
 // Sizes are the intrinsic size of public/app/<lang>/<name>.webp.
 const shotDir = isPL ? "/app/pl" : "/app/en";
+const phoneH = isPL ? 831 : 767; // intrinsic height of the 390px-wide phone shots
 const stepShots: Array<null | { web: string; wh: number; phone?: string; url: string; alt: string }> = isPL
   ? [
       { web: "w-new", wh: 705, url: "app.inkmagnet.com/projects/new", alt: "Formularz nowej książki: jedno pole na opis, język, tytuł" },
@@ -58,9 +59,9 @@ const stepShots: Array<null | { web: string; wh: number; phone?: string; url: st
     ]
   : [
       { web: "w-new", wh: 705, url: "app.inkmagnet.com/projects/new", alt: "New book form: one field for the description, language and title" },
-      { web: "w-plan", wh: 625, url: "app.inkmagnet.com/projects/…", alt: "Editable table of contents: chapters and sections with descriptions" },
+      { web: "w-plan", wh: 625, phone: "m-plan", url: "app.inkmagnet.com/projects/…", alt: "Editable table of contents: chapters and sections with descriptions" },
       null,
-      { web: "w-download", wh: 391, url: "app.inkmagnet.com/projects/…", alt: "Finished book: PDF and EPUB downloads" },
+      { web: "w-download", wh: 391, phone: "m-book", url: "app.inkmagnet.com/projects/…", alt: "Finished book: PDF and EPUB downloads" },
     ];
 const heroShot = isPL
   ? { url: "app.inkmagnet.com: próbka książki", alt: "Próbka dwóch pierwszych stron książki złożonej przez InkMagnet" }
@@ -185,7 +186,10 @@ const useCaseIcons = [
               <Shot src="/app/pl/h-plan" w={240} h={511} kind="phone" eager zoom={false} class="absolute -bottom-2 left-0 w-[34%] max-w-[170px] rotate-[-3deg]" alt="Plan książki w aplikacji InkMagnet na Androida" />
             </div>
           ) : (
-            <Shot src="/app/en/h-sample" w={760} h={574} eager zoom={false} url={heroShot.url} alt={heroShot.alt} />
+            <div class="relative pb-10 pl-8 sm:pl-14">
+              <Shot src="/app/en/h-sample" w={760} h={574} eager zoom={false} url={heroShot.url} alt={heroShot.alt} />
+              <Shot src="/app/en/h-plan" w={240} h={472} kind="phone" eager zoom={false} class="absolute -bottom-2 left-0 w-[34%] max-w-[170px] rotate-[-3deg]" alt="Free book plan and sample in the InkMagnet Android app" />
+            </div>
           )
         }
       </div>
@@ -244,7 +248,7 @@ const useCaseIcons = [
                 <div class:list={["relative", stepShots[i]!.phone && "pb-8 pr-6 sm:pr-16"]}>
                   <Shot src={`${shotDir}/${stepShots[i]!.web}`} w={1100} h={stepShots[i]!.wh} url={stepShots[i]!.url} alt={stepShots[i]!.alt} />
                   {stepShots[i]!.phone && (
-                    <Shot src={`${shotDir}/${stepShots[i]!.phone}`} w={390} h={831} kind="phone" class="absolute -bottom-2 right-0 w-[30%] max-w-[150px] rotate-[3deg]" alt={`${stepShots[i]!.alt}, aplikacja na Androida`} />
+                    <Shot src={`${shotDir}/${stepShots[i]!.phone}`} w={390} h={phoneH} kind="phone" class="absolute -bottom-2 right-0 w-[30%] max-w-[150px] rotate-[3deg]" alt={`${stepShots[i]!.alt}${isPL ? ", aplikacja na Androida" : ", Android app"}`} />
                   )}
                 </div>
               ) : (

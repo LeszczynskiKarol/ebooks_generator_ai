@@ -3,7 +3,6 @@
 // separate product moment between the two white web-app sections.
 import { useTranslations, type Lang } from "../i18n/ui";
 import { playHref, appPagePath } from "../lib/play";
-import PhoneMock from "./mock/PhoneMock.astro";
 import Shot from "./Shot.astro";
 
 interface Props {
@@ -71,8 +70,8 @@ const badge = lang === "pl" ? "/badges/google-play-pl.png" : "/badges/google-pla
           </div>
         ) : (
           <div class="flex items-center">
-            <PhoneMock lang={lang} screen="books" class="z-10 -mr-16 hidden rotate-[-4deg] sm:block" />
-            <PhoneMock lang={lang} screen="detail" class="z-20 rotate-[3deg]" />
+            <Shot src="/app/en/m-plan2" w={390} h={767} kind="phone" class="z-10 -mr-10 hidden w-[200px] rotate-[-4deg] sm:block" alt="Book plan with chapters and sections in the InkMagnet Android app" />
+            <Shot src="/app/en/m-book" w={390} h={767} kind="phone" class="z-20 w-[220px] rotate-[3deg]" alt="Finished book in the app: open the PDF or EPUB" />
           </div>
         )
       }
