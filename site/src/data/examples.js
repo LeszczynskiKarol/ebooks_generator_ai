@@ -70,6 +70,18 @@ export const examples = [
     },
   },
   {
+    slug: "klienci-z-google-bez-budzetu-na-reklamy",
+    title: "Klienci z Google bez budżetu na reklamy",
+    lang: "pl",
+    category: "marketing",
+    style: "Business",
+    pages: 55,
+    desc: {
+      pl: "Profil Firmy w Google krok po kroku dla fryzjera, mechanika czy sklepu osiedlowego: opinie, zdjęcia, posty, gotowe szablony wiadomości i plan na 30 dni.",
+      en: "Google Business Profile step by step for a hairdresser, mechanic or corner shop: reviews, photos, posts, ready-to-copy message templates and a 30-day plan (in Polish).",
+    },
+  },
+  {
     slug: "trening-silowy-w-domu-30-cwiczen",
     title: "Trening siłowy w domu — 30 ćwiczeń bez sprzętu i z hantlami",
     lang: "pl",

@@ -1311,13 +1311,15 @@ Common mistake and its consequence. Include what to do instead. 2-3 sentences.
 \\end{warningbox}
 
 Case study or real-world example (purple frame):
-\\begin{examplebox}{Case Study: Company or Person Name}
+\\begin{examplebox}{Company or Person Name — what happened}
 Real-world example with specific numbers, timeline, and measurable outcomes.
 What they did, what happened, what the reader can learn from it.
 \\end{examplebox}
 
+Box titles are reader-facing text: write them in the book's language like the prose (never an English label such as "Checklist:" or "Case Study:" in a non-English book).
+
 Action checklist — place exactly ONE at the very END of each chapter (checkbox list):
-\\begin{checklistbox}{Checklist: Short Chapter Topic}
+\\begin{checklistbox}{Short Chapter Topic}
 \\begin{itemize}
 \\item First concrete, verifiable action item from this chapter
 \\item Second action item — imperative mood, one line each
