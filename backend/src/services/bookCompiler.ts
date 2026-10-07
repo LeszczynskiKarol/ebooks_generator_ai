@@ -858,6 +858,11 @@ export function assembleLatexDocument(p: AssembleParams): string {
   // ── Page-break hygiene ──
   add(
     "\\usepackage{needspace}",
+    // Floats (tables) may not drift past the next \section: 2026-10-07 Dutch
+    // workbook — table 5.1 landed 3 pages after its (now empty) heading, under
+    // a different section, and "the table above" pointed to a table below.
+    // Loaded BEFORE \let\bforigsection so the barrier is part of \section.
+    "\\usepackage[section]{placeins}",
     // A section title's underline (titlerule) must not orphan onto the next page
     "\\let\\bforigsection\\section",
     // \Needspace* (exact), not \needspace (elastic): the elastic form inserts
