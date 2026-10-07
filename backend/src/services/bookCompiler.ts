@@ -2227,6 +2227,15 @@ export function sanitizeChapterLatex(
     "\\par\\Needspace*{5\\baselineskip}\\noindent$1\\par\\nopagebreak\n$2",
   );
 
+  // A section that opens with a table: when the table does not fit and floats
+  // to the next page, the heading stayed alone at the foot of the page
+  // (2026-10-07 Dutch workbook, pp. 34-36). Ask for room for heading + table
+  // start, else the heading moves with the table.
+  result = result.replace(
+    /^([ \t]*\\section\*?\{[^\n]*\})[ \t]*\n(?:[ \t]*\n)*([ \t]*\\begin\{table\})/gm,
+    "\\Needspace*{16\\baselineskip}\n$1\n$2",
+  );
+
   // ━━━ FIX 6b: Table & meta-commentary hardening (compile-survival) ━━━
   // The biggest source of fatal compile errors. Robust passes:
   //   1) strip model self-talk that leaked into the book (e.g. continuation prose)
