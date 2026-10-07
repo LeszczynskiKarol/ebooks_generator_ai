@@ -3,6 +3,7 @@
 // src/data/examples.js. The EN page passes lang="en" → shows only English
 // books; the PL page passes lang="pl" → shows every book.
 import { examples } from "../data/examples.js";
+import { versioned } from "../lib/asset";
 import type { Lang } from "../i18n/ui";
 
 interface Props {
@@ -37,7 +38,7 @@ type ExBook = (typeof examples)[number];
         >
           <div class="relative aspect-[3/4] overflow-hidden bg-ink-50">
             <img
-              src={`/samples/covers/${b.slug}.webp`}
+              src={versioned(`/samples/covers/${b.slug}.webp`)}
               alt={`${pl ? "Okładka" : "Cover"}: ${b.title}`}
               loading="lazy"
               decoding="async"

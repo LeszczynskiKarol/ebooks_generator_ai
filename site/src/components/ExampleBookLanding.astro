@@ -5,6 +5,8 @@
 // (TOC i lista renderów, generowane przez scripts/build-example-pages.py).
 import { siteConfig } from "../config/site";
 import Lightbox from "./Lightbox.astro";
+import { versioned } from "../lib/asset";
+import pagesData from "../data/examplePages.json";
 import type { Lang } from "../i18n/ui";
 
 interface Chapter {
@@ -71,8 +73,9 @@ const t = pl
     };
 
 const registerUrl = `${siteConfig.appUrl}/auth/register?lang=${lang}`;
-const pdfUrl = `/samples/${book.slug}.pdf`;
-const coverUrl = `/samples/covers/${book.slug}.webp`;
+const pdfVersion = (pagesData as Record<string, { pdfVersion?: string }>)[book.slug]?.pdfVersion;
+const pdfUrl = `/samples/${book.slug}.pdf${pdfVersion ? `?v=${pdfVersion}` : ""}`;
+const coverUrl = versioned(`/samples/covers/${book.slug}.webp`);
 ---
 
 <main class="pt-16">
@@ -170,7 +173,7 @@ const coverUrl = `/samples/covers/${book.slug}.webp`;
         {
           pageImages.map((p, i) => (
             <img
-              src={`/samples/pages/${book.slug}/${p}`}
+              src={versioned(`/samples/pages/${book.slug}/${p}`)}
               alt={`${book.title} (${i === 0 ? (pl ? "okładka" : "cover") : (pl ? "strona" : "page") + " " + (previewFrom + i - 1)})`}
               width="760"
               height="1075"

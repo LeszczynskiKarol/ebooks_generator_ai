@@ -10,7 +10,7 @@
 # Outputs are COMMITTED (like the cover thumbnails) — CI never runs this.
 # Run from site/ after adding a book:  python scripts/build-example-pages.py
 # Needs: pypdf, pdftoppm (poppler) and Pillow on PATH.
-import io, json, os, re, subprocess, sys, tempfile
+import hashlib, io, json, os, re, subprocess, sys, tempfile
 
 from pypdf import PdfReader
 from PIL import Image
@@ -89,7 +89,11 @@ for slug in slugs:
     left = [x for ch in toc for x in [ch["title"], *ch["sections"]] if "—" in x]
     if left:
         print(f"  !! {slug}: em dash in TOC, add to src/data/tocOverrides.json: {left}")
-    data[slug] = {"toc": toc, "pages": rendered, "previewFrom": start}
+    # PDFs are not in git (CI cannot hash them) and /samples/ is cached as
+    # immutable: the pages link the PDF with ?v=<this> so a rebuilt book is
+    # actually re-downloaded.
+    pdf_version = hashlib.md5(open(pdf_path, "rb").read()).hexdigest()[:8]
+    data[slug] = {"toc": toc, "pages": rendered, "previewFrom": start, "pdfVersion": pdf_version}
     print(f"  OK {slug}: {len(toc)} chapters, {sum(len(c['sections']) for c in toc)} sections, {len(rendered)} page renders")
 
 io.open(OUT_JSON, "w", encoding="utf-8").write(json.dumps(data, ensure_ascii=False, indent=1))

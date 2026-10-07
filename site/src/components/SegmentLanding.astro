@@ -10,6 +10,7 @@ import Shot from "./Shot.astro";
 import Lightbox from "./Lightbox.astro";
 import { examples } from "../data/examples.js";
 import pagesData from "../data/examplePages.json";
+import { versioned } from "../lib/asset";
 import type { Segment } from "../data/segments/types";
 
 interface Props {
@@ -19,12 +20,12 @@ const { seg } = Astro.props;
 const pl = seg.lang === "pl";
 const registerUrl = `${siteConfig.appUrl}/auth/register?lang=${seg.lang}`;
 const book = (examples as any[]).find((b) => b.slug === seg.exampleSlug);
-const extra = (pagesData as Record<string, { toc: { title: string; sections: string[] }[]; pages: string[]; previewFrom: number }>)[seg.exampleSlug];
+const extra = (pagesData as Record<string, { toc: { title: string; sections: string[] }[]; pages: string[]; previewFrom: number; pdfVersion?: string }>)[seg.exampleSlug];
 if (!book || !extra) throw new Error(`Segment ${seg.key}: example ${seg.exampleSlug} missing in examples.js / examplePages.json`);
 const bookHref = pl ? `/pl/przyklady/${book.slug}/` : `/examples/${book.slug}/`;
-const pdfHref = `/samples/${book.slug}.pdf`;
+const pdfHref = `/samples/${book.slug}.pdf${extra.pdfVersion ? `?v=${extra.pdfVersion}` : ""}`;
 // pages[0] is the cover (already shown next to the TOC), previews start inside
-const pageImgs = extra.pages.slice(1).map((p) => `/samples/pages/${book.slug}/${p}`);
+const pageImgs = extra.pages.slice(1).map((p) => versioned(`/samples/pages/${book.slug}/${p}`));
 const shotDir = pl ? "/app/pl" : "/app/en";
 const phoneH = pl ? 831 : 767;
 const howShots = [
@@ -89,7 +90,7 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
       ) : (
       <div class="relative mx-auto flex w-full max-w-md items-end justify-center gap-4 lg:max-w-none">
         <a href={bookHref} class="block w-[46%] max-w-[230px] -rotate-2 overflow-hidden rounded-lg shadow-2xl shadow-ink-900/25 ring-1 ring-ink-200 transition-transform hover:-rotate-1">
-          <img src={`/samples/covers/${book.slug}.webp`} alt={book.title} width="520" height="738" loading="eager" fetchpriority="high" class="block h-auto w-full" />
+          <img src={versioned(`/samples/covers/${book.slug}.webp`)} alt={book.title} width="520" height="738" loading="eager" fetchpriority="high" class="block h-auto w-full" />
         </a>
         <img src={pageImgs[Math.min(2, pageImgs.length - 1)]} alt={pl ? `Strona z książki „${book.title}”` : `A page from "${book.title}"`} width="760" height="1078" loading="eager" data-zoom class="block w-[46%] max-w-[230px] rotate-2 cursor-zoom-in rounded-lg bg-white shadow-xl shadow-ink-900/15 ring-1 ring-ink-200" />
       </div>
@@ -134,7 +135,7 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
           <h2 class="mt-4 font-display text-3xl font-extrabold tracking-tight text-ink-900">{seg.inside.title}</h2>
           <p class="mt-4 text-lg leading-relaxed text-ink-600">{seg.inside.sub}</p>
           <a href={bookHref} class="mt-6 block overflow-hidden rounded-xl shadow-xl shadow-ink-900/15 ring-1 ring-ink-200">
-            <img src={`/samples/covers/${book.slug}.webp`} alt={book.title} width="520" height="738" loading="lazy" decoding="async" class="block h-auto w-full" />
+            <img src={versioned(`/samples/covers/${book.slug}.webp`)} alt={book.title} width="520" height="738" loading="lazy" decoding="async" class="block h-auto w-full" />
           </a>
           <p class="mt-4 text-sm text-ink-500">{book.title} · {book.pages} {l.pages}</p>
           <div class="mt-5 flex flex-wrap gap-3">
@@ -191,7 +192,7 @@ const check = "M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L4.3 10.7a1 1 0
             .filter(Boolean)
             .map((b: any) => (
               <a href={pl ? `/pl/przyklady/${b.slug}/` : `/examples/${b.slug}/`} class="group block">
-                <img src={`/samples/covers/${b.slug}.webp`} alt={b.title} width="520" height="738" loading="lazy" decoding="async" class="block h-auto w-full rounded-lg shadow-lg shadow-ink-900/15 ring-1 ring-ink-200 transition-transform group-hover:-translate-y-1" />
+                <img src={versioned(`/samples/covers/${b.slug}.webp`)} alt={b.title} width="520" height="738" loading="lazy" decoding="async" class="block h-auto w-full rounded-lg shadow-lg shadow-ink-900/15 ring-1 ring-ink-200 transition-transform group-hover:-translate-y-1" />
                 <p class="mt-2 text-xs font-semibold leading-snug text-ink-900">{b.title}</p>
                 <p class="text-xs text-ink-500">{b.pages} {l.pages}</p>
               </a>
