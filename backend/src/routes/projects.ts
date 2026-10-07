@@ -344,6 +344,9 @@ export async function projectRoutes(app: FastifyInstance) {
             : `${pages}-page professional eBook`,
         ),
       ],
+      // Promo codes are validated by Stripe itself (single-use, expiry, % off);
+      // the webhook records the code and the discount on the project.
+      allow_promotion_codes: true,
       metadata: { projectId: project.id, userId: request.user.userId },
       success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=cancelled`,
@@ -783,6 +786,9 @@ export async function projectRoutes(app: FastifyInstance) {
             : `${project.targetPages}-page professional eBook`,
         ),
       ],
+      // Promo codes are validated by Stripe itself (single-use, expiry, % off);
+      // the webhook records the code and the discount on the project.
+      allow_promotion_codes: true,
       metadata: { projectId: project.id, userId: request.user.userId },
       success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=cancelled`,

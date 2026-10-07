@@ -64,6 +64,11 @@ export async function webhookRoutes(app: FastifyInstance) {
     }
     console.log(`  ✅ Signature verified — event: ${event.type}`);
 
+    // API calls made while handling the event must use the key of the event's
+    // mode (admin test-mode checkouts arrive at the same endpoint).
+    const modeKey = event.livemode ? process.env.STRIPE_SECRET_KEY : process.env.STRIPE_SECRET_KEY_TEST;
+    const stripeForEvent = modeKey ? new Stripe(modeKey) : stripe;
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const projectId = session.metadata?.projectId;
@@ -92,6 +97,27 @@ export async function webhookRoutes(app: FastifyInstance) {
         },
       });
       console.log(`  ✅ Project marked PAID, stage → STRUCTURE`);
+
+      // Promo code (allow_promotion_codes): record which code and how much it
+      // took off, so revenue in the admin panel is net. Never blocks the order.
+      const discountMinor = session.total_details?.amount_discount ?? 0;
+      if (discountMinor > 0) {
+        try {
+          const full = await stripeForEvent.checkout.sessions.retrieve(session.id, {
+            expand: ["total_details.breakdown.discounts.discount.promotion_code"],
+          });
+          const pc = full.total_details?.breakdown?.discounts?.[0]?.discount?.promotion_code;
+          const code = pc && typeof pc === "object" ? pc.code : null;
+          const proj = await prisma.project.findUnique({ where: { id: projectId }, select: { exchangeRate: true } });
+          const usdCents = session.currency === "pln" && proj?.exchangeRate
+            ? Math.round(discountMinor / proj.exchangeRate)
+            : discountMinor;
+          await prisma.project.update({ where: { id: projectId }, data: { promoCode: code, discountUsdCents: usdCents } });
+          console.log(`  🏷️  Promo ${code ?? "?"}: -${(discountMinor / 100).toFixed(2)} ${session.currency}`);
+        } catch (e: any) {
+          console.log(`  ⚠️ Promo details not recorded: ${e.message}`);
+        }
+      }
 
       // Launch pipeline: research → structure → (user approves) → content → compile
       console.log(`  🚀 Enqueueing structure generation...`);

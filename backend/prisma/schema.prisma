@@ -82,6 +82,8 @@ model Project {
   priceUsdCents   Int?
   currency        String        @default("usd")
   exchangeRate    Float?        // USD→PLN rate used at checkout (when currency = "pln")
+  promoCode       String?       // Stripe promotion code used at checkout (e.g. WASZTEMAT25)
+  discountUsdCents Int?         // discount granted by promoCode, in USD cents (PLN converted at exchangeRate)
   stripeSessionId String?
   stripePaymentId String?
   paymentStatus   PaymentStatus @default(PENDING)

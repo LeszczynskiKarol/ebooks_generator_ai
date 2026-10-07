@@ -103,7 +103,7 @@ export async function adminRoutes(app: FastifyInstance) {
 
     const totalRevenue = await prisma.project.aggregate({
       where: { paymentStatus: "PAID" },
-      _sum: { priceUsdCents: true, totalTokensUsed: true, totalCostUsd: true },
+      _sum: { priceUsdCents: true, discountUsdCents: true, totalTokensUsed: true, totalCostUsd: true },
     });
     // What unpaid orders (previews, samples, design picks) cost us — money
     // spent on people who never bought.
@@ -120,7 +120,7 @@ export async function adminRoutes(app: FastifyInstance) {
           users: userCount,
           paid: paidCount,
           completed: completedCount,
-          revenue: (totalRevenue._sum.priceUsdCents || 0) / 100,
+          revenue: ((totalRevenue._sum.priceUsdCents || 0) - (totalRevenue._sum.discountUsdCents || 0)) / 100,
           totalTokens: totalRevenue._sum.totalTokensUsed || 0,
           totalCost: totalRevenue._sum.totalCostUsd || 0,
           unpaidCost: unpaidCost._sum.totalCostUsd || 0,
