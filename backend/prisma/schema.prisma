@@ -36,6 +36,7 @@ model User {
   signupLanding   String?
 
   createdAt DateTime @default(now())
+  lastActiveAt DateTime? // any authenticated API request, throttled to 10 min (middleware/auth.ts)
   updatedAt DateTime @updatedAt
 }
 

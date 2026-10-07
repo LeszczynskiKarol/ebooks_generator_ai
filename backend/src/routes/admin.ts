@@ -595,6 +595,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         createdAt: true,
+        lastActiveAt: true,
         emailVerified: true,
         googleId: true,
         stripeCustomerId: true,
@@ -622,6 +623,25 @@ export async function adminRoutes(app: FastifyInstance) {
         cur.opens = opens;
       }
     }
+    // Last activity: newest of the request heartbeat (lastActiveAt, since
+    // 7.10.2026), funnel steps, project edits and free previews. Shown only when
+    // it is a later visit, not the signup session itself (> 30 min after signup).
+    const ids = users.map((u) => u.id);
+    const [projAgg, prevAgg] = await Promise.all([
+      prisma.project.groupBy({ by: ["userId"], where: { userId: { in: ids } }, _max: { updatedAt: true } }),
+      prisma.previewLog.groupBy({ by: ["userId"], where: { userId: { in: ids } }, _max: { createdAt: true } }),
+    ]);
+    const lastSeen = new Map<string, number>();
+    const seen = (id: string | null, d: Date | null | undefined) => {
+      if (!id || !d) return;
+      const t = d.getTime();
+      if (t > (lastSeen.get(id) ?? 0)) lastSeen.set(id, t);
+    };
+    for (const u of users) seen(u.id, u.lastActiveAt);
+    for (const r of funnelRows) seen(r.userId, r.createdAt);
+    for (const r of projAgg) seen(r.userId, r._max.updatedAt);
+    for (const r of prevAgg) seen(r.userId, r._max.createdAt);
+    const LATER_MS = 30 * 60 * 1000;
     return reply.send({
       success: true,
       data: users.map((u) => ({
@@ -629,6 +649,10 @@ export async function adminRoutes(app: FastifyInstance) {
         email: u.email,
         name: u.name,
         createdAt: u.createdAt,
+        lastActivity: (() => {
+          const t = lastSeen.get(u.id);
+          return t && t - u.createdAt.getTime() > LATER_MS ? new Date(t) : null;
+        })(),
         verified: !!u.emailVerified,
         google: !!u.googleId,
         hasStripe: !!u.stripeCustomerId,
