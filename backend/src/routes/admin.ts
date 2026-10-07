@@ -664,6 +664,69 @@ export async function adminRoutes(app: FastifyInstance) {
     });
   });
 
+  // ━━━ GET /api/admin/users/:id/activity  (one user's timeline) ━━━
+  // Everything we store about what the user did, merged into one timeline,
+  // newest first: signup, funnel steps, projects (created / paid / generation /
+  // finished versions), free previews, Google Play purchases, auth e-mails,
+  // notifications. Request-level browsing is not stored, only lastActiveAt.
+  app.get("/api/admin/users/:id/activity", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true, email: true, name: true, createdAt: true, lastActiveAt: true, emailVerified: true,
+        googleId: true, signupCountry: true, signupReferrer: true, signupLanding: true, signupUserAgent: true,
+      },
+    });
+    if (!user) return reply.status(404).send({ success: false, error: "Not found" });
+
+    const [funnel, projects, previews, plays, tokens, notes] = await Promise.all([
+      prisma.funnelEvent.findMany({ where: { userId: id }, orderBy: { createdAt: "asc" }, select: { event: true, meta: true, createdAt: true } }),
+      prisma.project.findMany({
+        where: { userId: id },
+        select: {
+          id: true, title: true, topic: true, targetPages: true, priceUsdCents: true, currency: true, paymentStatus: true,
+          currentStage: true, createdAt: true, paidAt: true, generationStartedAt: true, promoCode: true, discountUsdCents: true,
+          versions: { select: { createdAt: true }, orderBy: { createdAt: "asc" } },
+        },
+      }),
+      prisma.previewLog.findMany({ where: { userId: id }, select: { projectId: true, costUsd: true, ok: true, createdAt: true } }),
+      prisma.playPurchase.findMany({ where: { userId: id }, select: { productId: true, purchaseState: true, isTest: true, projectId: true, createdAt: true } }),
+      prisma.authToken.findMany({ where: { userId: id }, select: { type: true, usedAt: true, createdAt: true } }),
+      prisma.notification.findMany({ where: { userId: id }, select: { type: true, title: true, projectId: true, readAt: true, createdAt: true } }),
+    ]);
+
+    type Item = { at: Date; kind: string; label: string; detail?: string | null; projectId?: string | null };
+    const items: Item[] = [];
+    items.push({ at: user.createdAt, kind: "signup", label: "Rejestracja", detail: [user.googleId ? "Google" : "e-mail", user.signupCountry, signupSource(user.signupReferrer, user.signupLanding)].filter(Boolean).join(" · ") });
+    for (const f of funnel) items.push({ at: f.createdAt, kind: "funnel", label: f.event, detail: f.meta ? JSON.stringify(f.meta) : null, projectId: (f.meta as any)?.projectId ?? null });
+    for (const p of projects) {
+      const name = p.title || p.topic?.slice(0, 80) || p.id;
+      items.push({ at: p.createdAt, kind: "project", label: "Nowy projekt", detail: `${name} · ${p.targetPages ?? "?"} str.`, projectId: p.id });
+      if (p.paidAt) items.push({ at: p.paidAt, kind: "paid", label: "Płatność", detail: `${p.priceUsdCents ? "$" + (p.priceUsdCents / 100).toFixed(2) : ""}${p.promoCode ? ` · kod ${p.promoCode} (−$${((p.discountUsdCents ?? 0) / 100).toFixed(2)})` : ""}`, projectId: p.id });
+      if (p.generationStartedAt) items.push({ at: p.generationStartedAt, kind: "generation", label: "Start generacji", detail: name, projectId: p.id });
+      p.versions.forEach((v, i) => items.push({ at: v.createdAt, kind: "version", label: i === 0 ? "Książka gotowa" : `Nowa wersja (v${i + 1})`, detail: name, projectId: p.id }));
+    }
+    for (const v of previews) items.push({ at: v.createdAt, kind: "preview", label: v.ok ? "Darmowy podgląd" : "Podgląd (błąd)", detail: `koszt $${v.costUsd.toFixed(3)}`, projectId: v.projectId });
+    for (const g of plays) items.push({ at: g.createdAt, kind: "play", label: "Zakup Google Play", detail: `${g.productId}${g.isTest ? " (test)" : ""} · stan ${g.purchaseState}`, projectId: g.projectId });
+    for (const t of tokens) items.push({ at: t.createdAt, kind: "auth", label: `E-mail: ${t.type}`, detail: t.usedAt ? `użyty ${t.usedAt.toISOString()}` : "nieużyty" });
+    for (const n of notes) items.push({ at: n.createdAt, kind: "notification", label: `Powiadomienie: ${n.type}`, detail: `${n.title}${n.readAt ? " · przeczytane" : ""}`, projectId: n.projectId });
+    items.sort((a, b) => b.at.getTime() - a.at.getTime());
+
+    return reply.send({
+      success: true,
+      data: {
+        user: {
+          ...user, verified: !!user.emailVerified, google: !!user.googleId,
+          source: signupSource(user.signupReferrer, user.signupLanding),
+          projects: projects.length, paid: projects.filter((p) => p.paymentStatus === "PAID").length,
+          previews: previews.length, previewCost: previews.reduce((a, v) => a + v.costUsd, 0),
+        },
+        timeline: items,
+      },
+    });
+  });
+
   // ━━━ GET /api/admin/funnel  (step counts, last N days) ━━━
   app.get("/api/admin/funnel", async (request, reply) => {
     const days = Math.min(365, Math.max(1, Number((request.query as any)?.days) || 30));

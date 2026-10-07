@@ -11,6 +11,7 @@ import NewProject from "@/pages/NewProject";
 import ProjectDetail from "@/pages/ProjectDetail";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminProjectDetail from "@/pages/AdminProjectDetail";
+import AdminUserActivity from "@/pages/AdminUserActivity";
 import AdminUsers from "@/pages/AdminUsers";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -46,6 +47,7 @@ export default function App() {
       {/* Admin */}
       <Route path="/admin" element={<Protected><Layout><AdminDashboard /></Layout></Protected>} />
       <Route path="/admin/users" element={<Protected><Layout><AdminUsers /></Layout></Protected>} />
+      <Route path="/admin/users/:id" element={<Protected><Layout><AdminUserActivity /></Layout></Protected>} />
       <Route path="/admin/projects/:id" element={<Protected><Layout><AdminProjectDetail /></Layout></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

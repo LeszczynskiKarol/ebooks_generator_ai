@@ -121,6 +121,7 @@ function UserRow({ u }: { u: AdminUser }) {
             )}
             {u.email}
           </button>
+          <Link to={`/admin/users/${u.id}`} className="ml-2 text-xs text-indigo-600 hover:underline">aktywność</Link>
         </td>
         <td className="px-3 py-2.5 text-gray-600 dark:text-gray-300">
           {u.name || <span className="text-gray-400">—</span>}
