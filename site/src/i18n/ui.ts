@@ -29,9 +29,9 @@ export const ui = {
     },
     hero: {
       badge: "AI ebook generator",
-      title1: "A finished book,",
-      titleAccent: "typeset like a publisher's",
-      title2: "from one description",
+      title1: "Your ebook, no writing needed.",
+      titleAccent: "Ready to publish in an hour.",
+      title2: "",
       sub: "Describe your topic and InkMagnet researches it in current sources, writes every chapter, runs a language edit and typesets everything into PDF and EPUB, with a cover, a table of contents and citations. No subscription: you pay for one book, and only after you have seen its plan.",
       ctaPrimary: "Plan my book for free",
       ctaSecondary: "See how it works",
@@ -763,8 +763,8 @@ export const ui = {
     },
     hero: {
       badge: "Polski generator ebooków AI",
-      title1: "Jeden opis, gotowa książka",
-      titleAccent: "jak z wydawnictwa",
+      title1: "Twój ebook bez pisania.",
+      titleAccent: "Gotowy do wydania w godzinę.",
       title2: "",
       sub: "Opisz temat, a InkMagnet zbada go w aktualnych źródłach, napisze każdy rozdział, przeprowadzi redakcję językową i złoży całość w PDF i EPUB z okładką, spisem treści i przypisami. Bez abonamentu: płacisz za jedną książkę, i to dopiero wtedy, gdy zobaczysz jej plan.",
       ctaPrimary: "Zaplanuj książkę za darmo",
