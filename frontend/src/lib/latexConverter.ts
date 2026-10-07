@@ -133,6 +133,12 @@ export function latexToHtml(
   html = html.replace(/\\label\{[^}]*\}/g, (m) => parkRaw(m));
   html = html.replace(/\\ref\{[^}]*\}/g, (m) => parkRaw(m));
 
+  // ── Page breaks on their own line → editor atom (PageBreak node) ──
+  html = html.replace(
+    /^[ \t]*\\(?:clearpage|newpage|pagebreak)[ \t]*$/gm,
+    '\n\n<div data-page-break="true" class="page-break"></div>\n\n',
+  );
+
   // ── Strip layout commands ──
   html = html.replace(/\\clearpage/g, "");
   html = html.replace(/\\newpage/g, "");
@@ -591,6 +597,7 @@ function nodeToLatex(node: Node): string {
 
     // ── Divs: callout boxes ──
     case "div": {
+      if (el.dataset.pageBreak) return "\n\\clearpage\n\n";
       const calloutType = el.dataset.callout;
       if (calloutType) {
         const title = escapeLatexTitle(el.dataset.title || "");

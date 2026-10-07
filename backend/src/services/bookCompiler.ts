@@ -2216,8 +2216,9 @@ export function sanitizeChapterLatex(
   // breaks between them, leaving the label alone at the foot of a page and
   // the list on the next one (2026-10-07, Excel workbook, many pages).
   // Reserve room for the label + the first lines of the list, else move both.
+  // Any number of blank lines between them: the WYSIWYG save writes 2-3.
   result = result.replace(
-    /^[ \t]*(\\textbf\{[^{}\n]{1,60}:\})[ \t]*(?:\\\\)?[ \t]*\n(?:[ \t]*\n)?([ \t]*\\begin\{(?:enumerate|itemize|description|tabularx?|table|xltabular)\})/gm,
+    /^[ \t]*(\\textbf\{[^{}\n]{1,60}:\})[ \t]*(?:\\\\)?[ \t]*\n(?:[ \t]*\n)*([ \t]*\\begin\{(?:enumerate|itemize|description|tabularx?|table|xltabular)\})/gm,
     "\\par\\Needspace*{5\\baselineskip}\\noindent$1\\par\\nopagebreak\n$2",
   );
 

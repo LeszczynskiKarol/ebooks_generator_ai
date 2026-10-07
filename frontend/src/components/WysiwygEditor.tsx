@@ -47,9 +47,10 @@ import {
   ChevronDown,
   Trash2,
   Plus,
+  SeparatorHorizontal,
 } from "lucide-react";
 import { Callout, CALLOUT_STYLES, INSERTABLE_CALLOUTS } from "./CalloutNode";
-import { Footnote, RawLatex } from "./FootnoteNode";
+import { Footnote, RawLatex, PageBreak } from "./FootnoteNode";
 import { useT } from "@/lib/i18n";
 
 // Map callout type → i18n key for the user-visible label
@@ -123,6 +124,7 @@ export default function WysiwygEditor({
       Callout,
       Footnote,
       RawLatex,
+      PageBreak,
     ],
     content,
     editable: !readOnly,
@@ -340,6 +342,14 @@ export default function WysiwygEditor({
             <Minus className="w-4 h-4" />
           </Btn>
 
+          {/* Page break (PDF): the text after it starts on a new page */}
+          <Btn
+            onClick={() => (editor.chain().focus() as any).setPageBreak().run()}
+            title={t("editor.pageBreak")}
+          >
+            <SeparatorHorizontal className="w-4 h-4" />
+          </Btn>
+
           <Sep />
 
           {/* Callout boxes dropdown */}
@@ -492,6 +502,32 @@ export default function WysiwygEditor({
         }
         .dark .wysiwyg-content hr {
           border-color: #374151;
+        }
+        .wysiwyg-content .page-break {
+          clear: both;
+          margin: 1.5rem 0;
+          border-top: 2px dashed #a78bfa;
+          text-align: center;
+          line-height: 0;
+          cursor: default;
+        }
+        .wysiwyg-content .page-break::after {
+          content: "${t("editor.pageBreakLabel").replace(/"/g, "")}";
+          display: inline-block;
+          padding: 0 0.6rem;
+          background: #fff;
+          color: #7c3aed;
+          font-size: 0.75rem;
+          font-weight: 600;
+          line-height: 1;
+          transform: translateY(-0.6em);
+        }
+        .wysiwyg-content .page-break.ProseMirror-selectednode {
+          border-top-color: #7c3aed;
+        }
+        .dark .wysiwyg-content .page-break::after {
+          background: #111827;
+          color: #c4b5fd;
         }
         /* footnote / cross-reference atoms — round-trip raw LaTeX, not editable here */
         .wysiwyg-content sup.footnote {

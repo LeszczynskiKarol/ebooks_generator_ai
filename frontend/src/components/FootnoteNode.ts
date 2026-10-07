@@ -90,3 +90,38 @@ export const RawLatex = Node.create({
     ];
   },
 });
+
+// Block atom for a forced page break: <div data-page-break> ↔ \clearpage.
+// The PDF is laid out by TeX, so Enter / empty paragraphs never move text to
+// the next page; this is the explicit way to do it. EPUB ignores it.
+export const PageBreak = Node.create({
+  name: "pageBreak",
+  group: "block",
+  atom: true,
+  selectable: true,
+  draggable: false,
+
+  parseHTML() {
+    return [{ tag: "div[data-page-break]" }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return [
+      "div",
+      mergeAttributes(HTMLAttributes, {
+        "data-page-break": "true",
+        class: "page-break",
+        contenteditable: "false",
+      }),
+    ];
+  },
+
+  addCommands() {
+    return {
+      setPageBreak:
+        () =>
+        ({ chain }: any) =>
+          chain().insertContent({ type: this.name }).run(),
+    } as any;
+  },
+});
