@@ -2231,9 +2231,17 @@ export function sanitizeChapterLatex(
   // to the next page, the heading stayed alone at the foot of the page
   // (2026-10-07 Dutch workbook, pp. 34-36). Ask for room for heading + table
   // start, else the heading moves with the table.
+  // \FloatBarrier first: the previous section's pending table is flushed
+  // BEFORE the space check (placeins would flush it after, pushing the heading
+  // down again). Room = estimated table height (≈2 lines per row in A5, plus
+  // caption/header), capped at a page.
   result = result.replace(
-    /^([ \t]*\\section\*?\{[^\n]*\})[ \t]*\n(?:[ \t]*\n)*([ \t]*\\begin\{table\})/gm,
-    "\\Needspace*{16\\baselineskip}\n$1\n$2",
+    /^([ \t]*\\section\*?\{[^\n]*\})[ \t]*\n(?:[ \t]*\n)*([ \t]*\\begin\{table\}[\s\S]*?\\end\{table\})/gm,
+    (_m: string, sec: string, table: string) => {
+      const rows = (table.match(/\\\\/g) || []).length;
+      const lines = Math.min(34, Math.max(12, rows * 2 + 6));
+      return `\\FloatBarrier\\Needspace*{${lines}\\baselineskip}\n${sec}\n${table}`;
+    },
   );
 
   // ━━━ FIX 6b: Table & meta-commentary hardening (compile-survival) ━━━
