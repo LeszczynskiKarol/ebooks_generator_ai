@@ -2211,6 +2211,16 @@ export function sanitizeChapterLatex(
     r.replace(/(?<!,)"([^"\n]{1,300}?)"(?!')/g, ",,$1''"),
   );
 
+  // ━━━ FIX 6a: Run-in labels must stay with what they introduce ━━━
+  // "\textbf{Kroki:}" on its own line, then \begin{enumerate}: TeX happily
+  // breaks between them, leaving the label alone at the foot of a page and
+  // the list on the next one (2026-10-07, Excel workbook, many pages).
+  // Reserve room for the label + the first lines of the list, else move both.
+  result = result.replace(
+    /^[ \t]*(\\textbf\{[^{}\n]{1,60}:\})[ \t]*(?:\\\\)?[ \t]*\n(?:[ \t]*\n)?([ \t]*\\begin\{(?:enumerate|itemize|description|tabularx?|table|xltabular)\})/gm,
+    "\\par\\Needspace*{5\\baselineskip}\\noindent$1\\par\\nopagebreak\n$2",
+  );
+
   // ━━━ FIX 6b: Table & meta-commentary hardening (compile-survival) ━━━
   // The biggest source of fatal compile errors. Robust passes:
   //   1) strip model self-talk that leaked into the book (e.g. continuation prose)
