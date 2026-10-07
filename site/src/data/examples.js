@@ -37,7 +37,7 @@ export const examples = [
     lang: "en",
     category: "fitness",
     style: "Premium",
-    pages: 52,
+    pages: 55,
     featured: true,
     desc: {
       pl: "Angielskie wydanie „Treningu siłowego w domu”: 30 ćwiczeń z ciągłą numeracją, plany treningowe i zasady progresji.",
@@ -50,7 +50,7 @@ export const examples = [
     lang: "en",
     category: "cooking",
     style: "Modern",
-    pages: 55,
+    pages: 56,
     featured: true,
     desc: {
       pl: "Angielskie wydanie książki o air fryerze: 60 numerowanych przepisów z fotografiami AI i ściągawkami czasów.",
@@ -63,7 +63,7 @@ export const examples = [
     lang: "en",
     category: "cooking",
     style: "Modern",
-    pages: 51,
+    pages: 52,
     desc: {
       pl: "Angielskie wydanie poradnika Thermomix: przepisy bazowe, tabele porównawcze i plan tygodnia.",
       en: "Base recipes, comparison tables and a weekly plan, with handbook chapters interleaved with numbered recipes.",
@@ -111,7 +111,7 @@ export const examples = [
     lang: "pl",
     category: "fitness",
     style: "Modern",
-    pages: 54,
+    pages: 55,
     desc: {
       pl: "30 ćwiczeń z ciągłą numeracją pogrupowanych w partie mięśniowe, fotografie AI, plany treningowe i zasady progresji.",
       en: "30 continuously numbered exercises grouped by muscle part, AI photographs, training plans and progression rules.",
@@ -161,7 +161,7 @@ export const examples = [
     lang: "pl",
     category: "rozwoj",
     style: "Creative",
-    pages: 86,
+    pages: 87,
     desc: {
       pl: "Siedem decyzji przed startem, potem trzy dekady po jednym zadaniu dziennie: wersja minimalna, kotwica, zdanie jeśli-to, procedura powrotu po przerwie i decyzja, co dalej. Plan oparty na badaniach automatyzmu, nie na motywacji.",
       en: "Polish 30-day habit plan: seven decisions before day one, then one task a day (minimum version, anchor, if-then sentence and a return procedure after a missed day).",
@@ -269,7 +269,7 @@ export const examples = [
     lang: "en",
     category: "tech",
     style: "Modern",
-    pages: 49,
+    pages: 48,
     desc: {
       pl: "Angielskie wydanie przewodnika o ChatGPT w biurze: pisanie, arkusze, spotkania, automatyzacje i zasady bezpieczeństwa danych firmowych.",
       en: "Prompting that actually saves time, spreadsheets and data analysis, meeting notes, automations and the rules for company data.",
@@ -281,7 +281,7 @@ export const examples = [
     lang: "pl",
     category: "tech",
     style: "Modern",
-    pages: 53,
+    pages: 50,
     desc: {
       pl: "Prompty, które realnie oszczędzają czas, arkusze i analiza danych, notatki ze spotkań, automatyzacje oraz zasady bezpieczeństwa danych firmowych.",
       en: "Polish edition of the ChatGPT office guide: prompting, spreadsheets, meeting notes, automations and company data safety.",
@@ -293,7 +293,7 @@ export const examples = [
     lang: "pl",
     category: "cooking",
     style: "Modern",
-    pages: 55,
+    pages: 53,
     featured: true,
     desc: {
       pl: "Poradnik z przepisami bazowymi, tabelami porównawczymi i planem tygodnia. Część podręcznikowa przeplata się z numerowanymi przepisami.",
