@@ -31,8 +31,8 @@ const { lang, book, toc, pageImages, previewFrom } = Astro.props;
 const pl = lang === "pl";
 
 const catLabel: Record<string, string> = pl
-  ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie", fitness: "Fitness", kariera: "Kariera", finanse: "Finanse" }
-  : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic", fitness: "Fitness", kariera: "Career", finanse: "Finance" };
+  ? { cooking: "Kuchnia", marketing: "Marketing", tech: "Technologia", academic: "Akademickie", fitness: "Fitness", kariera: "Kariera", finanse: "Finanse", rozwoj: "Rozwój osobisty", jezyki: "Języki" }
+  : { cooking: "Cookery", marketing: "Marketing", tech: "Technology", academic: "Academic", fitness: "Fitness", kariera: "Career", finanse: "Finance", rozwoj: "Personal growth", jezyki: "Languages" };
 
 const t = pl
   ? {

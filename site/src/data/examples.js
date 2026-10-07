@@ -32,6 +32,18 @@
 /** @type {ExampleBook[]} */
 export const examples = [
   {
+    slug: "imperfectum-i-perfectum-w-7-dni",
+    title: "Imperfectum i perfectum w 7 dni: zeszyt ćwiczeń z niderlandzkiego dla Polaków",
+    lang: "pl",
+    category: "jezyki",
+    style: "Modern",
+    pages: 67,
+    desc: {
+      pl: "Seria „Wasz temat”: temat z komentarza widza. 7 dni nauki czasu przeszłego w niderlandzkim: 't kofschip, hebben czy zijn, 40 czasowników nieregularnych, 36 ćwiczeń z kluczem odpowiedzi.",
+      en: "From our “Your topic” series: a viewer's comment turned into a book. Seven days of Dutch past tenses for Polish learners: 't kofschip, hebben vs zijn, 40 irregular verbs, 36 exercises with an answer key (in Polish).",
+    },
+  },
+  {
     slug: "strength-training-at-home-30-exercises",
     title: "Strength Training at Home: 30 Bodyweight and Dumbbell Exercises",
     lang: "en",

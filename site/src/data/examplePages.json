@@ -1,4 +1,132 @@
 {
+ "imperfectum-i-perfectum-w-7-dni": {
+  "toc": [
+   {
+    "title": "Jak korzystać z tego zeszytu",
+    "sections": []
+   },
+   {
+    "title": "Dzień 1. Imperfectum czasowników regularnych",
+    "sections": [
+     "Reguła 't kofschip",
+     "Wyjątek: czasowniki na -ven i -zen",
+     "Przeczenie i pytania w imperfectum",
+     "Ćwiczenia",
+     "Rozpoznaj kofschip",
+     "Uzupełnij imperfectum liczby pojedynczej",
+     "Liczba pojedyncza czy mnoga",
+     "Wyjątki -ven/-zen",
+     "Swobodne zdania",
+     "Odpowiedzi"
+    ]
+   },
+   {
+    "title": "Dzień 2. Perfectum czasowników regularnych",
+    "sections": [
+     "Budowa: ge- + rdzeń + -t/-d",
+     "Przedrostki: kiedy ge- wypada, a kiedy wchodzi w środek",
+     "Czasowniki na -eren: zapożyczone, ale regularne",
+     "Czasowniki zwrotne w perfectum",
+     "Ćwiczenia",
+     "Zbuduj imiesłów",
+     "Nierozdzielny czy rozdzielny",
+     "Znajdź błąd",
+     "Pełne zdania",
+     "Swobodna produkcja",
+     "Odpowiedzi"
+    ]
+   },
+   {
+    "title": "Dzień 3. Hebben czy zijn?",
+    "sections": [
+     "Domyślnie hebben",
+     "Zijn: ruch z celem, zmiana stanu, kilka stałych czasowników",
+     "Hebben i zijn w zdaniu podrzędnym: pozycja nie zmienia wyboru",
+     "Ćwiczenia",
+     "Hebben czy zijn: czasowniki stałe",
+     "Ruch z celem czy bez",
+     "Przechodni czy nie",
+     "Znajdź i popraw błąd",
+     "Swobodne zdania",
+     "Odpowiedzi"
+    ]
+   },
+   {
+    "title": "Dzień 4. Najczęstsze czasowniki nieregularne",
+    "sections": [
+     "Dlaczego te czasowniki łamią obie reguły",
+     "Czasowniki codzienne i ruchu",
+     "Czasowniki mowy, myśli i codziennych czynności",
+     "Czasowniki działania i zmiany",
+     "Czasowniki modalne i pomocnicze",
+     "Czasowniki modalne w perfectum: bezokolicznik zamiast imiesłowu",
+     "Ćwiczenia",
+     "Rozpoznaj wzorzec",
+     "Uzupełnij imperfectum",
+     "Uzupełnij voltooid deelwoord",
+     "Zły czasownik, dobra reguła",
+     "Pełne zdania",
+     "Odpowiedzi"
+    ]
+   },
+   {
+    "title": "Dzień 5. Kiedy imperfectum, a kiedy perfectum",
+    "sections": [
+     "Pytanie, które dotąd omijaliśmy",
+     "Narracja kontra rozmowa",
+     "Słowa-sygnały",
+     "Ćwiczenia",
+     "Fakt czy opowieść",
+     "Dokończ opowiadanie",
+     "zijn/hebben/modalne w rozmowie",
+     "Wybierz formę i uzasadnij",
+     "Swobodna narracja",
+     "Odpowiedzi"
+    ]
+   },
+   {
+    "title": "Dzień 6. Szyk zdania z perfectum",
+    "sections": [
+     "Imiesłów na końcu zdania głównego",
+     "Zdania podrzędne: wszystko na koniec",
+     "Przeczenie i pytania",
+     "Zdania względne: ta sama reguła co po omdat",
+     "Krótka uwaga o stronie pasywnej",
+     "Ćwiczenia",
+     "Ułóż zdanie główne",
+     "Zbuduj pytanie",
+     "Zdanie podrzędne",
+     "Znajdź błąd w szyku",
+     "Swobodne zdania",
+     "Odpowiedzi"
+    ]
+   },
+   {
+    "title": "Dzień 7. Powtórka i test",
+    "sections": [
+     "Sześć reguł w jednym miejscu",
+     "Test końcowy",
+     "'t kofschip pod presją",
+     "Nieregularne bez podpowiedzi",
+     "Hebben czy zijn: test",
+     "Imperfectum czy perfectum: test",
+     "Szyk pod kontrolą",
+     "Opowiadanie końcowe",
+     "Odpowiedzi"
+    ]
+   }
+  ],
+  "pages": [
+   "p1.webp",
+   "p2.webp",
+   "p3.webp",
+   "p4.webp",
+   "p5.webp",
+   "p6.webp"
+  ],
+  "previewFrom": 7,
+  "pdfVersion": "54ec1d16"
+ },
  "strength-training-at-home-30-exercises": {
   "toc": [
    {
