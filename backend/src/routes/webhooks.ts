@@ -119,6 +119,65 @@ export async function webhookRoutes(app: FastifyInstance) {
         }
       }
 
+      // Order confirmation with the withdrawal-waiver statement (consumer law:
+      // durable medium). Claimed atomically — Stripe may deliver twice.
+      // Never blocks the order.
+      try {
+        const claimed = await prisma.project.updateMany({
+          where: { id: projectId, orderEmailSentAt: null },
+          data: { orderEmailSentAt: new Date() },
+        });
+        if (claimed.count === 1) {
+          const p = await prisma.project.findUnique({
+            where: { id: projectId },
+            select: {
+              id: true,
+              title: true,
+              topic: true,
+              targetPages: true,
+              currency: true,
+              paidAt: true,
+              withdrawalConsentAt: true,
+              user: { select: { email: true } },
+            },
+          });
+          const to = p?.user?.email || session.customer_details?.email;
+          if (p && to) {
+            const minor = session.amount_total ?? 0;
+            const cur = (session.currency || p.currency || "usd").toLowerCase();
+            const amountLabel =
+              cur === "pln"
+                ? (minor / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " zł"
+                : cur === "usd"
+                  ? "$" + (minor / 100).toFixed(2)
+                  : (minor / 100).toFixed(2) + " " + cur.toUpperCase();
+            const { sendOrderConfirmationEmail } = await import("../lib/email");
+            const appUrl = process.env.PUBLIC_APP_URL || "https://app.inkmagnet.com";
+            // The checkout currency follows the UI language at order time
+            // (PL panel → PLN) — the best signal of the customer's language.
+            const res = await sendOrderConfirmationEmail({
+              to,
+              orderId: p.id,
+              bookTitle: p.title || p.topic,
+              pages: p.targetPages,
+              amountLabel,
+              paidAt: p.paidAt ?? new Date(),
+              consentAt: p.withdrawalConsentAt,
+              link: `${appUrl}/projects/${p.id}`,
+              lang: p.currency === "pln" ? "pl" : "en",
+            });
+            if (!res.ok) {
+              await prisma.project.update({ where: { id: projectId }, data: { orderEmailSentAt: null } });
+              console.log(`  ⚠️ Order confirmation not sent: ${res.error}`);
+            } else {
+              console.log(`  📧 Order confirmation sent to ${to}`);
+            }
+          }
+        }
+      } catch (e: any) {
+        console.log(`  ⚠️ Order confirmation failed: ${e.message}`);
+      }
+
       // Launch pipeline: research → structure → (user approves) → content → compile
       console.log(`  🚀 Enqueueing structure generation...`);
       const { enqueueGeneration } = await import("../lib/jobQueue");

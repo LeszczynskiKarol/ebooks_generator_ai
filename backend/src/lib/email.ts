@@ -272,3 +272,124 @@ ${note}`;
     tag: kind === 1 ? "payment_reminder_1" : "payment_reminder_2",
   });
 }
+
+// ── Order confirmation (after Stripe payment) ──
+// Consumer law: the trader must confirm on a durable medium the consumer's
+// request to start before the withdrawal period ends and their acknowledgement
+// of losing the right. The statement is quoted VERBATIM as ticked in the app —
+// keep these strings identical to "payment.consent" in
+// frontend/src/lib/dict/payment.ts.
+export const WITHDRAWAL_CONSENT_TEXT: Record<string, string> = {
+  en: "I request that work on my book starts immediately, before the 14-day withdrawal period ends, and I acknowledge that I lose my right of withdrawal once generation of the book begins.",
+  pl: "Żądam rozpoczęcia pracy nad moją książką przed upływem 14-dniowego terminu na odstąpienie od umowy i przyjmuję do wiadomości, że z chwilą rozpoczęcia generowania książki tracę prawo do odstąpienia od umowy.",
+};
+
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+export type OrderConfirmationArgs = {
+  to: string;
+  orderId: string;
+  bookTitle: string;
+  pages: number;
+  amountLabel: string;
+  paidAt: Date;
+  /** null when the order predates the consent checkbox */
+  consentAt: Date | null;
+  link: string;
+  lang: Lang;
+};
+
+export function sendOrderConfirmationEmail(args: OrderConfirmationArgs) {
+  const { subject, html, text } = buildOrderConfirmationEmail(args);
+  return sendEmail({ to: args.to, subject, html, text, tag: "order_confirmation" });
+}
+
+export function buildOrderConfirmationEmail(args: OrderConfirmationArgs) {
+  const { orderId, pages, amountLabel, paidAt, consentAt, link, lang } = args;
+  const pl = lang === "pl";
+  const title = esc(args.bookTitle);
+  const locale = pl ? "pl-PL" : "en-GB";
+  const fmt = (d: Date) =>
+    d.toLocaleString(locale, {
+      timeZone: "Europe/Warsaw",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
+  const consentText = WITHDRAWAL_CONSENT_TEXT[pl ? "pl" : "en"];
+  const termsUrl = pl
+    ? "https://inkmagnet.com/pl/regulamin/"
+    : "https://inkmagnet.com/terms/";
+
+  const subject = pl
+    ? `Potwierdzenie zamówienia: „${args.bookTitle}”`
+    : `Order confirmation: "${args.bookTitle}"`;
+  const intro = pl
+    ? "Dziękujemy za zamówienie. Płatność dotarła, a my zaczynamy przygotowywać plan Twojej książki do akceptacji."
+    : "Thank you for your order. Your payment has arrived and we are starting on your book's plan for your approval.";
+  const rows: [string, string][] = pl
+    ? [
+        ["Numer zamówienia", orderId],
+        ["Książka", `„${title}”`],
+        ["Objętość", `ok. ${pages} stron`],
+        ["Zapłacono", esc(amountLabel)],
+        ["Data płatności", fmt(paidAt)],
+      ]
+    : [
+        ["Order number", orderId],
+        ["Book", `"${title}"`],
+        ["Length", `~${pages} pages`],
+        ["Paid", esc(amountLabel)],
+        ["Payment date", fmt(paidAt)],
+      ];
+  const table = rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:4px 12px 4px 0;color:#6b7280;white-space:nowrap;vertical-align:top">${k}</td><td style="padding:4px 0">${v}</td></tr>`,
+    )
+    .join("");
+
+  const consentHead = pl
+    ? `Oświadczenie złożone przy zamówieniu${consentAt ? `, ${fmt(consentAt)}` : ""}:`
+    : `Statement made when ordering${consentAt ? `, ${fmt(consentAt)}` : ""}:`;
+  const consentNote = pl
+    ? "Generowanie książki (research i plan) rusza zaraz po płatności i z tą chwilą prawo do odstąpienia od umowy wygasa. Plan zobaczysz i zatwierdzisz przed pisaniem rozdziałów. Jeśli generowanie nie powiedzie się z przyczyn technicznych, zwrócimy płatność."
+    : "Generation of your book (research and plan) starts right after payment, and from that moment the right of withdrawal expires. You review and approve the plan before the chapters are written. If generation fails for technical reasons, we refund your payment.";
+  const consentBlock = consentAt
+    ? `<p style="font-size:14px;font-weight:600;margin:24px 0 8px">${consentHead}</p>
+<blockquote style="margin:0 0 12px;padding:10px 14px;border-left:3px solid #4f46e5;background:#f9fafb;font-size:14px;color:#374151">${esc(consentText)}</blockquote>
+<p style="font-size:13px;color:#6b7280;margin:0 0 20px">${consentNote}</p>`
+    : "";
+  const cta = pl ? "Przejdź do zamówienia" : "Go to your order";
+  const terms = pl ? "Regulamin" : "Terms";
+
+  const html = shell(`
+<p style="font-size:15px;margin:0 0 16px">${intro}</p>
+<table style="font-size:14px;border-collapse:collapse;margin:0 0 8px">${table}</table>
+${consentBlock}
+<p style="text-align:center;margin:20px 0">
+<a href="${link}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;
+   font-weight:700;padding:13px 28px;border-radius:10px">${cta}</a></p>
+<p style="font-size:13px;color:#6b7280;margin:0"><a href="${termsUrl}" style="color:#4f46e5">${terms}</a></p>`);
+
+  const text = [
+    intro,
+    "",
+    ...rows.map(([k, v]) => `${k}: ${v.replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")}`),
+    ...(consentAt ? ["", consentHead, pl ? `„${consentText}”` : `"${consentText}"`, consentNote] : []),
+    "",
+    link,
+    "",
+    `${terms}: ${termsUrl}`,
+  ].join("\n");
+  return { subject, html, text };
+}

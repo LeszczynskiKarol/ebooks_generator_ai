@@ -93,6 +93,9 @@ model Project {
   // Required for every Stripe checkout; kept as evidence.
   withdrawalConsentAt DateTime?
   withdrawalConsentIp String?
+  // Order confirmation e-mail (durable-medium copy of the consent) — set once,
+  // so a re-delivered Stripe webhook never sends it twice.
+  orderEmailSentAt    DateTime?
   paidAt          DateTime?
 
   // Abandoned-checkout recovery (lib/paymentReminders.ts): how many reminder
