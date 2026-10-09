@@ -4,6 +4,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { recordUnits } from "../lib/costTracker";
+import { serperGl } from "../lib/languages";
 import axios from "axios";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
@@ -924,12 +925,15 @@ async function searchSerper(
   log: any,
 ): Promise<Array<{ title: string; link: string; snippet: string }>> {
   const langCode = LANGUAGE_CODES[language] || "en";
-  log.step?.(`  Serper: gl=${langCode === "pl" ? "pl" : "us"}, hl=${langCode}, q="${query}"`);
+  // gl = country of the result set. It used to be "pl" or "us" only, so a
+  // German book searched the US index with hl=de (thin, off-market results).
+  const gl = serperGl(langCode);
+  log.step?.(`  Serper: gl=${gl}, hl=${langCode}, q="${query}"`);
   const res = await axios.post(
     "https://google.serper.dev/search",
     {
       q: query,
-      gl: langCode === "pl" ? "pl" : "us",
+      gl,
       hl: langCode,
       num: 15,
     },
@@ -988,6 +992,10 @@ async function searchGoogle(
             q: query,
             num: 10,
             hl: langCode,
+            // hl is only the UI language; gl + lr restrict the results to the
+            // book's market and language (same intent as Serper's gl/hl).
+            gl: serperGl(langCode),
+            lr: `lang_${langCode}`,
             start,
           },
           timeout: 10000,

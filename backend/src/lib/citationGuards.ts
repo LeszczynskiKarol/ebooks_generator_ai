@@ -21,10 +21,13 @@
 
 const PL_MAP: Record<string, string> = {
   ą: "a", ć: "c", ę: "e", ł: "l", ń: "n", ó: "o", ś: "s", ź: "z", ż: "z",
+  // German: without these, tokens() split "Prüfung" into "pr"+"fung" and
+  // every umlaut word dropped out of the page-overlap check.
+  ä: "a", ö: "o", ü: "u", ß: "ss",
 };
 
 function normalize(s: string): string {
-  return s.toLowerCase().replace(/[ąćęłńóśźż]/g, (c) => PL_MAP[c] || c);
+  return s.toLowerCase().replace(/[ąćęłńóśźżäöüß]/g, (c) => PL_MAP[c] || c);
 }
 
 /** Strip LaTeX commands/braces down to plain words for tokenisation. */

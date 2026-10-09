@@ -25,6 +25,7 @@ import {
   MAX_PAGES,
 } from "../lib/types";
 import { isNumberingMode } from "../lib/numbering";
+import { BOOK_LANGUAGES, normBookLanguage } from "../lib/languages";
 
 // Resolve the admin user (owner of autopilot projects) from ADMIN_EMAIL.
 async function getAdminUserId(): Promise<string | null> {
@@ -96,6 +97,13 @@ export async function autopilotRoutes(app: FastifyInstance) {
         error: "Provide a topic or a title (at least 5 characters)",
       });
     }
+    const language = b.language == null || b.language === "" ? null : normBookLanguage(b.language);
+    if (b.language && !language) {
+      return reply.status(400).send({
+        success: false,
+        error: `Unsupported language — use one of: ${BOOK_LANGUAGES.join(", ")}`,
+      });
+    }
 
     // Snap pages to the nearest valid tier (same rule as the paid flow).
     const rawPages = Math.max(
@@ -128,7 +136,7 @@ export async function autopilotRoutes(app: FastifyInstance) {
             ? b.numberingLabel.trim().slice(0, 40)
             : null,
         targetPages: pages,
-        language: b.language || "en",
+        language: language || "en",
         guidelines: b.guidelines || null,
         stylePreset: b.stylePreset || "modern",
         bookFormat: b.bookFormat || "a5",
@@ -206,6 +214,13 @@ export async function autopilotRoutes(app: FastifyInstance) {
         error: "Provide a topic or a title (at least 5 characters)",
       });
     }
+    const language = b.language == null || b.language === "" ? null : normBookLanguage(b.language);
+    if (b.language && !language) {
+      return reply.status(400).send({
+        success: false,
+        error: `Unsupported language — use one of: ${BOOK_LANGUAGES.join(", ")}`,
+      });
+    }
     // The routine reads its runtime input from the `text` param (JSON string).
     // Forward the FULL form — the routine (an agent) uses whatever is present;
     // dropping fields here silently loses what the admin typed (title,
@@ -224,7 +239,7 @@ export async function autopilotRoutes(app: FastifyInstance) {
           ? b.guidelines.slice(0, 5000)
           : undefined,
       targetPages: parseInt(b.targetPages) || 60,
-      language: b.language || "pl",
+      language: language || "pl",
       stylePreset: b.stylePreset || "modern",
       bookFormat: b.bookFormat || "a5",
       withImages: b.withImages !== false,
@@ -305,6 +320,13 @@ export async function autopilotRoutes(app: FastifyInstance) {
         error: "Provide a topic or a title (at least 5 characters)",
       });
     }
+    const language = b.language == null || b.language === "" ? null : normBookLanguage(b.language);
+    if (b.language && !language) {
+      return reply.status(400).send({
+        success: false,
+        error: `Unsupported language — use one of: ${BOOK_LANGUAGES.join(", ")}`,
+      });
+    }
     const chapters = Array.isArray(b.chapters) ? b.chapters : [];
     if (
       !chapters.length ||
@@ -349,7 +371,7 @@ export async function autopilotRoutes(app: FastifyInstance) {
             ? b.numberingLabel.trim().slice(0, 40)
             : null,
         targetPages: pages,
-        language: b.language || "en",
+        language: language || "en",
         guidelines: b.guidelines || null,
         stylePreset: b.stylePreset || "modern",
         bookFormat: b.bookFormat || "a5",

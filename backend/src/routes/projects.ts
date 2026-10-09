@@ -22,6 +22,7 @@ import {
   releasePreviewSlot,
   normalizePreview,
 } from "../services/previewGenerator";
+import { BOOK_LANGUAGES, normBookLanguage } from "../lib/languages";
 
 /** Build a Stripe price_data line in the project's currency (USD base, or PLN
  *  converted at the given rate). PLN minor unit is grosze. */
@@ -180,6 +181,13 @@ export async function projectRoutes(app: FastifyInstance) {
         error: "Provide a topic or a title (at least 5 characters)",
       });
     }
+    const bookLanguage = language ? normBookLanguage(language) : "en";
+    if (!bookLanguage) {
+      return reply.status(400).send({
+        success: false,
+        error: `Unsupported language — use one of: ${BOOK_LANGUAGES.join(", ")}`,
+      });
+    }
 
     // Mobile app pays through Google Play (POST /api/play/verify) — no Stripe
     // session is created; the app gets the SKU to buy instead.
@@ -238,7 +246,7 @@ export async function projectRoutes(app: FastifyInstance) {
         topic: effectiveTopic,
         title: titleInput || null,
         targetPages: pages,
-        language: language || "en",
+        language: bookLanguage,
         guidelines: guidelinesInput,
         // "auto" (or nothing chosen): the model picks the look for the topic.
         stylePreset:
@@ -467,7 +475,15 @@ export async function projectRoutes(app: FastifyInstance) {
     const data: any = {};
     if (body.topic) data.topic = body.topic;
     if (body.title !== undefined) data.title = body.title;
-    if (body.language) data.language = body.language;
+    if (body.language) {
+      const l = normBookLanguage(body.language);
+      if (!l)
+        return reply.status(400).send({
+          success: false,
+          error: `Unsupported language — use one of: ${BOOK_LANGUAGES.join(", ")}`,
+        });
+      data.language = l;
+    }
     if (body.guidelines !== undefined) data.guidelines = body.guidelines;
     if (body.authorName !== undefined)
       data.authorName = body.authorName || null;

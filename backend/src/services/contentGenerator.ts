@@ -10,6 +10,7 @@ import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { reviewAndReviseBook } from "./reviewService";
 import { prisma } from "../lib/prisma";
 import { getWordsPerPage, footnotesEnabled } from "../lib/types";
+import { quoteMarks } from "../lib/languages";
 import { applyCitationGuards } from "../lib/citationGuards";
 import { createPipelineLogger } from "../lib/logger";
 import {
@@ -1307,7 +1308,7 @@ RHYTHM & PUNCTUATION — these patterns expose machine-written text, avoid them:
 - Aphorism-style punchlines are a strong tell — HARD LIMIT 1-2 in the WHOLE chapter (count them before finishing). This includes symmetric closers ("X wymaga planowania, nie talentu"; "...nie pracą, lecz aktem wiary"; "Bez X nie ma Y, a bez Y nie ma Z"; "...niż wszystkie inne razem wzięte"). Almost every paragraph and box must end on a plain, informative sentence — not a quotable line
 - NUMERIC TABLES: before finalizing, recompute every derived value (sums, averages, weighted
   scores) by hand — all arithmetic in a table must check out exactly. Readers verify these
-- Quotes: use \`\`...'' (English) or ,,...'' (Polish). NEVER the straight " character — it breaks typesetting
+- Quotes: use \`\`...'' (English), ,,...'' (Polish) or ,,...\`\` (German). NEVER the straight " character — it breaks typesetting
 - Number ranges tight, no spaces: 5--15, s.~228--229
 - Polish only: use "oraz" solely as a second-level connector after "i" already appeared in the sentence; otherwise write "i"
 
@@ -1334,6 +1335,7 @@ ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "
 - Escape special chars: \\%, \\&, \\#, \\$, \\_, \\{, \\}
 - Use --- for em-dash, -- for en-dash
 ${lang === "Polish" ? '- Polish typography: quotations ALWAYS as „..." (U+201E/U+201D) — NEVER "..." or “...”' : ""}
+${lang === "German" ? '- German typography: quotations ALWAYS as „...“ (U+201E/U+201C) — NEVER "..." or “...”. Write ä, ö, ü, ß as plain characters — never ae/oe/ue/ss substitutes, never LaTeX accents like \\"a' : ""}
 - NO \\usepackage, NO custom command definitions
 - NO decorative comment separators (lines like "% ────") — they leak into print
 - ALL text in correct, natural ${lang} (see LANGUAGE above)
@@ -2268,12 +2270,13 @@ function deAIfy(latex: string, language: string): string {
   // Straight `"` is an ACTIVE babel character under polish (eats the following
   // space, `" -` becomes an invisible optional hyphen) — normalize to ,,/''/``.
   // Inline code (\texttt) keeps straight quotes (Excel formulas etc.).
+  const q = quoteMarks(language);
   latex = protectCodeSpans(latex, (s) =>
     s
-      .replace(/(?<![\s\\])"/g, "''")
-      .replace(/(?<!\\)"(?=\S)/g, language === "pl" ? ",," : "``")
-      // A quote CLOSED with ,, (opening mark) → ''
-      .replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1''"),
+      .replace(/(?<![\s\\])"/g, q.close)
+      .replace(/(?<!\\)"(?=\S)/g, q.open)
+      // A quote CLOSED with ,, (opening mark) → the language's closing mark
+      .replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1" + q.close),
   );
   // Number ranges stay tight: "228 -- 229" → "228--229"
   latex = latex.replace(/(\d)\s*---?\s*(\d)/g, "$1--$2");

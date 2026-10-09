@@ -22,6 +22,7 @@ export const en: Record<string, string> = {
     "Searching in {lang} + English supplement • {n} targeted queries planned",
   "generation.lang.polish": "Polish",
   "generation.lang.english": "English",
+  "generation.lang.german": "German",
 
   // Research steps
   "generation.research.0.label": "Searching web sources for the book topic",
@@ -123,6 +124,7 @@ export const pl: Record<string, string> = {
     "Szukamy w języku: {lang} + uzupełnienie po angielsku • zaplanowanych zapytań: {n}",
   "generation.lang.polish": "polskim",
   "generation.lang.english": "angielskim",
+  "generation.lang.german": "niemieckim",
 
   // Research steps
   "generation.research.0.label": "Wyszukiwanie źródeł internetowych na temat książki",

@@ -40,11 +40,12 @@ import BookPreviewPanel, {
 } from "@/components/BookPreviewPanel";
 
 // Language keys → i18n label keys (the select VALUES en/pl/de… stay code)
-// Only the two languages the product is edited/proofread in. Default follows
-// the UI locale (EN site → en, /pl → pl) — see defaultValues below.
+// Book languages verified end to end (backend lib/languages.ts BOOK_LANGUAGES).
+// Default follows the UI locale (EN site → en, /pl → pl) — see defaultValues.
 const LANGUAGE_KEYS: Record<string, string> = {
   en: "newProject.langEn",
   pl: "newProject.langPl",
+  de: "newProject.langDe",
 };
 const STYLE_KEYS: Record<string, string> = {
   // default: the model picks the style for the topic (designPicker.ts)

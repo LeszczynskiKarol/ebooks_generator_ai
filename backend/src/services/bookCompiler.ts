@@ -3,6 +3,7 @@
 // Assemble .tex → pdflatex → version → upload S3
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { quoteMarks } from "../lib/languages";
 import { withCost } from "../lib/costTracker";
 import { prisma } from "../lib/prisma";
 import { exec } from "child_process";
@@ -2164,14 +2165,18 @@ export function sanitizeChapterLatex(
   // ━━━ FIX 3b: Quote normalization ━━━
   // A straight `"` is an ACTIVE character under babel/polish (shorthand system):
   // `" j` eats the following space, `" -` becomes an invisible optional hyphen.
-  // Normalize: closing straight quote → '' , opening straight quote → ,, (pl) / `` (else).
+  // Normalize per language (quoteMarks): pl „…”, de „…“, else “…”. German
+  // closes with the high-left `` (ligature → U+201C), not English ''.
+  // ngerman makes `"` active too ("a → ä), so the same cleanup is needed there.
   // Inline code (\texttt) is skipped: formulas keep straight quotes.
+  const q = quoteMarks(language);
   result = protectCodeSpans(result, (r) => {
-    r = r.replace(/(?<![\s\\])"/g, "''");
-    r = r.replace(/(?<!\\)"(?=\S)/g, language === "pl" ? ",," : "``");
-    // Model sometimes CLOSES a quote with ,, (opening mark) — flip to ''
-    r = r.replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1''");
+    r = r.replace(/(?<![\s\\])"/g, q.close);
+    r = r.replace(/(?<!\\)"(?=\S)/g, q.open);
+    // Model sometimes CLOSES a quote with ,, (opening mark) — flip it
+    r = r.replace(/([^\s,]),,(?=$|[\s.,;:!?)\]—–-])/gm, "$1" + q.close);
     // Ensure a space after a closing quote glued to the next word: ''word → '' word
+    // (not ``: outside German it is the OPENING mark and belongs glued)
     return r.replace(/''(?=[\p{L}\d])/gu, "'' ");
   });
   // Polish typography: tie single-letter words (a/i/o/u/w/z) to the next

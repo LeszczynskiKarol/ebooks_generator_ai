@@ -90,7 +90,7 @@ YOUR TASK — decide, for THIS specific book:
 
 3. voice — the author persona and register, 2-4 sentences. Decide this YOURSELF from topic + genre + preset prior + guidelines. A cookbook wants a different author than a thesis-methodology guide. Be specific: temperament, distance, humor or none, opinionated or measured.
 
-4. readerAddress — how the text addresses the reader IN THE BOOK'S LANGUAGE (e.g. for Polish: bezpośrednie "ty", forma bezosobowa, or "Państwo"; for English: direct "you" or neutral). One choice, with a one-line reason.
+4. readerAddress — how the text addresses the reader IN THE BOOK'S LANGUAGE (e.g. for Polish: bezpośrednie "ty", forma bezosobowa, or "Państwo"; for German: "Sie" (default for non-fiction) or "du" only for clearly informal topics/audiences, never mixed; for English: direct "you" or neutral). One choice, with a one-line reason.
    readerGender — "female" or "male" ONLY when the order itself says the readers are of that gender (e.g. "a guide for expectant mothers", "for fathers"); otherwise "unknown". Never infer it from the topic's stereotypes (cooking, fitness, beauty, cars...) — a cookbook's reader is "unknown".
 
 5. narrativeStrategy — how sections should typically open and flow: scene/anecdote-first? problem-first? data-first? step-by-step? How much storytelling vs. exposition.
@@ -144,7 +144,9 @@ function fallbackBrief(p: BriefParams): BookBrief {
     readerAddress:
       p.language === "pl"
         ? 'Direct singular "ty" when giving advice.'
-        : 'Direct "you" when giving advice.',
+        : p.language === "de"
+          ? 'Formal "Sie" when giving advice (German non-fiction default), consistently — never mixed with "du".'
+          : 'Direct "you" when giving advice.',
     readerGender: "unknown",
     narrativeStrategy:
       "Open sections with a specific insight or example, not a definition; " +

@@ -638,6 +638,10 @@ function getColorVars(
 // EPUB Package Components
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+function tocTitle(lang: string): string {
+  return lang === "pl" ? "Spis treści" : lang === "de" ? "Inhaltsverzeichnis" : "Table of Contents";
+}
+
 function generateTitlePage(
   title: string,
   lang: string,
@@ -692,12 +696,12 @@ function generateNavDocument(
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${lang}" lang="${lang}">
 <head>
   <meta charset="UTF-8"/>
-  <title>${lang === "pl" ? "Spis treści" : "Table of Contents"}</title>
+  <title>${tocTitle(lang)}</title>
   <link rel="stylesheet" type="text/css" href="css/style.css"/>
 </head>
 <body>
   <nav epub:type="toc" id="toc">
-    <h1>${lang === "pl" ? "Spis treści" : "Table of Contents"}</h1>
+    <h1>${tocTitle(lang)}</h1>
     <ol>
 ${items}
     </ol>

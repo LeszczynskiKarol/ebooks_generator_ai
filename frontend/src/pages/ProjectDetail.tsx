@@ -357,7 +357,7 @@ export default function ProjectDetail() {
               ["projectDetail.pages", project.targetPages],
               [
                 "projectDetail.language",
-                ({ pl: t("newProject.langPl"), en: t("newProject.langEn") } as Record<string, string>)[project.language] ??
+                ({ pl: t("newProject.langPl"), en: t("newProject.langEn"), de: t("newProject.langDe") } as Record<string, string>)[project.language] ??
                   project.language.toUpperCase(),
               ],
               [
