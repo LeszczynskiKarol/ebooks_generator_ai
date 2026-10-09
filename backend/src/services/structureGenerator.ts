@@ -33,6 +33,25 @@ import { resolveAutoDesign } from "./designPicker";
 
 const anthropic = createLLMClient();
 
+/** `items` scheme: item-sections (non-[intro]) inside the item chapters. */
+function countPlannedItems(
+  structure: { chapters?: any[] | null },
+  itemCount: number | null,
+): number {
+  const chapters = structure.chapters || [];
+  const itemChapters = planItemChapters(chapters, itemCount);
+  return chapters
+    .filter((ch: any) => itemChapters.has(ch.number))
+    .reduce(
+      (a: number, ch: any) =>
+        a +
+        (ch.sections || []).filter(
+          (s: any) => !String(s.description || "").startsWith("[intro]"),
+        ).length,
+      0,
+    );
+}
+
 export async function generateStructure(projectId: string) {
   const log = createPipelineLogger("STRUCTURE", projectId);
   // Orders that never had a preview (mobile app) still get the auto look.
@@ -205,7 +224,45 @@ ${
       log.step(`Last 300 chars: ...${jsonText.slice(-300)}`);
       throw new Error(`Invalid structure from LLM: ${parsed.error}`);
     }
-    const structure = parsed.data;
+    let structure = parsed.data;
+
+    // A collection book must plan exactly the promised number of items
+    // (2026-10-09: "100 przepisów" previewed as 95). One corrective turn;
+    // the better of the two plans wins.
+    if (numbering.mode === "items" && numbering.itemCount) {
+      const planned = countPlannedItems(structure, numbering.itemCount);
+      if (planned !== numbering.itemCount) {
+        log.warn(`Item count ${planned} ≠ ${numbering.itemCount} promised — asking for a corrected plan`);
+        try {
+          const fix = await anthropic.messages.create({
+            model: SONNET_MODEL,
+            max_tokens: 16000,
+            messages: [
+              { role: "user", content: prompt },
+              { role: "assistant", content: text },
+              {
+                role: "user",
+                content: `The chapters marked "itemChapter": true hold ${planned} item-sections (sections whose description does not start with "[intro]"), but the book promises EXACTLY ${numbering.itemCount}. Return the whole corrected JSON (same format) with exactly ${numbering.itemCount} item-sections across the item chapters — add or remove items within the existing themes, keep everything else.`,
+              },
+            ],
+          });
+          log.api(SONNET_MODEL, fix.usage?.input_tokens || 0, fix.usage?.output_tokens || 0);
+          const fixText = fix.content[0]?.type === "text" ? fix.content[0].text : "";
+          const fixed = parseLLMJson(fixText, BookStructureSchema);
+          if (fixed.ok && fixed.data.chapters?.length) {
+            const fixedPlanned = countPlannedItems(fixed.data, numbering.itemCount);
+            if (Math.abs(fixedPlanned - numbering.itemCount) < Math.abs(planned - numbering.itemCount)) {
+              structure = fixed.data;
+              log.ok(`Corrected plan: ${fixedPlanned} items`);
+            } else {
+              log.warn(`Correction did not help (${fixedPlanned}) — keeping the first plan`);
+            }
+          }
+        } catch (e: any) {
+          log.warn(`Item-count correction failed: ${e?.message}`);
+        }
+      }
+    }
 
     // Log structure
     if (structure.suggestedTitle) {
@@ -240,16 +297,7 @@ ${
           (ch: any) => typeof ch.itemChapter === "boolean",
         ).length;
         const itemChapters = planItemChapters(structure.chapters, numbering.itemCount);
-        const plannedItems = structure.chapters
-          .filter((ch: any) => itemChapters.has(ch.number))
-          .reduce(
-            (a: number, ch: any) =>
-              a +
-              (ch.sections || []).filter(
-                (s: any) => !String(s.description || "").startsWith("[intro]"),
-              ).length,
-            0,
-          );
+        const plannedItems = countPlannedItems(structure, numbering.itemCount);
         log.data(
           "Item chapters",
           `${[...itemChapters].sort((a, b) => a - b).join(", ") || "none"} → ${plannedItems} items planned (${flagged}/${structure.chapters.length} chapters flagged itemChapter)`,

@@ -91,6 +91,7 @@ YOUR TASK — decide, for THIS specific book:
 3. voice — the author persona and register, 2-4 sentences. Decide this YOURSELF from topic + genre + preset prior + guidelines. A cookbook wants a different author than a thesis-methodology guide. Be specific: temperament, distance, humor or none, opinionated or measured.
 
 4. readerAddress — how the text addresses the reader IN THE BOOK'S LANGUAGE (e.g. for Polish: bezpośrednie "ty", forma bezosobowa, or "Państwo"; for English: direct "you" or neutral). One choice, with a one-line reason.
+   readerGender — "female" or "male" ONLY when the order itself says the readers are of that gender (e.g. "a guide for expectant mothers", "for fathers"); otherwise "unknown". Never infer it from the topic's stereotypes (cooking, fitness, beauty, cars...) — a cookbook's reader is "unknown".
 
 5. narrativeStrategy — how sections should typically open and flow: scene/anecdote-first? problem-first? data-first? step-by-step? How much storytelling vs. exposition.
 
@@ -119,6 +120,7 @@ Respond with RAW JSON ONLY — no markdown fences, no commentary:
   "audience": "...",
   "voice": "...",
   "readerAddress": "...",
+  "readerGender": "unknown",
   "narrativeStrategy": "...",
   "evidencePolicy": "...",
   "visualStrategy": "...",
@@ -143,6 +145,7 @@ function fallbackBrief(p: BriefParams): BookBrief {
       p.language === "pl"
         ? 'Direct singular "ty" when giving advice.'
         : 'Direct "you" when giving advice.',
+    readerGender: "unknown",
     narrativeStrategy:
       "Open sections with a specific insight or example, not a definition; " +
       "mix exposition with worked examples.",
@@ -265,6 +268,17 @@ export async function getOrCreateAuthorBrief(
  * generators. Kept compact — the brief steers, the hard rules still live
  * in the calling prompts.
  */
+/**
+ * How the text may mark the reader's gender. Unknown → neutral wording only
+ * (2026-10-09: a cookbook ordered by a man addressed the reader as a woman —
+ * "musisz to uwzględnić sama", "żebyś nie musiała zgadywać").
+ */
+export function readerGenderRule(gender: BookBrief["readerGender"] | undefined): string {
+  if (gender === "female" || gender === "male")
+    return `READER GENDER: ${gender} — the order says so; gendered forms addressing the reader use this gender, consistently.`;
+  return `READER GENDER: unknown — NEVER use a form that marks the reader's gender. In languages with grammatical gender, rephrase every such sentence neutrally: present/future tense, infinitive, impersonal or plural constructions (Polish: not "zrobiłeś/zrobiłaś", "musiałbyś/musiałabyś", "sam/sama", "gotowy/gotowa" about the reader, but "masz za sobą…", "zrobisz", "samodzielnie", "żeby nie trzeba było zgadywać"). Never use slash/bracket alternatives such as "(-a)" or "/a".`;
+}
+
 export function formatBriefForPrompt(brief: BookBrief): string {
   const avoid =
     brief.avoid && brief.avoid.length > 0
@@ -279,6 +293,7 @@ GENRE & CONVENTIONS: ${brief.genre}
 AUDIENCE: ${brief.audience}
 VOICE: ${brief.voice}
 READER ADDRESS: ${brief.readerAddress}
+${readerGenderRule(brief.readerGender)}
 NARRATIVE STRATEGY: ${brief.narrativeStrategy}
 EVIDENCE POLICY (what grounds a claim in THIS book): ${brief.evidencePolicy}
 VISUAL APPARATUS (which elements fit THIS book): ${brief.visualStrategy}${avoid}

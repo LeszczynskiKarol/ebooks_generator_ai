@@ -21,6 +21,7 @@ import {
 import {
   getOrCreateAuthorBrief,
   formatBriefForPrompt,
+  readerGenderRule,
   BookBrief,
 } from "./briefGenerator";
 import {
@@ -838,7 +839,12 @@ export async function generateContent(
     const proofed = await Promise.all(
       editable.map(async (c) => ({
         number: c.number,
-        latex: await proofreadLanguage(consistent.get(c.number) ?? c.latex, project.language, log),
+        latex: await proofreadLanguage(
+          consistent.get(c.number) ?? c.latex,
+          project.language,
+          log,
+          brief.readerGender,
+        ),
       })),
     );
     let changed = 0;
@@ -1086,8 +1092,9 @@ interface GenParams {
    *  chapters of a mixed book (intro, theory, weekly plan) use plain
    *  \section and must never emit \itemsection. */
   chapterHasItems?: boolean;
-  /** free pre-payment style sample: only the chapter opening, this long */
-  sample?: { words: number };
+  /** free pre-payment style sample: only the chapter opening, this long.
+   *  itemChapter → the sample shows the first ITEM of a collection chapter. */
+  sample?: { words: number; itemChapter?: boolean };
   log: any;
 }
 
@@ -1118,7 +1125,8 @@ ${p.correctionNote}
   const prompts: PromptLog[] = [];
   const responses: ResponseLog[] = [];
   const model = SONNET_MODEL;
-  const isLastChapter = p.chapterIndex === p.totalChapters - 1;
+  // a sample is a chapter opening, never the book's closing
+  const isLastChapter = !p.sample && p.chapterIndex === p.totalChapters - 1;
   const hasPreviousChapters = p.previousChaptersContent.length > 0;
 
   const sectionsOutline = p.chapter.sections
@@ -1521,7 +1529,25 @@ QUALITY CHECKLIST — verify before finishing:
 - Do NOT end with a generic "the future is bright" statement — end with something actionable and specific`;
   }
 
-  if (p.sample) {
+  if (p.sample?.itemChapter) {
+    const heading =
+      p.numbering.mode === "items" && p.chapterHasItems !== false ? "\\itemsection" : "\\section";
+    userPrompt += `
+
+SAMPLE MODE — this text is a free style sample the customer sees BEFORE buying the book.
+This is a COLLECTION book and the customer wants to see what ONE ITEM looks like (one recipe,
+one exercise, one project...). Write ONLY: the chapter heading, at most one short opening
+paragraph, then the FIRST item of this chapter IN FULL under ${heading}{<the item's own
+concrete name>} — about ${p.sample.words} words in total. The planned sections above may be
+GROUPS of items ("5 recipes for…"): pick one concrete item from the first group and name it
+specifically; never use the group's title as the item's name. The item must carry EVERY part
+the customer guidelines and the brief require for each item (e.g. ingredients with amounts,
+method, per-serving values) — this is the page that sells the book. Stop at the end of that
+item; do not start a second one. No summary, no text about this being a sample.
+No research is available for this sample: do NOT state study or report names, quotes or
+statistics. Ordinary per-item values the genre always prints (amounts, times, nutrition per
+serving) are fine — compute them carefully from the ingredients.`;
+  } else if (p.sample) {
     userPrompt += `
 
 SAMPLE MODE — this text is a free style sample the customer sees BEFORE buying the book.
@@ -1772,6 +1798,7 @@ export async function proofreadLanguage(
   latex: string,
   language: string,
   log: any,
+  readerGender?: BookBrief["readerGender"],
 ): Promise<string> {
   const lang = getLangName(language);
   const prompt = `You are a professional proofreader of ${lang} books. Below is LaTeX source of a book passage written in ${lang}.
@@ -1779,7 +1806,8 @@ export async function proofreadLanguage(
 Find EVERY place where the prose is not correct, natural ${lang}:
 - words or phrases in another language (e.g. an English word in ${lang} text), unless it is a proper name, a title, or an established technical term that ${lang} writers really use;
 - grammar, inflection, agreement, spelling and punctuation errors;
-- calques and unnatural phrasing a native editor would change.
+- calques and unnatural phrasing a native editor would change;
+- forms that break this rule about the reader (an error even when grammatical): ${readerGenderRule(readerGender)}
 
 Text inside braces that the reader sees IS prose too: chapter/section titles, box titles such as \begin{checklistbox}{...}, table cells, captions — check them like any sentence (an English label like "Checklist:" in a ${lang} book is an error). Number ranges such as "16 -- 17" are text: the words around them must agree (plural noun for a range).
 
@@ -1926,8 +1954,14 @@ export async function writeSampleOpening(a: {
   allowFootnotes: boolean;
   numbering: NumberingSpec;
   words: number;
+  /** index into `chapters` of the sampled chapter (default 0) */
+  chapterIndex?: number;
+  /** the sampled chapter is a collection chapter → show its first item */
+  itemChapter?: boolean;
   log: any;
 }): Promise<string> {
+  const idx = a.chapterIndex ?? 0;
+  const chapter = a.chapters[idx];
   const itemChapters =
     a.numbering.mode === "items"
       ? planItemChapters(a.chapters, a.numbering.itemCount)
@@ -1936,14 +1970,14 @@ export async function writeSampleOpening(a: {
     bookTitle: a.bookTitle,
     bookTopic: a.topic,
     numbering: a.numbering,
-    chapterHasItems: itemChapters.has(a.chapters[0].number),
+    chapterHasItems: a.itemChapter || itemChapters.has(chapter.number),
     language: a.language,
     stylePreset: a.stylePreset,
     guidelines: a.guidelines,
     brief: a.brief,
     bookFormat: a.bookFormat,
-    chapter: a.chapters[0],
-    chapterIndex: 0,
+    chapter,
+    chapterIndex: idx,
     totalChapters: a.chapters.length,
     previousSummaries: [],
     previousChaptersContent: [],
@@ -1953,10 +1987,10 @@ export async function writeSampleOpening(a: {
     hasResearch: false,
     wpp: getWordsPerPage(a.bookFormat),
     allowFootnotes: a.allowFootnotes,
-    sample: { words: a.words },
+    sample: { words: a.words, itemChapter: a.itemChapter },
     log: a.log,
   });
-  return proofreadLanguage(result.latexContent, a.language, a.log);
+  return proofreadLanguage(result.latexContent, a.language, a.log, a.brief.readerGender);
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

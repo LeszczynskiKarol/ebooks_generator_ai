@@ -21,11 +21,11 @@ import { promisify } from "util";
 import { prisma } from "../lib/prisma";
 import { createPipelineLogger } from "../lib/logger";
 import { getWordsPerPage, footnotesEnabled } from "../lib/types";
-import { resolveNumbering } from "../lib/numbering";
+import { resolveNumbering, planItemChapters, NumberingSpec } from "../lib/numbering";
 import { generateAuthorBrief } from "./briefGenerator";
 import { writeSampleOpening } from "./contentGenerator";
 import { assembleLatexDocument } from "./bookCompiler";
-import { normalizePreview, previewCostUsd } from "./previewGenerator";
+import { normalizePreview, previewCostUsd, BookPreview } from "./previewGenerator";
 import { resolveAutoDesign } from "./designPicker";
 
 const execAsync = promisify(exec);
@@ -140,7 +140,11 @@ async function runSample(projectId: string, userId: string, ip: string | null, a
       authorBrief: JSON.stringify(brief),
     });
 
-    // 2. Text — the opening of chapter 1, ~2.5 pages of this format.
+    // 2. Text — the opening of the sampled chapter (chapter 1, or the first
+    //    collection chapter: a cookbook sells on a recipe, not its preface),
+    //    ~2.5 pages of this format.
+    const pick = pickSampleChapter(preview, numbering);
+    log.step(`Sampling chapter ${preview.chapters[pick.index].number}${pick.itemChapter ? " (first item)" : ""}`);
     const wpp = getWordsPerPage(project.bookFormat);
     const latex = await writeSampleOpening({
       bookTitle: preview.suggestedTitle || project.title || project.topic,
@@ -153,6 +157,8 @@ async function runSample(projectId: string, userId: string, ip: string | null, a
       chapters: preview.chapters,
       allowFootnotes: footnotesEnabled(project),
       numbering,
+      chapterIndex: pick.index,
+      itemChapter: pick.itemChapter,
       // Enough to fill both shown pages: the chapter band eats half of page
       // 1 and models undershoot word targets by ~25% (eval 2026-10-06: at
       // 2.6× wpp the A5 samples left page 2 two-thirds empty).
@@ -169,7 +175,8 @@ async function runSample(projectId: string, userId: string, ip: string | null, a
     }
     const pages = await typesetSample(dir, {
       title: preview.suggestedTitle || project.title || project.topic,
-      chapterTitle: preview.chapters[0].title,
+      chapterTitle: preview.chapters[pick.index].title,
+      chapterNumber: preview.chapters[pick.index].number,
       latex,
       language: project.language,
       format: project.bookFormat,
@@ -228,6 +235,27 @@ async function runSample(projectId: string, userId: string, ip: string | null, a
 }
 
 /**
+ * Which chapter the sample shows. A collection book (cookbook, workbook…)
+ * shows the first item of its first collection chapter: 2026-10-09 a "100
+ * recipes" cookbook was sampled with two pages of "how to use this book"
+ * and not a single recipe. Everything else: chapter 1.
+ */
+export function pickSampleChapter(
+  preview: BookPreview,
+  numbering: NumberingSpec,
+): { index: number; itemChapter: boolean } {
+  const flagged = preview.chapters.findIndex((c) => c.itemChapter === true);
+  if (flagged >= 0) return { index: flagged, itemChapter: true };
+  // previews from before the itemChapter flag: the count heuristic
+  if (numbering.mode === "items" && !preview.chapters.some((c) => c.itemChapter === false)) {
+    const items = planItemChapters(preview.chapters, numbering.itemCount);
+    const first = preview.chapters.findIndex((c) => items.has(c.number));
+    if (first >= 0) return { index: first, itemChapter: true };
+  }
+  return { index: 0, itemChapter: false };
+}
+
+/**
  * Typesets chapter-1 LaTeX exactly as the book would look (preset, format,
  * colours, language) and renders the first pages to page-N.png in `dir`.
  * Returns the number of page images. No LLM — also used by the local
@@ -236,6 +264,8 @@ async function runSample(projectId: string, userId: string, ip: string | null, a
 export interface SampleTexInput {
   title: string;
   chapterTitle: string;
+  /** printed chapter number (default 1) */
+  chapterNumber?: number;
   latex: string;
   language: string;
   format: string;
@@ -257,7 +287,17 @@ export function buildSampleTex(a: SampleTexInput): string {
     stripFootnotes: a.stripFootnotes,
     numbering: a.numbering,
     skipToc: true,
-    chapters: [{ chapterNumber: 1, title: a.chapterTitle, latexContent: a.latex }],
+    chapters: [
+      {
+        chapterNumber: a.chapterNumber ?? 1,
+        title: a.chapterTitle,
+        // the band prints the chapter counter: start it where the book would
+        latexContent:
+          (a.chapterNumber ?? 1) > 1
+            ? `\\setcounter{chapter}{${a.chapterNumber! - 1}}\n${a.latex}`
+            : a.latex,
+      },
+    ],
   });
 }
 

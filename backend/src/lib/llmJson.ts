@@ -165,6 +165,9 @@ export const BookBriefSchema = z
     audience: z.string().default(""),
     voice: z.string().min(1),
     readerAddress: z.string().default(""),
+    // Grammatical gender of the reader. "unknown" (the default, also for
+    // briefs stored before 2026-10-09) = gender-neutral address only.
+    readerGender: z.enum(["female", "male", "unknown"]).default("unknown").catch("unknown"),
     narrativeStrategy: z.string().default(""),
     evidencePolicy: z.string().min(1),
     visualStrategy: z.string().min(1),
