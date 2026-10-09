@@ -51,6 +51,11 @@ interface Props {
   onRedo?: (feedback: string) => Promise<void>;
   approveLabel?: string;
   approveLoading?: boolean;
+  /** blocks approve AND save (e.g. while a new AI version or the sample is
+   *  being made); the hint says why, under the buttons */
+  approveBlocked?: string | null;
+  /** rendered right above the action buttons (e.g. the checkout consent) */
+  beforeActions?: ReactNode;
   redoLabel?: string;
   /** shown next to the redo button, e.g. how many versions are left */
   redoHint?: string;
@@ -70,6 +75,8 @@ export default function StructureEditor({
   onRedo,
   approveLabel,
   approveLoading,
+  approveBlocked,
+  beforeActions,
   redoLabel,
   redoHint,
   footer,
@@ -537,19 +544,20 @@ export default function StructureEditor({
         </div>
       )}
 
+      {beforeActions}
       {/* Action buttons */}
       <div className="flex gap-3">
         <button
           onClick={saveStructure}
-          disabled={saving}
-          className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
+          disabled={saving || !!approveBlocked}
+          className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? t("structure.saving") : t("structure.saveChanges")}
         </button>
         <button
           onClick={() => onApprove(structure)}
-          disabled={approveLoading}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg shadow-green-600/25 disabled:opacity-50"
+          disabled={approveLoading || !!approveBlocked}
+          className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg shadow-green-600/25 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {approveLoading ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -559,6 +567,12 @@ export default function StructureEditor({
           {approveLabel ?? t("structure.approveContinue")}
         </button>
       </div>
+      {approveBlocked && (
+        <p className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 px-1">
+          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+          {approveBlocked}
+        </p>
+      )}
       {footer}
     </div>
   );

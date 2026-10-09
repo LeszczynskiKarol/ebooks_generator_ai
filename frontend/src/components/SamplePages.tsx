@@ -18,9 +18,12 @@ export interface SampleState {
 export default function SamplePages({
   projectId,
   initial,
+  onBusyChange,
 }: {
   projectId: string;
   initial?: SampleState | null;
+  /** true while the sample is being requested or generated */
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const t = useT();
   const token = useAuthStore((s) => s.accessToken);
@@ -29,6 +32,11 @@ export default function SamplePages({
   const [error, setError] = useState<string | null>(null);
   const timer = useRef<number | null>(null);
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
+  const busy = starting || sample?.status === "RUNNING";
+  useEffect(() => {
+    onBusyChange?.(busy);
+  }, [busy, onBusyChange]);
 
   useEffect(() => {
     if (sample?.status !== "RUNNING") return;

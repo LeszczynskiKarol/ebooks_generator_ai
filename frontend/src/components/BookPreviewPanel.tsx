@@ -6,6 +6,8 @@ import { useT } from "@/lib/i18n";
 import { track } from "@/lib/funnel";
 import StructureEditor, { type StructureData } from "@/components/StructureEditor";
 import SamplePages, { type SampleState } from "@/components/SamplePages";
+import CheckoutConsent from "@/components/CheckoutConsent";
+import PaymentMethods from "@/components/PaymentMethods";
 
 // Same shape as ProjectStructure.structureJson (+ subtitle/promise), so the
 // customer edits the free preview in the very editor they get after payment.
@@ -22,6 +24,8 @@ interface Props {
   preview: BookPreview | null;
   /** formatted price, e.g. "$14.99" / "59,90 zł" */
   priceLabel: string;
+  /** checkout currency ("usd" | "pln") — picks the payment marks */
+  currency?: string | null;
   /** 1 while the order's single AI redo is unused, else 0 */
   remaining: number;
   onPreviewChange: (preview: BookPreview, remaining: number) => void;
@@ -41,6 +45,7 @@ export default function BookPreviewPanel({
   projectId,
   preview: previewProp,
   priceLabel,
+  currency,
   remaining,
   onPreviewChange,
   onEdit,
@@ -51,6 +56,17 @@ export default function BookPreviewPanel({
 }: Props) {
   const t = useT();
   const [payLoading, setPayLoading] = useState(false);
+  // Pay stays blocked while the outline is being re-planned or the sample is
+  // being made — paying mid-way would start the book from a stale plan.
+  const [redoing, setRedoing] = useState(false);
+  const [sampleBusy, setSampleBusy] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [consentNag, setConsentNag] = useState(false);
+  const blocked = redoing
+    ? t("payment.waitRedo")
+    : sampleBusy
+      ? t("payment.waitSample")
+      : null;
   // Remount the editor whenever the AI delivers a new version.
   const [version, setVersion] = useState(0);
   // The panel is the source of truth once mounted: switch/redo/save answers
@@ -82,6 +98,7 @@ export default function BookPreviewPanel({
 
   const redo = async (feedback: string) => {
     track("preview_regenerate", { left: remaining, feedback: !!feedback.trim() });
+    setRedoing(true);
     try {
       const { data } = await apiClient.post(`/projects/${projectId}/preview`, {
         regenerate: true,
@@ -106,16 +123,25 @@ export default function BookPreviewPanel({
           ? t("newProject.previewLimit")
           : t("newProject.previewFailed"),
       );
+    } finally {
+      setRedoing(false);
     }
   };
 
   // "I like it": keep the customer's edits, then Stripe.
   const pay = async (s: StructureData) => {
+    if (blocked) return;
+    if (!consent) {
+      setConsentNag(true);
+      return;
+    }
     setPayLoading(true);
     try {
       await save(s);
       track("checkout_start", { preview: true, edited: !!preview?.editedByCustomer });
-      const { data } = await apiClient.post(`/projects/${projectId}/checkout`);
+      const { data } = await apiClient.post(`/projects/${projectId}/checkout`, {
+        withdrawalConsent: true,
+      });
       track("checkout_created", { projectId });
       onBeforeCheckout?.();
       window.location.href = data.data.sessionUrl;
@@ -164,7 +190,11 @@ export default function BookPreviewPanel({
             </p>
           </div>
 
-          <SamplePages projectId={projectId} initial={initialSample} />
+          <SamplePages
+            projectId={projectId}
+            initial={initialSample}
+            onBusyChange={setSampleBusy}
+          />
 
           <StructureEditor
             key={version}
@@ -183,10 +213,24 @@ export default function BookPreviewPanel({
             }
             approveLabel={t("newProject.previewPay", { s: priceLabel })}
             approveLoading={payLoading}
+            approveBlocked={blocked}
+            beforeActions={
+              <CheckoutConsent
+                checked={consent}
+                onChange={(v) => {
+                  setConsent(v);
+                  if (v) setConsentNag(false);
+                }}
+                showRequired={consentNag}
+              />
+            }
             footer={
-              <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400 px-1 mt-3">
-                <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0 text-green-600" />
-                <span>{t("newProject.previewAssurance")}</span>
+              <div className="space-y-3 mt-3">
+                <PaymentMethods currency={currency} />
+                <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400 px-1">
+                  <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0 text-green-600" />
+                  <span>{t("newProject.previewAssurance")}</span>
+                </div>
               </div>
             }
           />

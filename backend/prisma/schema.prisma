@@ -88,6 +88,11 @@ model Project {
   stripeSessionId String?
   stripePaymentId String?
   paymentStatus   PaymentStatus @default(PENDING)
+  // Consumer's express request to start before the 14-day withdrawal period
+  // ends + acknowledgement of losing the right (checkbox before Stripe).
+  // Required for every Stripe checkout; kept as evidence.
+  withdrawalConsentAt DateTime?
+  withdrawalConsentIp String?
   paidAt          DateTime?
 
   // Abandoned-checkout recovery (lib/paymentReminders.ts): how many reminder

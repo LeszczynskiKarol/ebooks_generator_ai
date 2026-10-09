@@ -574,6 +574,7 @@ export default function NewProject() {
           projectId={draftId}
           preview={preview}
           priceLabel={formatUsdCents(pricing.priceUsdCents)}
+          currency={currency}
           remaining={previewRemaining}
           onPreviewChange={(pv, left) => {
             setPreview(pv);

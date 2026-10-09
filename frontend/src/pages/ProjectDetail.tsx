@@ -34,6 +34,8 @@ import StructureEditor from "@/components/StructureEditor";
 import BookEditor, { type BookEditorHandle } from "@/components/BookEditor";
 import NumberingSettings from "@/components/NumberingSettings";
 import BookPreviewPanel from "@/components/BookPreviewPanel";
+import CheckoutConsent from "@/components/CheckoutConsent";
+import PaymentMethods from "@/components/PaymentMethods";
 import SamplePages from "@/components/SamplePages";
 
 // Visual flow steps — several backend stages collapse into one user-facing
@@ -80,6 +82,8 @@ export default function ProjectDetail() {
   const t = useT();
   const { formatUsdCents } = useMoney();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [consentNag, setConsentNag] = useState(false);
   const [titlePageDirty, setTitlePageDirty] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const token = useAuthStore((s) => s.accessToken);
@@ -176,9 +180,15 @@ export default function ProjectDetail() {
     project.coverType && project.coverType !== "NONE" && token;
 
   const handleCheckout = async () => {
+    if (!consent) {
+      setConsentNag(true);
+      return;
+    }
     setCheckoutLoading(true);
     try {
-      const res = await apiClient.post(`/projects/${id}/checkout`);
+      const res = await apiClient.post(`/projects/${id}/checkout`, {
+        withdrawalConsent: true,
+      });
       window.location.href = res.data.data.sessionUrl;
     } catch (err: any) {
       toast.error(
@@ -431,6 +441,7 @@ export default function ProjectDetail() {
               projectId={project.id}
               preview={project.preview}
               priceLabel={priceStr}
+              currency={project.currency}
               remaining={project.previewRemaining ?? 0}
               onPreviewChange={() => refetch()}
               initialVersions={{
@@ -456,6 +467,16 @@ export default function ProjectDetail() {
                   s: priceStr,
                 })}
               </p>
+              <div className="max-w-xl mx-auto mb-4">
+                <CheckoutConsent
+                  checked={consent}
+                  onChange={(v) => {
+                    setConsent(v);
+                    if (v) setConsentNag(false);
+                  }}
+                  showRequired={consentNag}
+                />
+              </div>
               <button
                 onClick={handleCheckout}
                 disabled={checkoutLoading}
@@ -470,6 +491,9 @@ export default function ProjectDetail() {
                   s: priceStr,
                 })}
               </button>
+              <div className="mt-4">
+                <PaymentMethods currency={project.currency} />
+              </div>
               <p className="text-xs text-gray-500 mt-3">
                 {t("projectDetail.securePayment")}
               </p>

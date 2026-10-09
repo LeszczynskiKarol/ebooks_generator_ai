@@ -24,6 +24,14 @@ import {
 } from "../services/previewGenerator";
 import { BOOK_LANGUAGES, normBookLanguage } from "../lib/languages";
 
+/** Withdrawal-right waiver checkbox (consumer law: digital content started
+ *  before the 14-day period ends). Every Stripe checkout needs it. */
+const CONSENT_REQUIRED = {
+  success: false,
+  code: "WITHDRAWAL_CONSENT_REQUIRED",
+  error: "Confirm the withdrawal-right checkbox before paying",
+};
+
 /** Build a Stripe price_data line in the project's currency (USD base, or PLN
  *  converted at the given rate). PLN minor unit is grosze. */
 function priceLine(
@@ -154,6 +162,7 @@ export async function projectRoutes(app: FastifyInstance) {
       deferCheckout,
       draftProjectId,
       description,
+      withdrawalConsent,
     } = request.body as any;
 
     // A book needs a subject, but the user may express it either way: as a
@@ -195,6 +204,8 @@ export async function projectRoutes(app: FastifyInstance) {
     // Web order form: create the order first, show the free preview, and
     // only then open Stripe via POST /:id/checkout.
     const deferred = !viaPlay && deferCheckout === true;
+    if (!viaPlay && !deferred && withdrawalConsent !== true)
+      return reply.status(400).send(CONSENT_REQUIRED);
     const stripeConfig = viaPlay ? null : getStripeConfig(request);
     if (!viaPlay && !stripeConfig) {
       return reply
@@ -355,14 +366,18 @@ export async function projectRoutes(app: FastifyInstance) {
       // Promo codes are validated by Stripe itself (single-use, expiry, % off);
       // the webhook records the code and the discount on the project.
       allow_promotion_codes: true,
-      metadata: { projectId: project.id, userId: request.user.userId },
+      metadata: { projectId: project.id, userId: request.user.userId, withdrawalConsent: "1" },
       success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=cancelled`,
     });
 
     await prisma.project.update({
       where: { id: project.id },
-      data: { stripeSessionId: session.id },
+      data: {
+        stripeSessionId: session.id,
+        withdrawalConsentAt: new Date(),
+        withdrawalConsentIp: request.ip || null,
+      },
     });
 
     return reply.status(201).send({
@@ -774,6 +789,8 @@ export async function projectRoutes(app: FastifyInstance) {
       return reply.status(400).send({ success: false, error: "Already paid" });
     if (!project.priceUsdCents)
       return reply.status(400).send({ success: false, error: "Price not set" });
+    if ((request.body as any)?.withdrawalConsent !== true)
+      return reply.status(400).send(CONSENT_REQUIRED);
 
     const customerId = await ensureStripeCustomer(
       stripe,
@@ -805,7 +822,7 @@ export async function projectRoutes(app: FastifyInstance) {
       // Promo codes are validated by Stripe itself (single-use, expiry, % off);
       // the webhook records the code and the discount on the project.
       allow_promotion_codes: true,
-      metadata: { projectId: project.id, userId: request.user.userId },
+      metadata: { projectId: project.id, userId: request.user.userId, withdrawalConsent: "1" },
       success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=cancelled`,
     });
@@ -816,6 +833,8 @@ export async function projectRoutes(app: FastifyInstance) {
         stripeSessionId: session.id,
         currentStage: "PAYMENT",
         ...(usePln && project.exchangeRate == null ? { exchangeRate: fxRate } : {}),
+        withdrawalConsentAt: new Date(),
+        withdrawalConsentIp: request.ip || null,
       },
     });
     return reply.send({
