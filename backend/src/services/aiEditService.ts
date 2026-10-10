@@ -28,6 +28,15 @@ const anthropic = createLLMClient();
 
 /** Edits per book. Fixed, not renewable — every edit is a paid model call. */
 export const AI_EDIT_LIMIT = Number(process.env.AI_EDIT_LIMIT || 3);
+/**
+ * Failed attempts are free for the customer (the edit was refused or broke),
+ * but each one still cost a model call. Past this many per book the feature
+ * closes — otherwise deliberately failing edits would be an unmetered way to
+ * burn calls.
+ */
+export const AI_EDIT_MAX_FAILED = Number(process.env.AI_EDIT_MAX_FAILED || 5);
+/** Edit starts per account per hour, across all of its books. */
+export const AI_EDIT_HOURLY = Number(process.env.AI_EDIT_HOURLY || 12);
 /** Largest fragment (chars) one instruction may cover. */
 export const AI_EDIT_MAX_FRAGMENT = Number(process.env.AI_EDIT_MAX_FRAGMENT_CHARS || 60000);
 /** How many chars an edit may ADD — "expand this" must not write half a book. */

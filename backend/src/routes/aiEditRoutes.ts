@@ -13,7 +13,9 @@ import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 import {
   ACTIVE_STATUSES,
+  AI_EDIT_HOURLY,
   AI_EDIT_LIMIT,
+  AI_EDIT_MAX_FAILED,
   AI_EDIT_MAX_FRAGMENT,
   COUNTED_STATUSES,
   chapterSections,
@@ -55,6 +57,8 @@ async function editState(project: { id: string; language: string; currentStage: 
     }),
   ]);
   const used = jobs.filter((j) => COUNTED_STATUSES.includes(j.status)).length;
+  // too many refused/broken attempts close the feature for this book
+  const failedOut = jobs.filter((j) => j.status === "failed").length >= AI_EDIT_MAX_FAILED;
   const active = jobs.find((j) => ACTIVE_STATUSES.includes(j.status)) ?? null;
   // The newest accepted edit can be undone while the chapter still holds it.
   const lastAccepted = jobs.find((j) => j.status === "accepted") ?? null;
@@ -84,7 +88,7 @@ async function editState(project: { id: string; language: string; currentStage: 
   return {
     limit: AI_EDIT_LIMIT,
     used,
-    remaining: Math.max(0, AI_EDIT_LIMIT - used),
+    remaining: failedOut ? 0 : Math.max(0, AI_EDIT_LIMIT - used),
     maxFragment: AI_EDIT_MAX_FRAGMENT,
     available: project.currentStage === "COMPLETED",
     active: active ? { ...brief(active), preview } : null,
@@ -144,8 +148,16 @@ export async function aiEditRoutes(app: FastifyInstance) {
     const jobs = await prisma.editJob.findMany({ where: { projectId: project.id }, select: { status: true } });
     if (jobs.some((j) => ACTIVE_STATUSES.includes(j.status)))
       return reply.status(409).send({ success: false, code: "EDIT_ACTIVE", error: "Decide on the current edit first" });
-    if (jobs.filter((j) => COUNTED_STATUSES.includes(j.status)).length >= AI_EDIT_LIMIT)
+    if (
+      jobs.filter((j) => COUNTED_STATUSES.includes(j.status)).length >= AI_EDIT_LIMIT ||
+      jobs.filter((j) => j.status === "failed").length >= AI_EDIT_MAX_FAILED
+    )
       return reply.status(409).send({ success: false, code: "EDIT_LIMIT", error: "No AI edits left for this book" });
+    const lastHour = await prisma.editJob.count({
+      where: { userId: project.userId, createdAt: { gt: new Date(Date.now() - 3600_000) } },
+    });
+    if (lastHour >= AI_EDIT_HOURLY)
+      return reply.status(429).send({ success: false, code: "EDIT_RATE", error: "Too many edits in a short time — try again later" });
 
     const sectionTitle = sectionIndex != null ? chapterSections(chapter.latexContent)[sectionIndex]?.title : null;
     const job = await prisma.editJob.create({
@@ -178,8 +190,9 @@ export async function aiEditRoutes(app: FastifyInstance) {
 
     const applied = await applyFragment(project.id, job.chapterNumber, job.sectionIndex, job.contentBefore, job.contentAfter);
     if (!applied) {
-      // The chapter was edited by hand since the preview was made.
-      await prisma.editJob.update({ where: { id: job.id }, data: { status: "failed", error: "chapter_changed", decidedAt: new Date() } });
+      // The chapter was edited by hand since the preview was made. The edit
+      // was made and shown, so it counts like a rejected one.
+      await prisma.editJob.update({ where: { id: job.id }, data: { status: "rejected", error: "chapter_changed", decidedAt: new Date() } });
       return reply.status(409).send({
         success: false,
         code: "CHAPTER_CHANGED",
