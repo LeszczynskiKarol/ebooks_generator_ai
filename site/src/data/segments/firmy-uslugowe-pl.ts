@@ -76,6 +76,7 @@ const seg: Segment = {
     { q: "Ile kosztuje taki poradnik?", a: "Jedna stała cena za książkę, zależna od liczby stron, bez abonamentu. Spis treści i próbkę dwóch stron widzisz za darmo, więc płacisz dopiero wtedy, gdy plan Ci odpowiada." },
     { q: "Czy mogę dodać zdjęcia z mojej firmy?", a: "Tak. W edytorze rozdziałów wstawisz własne zdjęcia, na przykład realizacji, zespołu albo lokalu, a potem jednym kliknięciem złożysz nową wersję PDF-a." },
     { q: "Co z poprawnością merytoryczną?", a: "Treść powstaje po researchu w aktualnych źródłach i przechodzi redakcję językową. Mimo to przed publikacją przeczytaj poradnik jako fachowiec: zalecenia w Twojej branży znasz najlepiej i to Ty podpisujesz się pod książką." },
+    { q: "Co, jeśli chcę coś zmienić w gotowej książce?", a: "Masz trzy możliwości. Poprawiasz dowolny rozdział samodzielnie we wbudowanym edytorze. Piszesz AI, co zmienić w rozdziale albo sekcji (skrócić, uprościć, dodać przykład): najpierw widzisz zmianę i zostawiasz ją tylko wtedy, gdy Ci odpowiada, trzy razy na książkę. Albo korzystasz z opcji „Sprawdź przez człowieka”: opisujesz, co jest nie tak, a nasz redaktor poprawia to ręcznie, bezpłatnie, do trzech zgłoszeń na książkę." },
   ],
   cta: {
     title: "Twoja wiedza, w formie, którą klient zabierze do domu",

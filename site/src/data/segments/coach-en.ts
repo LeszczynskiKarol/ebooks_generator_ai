@@ -78,6 +78,7 @@ const seg: Segment = {
     { q: "Can I sell the book instead of giving it away?", a: "Yes. You receive full commercial rights, so you can sell it on your site, include it in a paid program or use it as a free download. The choice is yours." },
     { q: "How much does it cost?", a: "One fixed price per book, starting at $9.99 and depending on length. There is no subscription. The table of contents and the 2-page sample are free, so you pay only once the plan looks right to you." },
     { q: "Does the book guarantee more clients?", a: "No book can promise that. It gives people a useful reason to share their email and a clear picture of how you work. How many of them become clients depends on your offer, your follow-up and the fit between you and them." },
+    { q: "What if I want to change something in the finished book?", a: "You have three options. Edit any chapter yourself in the built-in editor. Tell the AI what to change in a chapter or section (shorten, simplify, add an example): you see the change first and keep it only if you like it, three times per book. Or use “Check by a human”: describe what is wrong and our editor corrects it by hand, free of charge, up to three requests per book." },
   ],
   cta: {
     title: "Give new people a way to meet your method",

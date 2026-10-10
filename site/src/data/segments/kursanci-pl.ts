@@ -78,6 +78,7 @@ const seg: Segment = {
     { q: "Co, jeśli zmieni się program szkolenia?", a: "Treść poprawiasz rozdział po rozdziale w edytorze WYSIWYG i generujesz nową wersję pliku. Przy większej zmianie zakresu wygodniej założyć nowy projekt, na przykład osobny zeszyt dla grupy zaawansowanej." },
     { q: "Czy ćwiczenia będą poprawne?", a: "Treść powstaje na podstawie researchu i przechodzi redakcję językową, ale przed rozdaniem przejdź ćwiczenia sam, tak jak zrobiłby to uczestnik. Sprawdź polecenia, wyniki i nazwy funkcji w wersji narzędzia, której uczysz. Za materiał odpowiada prowadzący, więc ostatnie słowo należy do Ciebie." },
     { q: "Ile kosztuje skrypt?", a: "Jedną stałą kwotę za książkę, zależną od liczby stron. Nie płacisz od uczestnika ani za kolejne edycje szkolenia. Spis treści i próbkę dwóch stron oglądasz za darmo." },
+    { q: "Co, jeśli chcę coś zmienić w gotowej książce?", a: "Masz trzy możliwości. Poprawiasz dowolny rozdział samodzielnie we wbudowanym edytorze. Piszesz AI, co zmienić w rozdziale albo sekcji (skrócić, uprościć, dodać przykład): najpierw widzisz zmianę i zostawiasz ją tylko wtedy, gdy Ci odpowiada, trzy razy na książkę. Albo korzystasz z opcji „Sprawdź przez człowieka”: opisujesz, co jest nie tak, a nasz redaktor poprawia to ręcznie, bezpłatnie, do trzech zgłoszeń na książkę." },
   ],
   cta: {
     title: "Daj uczestnikom coś więcej niż plik ze slajdami",

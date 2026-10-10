@@ -92,6 +92,7 @@ const seg: Segment = {
     { q: "Czy mogę wykorzystać własne materiały?", a: "Tak. Do opisu książki możesz dołączyć pliki z notatkami, konspektem albo wcześniejszymi tekstami. InkMagnet trzyma się ich podczas pisania, a gotowe rozdziały poprawisz w edytorze." },
     { q: "Czy treść jest sprawdzana?", a: "Każdy rozdział powstaje po researchu w aktualnych źródłach, a cała książka przechodzi redakcję językową i kontrolę spójności, na przykład imion, liczb i odwołań między rozdziałami. Przed publikacją przeczytaj ją jednak sam, bo to Ty za nią odpowiadasz." },
     { q: "Czy potrzebuję numeru ISBN?", a: "Do rozdawania książki albo sprzedaży we własnym sklepie nie musisz go mieć. Jeśli chcesz, by książka trafiła do księgarń i katalogów, numer ISBN uzyskasz bezpłatnie w Bibliotece Narodowej przez serwis e-ISBN." },
+    { q: "Co, jeśli chcę coś zmienić w gotowej książce?", a: "Masz trzy możliwości. Poprawiasz dowolny rozdział samodzielnie we wbudowanym edytorze. Piszesz AI, co zmienić w rozdziale albo sekcji (skrócić, uprościć, dodać przykład): najpierw widzisz zmianę i zostawiasz ją tylko wtedy, gdy Ci odpowiada, trzy razy na książkę. Albo korzystasz z opcji „Sprawdź przez człowieka”: opisujesz, co jest nie tak, a nasz redaktor poprawia to ręcznie, bezpłatnie, do trzech zgłoszeń na książkę." },
   ],
   cta: {
     title: "Zacznij od opisu. Plan książki dostaniesz za darmo",

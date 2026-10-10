@@ -78,6 +78,7 @@ const seg: Segment = {
     { q: "Czy dodam własne zdjęcia?", a: "Tak. Zdjęcia przygotowanych przez siebie posiłków, ilustracje ćwiczeń czy portret na stronę o autorze wstawisz w edytorze rozdziałów, a potem złożysz książkę ponownie." },
     { q: "Ile to kosztuje i czy muszę wykupić abonament?", a: "Abonamentu nie ma. Płacisz jednorazowo za konkretną książkę, a cena zależy od jej objętości. Tytuł, spis treści i dwie strony próbki dostajesz bez opłat, więc decyzję podejmujesz, widząc, co powstanie." },
     { q: "Czy mogę zrobić osobne wersje dla różnych grup klientów?", a: "Tak, każda książka to osobny projekt rozliczany osobno. Możesz przygotować jeden plan dla osób pracujących zmianowo, drugi dla rodziców małych dzieci, i podpiąć je pod różne formularze zapisu." },
+    { q: "Co, jeśli chcę coś zmienić w gotowej książce?", a: "Masz trzy możliwości. Poprawiasz dowolny rozdział samodzielnie we wbudowanym edytorze. Piszesz AI, co zmienić w rozdziale albo sekcji (skrócić, uprościć, dodać przykład): najpierw widzisz zmianę i zostawiasz ją tylko wtedy, gdy Ci odpowiada, trzy razy na książkę. Albo korzystasz z opcji „Sprawdź przez człowieka”: opisujesz, co jest nie tak, a nasz redaktor poprawia to ręcznie, bezpłatnie, do trzech zgłoszeń na książkę." },
   ],
   cta: {
     title: "Pokaż swoją metodę, zanim ktoś zarezerwuje sesję",

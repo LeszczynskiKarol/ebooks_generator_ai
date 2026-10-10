@@ -78,6 +78,7 @@ const seg: Segment = {
     { q: "Jak uwzględnić moje doświadczenie i przypadki z praktyki?", a: "Już na starcie możesz dołączyć notatki, konspekty wystąpień albo swoje artykuły. Po wygenerowaniu dopisujesz w edytorze WYSIWYG przykłady z praktyki, oczywiście bez danych, po których dałoby się rozpoznać klientów." },
     { q: "Czy książkę da się wydrukować?", a: "Tak. PDF jest składany w LaTeX-u jak klasyczna książka, więc nadaje się do druku cyfrowego. EPUB przyda się czytelnikom, którzy korzystają z czytników i telefonów." },
     { q: "Ile kosztuje i co, jeśli spis treści mi nie odpowiada?", a: "Płacisz raz za książkę, cena zależy od objętości, abonamentu nie ma. Zanim zapłacisz, widzisz tytuł, cały spis treści i dwie strony próbki. Jeśli plan Ci nie odpowiada, poprawiasz go albo rezygnujesz bez żadnych kosztów." },
+    { q: "Co, jeśli chcę coś zmienić w gotowej książce?", a: "Masz trzy możliwości. Poprawiasz dowolny rozdział samodzielnie we wbudowanym edytorze. Piszesz AI, co zmienić w rozdziale albo sekcji (skrócić, uprościć, dodać przykład): najpierw widzisz zmianę i zostawiasz ją tylko wtedy, gdy Ci odpowiada, trzy razy na książkę. Albo korzystasz z opcji „Sprawdź przez człowieka”: opisujesz, co jest nie tak, a nasz redaktor poprawia to ręcznie, bezpłatnie, do trzech zgłoszeń na książkę." },
   ],
   cta: {
     title: "Twoja wiedza w formie, którą klient sprawdzi sam",

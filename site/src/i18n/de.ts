@@ -424,9 +424,11 @@ export const de = {
     note: "Sie wählen das Thema. InkMagnet übernimmt das Lesen.",
   },
   editorSection: {
-    title: "Ein Absatz gefällt Ihnen nicht? Schreiben Sie ihn um.",
-    sub: "Jedes fertige Buch öffnet sich in einem vollwertigen Editor. Schreiben Sie beliebige Kapitel um, fügen Sie Tabellen, Infokästen oder Bilder ein und erzeugen Sie anschließend ein frisches PDF. Ihre manuellen Änderungen werden nie überschrieben.",
+    title: "Ein Absatz gefällt Ihnen nicht? Drei Wege, ihn zu ändern.",
+    sub: "Jedes fertige Buch öffnet sich in einem vollwertigen Editor. Schreiben Sie die Stelle selbst um, sagen Sie der KI, was sie in einem Kapitel oder Abschnitt ändern soll, und übernehmen Sie das Ergebnis nur, wenn es Ihnen gefällt, oder geben Sie die Korrektur an unseren Lektor. Erzeugen Sie anschließend ein frisches PDF. Ihre manuellen Änderungen werden nie überschrieben.",
     points: [
+      "Mit KI verbessern: Sie beschreiben die Änderung, sehen sie zuerst und entscheiden, ob Sie sie übernehmen (3 pro Buch)",
+      "Von einem Menschen prüfen lassen: Sie beschreiben, was nicht stimmt, und ein Lektor korrigiert es von Hand, kostenlos (bis zu 3 Anfragen pro Buch)",
       "Visuell oder LaTeX: Bearbeiten Sie, wie Sie möchten",
       "Überschriften, Fettdruck, Listen, Zitate, Infokästen, Tabellen und Bilder",
       "Versionsverlauf: Jede neue Kompilierung wird gespeichert",
@@ -540,7 +542,7 @@ export const de = {
       },
       {
         q: "Kann ich den Inhalt bearbeiten?",
-        a: "Ja. Jedes Kapitel lässt sich im integrierten WYSIWYG-Editor bearbeiten, und Ihre manuellen Änderungen werden von einer späteren Neugenerierung nie überschrieben. PDF und EPUB kompilieren Sie so oft neu, wie Sie möchten.",
+        a: "Ja, auf drei Wegen. Jedes Kapitel lässt sich im integrierten WYSIWYG-Editor bearbeiten, und Ihre manuellen Änderungen werden von späteren Generierungen nie überschrieben. Sie können außerdem der KI sagen, was sie in einem Kapitel oder Abschnitt ändern soll (kürzen, vereinfachen, ein Beispiel ergänzen): Sie sehen die Änderung, bevor sie übernommen wird, und können sie rückgängig machen, dreimal pro Buch. Und wenn etwas schlicht falsch ist, nutzen Sie „Von einem Menschen prüfen lassen“: Sie beschreiben das Problem, und unser Lektor korrigiert das Buch von Hand, kostenlos, bis zu drei Anfragen pro Buch. PDF und EPUB können Sie beliebig oft neu erzeugen.",
       },
       {
         q: "Ist der Inhalt ein Original?",

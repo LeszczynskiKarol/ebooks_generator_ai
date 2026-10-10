@@ -439,9 +439,11 @@ export const ui = {
       note: "You pick the topic. InkMagnet does the reading.",
     },
     editorSection: {
-      title: "Don't like a paragraph? Rewrite it.",
-      sub: "Every finished book opens in a full editor. Rewrite any chapter, drop in tables, callout boxes or images, then regenerate a fresh PDF. Your hand-edits are never overwritten.",
+      title: "Don't like a paragraph? Three ways to fix it.",
+      sub: "Every finished book opens in a full editor. Rewrite it yourself, tell the AI what to change in a chapter or section and accept the result only if you like it, or send the passage to our human editor. Then regenerate a fresh PDF. Your hand-edits are never overwritten.",
       points: [
+        "Improve with AI: say what to change, see the change first, keep it or discard it (3 per book)",
+        "Check by a human: describe what is wrong and an editor corrects it by hand, free of charge (up to 3 requests per book)",
         "Visual or LaTeX: edit however you like",
         "Headings, bold, lists, quotes, callout boxes, tables and images",
         "Version history: every regenerate is saved",
@@ -555,7 +557,7 @@ export const ui = {
         },
         {
           q: "Can I edit the content?",
-          a: "Yes. Every chapter is editable in a built-in WYSIWYG editor, and your manual edits are never overwritten by later regenerations. Recompile the PDF and EPUB as often as you like.",
+          a: "Yes, in three ways. Every chapter is editable in a built-in WYSIWYG editor, and your manual edits are never overwritten by later regenerations. You can also tell the AI what to change in a chapter or section (shorten, simplify, add an example): you see the change before it is applied and can undo it, three times per book. And if something is simply wrong, use “Check by a human”: describe it and our editor corrects the book by hand, free of charge, up to three requests per book. Recompile the PDF and EPUB as often as you like.",
         },
         {
           q: "Is the content original?",
@@ -1165,9 +1167,11 @@ export const ui = {
       note: "Ty wybierasz temat. Czytanie bierze na siebie InkMagnet.",
     },
     editorSection: {
-      title: "Nie podoba Ci się akapit? Przepisz go.",
-      sub: "Każda gotowa książka otwiera się w pełnym edytorze. Przepisz dowolny rozdział, wstaw tabele, ramki albo obrazy, a potem wygeneruj świeży PDF. Twoje ręczne zmiany nigdy nie zostają nadpisane.",
+      title: "Nie podoba Ci się akapit? Masz trzy sposoby.",
+      sub: "Każda gotowa książka otwiera się w pełnym edytorze. Przepisz fragment samodzielnie, napisz AI, co zmienić w rozdziale albo sekcji, i zostaw wynik tylko wtedy, gdy Ci odpowiada, albo zleć poprawkę naszemu redaktorowi. Potem wygeneruj świeży PDF. Twoje ręczne zmiany nigdy nie zostają nadpisane.",
       points: [
+        "Popraw z AI: piszesz, co zmienić, najpierw widzisz zmianę i decydujesz, czy ją zostawić (3 na książkę)",
+        "Sprawdź przez człowieka: opisujesz, co jest nie tak, a redaktor poprawia to ręcznie, bezpłatnie (do 3 zgłoszeń na książkę)",
         "Wizualnie albo w LaTeX-u, jak wolisz",
         "Nagłówki, pogrubienia, listy, cytaty, ramki, tabele i obrazy",
         "Historia wersji: każda regeneracja jest zapisana",
@@ -1281,7 +1285,7 @@ export const ui = {
         },
         {
           q: "Czy mogę edytować treść?",
-          a: "Tak. Każdy rozdział otworzysz we wbudowanym edytorze WYSIWYG, a ręczne poprawki nigdy nie zostaną nadpisane przez późniejsze generacje. PDF i EPUB przekompilujesz dowolną liczbę razy.",
+          a: "Tak, na trzy sposoby. Każdy rozdział otworzysz we wbudowanym edytorze WYSIWYG, a ręczne poprawki nigdy nie zostaną nadpisane przez późniejsze generacje. Możesz też napisać AI, co zmienić w rozdziale albo sekcji (skrócić, uprościć, dodać przykład): zmianę widzisz, zanim zostanie wprowadzona, i możesz ją cofnąć, trzy razy na książkę. A jeśli coś jest po prostu źle, użyj opcji „Sprawdź przez człowieka”: opisujesz problem, a nasz redaktor poprawia książkę ręcznie, bezpłatnie, do trzech zgłoszeń na książkę. PDF i EPUB przekompilujesz dowolną liczbę razy.",
         },
         {
           q: "Czy treść jest oryginalna?",

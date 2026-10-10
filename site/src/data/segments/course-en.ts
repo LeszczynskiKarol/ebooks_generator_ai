@@ -78,6 +78,7 @@ const seg: Segment = {
     { q: "Who checks that the content is correct?", a: "The content is researched and language-edited, but you know your field and your program best. Review the workbook before you hand it out, especially technical steps and anything specific to your organization or industry." },
     { q: "Does it work for internal corporate training?", a: "Yes. Describe your audience and context, and add internal procedures yourself in the editor. Keep confidential company details out of the description and add them only where you control the final file." },
     { q: "How much does a workbook cost?", a: "One fixed price per book, from $9.99 depending on length, with no subscription. The outline and the 2-page sample are free, so you see the structure and the layout before paying." },
+    { q: "What if I want to change something in the finished book?", a: "You have three options. Edit any chapter yourself in the built-in editor. Tell the AI what to change in a chapter or section (shorten, simplify, add an example): you see the change first and keep it only if you like it, three times per book. Or use “Check by a human”: describe what is wrong and our editor corrects it by hand, free of charge, up to three requests per book." },
   ],
   cta: {
     title: "Give your next cohort something to keep",

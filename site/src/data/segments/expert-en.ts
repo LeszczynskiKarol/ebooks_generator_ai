@@ -78,6 +78,7 @@ const seg: Segment = {
     { q: "Will it read like generic content?", a: "That depends largely on your input. Describe your approach and the points you always make, edit the outline before paying and rewrite any section in the WYSIWYG editor afterwards. Your judgment is what turns a good draft into your book." },
     { q: "Can I print copies for my office?", a: "Yes. The PDF is typeset for print, so you can order copies from a local printer or a print service, and use the EPUB for readers who prefer e-books." },
     { q: "What does it cost?", a: "One fixed price per book, from $9.99 depending on length, with no subscription. The table of contents and a 2-page sample are free, so you see the plan and the design before paying." },
+    { q: "What if I want to change something in the finished book?", a: "You have three options. Edit any chapter yourself in the built-in editor. Tell the AI what to change in a chapter or section (shorten, simplify, add an example): you see the change first and keep it only if you like it, three times per book. Or use “Check by a human”: describe what is wrong and our editor corrects it by hand, free of charge, up to three requests per book." },
   ],
   cta: {
     title: "Put your expertise in a form clients keep",
