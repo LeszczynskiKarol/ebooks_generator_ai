@@ -1277,6 +1277,11 @@ export function assembleLatexDocument(p: AssembleParams): string {
   if (baseLang(p.language) === "pl") {
     add("\\addto\\captionspolish{\\renewcommand{\\tablename}{Tabela}}", "");
   }
+  // babel "portuguese" (Portugal) heads the contents "Conteúdo"; books
+  // published in Portugal say "Índice". ("brazilian" already gives "Sumário".)
+  if (babel === "portuguese") {
+    add("\\addto\\captionsportuguese{\\renewcommand{\\contentsname}{Índice}}", "");
+  }
 
   // ── TOC styling — entries colored, heading will be set separately ──
   add(

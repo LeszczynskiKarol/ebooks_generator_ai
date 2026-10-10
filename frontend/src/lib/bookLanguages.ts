@@ -1,9 +1,8 @@
 // Book languages on the frontend — mirrors backend lib/languages.ts.
 //
 // ORDER_LANGUAGES is what the order form lists. LANGUAGE_LABEL_KEYS also
-// covers codes that existing projects may carry but that are no longer (or
-// not yet) offered: plain "es" (ordered before the Spain / Latin America
-// split) and the Portuguese variants.
+// covers codes that existing projects may carry but that are no longer
+// offered: plain "es" (ordered before the Spain / Latin America split).
 
 /** code → i18n label key (dict/newProject.ts) */
 export const LANGUAGE_LABEL_KEYS: Record<string, string> = {
@@ -18,7 +17,7 @@ export const LANGUAGE_LABEL_KEYS: Record<string, string> = {
 };
 
 /** Listed in the order form, in this order. */
-export const ORDER_LANGUAGES = ["en", "pl", "de", "es-ES", "es-419"] as const;
+export const ORDER_LANGUAGES = ["en", "pl", "de", "es-ES", "es-419", "pt-PT", "pt-BR"] as const;
 
 /** Base language ("es-419" → "es") — for per-language templates. */
 export function baseLang(code: string | null | undefined): string {

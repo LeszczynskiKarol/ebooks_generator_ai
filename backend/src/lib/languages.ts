@@ -71,21 +71,19 @@ const REGISTRY: BookLanguageInfo[] = [
     serperGl: "es", serperHl: "es", offered: true,
   },
 
-  // Portuguese: two written variants over the same `pt` sources. Fully wired
-  // (prompts, babel, quotes, search) and the TeX packages are on the server;
-  // NOT offered until cytado's API takes `pt` in production and a test book
-  // of each variant is checked.
+  // Portuguese: two written variants over the same `pt` sources (cytado's
+  // external API takes `pt` since 2026-10-10).
   {
     code: "pt-PT", sourceLang: "pt", llmName: "European Portuguese", quotes: "angle",
     note:
       "Portuguese as written and published in Portugal: European spelling and vocabulary (autocarro, telemóvel, ficheiro, equipa, facto), \"estar a fazer\" constructions, \"tu\"/\"você\" as used in Portugal. Never Brazilian forms (ônibus, celular, arquivo, time, gerund \"está fazendo\").",
-    serperGl: "pt", serperHl: "pt-pt", offered: false,
+    serperGl: "pt", serperHl: "pt-pt", offered: true,
   },
   {
     code: "pt-BR", sourceLang: "pt", llmName: "Brazilian Portuguese", quotes: "en",
     note:
       "Portuguese as written and published in Brazil: Brazilian spelling and vocabulary (ônibus, celular, arquivo, time, fato), gerund constructions (\"está fazendo\"), \"você\" for the reader, Brazilian currency and realities unless the topic says otherwise. Never European Portuguese forms (autocarro, telemóvel, ficheiro, \"estar a fazer\").",
-    serperGl: "br", serperHl: "pt-br", offered: false,
+    serperGl: "br", serperHl: "pt-br", offered: true,
   },
 ];
 

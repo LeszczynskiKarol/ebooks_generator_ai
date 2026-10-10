@@ -86,6 +86,34 @@ Diseño y maquetación: InkMagnet
 Primera edición
 
 {{YEAR}}`,
+  "pt-PT": `© {{YEAR}} {{AUTHOR}}
+Todos os direitos reservados.
+
+Título: {{TITLE}}
+
+Nenhuma parte desta publicação pode ser
+reproduzida, armazenada num sistema de recuperação
+ou transmitida sob qualquer forma sem a autorização
+prévia e por escrito do autor.
+
+Design e paginação: InkMagnet
+Primeira edição
+
+{{YEAR}}`,
+  "pt-BR": `© {{YEAR}} {{AUTHOR}}
+Todos os direitos reservados.
+
+Título: {{TITLE}}
+
+Nenhuma parte desta publicação pode ser
+reproduzida, armazenada em sistema de recuperação
+ou transmitida de qualquer forma sem a autorização
+prévia e por escrito do autor.
+
+Projeto gráfico e diagramação: InkMagnet
+Primeira edição
+
+{{YEAR}}`,
 };
 
 const FONT_SIZES = [

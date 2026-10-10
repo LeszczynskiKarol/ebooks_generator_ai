@@ -3,6 +3,7 @@
 // LaTeX chapters → XHTML → EPUB3 package
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { byLang } from "../lib/languages";
 import { prisma } from "../lib/prisma";
 import * as fs from "fs";
 import * as path from "path";
@@ -644,8 +645,9 @@ function tocTitle(lang: string): string {
     de: "Inhaltsverzeichnis",
     es: "Índice",
     pt: "Índice",
+    "pt-BR": "Sumário",
   };
-  return titles[(lang || "").slice(0, 2).toLowerCase()] || "Table of Contents";
+  return byLang(titles, lang) || "Table of Contents";
 }
 
 function generateTitlePage(

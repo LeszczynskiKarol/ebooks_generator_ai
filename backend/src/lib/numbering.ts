@@ -49,6 +49,7 @@ const DEFAULT_ITEM_LABEL: Record<string, string> = {
   en: "Recipe",
   de: "Rezept",
   es: "Receta",
+  pt: "Receita",
   fr: "Recette",
   it: "Ricetta",
 };
