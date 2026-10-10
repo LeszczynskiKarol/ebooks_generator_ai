@@ -245,7 +245,7 @@ export default function NewProject() {
       targetPages: PAGE_SIZE_TIERS[1].targetPages,
       // Default the BOOK language to the UI locale — a PL visitor most likely
       // wants a Polish book (was hardcoded "en" even on /pl).
-      language: lang === "pl" ? "pl" : "en",
+      language: lang === "pl" ? "pl" : lang === "de" ? "de" : "en",
       stylePreset: "auto",
       bookFormat: "a5",
       useAiImages: false,
@@ -454,6 +454,8 @@ export default function NewProject() {
     try {
       const payload: Record<string, unknown> = { ...form };
       payload.currency = currency;
+      // the language of the consent the customer ticks and of our e-mails
+      payload.uiLang = lang;
       if (selectedColors.length > 0) payload.customColors = selectedColors;
       if (coverOption !== "none") payload.coverOption = coverOption;
       if (materials.length > 0) {

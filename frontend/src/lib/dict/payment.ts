@@ -13,6 +13,17 @@ export const en: Record<string, string> = {
   "payment.waitSample": "Your sample pages are being prepared. You can pay once they are ready.",
 };
 
+export const de: Record<string, string> = {
+  "payment.methodsLabel": "Akzeptierte Zahlungsarten",
+  "payment.consent":
+    "Ich verlange ausdrücklich, dass vor Ablauf der 14-tägigen Widerrufsfrist mit der Erstellung meines Buches begonnen wird, und bestätige meine Kenntnis davon, dass ich mit Beginn der Erstellung des Buches mein Widerrufsrecht verliere.",
+  "payment.consentTerms": "AGB",
+  "payment.consentTermsUrl": "https://inkmagnet.com/terms/",
+  "payment.consentRequired": "Bitte setzen Sie das Häkchen oben, um zur Zahlung zu gelangen.",
+  "payment.waitRedo": "Bitte warten Sie auf die neue Version der Gliederung. Danach können Sie bezahlen.",
+  "payment.waitSample": "Ihre Leseprobe wird vorbereitet. Danach können Sie bezahlen.",
+};
+
 export const pl: Record<string, string> = {
   "payment.methodsLabel": "Akceptowane metody płatności",
   "payment.consent":

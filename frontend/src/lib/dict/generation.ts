@@ -210,3 +210,111 @@ export const pl: Record<string, string> = {
   "generation.structure.2.desc":
     "Zatwierdzisz lub zmienisz strukturę, zanim rozpocznie się pisanie",
 };
+
+export const de: Record<string, string> = {
+  // Header
+  "generation.title": "Ihr Buch wird erstellt",
+  "generation.remaining": "noch ca. {n} Min.",
+  "generation.badge.done": "Fertig",
+  "generation.badge.inProgress": "In Arbeit",
+
+  // Footer stats
+  "generation.footer.pagesTarget": "Zielumfang: {n} Seiten",
+  "generation.footer.chapters": "{n} Kapitel",
+  "generation.footer.written": "{done}/{total} geschrieben",
+
+  // Writing detail
+  "generation.writing.initializing": "Kapiteldatensätze werden angelegt...",
+  "generation.writing.chapterDetail":
+    "Schreiben auf Basis der Quellen • LaTeX-Formatierung • Tabellen und Infokästen",
+  "generation.writing.statsChapters": "{done}/{total} Kapitel",
+
+  // Research detail footer line
+  "generation.research.searchingLine":
+    "Suche auf {lang} + englische Ergänzung • {n} gezielte Suchanfragen geplant",
+  "generation.lang.polish": "Polnisch",
+  "generation.lang.english": "Englisch",
+  "generation.lang.german": "Deutsch",
+  "generation.lang.spanish": "Spanisch",
+  "generation.lang.portuguese": "Portugiesisch",
+
+  // Research steps
+  "generation.research.0.label": "Suche nach Webquellen zum Thema des Buches",
+  "generation.research.0.detail": "Google Custom Search API",
+  "generation.research.1.label": "Abrufen und Extrahieren der Inhalte aus den Quellen",
+  "generation.research.1.detail": "Analyse der Seiteninhalte",
+  "generation.research.2.label": "KI wählt die hochwertigsten Quellen aus",
+  "generation.research.2.detail": "Claude bewertet Relevanz und Datendichte",
+  "generation.research.3.label": "Gezielte Suchanfragen für jedes Kapitel",
+  "generation.research.3.detail": "2 spezialisierte Suchanfragen pro Kapitel",
+  "generation.research.4.label": "Erstellen der Recherche-Briefings für die Kapitel",
+  "generation.research.4.detail":
+    "Zusammenführen allgemeiner und kapitelspezifischer Quellen",
+
+  // Review steps
+  "generation.review.0.label": "Prüfung von Vollständigkeit und Qualität des Buches",
+  "generation.review.0.detail":
+    "KI-Lektor bewertet Themenabdeckung, Wiederholungen und Tiefe",
+  "generation.review.1.label": "Entfernen redundanter Inhalte",
+  "generation.review.1.detail": "Kürzen von Wiederholungen zwischen den Kapiteln",
+  "generation.review.2.label": "Ergänzen fehlender Themen",
+  "generation.review.2.detail":
+    "Schreiben neuer Unterabschnitte für nicht abgedeckte Bereiche",
+  "generation.review.3.label": "Qualitätskontrolle nach der Überarbeitung",
+  "generation.review.3.detail": "Überprüfung der erzielten Verbesserung",
+
+  // Compile PDF steps
+  "generation.compilePdf.0.label": "Zusammenstellen des LaTeX-Dokuments",
+  "generation.compilePdf.0.detail": "Zusammenführen von Kapitelinhalten und Präambel",
+  "generation.compilePdf.1.label": "pdflatex wird ausgeführt (Durchlauf 1/2)",
+  "generation.compilePdf.1.detail": "Aufbau der Querverweise",
+  "generation.compilePdf.2.label": "pdflatex wird ausgeführt (Durchlauf 2/2)",
+  "generation.compilePdf.2.detail": "Auflösen der Verweise",
+  "generation.compilePdf.3.label": "PDF wird in die Cloud hochgeladen",
+  "generation.compilePdf.3.detail": "Versionierter S3-Speicher",
+
+  // Compile EPUB steps
+  "generation.compileEpub.0.label": "Umwandeln der Kapitel in XHTML",
+  "generation.compileEpub.0.detail": "Semantische HTML-Struktur",
+  "generation.compileEpub.1.label": "Packen des EPUB-Containers",
+  "generation.compileEpub.1.detail": "OPF + NCX + mimetype",
+  "generation.compileEpub.2.label": "EPUB wird hochgeladen",
+  "generation.compileEpub.2.detail": "S3-Cloud-Speicher",
+
+  // Phase meta
+  "generation.phase.research.label": "Recherche und Quellenanalyse",
+  "generation.phase.research.description":
+    "Websuche, Abruf der Quellen, KI-gestützte Quellenauswahl: So entsteht die Wissensbasis für Ihr Buch",
+  "generation.phase.writing.label": "Schreiben der Inhalte",
+  "generation.phase.writing.description":
+    "Die KI schreibt jedes Kapitel im Ton eines Experten, mit reichhaltiger LaTeX-Formatierung, Tabellen und farbigen Infokästen",
+  "generation.phase.reviewing.label": "Prüfung und Überarbeitung",
+  "generation.phase.reviewing.description":
+    "Der KI-Lektor prüft die Vollständigkeit, entfernt Wiederholungen und ergänzt fehlende Themen, um die Qualität zu steigern",
+  "generation.phase.compiling_pdf.label": "PDF-Satz",
+  "generation.phase.compiling_pdf.description":
+    "LaTeX zusammenstellen, pdflatex mit automatischer Fehlerkorrektur ausführen, druckfertiges PDF erzeugen",
+  "generation.phase.compiling_epub.label": "EPUB-Erstellung",
+  "generation.phase.compiling_epub.description":
+    "Umwandlung in XHTML, Aufbereitung für Kindle/Apple Books/Kobo",
+  "generation.phase.finalizing.label": "Veröffentlichung",
+  "generation.phase.finalizing.description":
+    "Dateien werden hochgeladen und die Version wird abgeschlossen",
+  "generation.phase.done.label": "Abgeschlossen",
+  "generation.phase.done.description": "Ihr Buch ist fertig!",
+
+  // StructureProgress
+  "generation.structure.title":
+    "Zahlung bestätigt. Die Gliederung Ihres Buches wird erstellt",
+  "generation.structure.subtitle":
+    "Das dauert in der Regel 1–2 Minuten. Sie können diese Seite ruhig verlassen, wir arbeiten weiter.",
+  "generation.structure.0.label": "Recherche im Web",
+  "generation.structure.0.desc":
+    "Die besten Quellen zu Ihrem Thema werden gesucht und gelesen",
+  "generation.structure.1.label": "Entwurf der Kapitelstruktur",
+  "generation.structure.1.desc":
+    "Die KI entwirft Kapitel und Abschnitte auf Grundlage der Recherche",
+  "generation.structure.2.label": "Bereit für Ihre Prüfung",
+  "generation.structure.2.desc":
+    "Sie geben die Gliederung frei oder passen sie an, bevor das Schreiben beginnt",
+};

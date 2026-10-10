@@ -16,6 +16,7 @@
 // previous counter value), so the sweep is idempotent and safe to run from
 // more than one process.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import { projectLang } from "./email";
 import { prisma } from "./prisma";
 import { sendPaymentReminderEmail } from "./email";
 
@@ -70,6 +71,7 @@ export async function sweepPaymentReminders(): Promise<void> {
       title: true,
       topic: true,
       language: true,
+      uiLang: true,
       targetPages: true,
       priceUsdCents: true,
       currency: true,
@@ -129,7 +131,7 @@ export async function sweepPaymentReminders(): Promise<void> {
       pages: p.targetPages,
       priceLabel: priceLabel(p),
       link: `${APP_URL}/projects/${p.id}`,
-      lang: p.language === "pl" ? "pl" : "en",
+      lang: projectLang(p),
       kind,
     });
     if (!res.ok) {

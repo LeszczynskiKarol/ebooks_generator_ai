@@ -24,3 +24,15 @@ export const pl: Record<string, string> = {
   "common.stage.COMPLETED": "Gotowe",
   "common.stage.ERROR": "Błąd",
 };
+export const de: Record<string, string> = {
+  "common.stage.BRIEF": "Projektbriefing",
+  "common.stage.PRICING": "Preis prüfen",
+  "common.stage.PAYMENT": "Zahlung",
+  "common.stage.STRUCTURE": "Gliederung wird erstellt",
+  "common.stage.STRUCTURE_REVIEW": "Gliederung prüfen",
+  "common.stage.IMAGES": "Bilder",
+  "common.stage.GENERATING": "Inhalte werden geschrieben",
+  "common.stage.COMPILING": "Buch wird gesetzt",
+  "common.stage.COMPLETED": "Abgeschlossen",
+  "common.stage.ERROR": "Fehler",
+};

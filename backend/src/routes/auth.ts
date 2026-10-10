@@ -22,7 +22,7 @@ const RESEND_COOLDOWN_S = parseInt(process.env.EMAIL_RESEND_COOLDOWN || "60");
 const APP_URL = process.env.PUBLIC_APP_URL || "http://localhost:5173";
 
 function normLang(lang: unknown): string {
-  return lang === "pl" ? "pl" : "en";
+  return lang === "pl" || lang === "de" ? lang : "en";
 }
 
 export async function authRoutes(app: FastifyInstance) {

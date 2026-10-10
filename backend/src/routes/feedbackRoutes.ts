@@ -15,7 +15,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { prisma } from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
-import { sendEmail, shell, esc } from "../lib/email";
+import { sendEmail, shell, esc, projectLang } from "../lib/email";
 
 const APP_URL = process.env.PUBLIC_APP_URL || "https://app.inkmagnet.com";
 
@@ -36,9 +36,6 @@ const isOpen = (s: string) => s === "open" || s === "in_progress";
 
 const bookName = (p: { title: string | null; topic: string }) => p.title || p.topic;
 
-/** Customer e-mails follow the language the order was placed in
- *  (PL panel → PLN), like the order confirmation. */
-const customerLang = (p: { currency: string }) => (p.currency === "pln" ? "pl" : "en");
 
 function notifyOwner(subject: string, rows: [string, string][], link: string, tag: string) {
   const to = process.env.ADMIN_EMAIL;
@@ -321,7 +318,7 @@ export async function feedbackRoutes(app: FastifyInstance) {
       where: { id },
       include: {
         project: {
-          select: { id: true, title: true, topic: true, currency: true, user: { select: { id: true, email: true } } },
+          select: { id: true, title: true, topic: true, currency: true, language: true, uiLang: true, user: { select: { id: true, email: true } } },
         },
       },
     });
@@ -346,26 +343,26 @@ export async function feedbackRoutes(app: FastifyInstance) {
 
     if (closing) {
       const p = current.project;
-      const pl = customerLang(p) === "pl";
+      const lang = projectLang(p);
       const done = status === "done";
       const name = bookName(p);
       const link = `${APP_URL}/projects/${p.id}`;
-      const title = pl
-        ? done
-          ? "Poprawki w Twojej książce są gotowe"
-          : "Odpowiedź na Twoje zgłoszenie"
-        : done
-          ? "The corrections to your book are ready"
-          : "A reply to your request";
-      const intro = pl
-        ? done
-          ? `Sprawdziliśmy Twoje zgłoszenie do książki „${esc(name)}” i wprowadziliśmy poprawki. Nowa wersja czeka do pobrania.`
-          : `Sprawdziliśmy Twoje zgłoszenie do książki „${esc(name)}”.`
-        : done
-          ? `We have reviewed your request for "${esc(name)}" and made the corrections. The new version is ready to download.`
-          : `We have reviewed your request for "${esc(name)}".`;
-      const noteHead = pl ? "Odpowiedź redaktora:" : "Editor's reply:";
-      const cta = pl ? "Otwórz książkę" : "Open the book";
+      const title = done
+        ? { pl: "Poprawki w Twojej książce są gotowe", en: "The corrections to your book are ready", de: "Die Korrekturen an Ihrem Buch sind fertig" }[lang]
+        : { pl: "Odpowiedź na Twoje zgłoszenie", en: "A reply to your request", de: "Antwort auf Ihre Anfrage" }[lang];
+      const intro = done
+        ? {
+            pl: `Sprawdziliśmy Twoje zgłoszenie do książki „${esc(name)}” i wprowadziliśmy poprawki. Nowa wersja czeka do pobrania.`,
+            en: `We have reviewed your request for "${esc(name)}" and made the corrections. The new version is ready to download.`,
+            de: `Wir haben Ihre Anfrage zum Buch „${esc(name)}“ geprüft und die Korrekturen vorgenommen. Die neue Version steht zum Download bereit.`,
+          }[lang]
+        : {
+            pl: `Sprawdziliśmy Twoje zgłoszenie do książki „${esc(name)}”.`,
+            en: `We have reviewed your request for "${esc(name)}".`,
+            de: `Wir haben Ihre Anfrage zum Buch „${esc(name)}“ geprüft.`,
+          }[lang];
+      const noteHead = { pl: "Odpowiedź redaktora:", en: "Editor's reply:", de: "Antwort des Lektors:" }[lang];
+      const cta = { pl: "Otwórz książkę", en: "Open the book", de: "Buch öffnen" }[lang];
       const noteBlock = adminNote
         ? `<p style="font-size:14px;font-weight:600;margin:20px 0 8px">${noteHead}</p>
 <blockquote style="margin:0 0 12px;padding:10px 14px;border-left:3px solid #4f46e5;background:#f9fafb;font-size:14px;color:#374151;white-space:pre-wrap">${esc(adminNote)}</blockquote>`

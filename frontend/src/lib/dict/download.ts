@@ -87,3 +87,47 @@ export const pl: Record<string, string> = {
   "download.toastEpubStarted": "Rozpoczęto generowanie EPUB...",
   "download.toastEpubStartFailed": "Nie udało się rozpocząć generowania EPUB",
 };
+
+export const de: Record<string, string> = {
+  "download.title": "Buch herunterladen",
+  "download.versions": "Versionen",
+  "download.recompiling": "Ihr Buch wird gespeichert und neu gesetzt...",
+  "download.recompilingHint":
+    "Der Download startet automatisch, sobald das Buch fertig ist (ca. 30–60 s).",
+  "download.pendingUnsavedOne":
+    "{n} ungespeicherte Änderung. Vor dem Herunterladen wird automatisch gespeichert und neu gesetzt.",
+  "download.pendingUnsavedMany":
+    "{n} ungespeicherte Änderungen. Vor dem Herunterladen wird automatisch gespeichert und neu gesetzt.",
+  "download.pendingEdited":
+    "Seit dem letzten Setzen wurden Kapitel bearbeitet. Vor dem Herunterladen wird das Buch automatisch neu gesetzt.",
+  "download.pdf": "PDF herunterladen",
+  "download.pdfHint": "Druckfertig, mit gestaltetem Layout",
+  "download.epub": "EPUB",
+  "download.checking": "Wird geprüft...",
+  "download.epubGeneratingAuto": "Wird generiert... Der Download startet automatisch",
+  "download.epubGenerating": "Wird generiert... ca. 30 s",
+  "download.epubDownload": "EPUB herunterladen",
+  "download.epubGenerate": "EPUB generieren",
+  "download.epubHint": "Kindle, Apple Books, Kobo",
+  "download.regenerateEpubOnly": "Nur EPUB neu generieren",
+  "download.versionHistory": "Versionsverlauf",
+  "download.allVersions": "Alle Versionen",
+  "download.loading": "Wird geladen...",
+  "download.noVersions":
+    "Noch keine Versionen. Jedes Neusetzen beim Herunterladen erzeugt eine neue Version.",
+  "download.noVersionsCompile":
+    "Noch keine Versionen. Jedes Setzen erzeugt eine neue Version.",
+  "download.latest": "(aktuell)",
+  "download.pages": "Seiten",
+  // toasts
+  "download.toastSaving": "Änderungen werden gespeichert...",
+  "download.toastSaveFailed":
+    "Einige Kapitel konnten nicht gespeichert werden. Beheben Sie die Fehler und versuchen Sie es erneut.",
+  "download.toastRecompiling": "Ihr Buch wird neu gesetzt...",
+  "download.toastRecompileFailed": "Neusetzen fehlgeschlagen",
+  "download.toastRecompilationFailed": "Neusetzen fehlgeschlagen. Bitte versuchen Sie es erneut.",
+  "download.toastBookRegenerated": "Buch neu gesetzt!",
+  "download.toastEpubReady": "EPUB ist fertig!",
+  "download.toastEpubStarted": "EPUB wird generiert...",
+  "download.toastEpubStartFailed": "EPUB-Generierung konnte nicht gestartet werden",
+};

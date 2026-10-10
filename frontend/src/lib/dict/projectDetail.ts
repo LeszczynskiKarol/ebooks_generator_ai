@@ -111,3 +111,60 @@ export const pl: Record<string, string> = {
   "projectDetail.toast.failed": "Nie powiodło się",
   "projectDetail.toast.checkoutFailed": "Płatność nie powiodła się",
 };
+
+export const de: Record<string, string> = {
+  // flow steps
+  "projectDetail.step.payment": "Zahlung",
+  "projectDetail.step.structure": "Gliederung",
+  "projectDetail.step.review": "Prüfung",
+  "projectDetail.step.writing": "Schreiben",
+  "projectDetail.step.compiling": "Satz",
+  "projectDetail.step.done": "Fertig",
+  // header / nav
+  "projectDetail.backToDashboard": "Zurück zu „Meine Bücher“",
+  "projectDetail.coverAlt": "Buchcover",
+  // progress
+  "projectDetail.progress": "Fortschritt",
+  // details card
+  "projectDetail.details": "Details",
+  "projectDetail.pages": "Seiten",
+  "projectDetail.language": "Sprache",
+  "projectDetail.style": "Stil",
+  "projectDetail.format": "Format",
+  // payment card
+  "projectDetail.payment": "Zahlung",
+  "projectDetail.status": "Status:",
+  "projectDetail.payment.PENDING": "Zahlung ausstehend",
+  "projectDetail.payment.PAID": "bezahlt",
+  "projectDetail.payment.FAILED": "Zahlung fehlgeschlagen",
+  "projectDetail.payment.REFUNDED": "erstattet",
+  "projectDetail.guidelines": "Vorgaben",
+  "projectDetail.materials": "Angehängte Dateien",
+  // payment pending
+  "projectDetail.paymentPending": "Zahlung ausstehend",
+  "projectDetail.paymentNotCompleted":
+    "Ihre Zahlung über {s} wurde noch nicht abgeschlossen.",
+  "projectDetail.completePayment": "Zahlung abschließen: {s}",
+  "projectDetail.securePayment": "Sichere Zahlung über Stripe",
+  // ready to write
+  "projectDetail.readyToWrite": "Ihr Buch kann geschrieben werden",
+  "projectDetail.structureApprovedStart":
+    "Die Gliederung ist freigegeben. Starten Sie die Erstellung durch die KI.",
+  "projectDetail.startGeneration": "Erstellung starten",
+  // compiling
+  "projectDetail.compilingBook": "Ihr Buch wird gesetzt",
+  "projectDetail.compilingDesc":
+    "Das Cover wird gestaltet und das druckfertige PDF gesetzt. Bei einem vollständigen Buch kann das einige Minuten dauern. Sie können diesen Tab geöffnet lassen.",
+  // not found
+  "projectDetail.notFound": "Projekt nicht gefunden",
+  // edit content
+  "projectDetail.editBookContent": "Buchinhalt bearbeiten",
+  "projectDetail.editChapterHint":
+    "Bearbeiten Sie ein beliebiges Kapitel und erstellen Sie anschließend ein neues PDF",
+  // toasts
+  "projectDetail.toast.structureApproved":
+    "Gliederung freigegeben. Ihr Buch wird geschrieben!",
+  "projectDetail.toast.generationStarted": "Erstellung gestartet!",
+  "projectDetail.toast.failed": "Fehlgeschlagen",
+  "projectDetail.toast.checkoutFailed": "Zahlung fehlgeschlagen",
+};

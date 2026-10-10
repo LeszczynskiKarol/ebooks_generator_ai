@@ -4,6 +4,7 @@
 // Fire-and-forget from pipeline code — a notification failure must never
 // break generation.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import { projectLang } from "./email";
 import { prisma } from "./prisma";
 import { sendStructureReadyEmail } from "./email";
 
@@ -23,20 +24,21 @@ export async function notifyStructureReady(projectId: string): Promise<void> {
         title: true,
         topic: true,
         language: true,
+        uiLang: true,
         autoPilot: true,
         user: { select: { id: true, email: true } },
       },
     });
     if (!project || project.autoPilot || !project.user) return;
 
-    const pl = project.language === "pl";
+    const lang = projectLang(project);
     const bookName = project.title || project.topic;
-    const title = pl
-      ? "Plan książki gotowy do zatwierdzenia"
-      : "Book plan ready for your approval";
-    const body = pl
-      ? `„${bookName}”: przejrzyj rozdziały i zatwierdź plan, aby ruszyło pisanie.`
-      : `"${bookName}": review the chapters and approve the plan to start the writing.`;
+    const title = { pl: "Plan książki gotowy do zatwierdzenia", en: "Book plan ready for your approval", de: "Gliederung bereit zur Freigabe" }[lang];
+    const body = {
+      pl: `„${bookName}”: przejrzyj rozdziały i zatwierdź plan, aby ruszyło pisanie.`,
+      en: `"${bookName}": review the chapters and approve the plan to start the writing.`,
+      de: `„${bookName}“: Prüfen Sie die Kapitel und geben Sie die Gliederung frei, damit das Schreiben beginnt.`,
+    }[lang];
 
     await prisma.notification.create({
       data: {
@@ -52,7 +54,7 @@ export async function notifyStructureReady(projectId: string): Promise<void> {
       project.user.email,
       bookName,
       `${APP_URL}/projects/${project.id}`,
-      pl ? "pl" : "en",
+      lang,
     );
   } catch (err: any) {
     console.error(`🔔 notifyStructureReady(${projectId}) failed: ${err.message}`);
@@ -75,18 +77,21 @@ export async function notifyBookCompleted(projectId: string): Promise<void> {
         title: true,
         topic: true,
         language: true,
+        uiLang: true,
         autoPilot: true,
         user: { select: { id: true, email: true } },
       },
     });
     if (!project || project.autoPilot || !project.user) return;
 
-    const pl = project.language === "pl";
+    const lang = projectLang(project);
     const bookName = project.title || project.topic;
-    const title = pl ? "Twoja książka jest gotowa" : "Your book is ready";
-    const body = pl
-      ? `„${bookName}”: PDF i EPUB czekają do pobrania.`
-      : `"${bookName}": the PDF and EPUB are ready to download.`;
+    const title = { pl: "Twoja książka jest gotowa", en: "Your book is ready", de: "Ihr Buch ist fertig" }[lang];
+    const body = {
+      pl: `„${bookName}”: PDF i EPUB czekają do pobrania.`,
+      en: `"${bookName}": the PDF and EPUB are ready to download.`,
+      de: `„${bookName}“: PDF und EPUB stehen zum Download bereit.`,
+    }[lang];
 
     await prisma.notification.create({
       data: {
@@ -103,7 +108,7 @@ export async function notifyBookCompleted(projectId: string): Promise<void> {
       project.user.email,
       bookName,
       `${APP_URL}/projects/${project.id}`,
-      pl ? "pl" : "en",
+      lang,
     );
   } catch (err: any) {
     console.error(`🔔 notifyBookCompleted(${projectId}) failed: ${err.message}`);

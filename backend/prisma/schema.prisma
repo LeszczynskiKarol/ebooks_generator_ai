@@ -93,6 +93,10 @@ model Project {
   // Required for every Stripe checkout; kept as evidence.
   withdrawalConsentAt DateTime?
   withdrawalConsentIp String?
+  /// UI language the customer ordered in ("pl" | "en" | "de") — the language of
+  /// the consent they ticked and of every e-mail about this book. Null on
+  /// orders from before 2026-10-10 (then: Polish book → pl, else en).
+  uiLang              String?
   // Order confirmation e-mail (durable-medium copy of the consent) — set once,
   // so a re-delivered Stripe webhook never sends it twice.
   orderEmailSentAt    DateTime?

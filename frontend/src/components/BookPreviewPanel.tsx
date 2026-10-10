@@ -7,6 +7,7 @@ import { track } from "@/lib/funnel";
 import StructureEditor, { type StructureData } from "@/components/StructureEditor";
 import SamplePages, { type SampleState } from "@/components/SamplePages";
 import CheckoutConsent from "@/components/CheckoutConsent";
+import { uiLang } from "@/lib/locale";
 import PaymentMethods from "@/components/PaymentMethods";
 
 // Same shape as ProjectStructure.structureJson (+ subtitle/promise), so the
@@ -141,6 +142,7 @@ export default function BookPreviewPanel({
       track("checkout_start", { preview: true, edited: !!preview?.editedByCustomer });
       const { data } = await apiClient.post(`/projects/${projectId}/checkout`, {
         withdrawalConsent: true,
+        lang: uiLang(),
       });
       track("checkout_created", { projectId });
       onBeforeCheckout?.();

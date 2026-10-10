@@ -40,3 +40,24 @@ export const pl: Record<string, string> = {
   "sample.failed": "Nie udało się uruchomić próbki. Spróbuj za chwilę.",
   "sample.limit": "Dzisiejsze darmowe próbki są wykorzystane. Książkę nadal możesz zamówić: po płatności zobaczysz i poprawisz pełny konspekt, zanim zaczniemy pisać.",
 };
+
+export const de: Record<string, string> = {
+  "sample.ctaTitle": "Sehen Sie, wie Ihr Buch aussehen wird",
+  "sample.ctaText": "Zwei fertige Seiten aus Kapitel 1 im gewählten Stil und Format, geschrieben und gesetzt wie das fertige Buch. Kostenlos.",
+  "sample.cta": "Leseprobe anzeigen",
+  "sample.runningTitle": "Ihre Leseprobe wird geschrieben und gesetzt…",
+  "sample.runningText": "In der Regel 1–1,5 Minuten. Sie können die Gliederung währenddessen weiter bearbeiten.",
+  "sample.readyTitle": "Leseprobe: die ersten zwei Seiten Ihres Buches",
+  "sample.readyNote": "Eine Probe für Stil und Layout. Der endgültige Text entsteht nach der Recherche zu Ihrem Thema und enthält daher mehr Fakten und Quellen.",
+  "sample.pageAlt": "Leseprobe, Seite {s}",
+  "sample.tapToZoom": "Klicken Sie auf eine Seite, um sie größer anzuzeigen und hineinzuzoomen.",
+  "sample.zoomIn": "Vergrößern",
+  "sample.zoomOut": "Verkleinern",
+  "sample.close": "Schließen",
+  "sample.prev": "Vorherige Seite",
+  "sample.next": "Nächste Seite",
+  "sample.failedRetry": "Die Leseprobe ist dieses Mal nicht gelungen. Sie können es noch einmal versuchen.",
+  "sample.failedFinal": "Für diese Bestellung konnte keine Leseprobe erstellt werden. Das Buch selbst ist davon nicht betroffen.",
+  "sample.failed": "Die Leseprobe konnte nicht gestartet werden. Bitte versuchen Sie es gleich noch einmal.",
+  "sample.limit": "Die kostenlosen Leseproben für heute sind aufgebraucht. Bestellen können Sie trotzdem: Nach der Zahlung prüfen Sie die vollständige Gliederung, bevor das Schreiben beginnt.",
+};

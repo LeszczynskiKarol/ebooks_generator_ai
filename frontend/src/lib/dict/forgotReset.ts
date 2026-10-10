@@ -56,3 +56,32 @@ export const pl: Record<string, string> = {
   "forgotReset.saveNewPassword": "Zapisz nowe hasło",
   "forgotReset.backTo": "Wróć do",
 };
+
+export const de: Record<string, string> = {
+  "forgotReset.errEmail": "Ungültige E-Mail-Adresse",
+  "forgotReset.somethingWrong": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut",
+  "forgotReset.title": "Passwort zurücksetzen",
+  "forgotReset.subtitle": "Wir senden Ihnen per E-Mail einen Link, mit dem Sie ein neues festlegen",
+  "forgotReset.checkInbox": "Prüfen Sie Ihr Postfach",
+  "forgotReset.checkInboxBody":
+    "Falls zu dieser Adresse ein Konto besteht, ist ein Link zum Zurücksetzen unterwegs. Der Link ist 30 Minuten gültig.",
+  "forgotReset.email": "E-Mail",
+  "forgotReset.sendLink": "Link zum Zurücksetzen senden",
+  "forgotReset.rememberedIt": "Wieder eingefallen?",
+  "forgotReset.signIn": "Anmelden",
+
+  "forgotReset.errMinPassword": "Mindestens 8 Zeichen",
+  "forgotReset.errPasswordsMatch": "Die Passwörter stimmen nicht überein",
+  "forgotReset.passwordUpdated": "Passwort aktualisiert!",
+  "forgotReset.invalidLink": "Ungültiger oder abgelaufener Link",
+  "forgotReset.setNewTitle": "Neues Passwort festlegen",
+  "forgotReset.linkIncomplete": "Dieser Link ist unvollständig",
+  "forgotReset.linkIncompleteBody":
+    "Öffnen Sie den Link aus der E-Mail erneut oder fordern Sie einen neuen an.",
+  "forgotReset.requestNewLink": "Neuen Link anfordern",
+  "forgotReset.newPassword": "Neues Passwort",
+  "forgotReset.newPasswordPlaceholder": "Mind. 8 Zeichen",
+  "forgotReset.repeatPassword": "Passwort wiederholen",
+  "forgotReset.saveNewPassword": "Neues Passwort speichern",
+  "forgotReset.backTo": "Zurück zum",
+};

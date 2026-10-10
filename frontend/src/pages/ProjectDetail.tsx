@@ -39,6 +39,7 @@ import BookEditor, { type BookEditorHandle } from "@/components/BookEditor";
 import NumberingSettings from "@/components/NumberingSettings";
 import BookPreviewPanel from "@/components/BookPreviewPanel";
 import CheckoutConsent from "@/components/CheckoutConsent";
+import { uiLang } from "@/lib/locale";
 import PaymentMethods from "@/components/PaymentMethods";
 import SamplePages from "@/components/SamplePages";
 
@@ -192,6 +193,7 @@ export default function ProjectDetail() {
     try {
       const res = await apiClient.post(`/projects/${id}/checkout`, {
         withdrawalConsent: true,
+        lang: uiLang(),
       });
       window.location.href = res.data.data.sessionUrl;
     } catch (err: any) {

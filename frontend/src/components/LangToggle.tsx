@@ -1,10 +1,10 @@
-import { useLangStore, type AppLang } from "@/lib/i18n";
+import { useLangStore, APP_LANGS } from "@/lib/i18n";
 
-/** EN | PL switch for the auth screens. Persists the choice (localStorage). */
+/** EN | PL | DE switch for the auth screens. Persists the choice (localStorage). */
 export default function LangToggle() {
   const lang = useLangStore((s) => s.lang);
   const setLang = useLangStore((s) => s.setLang);
-  const langs: AppLang[] = ["en", "pl"];
+  const langs = APP_LANGS;
 
   return (
     <div className="fixed top-4 left-4 flex items-center gap-0.5 rounded-lg bg-gray-200/70 dark:bg-gray-800/70 p-0.5 backdrop-blur-sm">

@@ -18,3 +18,13 @@ export const pl: Record<string, string> = {
   "dashboard.pages": "{s} stron",
   "dashboard.coverAlt": "Okładka: {s}",
 };
+
+export const de: Record<string, string> = {
+  "dashboard.myBooks": "Meine Bücher",
+  "dashboard.subtitle": "Verwalten Sie Ihre E-Book-Projekte",
+  "dashboard.newBook": "Neues Buch",
+  "dashboard.writingChapters": "Kapitel werden geschrieben…",
+  "dashboard.compiling": "Wird gesetzt…",
+  "dashboard.pages": "{s} Seiten",
+  "dashboard.coverAlt": "Cover: {s}",
+};

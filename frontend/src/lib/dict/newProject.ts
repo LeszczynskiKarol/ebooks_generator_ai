@@ -434,3 +434,222 @@ export const pl: Record<string, string> = {
   "newProject.errMinChars": "Min. 5 znaków",
   "newProject.errTitleOrTopic": "Opisz książkę albo podaj jej tytuł",
 };
+
+export const de: Record<string, string> = {
+  // Page header
+  "newProject.title": "Neues Buch erstellen",
+  "newProject.subtitle":
+    "Erzählen Sie uns von Ihrem E-Book. Sie können später alles bearbeiten.",
+
+  // Section: Book Details
+  "newProject.bookDetails": "Angaben zum Buch",
+  "newProject.bookTitleHelp":
+    "Lassen Sie das Feld leer, dann schlagen wir einen Titel passend zu Ihrem Thema vor",
+  "newProject.materialsButton": "Dateien anhängen",
+  "newProject.materialsHint":
+    "oder hier ablegen: Vorgaben, Beispiele, Quellen, Inspirationen",
+  "newProject.materialsFormats":
+    "PDF, Word (DOC/DOCX), OpenDocument (ODT/ODP), RTF, TXT, Markdown, PowerPoint · je bis zu {mb} MB, max. {n} Dateien. Die KI liest den Text und hält sich beim Schreiben daran.",
+  "newProject.materialsChars": "{n} Zeichen",
+  "newProject.materialsTruncated": "lange Datei, erster Teil verwendet",
+  "newProject.materialsReading": "Datei wird gelesen…",
+  "newProject.materialsRemove": "Datei entfernen",
+  "newProject.materialsErrType": "Dateityp wird nicht unterstützt",
+  "newProject.materialsErrSize": "Datei größer als {mb} MB",
+  "newProject.materialsErrEmpty":
+    "kein Text gefunden (ein gescanntes PDF? Fügen Sie die wichtigsten Passagen stattdessen in die Vorgaben ein)",
+  "newProject.materialsErrCount": "Sie können bis zu {n} Dateien anhängen",
+  "newProject.materialsErrGeneric":
+    "Hochladen fehlgeschlagen, bitte versuchen Sie es erneut",
+
+  // Section: Book Size
+  "newProject.bookSize": "Umfang des Buchs",
+  "newProject.popular": "Beliebt",
+  "newProject.tierLabel.compact": "Kompakt",
+  "newProject.tierLabel.standard": "Standard",
+  "newProject.tierLabel.extended": "Erweitert",
+  "newProject.tierLabel.comprehensive": "Umfassend",
+  "newProject.tierLabel.complete": "Komplett",
+  "newProject.tierDesc.compact": "30–40 Seiten",
+  "newProject.tierDesc.standard": "50–70 Seiten",
+  "newProject.tierDesc.extended": "80–100 Seiten",
+  "newProject.tierDesc.comprehensive": "130–150 Seiten",
+  "newProject.tierDesc.complete": "170–200 Seiten",
+
+  // Section: Color Scheme
+  "newProject.colorScheme": "Farbschema",
+  "newProject.colorSchemeDesc":
+    "Wählen Sie 1–3 Akzentfarben für Überschriften, Kästen und Tabellen. Lassen Sie die Auswahl leer, dann wählen wir Farben, die zu Ihrem Thema passen.",
+  "newProject.rolePrimary": "Primär",
+  "newProject.roleSecondary": "Sekundär",
+  "newProject.roleTertiary": "Tertiär",
+  "newProject.chooseColors": "Farben wählen",
+  "newProject.colorsSelected": "{s}/3 ausgewählt",
+  "newProject.addCustomColor": "Eigene Farbe hinzufügen",
+  "newProject.add": "Hinzufügen",
+  "newProject.cancel": "Abbrechen",
+  "newProject.howColorsUsed": "So werden Ihre Farben verwendet:",
+  "newProject.oneColorNote":
+    "Bei 1 Farbe werden passende Abstufungen automatisch erzeugt.",
+  "newProject.colorRolePrimary": "Primär: Kapitelüberschriften, Hauptakzente",
+  "newProject.colorRoleSecondary": "Sekundär: Kästen, Hervorhebungen, Tipps",
+  "newProject.colorRoleTertiary":
+    "Tertiär: Details, Rahmen, dezente Elemente",
+
+  // Color names
+  "newProject.colorWhite": "Weiß",
+  "newProject.colorBlack": "Schwarz",
+  "newProject.colorRoyalBlue": "Königsblau",
+  "newProject.colorBlue": "Blau",
+  "newProject.colorSkyBlue": "Himmelblau",
+  "newProject.colorCyan": "Cyan",
+  "newProject.colorViolet": "Violett",
+  "newProject.colorPurple": "Lila",
+  "newProject.colorLavender": "Lavendel",
+  "newProject.colorPink": "Pink",
+  "newProject.colorEmerald": "Smaragdgrün",
+  "newProject.colorGreen": "Grün",
+  "newProject.colorLime": "Limette",
+  "newProject.colorTeal": "Petrol",
+  "newProject.colorRed": "Rot",
+  "newProject.colorOrange": "Orange",
+  "newProject.colorAmber": "Bernstein",
+  "newProject.colorGold": "Gold",
+  "newProject.colorSlate": "Schiefergrau",
+  "newProject.colorGray": "Grau",
+  "newProject.colorBrown": "Braun",
+  "newProject.colorRose": "Altrosa",
+
+  // Section: Book Cover
+  "newProject.bookCover": "Buchcover",
+  "newProject.bookCoverDesc":
+    "Legen Sie fest, wie Ihr Cover entstehen soll. Sie können das später jederzeit ändern.",
+  "newProject.coverGenerateLabel": "Cover erstellen lassen",
+  "newProject.coverGenerateDesc":
+    "Professionelles, von der KI gestaltetes Cover auf Basis Ihrer Angaben zum Buch",
+  "newProject.coverUploadLabel": "Eigenes Cover hochladen",
+  "newProject.coverUploadDesc": "Laden Sie ein eigenes Bild im Format {s} hoch",
+  "newProject.coverNoneLabel": "Kein Cover",
+  "newProject.coverNoneDesc":
+    "Ohne Cover starten und später im Editor eines hinzufügen",
+  "newProject.aiIllustrations": "KI-Illustrationen im Buch",
+  "newProject.included": "Inklusive",
+  "newProject.aiIllustrationsDesc":
+    "KI-generierte Bilder, abgestimmt auf den Inhalt und Ihren visuellen Stil. Ohne Aufpreis. Nach der Erstellung können Sie im Editor außerdem an jeder Stelle des Buchs eigene Fotos einfügen.",
+  "newProject.howManyIllustrations": "Wie viele Illustrationen?",
+  "newProject.densityStandardLabel": "Standard",
+  "newProject.densityStandardDesc": "~1 Bild pro 5 Seiten",
+  "newProject.densityRichLabel": "Reichhaltig",
+  "newProject.densityRichDesc":
+    "~1 Bild pro 3 Seiten, ideal für Kochen, Basteln, Reisen",
+  "newProject.imagePrefsLabel": "Bildwünsche (optional)",
+  "newProject.imagePrefsPlaceholder":
+    "z. B. lieber Fotos echter Arbeitsplätze, warme Töne, keine Nahaufnahmen von Gesichtern...",
+  "newProject.imagePrefsHelp":
+    "Lenken Sie die KI-Bilder behutsam: Stimmung, Farbe, Motive, die bevorzugt oder vermieden werden sollen.",
+
+  // Section: Settings
+  "newProject.settings": "Einstellungen",
+  "newProject.languageLabel": "Sprache des Buchs",
+  "newProject.pageFormatLabel": "Seitenformat",
+  "newProject.visualStyleLabel": "Buchstil",
+  "newProject.visualStyleHelp":
+    "Prägt sowohl die Gestaltung (Schriften, Farben) als auch den Schreibstil, fein abgestimmt auf Ihr Thema und Ihre Vorgaben.",
+  "newProject.footnotesLabel": "Fußnoten und Quellen",
+  "newProject.footnoteAutoLabel": "Automatisch",
+  "newProject.footnoteAutoDesc":
+    "Richtet sich nach dem Stil: Akademisch erhält Fußnoten, die anderen bleiben schlicht",
+  "newProject.footnoteAlwaysLabel": "Mit Fußnoten",
+  "newProject.footnoteAlwaysDesc":
+    "Vollständiger Quellenapparat in jedem Kapitel",
+  "newProject.footnoteNeverLabel": "Ohne Fußnoten",
+  "newProject.footnoteNeverDesc":
+    "Populärer Stil: Quellen in den Text eingeflochten",
+
+  // Languages
+  "newProject.langEn": "Englisch",
+  "newProject.langPl": "Polnisch",
+  "newProject.langDe": "Deutsch",
+  "newProject.langEs": "Spanisch",
+  "newProject.langEsEs": "Spanisch (Spanien)",
+  "newProject.langEs419": "Spanisch (Lateinamerika)",
+  "newProject.langPtPt": "Portugiesisch (Portugal)",
+  "newProject.langPtBr": "Portugiesisch (Brasilien)",
+  "newProject.langFr": "Französisch",
+  "newProject.langIt": "Italienisch",
+  "newProject.langPt": "Portugiesisch",
+  "newProject.langNl": "Niederländisch",
+
+  // Styles
+  "newProject.styleAuto": "Automatisch: Wir wählen Stil und Farben passend zu Ihrem Thema",
+  "newProject.styleAutoSummary": "Stil passend zum Thema",
+  "newProject.styleModern": "Modern: klares Design, direkte zeitgemäße Sprache",
+  "newProject.styleAcademic": "Akademisch: wissenschaftliches Layout, präzise formelle Prosa",
+  "newProject.styleMinimal": "Minimalistisch: elegante Schlichtheit, knappe ruhige Prosa",
+  "newProject.styleCreative": "Kreativ: mutiges Design, erzählerischer Ton",
+  "newProject.styleBusiness": "Business: professioneller Auftritt, ergebnisorientierte Sprache",
+
+  // Style names (for order summary)
+  "newProject.styleNameModern": "Modern",
+  "newProject.styleNameAcademic": "Akademisch",
+  "newProject.styleNameMinimal": "Minimalistisch",
+  "newProject.styleNameCreative": "Kreativ",
+  "newProject.styleNameBusiness": "Business",
+
+  // Formats
+  "newProject.formatA5": "A5 (148×210mm), Standard",
+  "newProject.formatB5": "B5 (176×250mm), größer",
+  "newProject.formatLetter": "Letter (216×279mm), US",
+  "newProject.formatA4": "A4 (210×297mm), volle Größe",
+  "newProject.formatDescStandard": "Standard",
+  "newProject.formatDescLarger": "Größer",
+  "newProject.formatDescUs": "US",
+  "newProject.formatDescFull": "Voll",
+
+  // Order summary
+  "newProject.pages": "{s} Seiten",
+  "newProject.styleSuffix": "Stil",
+  "newProject.summaryAiCover": "KI-Cover",
+  "newProject.summaryOwnCover": "Eigenes Cover",
+  "newProject.summaryNoCover": "Kein Cover",
+  "newProject.summaryAiIllustrations": "KI-Illustrationen",
+
+  // Submit
+  "newProject.continueToPayment": "Weiter zur Zahlung: {s}",
+  "newProject.continueToPreview": "Inhaltsverzeichnis meines Buchs kostenlos ansehen",
+  "newProject.previewHint": "Kostenlos, keine Karte nötig. Sie zahlen nur, wenn Ihnen die Gliederung gefällt.",
+  "newProject.descriptionLabel": "Beschreiben Sie Ihr Buch",
+  "newProject.descriptionPlaceholder": "z. B. Ein praktisches 30-Tage-Programm für Einsteiger, die den ganzen Tag am Schreibtisch sitzen: kurze tägliche Übungen für Rücken, Hüfte und Nacken, Ergonomie am Arbeitsplatz und Mikropausen. Freundlicher Ton, kein Fachjargon, mit einem Fortschrittstracker am Ende.",
+  "newProject.descriptionHelp": "Worum es geht, für wen es gedacht ist und was unbedingt enthalten sein muss. Schreiben Sie so viel oder so wenig, wie Sie möchten. Ein Satz genügt, eine ausführliche Beschreibung ist besser.",
+  "newProject.titleOptionalLabel": "Titel (optional)",
+  "newProject.lookTitle": "Aussehen und Einstellungen",
+  "newProject.lookHint": "Stil, Format, Farben, Cover, Illustrationen, Fußnoten: Die Voreinstellungen sind gut und lassen sich später ändern.",
+  "newProject.lookChange": "Ändern",
+  "newProject.previewBadge": "Kostenlose Vorschau Ihres Buchs",
+  "newProject.previewPay": "Gefällt mir, {s} zahlen und mein Buch schreiben lassen",
+  "newProject.previewAssurance": "Bevor das Schreiben beginnt, prüfen Sie die vollständige Gliederung und können sie ändern (plus eine kostenlose Neuplanung). Schlägt die Erstellung aus technischen Gründen fehl, erstatten wir Ihnen den Betrag.",
+  "newProject.previewEdit": "Beschreibung ändern",
+  "newProject.previewEditHint": "Das ist die Gliederung Ihres Buchs. Klicken Sie auf einen Titel oder eine Beschreibung, um sie zu ändern, fügen Sie Kapitel und Abschnitte hinzu oder entfernen Sie sie, legen Sie Seitenzahlen fest oder bitten Sie die KI um eine neue Version mit Ihren Anmerkungen. Nach der Zahlung recherchieren wir das Thema und arbeiten genau diese Gliederung aus.",
+  "newProject.previewRedo": "Neue Version von der KI mit Ihren Anmerkungen (einmalig)",
+  "newProject.previewRejectedTitle": "Aus dieser Beschreibung konnten wir kein Buch planen",
+  "newProject.previewLoadingTitle": "Ihr Buch wird geplant…",
+  "newProject.previewLoadingText": "Titel, Kapitel und was jedes davon behandelt. Dauert meist 20–40 Sekunden.",
+  "newProject.previewLimit": "Sie haben die kostenlosen Vorschauen für heute aufgebraucht. Sie können das Buch trotzdem bestellen: Nach der Zahlung sehen und bearbeiten Sie die vollständige Gliederung, bevor das Schreiben beginnt.",
+  "newProject.previewFailed": "Die Vorschau konnte diesmal nicht geladen werden. Versuchen Sie es erneut oder bestellen Sie direkt. Nach der Zahlung sehen und bearbeiten Sie die vollständige Gliederung, bevor das Schreiben beginnt.",
+
+  // Toasts
+  "newProject.draftRestored": "Entwurf wiederhergestellt",
+  "newProject.pendingOrderTitle": "Eine Bestellung wartet auf die Zahlung",
+  "newProject.pendingOrderBody": "„{s}“: Ihre Beschreibung und Einstellungen sind gespeichert.",
+  "newProject.pendingOrderCta": "Bestellung abschließen",
+  "newProject.maxColors": "Maximal 3 Farben",
+  "newProject.invalidHex": "Geben Sie eine gültige Hex-Farbe ein (z. B. #FF5500)",
+  "newProject.colorAlreadySelected": "Farbe bereits ausgewählt",
+  "newProject.projectCreated": "Projekt erstellt!",
+  "newProject.failed": "Fehlgeschlagen",
+
+  // Validation
+  "newProject.titleTypoHint": "Im Thema wird das anders geschrieben. Meinten Sie:",
+  "newProject.errMinChars": "Mind. 5 Zeichen",
+  "newProject.errTitleOrTopic": "Beschreiben Sie das Buch oder geben Sie den Titel an",
+};

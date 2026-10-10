@@ -26,3 +26,17 @@ export const pl: Record<string, string> = {
   "layout.notifications": "Powiadomienia",
   "layout.noNotifications": "Brak powiadomień",
 };
+
+export const de: Record<string, string> = {
+  "layout.lockTitle": "Erstellungssperre aktiv.",
+  "layout.lockBody1": "Nur Ihr Admin-Konto kann Bücher erstellen, alle anderen Nutzer sind gesperrt. Entfernen Sie",
+  "layout.lockBody2": "auf dem Server, um den Zugang freizugeben.",
+  "layout.newShort": "Neu",
+  "layout.new": "Neues Buch",
+  "layout.admin": "Admin",
+  "layout.adminPanel": "Admin-Bereich",
+  "layout.toggleTheme": "Design wechseln",
+  "layout.logout": "Abmelden",
+  "layout.notifications": "Benachrichtigungen",
+  "layout.noNotifications": "Noch keine Benachrichtigungen",
+};

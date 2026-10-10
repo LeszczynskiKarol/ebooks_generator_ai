@@ -23,6 +23,7 @@ import {
   normalizePreview,
 } from "../services/previewGenerator";
 import { BOOK_LANGUAGES, normBookLanguage } from "../lib/languages";
+import { orderLang, paymentDescriptionWithConsent } from "../lib/email";
 
 /** Withdrawal-right waiver checkbox (consumer law: digital content started
  *  before the 14-day period ends). Every Stripe checkout needs it. */
@@ -163,6 +164,7 @@ export async function projectRoutes(app: FastifyInstance) {
       draftProjectId,
       description,
       withdrawalConsent,
+      uiLang,
     } = request.body as any;
 
     // A book needs a subject, but the user may express it either way: as a
@@ -258,6 +260,7 @@ export async function projectRoutes(app: FastifyInstance) {
         title: titleInput || null,
         targetPages: pages,
         language: bookLanguage,
+        uiLang: orderLang(uiLang),
         guidelines: guidelinesInput,
         // "auto" (or nothing chosen): the model picks the look for the topic.
         stylePreset:
@@ -367,6 +370,10 @@ export async function projectRoutes(app: FastifyInstance) {
       // the webhook records the code and the discount on the project.
       allow_promotion_codes: true,
       metadata: { projectId: project.id, userId: request.user.userId, withdrawalConsent: "1" },
+      // printed on Stripe's e-mailed receipt: a second durable-medium copy of the waiver
+      payment_intent_data: {
+        description: paymentDescriptionWithConsent(project.uiLang, project.title || project.topic, new Date()),
+      },
       success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=cancelled`,
     });
@@ -791,6 +798,9 @@ export async function projectRoutes(app: FastifyInstance) {
       return reply.status(400).send({ success: false, error: "Price not set" });
     if ((request.body as any)?.withdrawalConsent !== true)
       return reply.status(400).send(CONSENT_REQUIRED);
+    // the consent was ticked in THIS language — it is what the e-mail must quote
+    const checkoutLang = (request.body as any)?.lang;
+    if (checkoutLang) project.uiLang = orderLang(checkoutLang);
 
     const customerId = await ensureStripeCustomer(
       stripe,
@@ -823,6 +833,10 @@ export async function projectRoutes(app: FastifyInstance) {
       // the webhook records the code and the discount on the project.
       allow_promotion_codes: true,
       metadata: { projectId: project.id, userId: request.user.userId, withdrawalConsent: "1" },
+      // printed on Stripe's e-mailed receipt: a second durable-medium copy of the waiver
+      payment_intent_data: {
+        description: paymentDescriptionWithConsent(project.uiLang, project.title || project.topic, new Date()),
+      },
       success_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL}/projects/${project.id}?payment=cancelled`,
     });
@@ -835,6 +849,7 @@ export async function projectRoutes(app: FastifyInstance) {
         ...(usePln && project.exchangeRate == null ? { exchangeRate: fxRate } : {}),
         withdrawalConsentAt: new Date(),
         withdrawalConsentIp: request.ip || null,
+        uiLang: project.uiLang,
       },
     });
     return reply.send({

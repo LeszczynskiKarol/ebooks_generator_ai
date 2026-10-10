@@ -7,6 +7,7 @@ import { useLangStore } from "@/lib/i18n";
 const TAGLINE: Record<string, string> = {
   en: "Ebook AI generator",
   pl: "Generator ebooków AI",
+  de: "KI-E-Book-Generator",
 };
 
 const INTER = '"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';

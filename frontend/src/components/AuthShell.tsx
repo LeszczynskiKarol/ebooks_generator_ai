@@ -2,7 +2,7 @@ import Logo from "@/components/Logo";
 import { ReactNode } from "react";
 import { BookOpen, Globe, ImagePlus, Palette, Moon, Sun } from "lucide-react";
 import { useThemeStore } from "@/stores/themeStore";
-import { useLangStore, type AppLang } from "@/lib/i18n";
+import { useLangStore, APP_LANGS } from "@/lib/i18n";
 
 // Split-screen auth frame (wzorzec matury-online /auth/login → sitario
 // AuthPage → cytado AuthForm, 2026-08-22): lewa kolumna z kartą formularza,
@@ -45,6 +45,23 @@ const PANEL_COPY = {
       { value: "8", label: "languages" },
     ],
   },
+  de: {
+    badge: "Vom Thema zum fertigen PDF",
+    line1: "Ihr Buch.",
+    line2: "Von KI geschrieben.",
+    lead: "Recherche, Schreiben, Illustrationen und professioneller Satz in einem Ablauf, vom Thema bis zum verkaufsfertigen E-Book.",
+    features: [
+      { title: "Vollständige Bücher mit 30–200 Seiten", sub: "Gliederung, Kapitel, Inhaltsverzeichnis" },
+      { title: "Recherche aus echten Quellen", sub: "Fakten und Zahlen statt Erfindungen" },
+      { title: "KI-Illustrationen inklusive", sub: "Passend zu Inhalt und Stil" },
+      { title: "Professioneller PDF-Satz", sub: "Designstile, Formate A5–A4" },
+    ],
+    stats: [
+      { value: "200", label: "Seiten max." },
+      { value: "5", label: "Designstile" },
+      { value: "8", label: "Sprachen" },
+    ],
+  },
 };
 
 const FEATURE_ICONS = [BookOpen, Globe, ImagePlus, Palette];
@@ -53,7 +70,7 @@ export default function AuthShell({ children }: { children: ReactNode }) {
   const { dark, toggle } = useThemeStore();
   const lang = useLangStore((s) => s.lang);
   const setLang = useLangStore((s) => s.setLang);
-  const langs: AppLang[] = ["en", "pl"];
+  const langs = APP_LANGS;
   const c = PANEL_COPY[lang] || PANEL_COPY.en;
 
   return (

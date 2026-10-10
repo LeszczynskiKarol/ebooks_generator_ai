@@ -23,19 +23,22 @@ import * as payment from "./dict/payment";
 import * as feedback from "./dict/feedback";
 import * as aiEdit from "./dict/aiEdit";
 
-export type AppLang = "en" | "pl";
+export type AppLang = "en" | "pl" | "de";
+export const APP_LANGS: AppLang[] = ["en", "pl", "de"];
+const isAppLang = (v: unknown): v is AppLang => APP_LANGS.includes(v as AppLang);
 
 export function resolveLang(): AppLang {
   if (typeof window === "undefined") return "en";
   try {
     const q = new URLSearchParams(window.location.search).get("lang");
-    if (q === "pl" || q === "en") {
+    if (isAppLang(q)) {
       localStorage.setItem("im_lang", q);
       return q;
     }
     const stored = localStorage.getItem("im_lang");
-    if (stored === "pl" || stored === "en") return stored;
-    return (navigator.language || "").toLowerCase().startsWith("pl") ? "pl" : "en";
+    if (isAppLang(stored)) return stored;
+    const nav = (navigator.language || "").toLowerCase();
+    return nav.startsWith("pl") ? "pl" : nav.startsWith("de") ? "de" : "en";
   } catch {
     return "en";
   }
@@ -159,11 +162,63 @@ const pl: Dict = {
   recaptchaPost: "Google.",
 };
 
-const AREAS = [common, layout, dashboard, newProject, projectDetail, forgotReset, generation, structure, download, editor, cover, titlePage, imageLibrary, admin, sample, payment, feedback, aiEdit];
+
+const de: Dict = {
+  // login
+  welcomeBack: "Willkommen zurück",
+  signInToContinue: "Melden Sie sich an, um weiterzuarbeiten",
+  email: "E-Mail",
+  password: "Passwort",
+  forgotPassword: "Passwort vergessen?",
+  signIn: "Anmelden",
+  noAccount: "Noch kein Konto?",
+  createOne: "Jetzt erstellen",
+  welcomeBackToast: "Willkommen zurück!",
+  loginFailed: "Anmeldung fehlgeschlagen",
+  // register
+  createAccountTitle: "Konto erstellen",
+  startCreating: "Erstellen Sie professionelle E-Books",
+  fullName: "Vor- und Nachname",
+  namePlaceholder: "Max Mustermann",
+  passwordMinPlaceholder: "Mind. 8 Zeichen",
+  createAccountBtn: "Konto erstellen",
+  haveAccount: "Sie haben schon ein Konto?",
+  accountCreatedToast: "Konto erstellt!",
+  registrationFailed: "Registrierung fehlgeschlagen",
+  // verify
+  verifyTitle: "E-Mail bestätigen",
+  notVerifiedYet: "Ihr Konto ist noch nicht bestätigt",
+  oneLastStep: "Ein letzter Schritt, bevor Sie starten",
+  checkEmail: "Prüfen Sie Ihr Postfach",
+  sentCodeTo: "Wir haben einen 6-stelligen Code gesendet an",
+  verify: "Bestätigen",
+  welcomeToast: "Willkommen!",
+  resendCode: "Code erneut senden",
+  resendCodeIn: "Code erneut senden ({s}s)",
+  useDifferentEmail: "Andere E-Mail-Adresse verwenden",
+  codeSent: "Code gesendet. Prüfen Sie Ihr Postfach",
+  couldNotResend: "Der Code konnte nicht gesendet werden",
+  invalidCode: "Ungültiger Code",
+  // validation
+  errEmail: "Ungültige E-Mail-Adresse",
+  errPasswordRequired: "Passwort erforderlich",
+  errNameMin: "Mind. 2 Zeichen",
+  errPasswordMin: "Mind. 8 Zeichen",
+  // recaptcha notice
+  recaptchaPre: "Diese Seite ist durch reCAPTCHA geschützt; es gelten die",
+  recaptchaPrivacy: "Datenschutzerklärung",
+  recaptchaAnd: "und die",
+  recaptchaTerms: "Nutzungsbedingungen",
+  recaptchaPost: "von Google.",
+};
+
+const AREAS: Array<{ en: Dict; pl: Dict; de?: Dict }> = [common, layout, dashboard, newProject, projectDetail, forgotReset, generation, structure, download, editor, cover, titlePage, imageLibrary, admin, sample, payment, feedback, aiEdit];
 
 const DICT: Record<AppLang, Dict> = {
   en: Object.assign({}, en, ...AREAS.map((a) => a.en)),
   pl: Object.assign({}, pl, ...AREAS.map((a) => a.pl)),
+  // an area without a German dictionary (admin) falls back to English
+  de: Object.assign({}, de, ...AREAS.map((a) => a.de ?? {})),
 };
 
 /** Translate with optional `{s}`-style interpolation. */

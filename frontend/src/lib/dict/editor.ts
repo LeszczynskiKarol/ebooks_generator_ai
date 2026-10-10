@@ -158,3 +158,83 @@ export const pl: Record<string, string> = {
   "editor.removeImage": "Usuń obraz",
   "editor.addCaption": "Dodaj podpis...",
 };
+
+export const de: Record<string, string> = {
+  // BookEditor — modes
+  "editor.modeVisual": "Visuell",
+  "editor.modeVisualDesc": "Editor wie in Word, ganz ohne LaTeX-Kenntnisse",
+  "editor.modeCode": "Code",
+  "editor.modeCodeDesc": "LaTeX-Quelltext mit Syntaxhervorhebung",
+  "editor.modeSuffix": "aktiv",
+
+  // BookEditor — states / header
+  "editor.loadingChapters": "Kapitel werden geladen...",
+  "editor.loadChaptersFailed": "Kapitel konnten nicht geladen werden",
+  "editor.noChapters": "Keine Kapitel zum Bearbeiten vorhanden.",
+  "editor.editYourBook": "Buch bearbeiten",
+  "editor.chaptersCount": "{n} Kapitel",
+  "editor.unsavedChange": "{n} ungespeicherte Änderung",
+  "editor.unsavedChanges": "{n} ungespeicherte Änderungen",
+  "editor.chapterAbbr": "KAP. {n}",
+  "editor.words": "{n} Wörter",
+  "editor.pages": "~{n} Seiten",
+  "editor.chars": "{n} Zeichen",
+
+  // BookEditor — toolbar / buttons
+  "editor.undoAll": "Alles rückgängig machen",
+  "editor.image": "Bild",
+  "editor.insertImage": "Bild einfügen",
+  "editor.codeHint": "Strg+F: Suchen · Strg+Z: Rückgängig",
+  "editor.saving": "Wird gespeichert...",
+  "editor.save": "Speichern",
+  "editor.saved": "Gespeichert",
+  "editor.visualHint":
+    "Visueller Editor: Bearbeiten Sie den Text wie in Word. Klicken Sie auf ein Bild, um Größe oder Position zu ändern oder es zu löschen. Für reines LaTeX wechseln Sie in den Code-Modus.",
+
+  // BookEditor — toasts
+  "editor.chapterSaved": "Kapitel {n} gespeichert",
+  "editor.saveChapterFailed": "Kapitel {n} konnte nicht gespeichert werden",
+
+  // WysiwygEditor — placeholder + content
+  "editor.startWriting": "Schreiben Sie los…",
+  "editor.yourContentHere": "Ihr Inhalt steht hier.",
+
+  // WysiwygEditor — toolbar tooltips
+  "editor.undo": "Rückgängig (Strg+Z)",
+  "editor.redo": "Wiederholen (Strg+Y)",
+  "editor.sectionHeading": "Abschnittsüberschrift",
+  "editor.subsectionHeading": "Unterabschnittsüberschrift",
+  "editor.bold": "Fett (Strg+B)",
+  "editor.italic": "Kursiv (Strg+I)",
+  "editor.underline": "Unterstrichen (Strg+U)",
+  "editor.bulletList": "Aufzählungsliste",
+  "editor.numberedList": "Nummerierte Liste",
+  "editor.quote": "Zitat",
+  "editor.horizontalRule": "Trennlinie",
+  "editor.pageBreak": "Seitenumbruch: Der folgende Text beginnt im PDF auf einer neuen Seite",
+  "editor.pageBreakLabel": "Neue Seite",
+  "editor.insertCallout": "Kasten einfügen",
+  "editor.callout": "Kasten",
+  "editor.insertTable": "Tabelle einfügen",
+  "editor.addColumn": "Spalte hinzufügen",
+  "editor.addRow": "Zeile hinzufügen",
+  "editor.deleteTable": "Tabelle löschen",
+
+  // Callout labels (user-visible: dropdown + inserted box title)
+  "editor.calloutTipbox": "Tipp",
+  "editor.calloutKeyinsight": "Kernaussage",
+  "editor.calloutWarningbox": "Achtung",
+  "editor.calloutExamplebox": "Beispiel",
+  "editor.calloutChecklistbox": "Checkliste",
+  "editor.calloutConcept": "Begriff",
+  "editor.calloutStepflow": "Ablauf",
+  "editor.calloutPullquote": "Hervorgehobenes Zitat",
+  "editor.calloutBignumber": "Kennzahl",
+
+  // ImageBlock — controls
+  "editor.wrapLeft": "Links, Text umfließt",
+  "editor.center": "Zentrieren",
+  "editor.wrapRight": "Rechts, Text umfließt",
+  "editor.removeImage": "Bild entfernen",
+  "editor.addCaption": "Bildunterschrift hinzufügen...",
+};

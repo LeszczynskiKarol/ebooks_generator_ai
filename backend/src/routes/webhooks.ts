@@ -138,6 +138,8 @@ export async function webhookRoutes(app: FastifyInstance) {
               currency: true,
               paidAt: true,
               withdrawalConsentAt: true,
+              uiLang: true,
+              language: true,
               user: { select: { email: true } },
             },
           });
@@ -151,10 +153,10 @@ export async function webhookRoutes(app: FastifyInstance) {
                 : cur === "usd"
                   ? "$" + (minor / 100).toFixed(2)
                   : (minor / 100).toFixed(2) + " " + cur.toUpperCase();
-            const { sendOrderConfirmationEmail } = await import("../lib/email");
+            const { sendOrderConfirmationEmail, projectLang } = await import("../lib/email");
             const appUrl = process.env.PUBLIC_APP_URL || "https://app.inkmagnet.com";
-            // The checkout currency follows the UI language at order time
-            // (PL panel → PLN) — the best signal of the customer's language.
+            // The language the consent was ticked in (uiLang); older orders:
+            // the checkout currency (PL panel → PLN).
             const res = await sendOrderConfirmationEmail({
               to,
               orderId: p.id,
@@ -164,7 +166,7 @@ export async function webhookRoutes(app: FastifyInstance) {
               paidAt: p.paidAt ?? new Date(),
               consentAt: p.withdrawalConsentAt,
               link: `${appUrl}/projects/${p.id}`,
-              lang: p.currency === "pln" ? "pl" : "en",
+              lang: projectLang(p),
             });
             if (!res.ok) {
               await prisma.project.update({ where: { id: projectId }, data: { orderEmailSentAt: null } });
