@@ -1,9 +1,10 @@
+import Logo from "@/components/Logo";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { BookOpen, Loader2, Moon, Sun } from "lucide-react";
+import { Loader2, Moon, Sun } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useThemeStore } from "@/stores/themeStore";
 import api from "@/lib/api";
@@ -71,9 +72,8 @@ export default function ResetPassword() {
 
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
-          <a href="https://inkmagnet.com" className="inline-flex items-center gap-2 mb-6">
-            <BookOpen className="w-8 h-8 text-primary-600" />
-            <span className="text-2xl font-bold font-display text-gray-900 dark:text-white">InkMagnet</span>
+          <a href="https://inkmagnet.com" className="inline-flex items-center mb-6" aria-label="InkMagnet">
+            <Logo size="lg" />
           </a>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("forgotReset.setNewTitle")}</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">{email || "—"}</p>

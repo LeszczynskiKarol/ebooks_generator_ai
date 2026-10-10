@@ -1,6 +1,7 @@
+import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BookOpen, LogOut, Plus, User, Moon, Sun, Shield, Lock } from "lucide-react";
+import { LogOut, Plus, User, Moon, Sun, Shield, Lock } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useThemeStore } from "@/stores/themeStore";
 import { useT } from "@/lib/i18n";
@@ -46,9 +47,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}
       <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <BookOpen className="w-7 h-7 text-primary-600" />
-            <span className="text-xl font-bold font-display text-gray-900 dark:text-white">InkMagnet</span>
+          <Link to="/dashboard" className="flex items-center" aria-label="InkMagnet">
+            <Logo />
           </Link>
 
           <div className="flex items-center gap-1.5 sm:gap-3">

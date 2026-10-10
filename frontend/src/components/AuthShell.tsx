@@ -1,3 +1,4 @@
+import Logo from "@/components/Logo";
 import { ReactNode } from "react";
 import { BookOpen, Globe, ImagePlus, Palette, Moon, Sun } from "lucide-react";
 import { useThemeStore } from "@/stores/themeStore";
@@ -60,13 +61,8 @@ export default function AuthShell({ children }: { children: ReactNode }) {
       {/* ── Left: form column ── */}
       <div className="flex w-full flex-col lg:w-[46%]">
         <div className="flex items-center justify-between px-6 pt-5 lg:px-10">
-          <a href="https://inkmagnet.com" className="inline-flex items-center gap-2.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary-600 to-fuchsia-500 text-white shadow-lg shadow-primary-600/25">
-              <BookOpen className="h-5 w-5" />
-            </span>
-            <span className="font-display text-xl font-bold text-gray-900 dark:text-white">
-              InkMagnet
-            </span>
+          <a href="https://inkmagnet.com" className="inline-flex items-center" aria-label="InkMagnet">
+            <Logo size="lg" />
           </a>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-0.5 rounded-lg bg-gray-200/70 dark:bg-gray-800/70 p-0.5">
