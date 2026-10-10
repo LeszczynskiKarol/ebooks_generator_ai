@@ -25,7 +25,7 @@ const jsonLd = [
     "@type": "WebSite",
     name: siteConfig.name,
     url: siteConfig.url,
-    inLanguage: ["en", "pl"],
+    inLanguage: ["en", "pl", "de"],
   },
   {
     "@context": "https://schema.org",
@@ -35,6 +35,13 @@ const jsonLd = [
     operatingSystem: "Web",
     url: siteConfig.url,
     description,
+    featureList: [
+      "Books written natively in English, Polish, German, Spanish (Spain or Latin America) and Portuguese (Portugal or Brazil)",
+      "Web research with citations to real sources",
+      "Free table of contents and two-page typeset sample before payment",
+      "Professional typesetting, designed cover, PDF and EPUB",
+      "Built-in editor, targeted AI edits with a preview, free corrections by a human editor",
+    ],
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "USD",

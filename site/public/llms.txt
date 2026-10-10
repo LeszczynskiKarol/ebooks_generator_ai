@@ -1,6 +1,6 @@
 # InkMagnet
 
-> InkMagnet is an AI ebook generator that delivers a finished, professionally typeset book, not chat text. Describe a topic; you get a free title, editable table of contents and a two-page typeset sample before paying. After you approve the plan, InkMagnet researches the topic on the live web, writes the book chapter by chapter, runs a language edit and a whole-book consistency check, designs a cover, and exports a print-ready PDF and an EPUB. One fixed price per book, no subscription. Built in Poland; writes natively in Polish and English.
+> InkMagnet is an AI ebook generator that delivers a finished, professionally typeset book, not chat text. Describe a topic; you get a free title, editable table of contents and a two-page typeset sample before paying. After you approve the plan, InkMagnet researches the topic on the live web, writes the book chapter by chapter, runs a language edit and a whole-book consistency check, designs a cover, and exports a print-ready PDF and an EPUB. One fixed price per book, no subscription. Built in Poland. Books are written natively (not translated) in English, Polish, German, Spanish and Portuguese, with separate regional variants: Spanish for Spain or for Latin America, Portuguese for Portugal or for Brazil.
 
 ## What makes it different
 
@@ -10,7 +10,17 @@
 - See it before paying: free title + table of contents (editable, one AI redo, choose between versions) and a free 2-page sample typeset exactly like the final book.
 - No subscription: pay per book. Full commercial rights, no watermark.
 - Native Polish: Polish typography („…” quotes, en dashes, hyphenation). Written in Polish, not translated. Made by a Polish proofreader/editor.
-- Edit after generation: WYSIWYG chapter editor, add your own photos, recompile any time. Android app available.
+- Edit after generation, three ways: a WYSIWYG chapter editor (add your own photos, recompile any time); "Improve with AI" (tell the AI what to change in a chapter or section, see the change first, keep or discard it; 3 per book); "Check by a human" (describe what is wrong and an editor corrects it by hand, free; up to 3 requests per book). Android app available.
+
+## Book languages
+
+- English
+- Polish (polski)
+- German (Deutsch)
+- Spanish (español): two variants, Spain (es-ES) and Latin America (es-419)
+- Portuguese (português): two variants, Portugal (pt-PT) and Brazil (pt-BR)
+
+Each book is researched in sources of its own language (plus English) and written directly in that language, with that language's typography: quotation marks, hyphenation, table and contents headings. Regional variants differ in vocabulary, wording and forms of address, not only in spelling. The order form can be in English, Polish or German regardless of the book's language.
 
 ## Pricing (one-time, per book)
 
@@ -19,7 +29,8 @@
 - Extended, 76–115 pages: $19.99
 - Comprehensive, 116–160 pages: $27.99
 - Complete, 161–200 pages: $34.99
-- Polish prices are shown in PLN at the current NBP exchange rate.
+- Polish prices are shown and charged in PLN, German prices in EUR, both converted from the USD price at the current NBP exchange rate.
+- Payment: cards, Apple Pay, Google Pay; BLIK for PLN; Klarna for EUR.
 
 ## Typical uses
 
@@ -32,6 +43,7 @@
 
 - [Product overview and pricing (EN)](https://inkmagnet.com/)
 - [Generator ebooków AI: strona po polsku](https://inkmagnet.com/pl/)
+- [KI-E-Book-Generator: Seite auf Deutsch](https://inkmagnet.com/de/)
 - [Generator ebooków: opis produktu (PL)](https://inkmagnet.com/pl/generator-ebookow/)
 - [Generator książek AI: książka do druku z ISBN (PL)](https://inkmagnet.com/pl/generator-ksiazek/)
 - [AI lead magnet generator](https://inkmagnet.com/lead-magnet-generator/)
@@ -62,6 +74,7 @@
 ## FAQ
 
 - Is there a free trial? The title, table of contents and a 2-page typeset sample are free; you pay only for the finished book.
-- Which languages? Polish and English, each written natively.
+- Which languages? English, Polish, German, Spanish (Spain or Latin America) and Portuguese (Portugal or Brazil), each written natively, not translated.
+- Can I change the finished book? Yes: edit it yourself in the built-in editor, ask the AI for a targeted change with a preview (3 per book), or request a free correction by a human editor (up to 3 per book).
 - Who owns the book? You do, with full commercial rights and no watermark.
 - How long does it take? Typically under an hour from approving the plan to a finished PDF and EPUB.

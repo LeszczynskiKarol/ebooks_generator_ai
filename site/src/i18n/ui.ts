@@ -417,7 +417,7 @@ export const ui = {
     },
     universality: {
       title: "If it can be researched, it can be a book",
-      sub: "InkMagnet isn't tied to one niche. The same pipeline researches and writes a cookbook, a thesis companion, a SaaS playbook or a course handbook, in your language, on practically any subject.",
+      sub: "InkMagnet isn't tied to one niche. The same pipeline researches and writes a cookbook, a thesis companion, a SaaS playbook or a course handbook on practically any subject, in English, Polish, German, Spanish (Spain or Latin America) or Portuguese (Portugal or Brazil).",
       topics: [
         "Business & startups",
         "Marketing & sales",
@@ -1145,7 +1145,7 @@ export const ui = {
     },
     universality: {
       title: "Jeśli da się to zbadać, może być książką",
-      sub: "InkMagnet nie jest przypisany do jednej niszy. Ten sam silnik bada i pisze książkę kucharską, kompendium do pracy dyplomowej, podręcznik SaaS czy materiał do kursu w Twoim języku, na praktycznie dowolny temat.",
+      sub: "InkMagnet nie jest przypisany do jednej niszy. Ten sam silnik bada i pisze książkę kucharską, kompendium do pracy dyplomowej, podręcznik SaaS czy materiał do kursu na praktycznie dowolny temat: po polsku, angielsku, niemiecku, hiszpańsku (Hiszpania albo Ameryka Łacińska) albo portugalsku (Portugalia albo Brazylia).",
       topics: [
         "Biznes i startupy",
         "Marketing i sprzedaż",

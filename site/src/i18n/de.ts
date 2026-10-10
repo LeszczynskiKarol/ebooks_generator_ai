@@ -402,7 +402,7 @@ export const de = {
   },
   universality: {
     title: "Was sich recherchieren lässt, kann ein Buch werden",
-    sub: "InkMagnet ist nicht an eine Nische gebunden. Dieselbe Pipeline recherchiert und schreibt ein Kochbuch, einen Begleitband zur Abschlussarbeit, ein SaaS-Playbook oder ein Kurshandbuch, in Ihrer Sprache und zu praktisch jedem Thema.",
+    sub: "InkMagnet ist nicht an eine Nische gebunden. Dieselbe Pipeline recherchiert und schreibt ein Kochbuch, einen Begleitband zur Abschlussarbeit, ein SaaS-Playbook oder ein Kurshandbuch zu praktisch jedem Thema: auf Deutsch, Englisch, Polnisch, Spanisch (Spanien oder Lateinamerika) oder Portugiesisch (Portugal oder Brasilien).",
     topics: [
       "Business und Start-ups",
       "Marketing und Vertrieb",

@@ -25,7 +25,7 @@ const PANEL_COPY = {
     stats: [
       { value: "200", label: "stron maks." },
       { value: "5", label: "stylów graficznych" },
-      { value: "8", label: "języków" },
+      { value: "5", label: "języków książki" },
     ],
   },
   en: {
@@ -42,7 +42,7 @@ const PANEL_COPY = {
     stats: [
       { value: "200", label: "pages max" },
       { value: "5", label: "design styles" },
-      { value: "8", label: "languages" },
+      { value: "5", label: "book languages" },
     ],
   },
   de: {
@@ -59,7 +59,7 @@ const PANEL_COPY = {
     stats: [
       { value: "200", label: "Seiten max." },
       { value: "5", label: "Designstile" },
-      { value: "8", label: "Sprachen" },
+      { value: "5", label: "Buchsprachen" },
     ],
   },
 };
