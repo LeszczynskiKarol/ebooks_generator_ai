@@ -186,7 +186,12 @@ export function typographyNote(language: string): string {
   if (base === "es")
     return `- Spanish typography: ${quotes}. Questions and exclamations open with ¿ and ¡. Write á, é, í, ó, ú, ü, ñ as plain characters — never LaTeX accents like \\'a or \\~n`;
   if (base === "pt")
-    return `- Portuguese typography: ${quotes}. Write á, â, ã, à, ç, é, ê, í, ó, ô, õ, ú as plain characters — never LaTeX accents like \\'a, \\~a or \\c{c}`;
+    return (
+      `- Portuguese typography: ${quotes}. Write á, â, ã, à, ç, é, ê, í, ó, ô, õ, ú as plain characters — never LaTeX accents like \\'a, \\~a or \\c{c}` +
+      (bookLanguageInfo(language)?.code === "pt-BR"
+        ? ". Brazilian reais are written R\\$ 150 — the dollar sign ALWAYS escaped as \\$"
+        : "")
+    );
   return "";
 }
 

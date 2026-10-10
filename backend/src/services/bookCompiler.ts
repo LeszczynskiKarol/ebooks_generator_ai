@@ -27,6 +27,7 @@ import {
   repairEditorArtifacts,
   urlifyTexttt,
   protectCodeSpans,
+  escapeCurrencyDollars,
 } from "../lib/latexFixes";
 import { footnotesEnabled } from "../lib/types";
 
@@ -1279,6 +1280,9 @@ export function assembleLatexDocument(p: AssembleParams): string {
   }
   // babel "portuguese" (Portugal) heads the contents "Conteúdo"; books
   // published in Portugal say "Índice". ("brazilian" already gives "Sumário".)
+  // Portuguese sets ONE space after a full stop; babel's portuguese/brazilian
+  // leave TeX's wider English sentence spacing on.
+  if (baseLang(p.language) === "pt") add("\\frenchspacing", "");
   if (babel === "portuguese") {
     add("\\addto\\captionsportuguese{\\renewcommand{\\contentsname}{Índice}}", "");
   }
@@ -2181,6 +2185,8 @@ export function sanitizeChapterLatex(
   // Inline code (\texttt) is skipped: formulas keep straight quotes.
   const q = quoteMarks(language);
   result = protectCodeSpans(result, (r) => {
+    // "R$ 150", "$600 al mes": a bare currency `$` would open math mode
+    r = escapeCurrencyDollars(r);
     r = r.replace(/(?<![\s\\])"/g, q.close);
     r = r.replace(/(?<!\\)"(?=\S)/g, q.open);
     // Model sometimes CLOSES a quote with ,, (opening mark) — flip it

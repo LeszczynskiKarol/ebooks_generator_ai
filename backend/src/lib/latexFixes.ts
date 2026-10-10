@@ -195,3 +195,48 @@ function fixCodeSpan(code: string): string {
   }
   return c;
 }
+
+/**
+ * A bare `$` used as a CURRENCY sign opens math mode: the rest of the
+ * paragraph is set in math italics with every space eaten ("R$ 150 no fim do
+ * mês" → "R150nofimdoms…", first seen in a Brazilian sample, 2026-10-10).
+ * Escape it where it is clearly money and leave real formulas alone:
+ *  - a currency prefix glued to it: R$ 150, US$ 20, MX$ 300, A$ 5
+ *  - `$` + amount followed by a word, sentence punctuation, a table cell
+ *    break or the end of the line: "$600 al mes", "$150.", "$150 & $300"
+ * Not touched: "$5$", "$5 + 3 = 8$", "$2^{10}$", "$x$".
+ * Call inside protectCodeSpans (formulas in \texttt keep their `$`).
+ */
+export function escapeCurrencyDollars(latex: string): string {
+  // R$ / US$ / MX$ right before the sign, followed by an amount
+  const prefixed = /(?<![\\\p{L}])[A-Z]{1,3}$/u;
+  // what follows a plain currency `$`: amount + word | cell break | punctuation | end
+  const amount = /^\d[\d.,]*(?:\s+\p{L}{2}|\s*(?:&|\\\\)|[.,;:!?)]+(?:\s|$)|\s*$)/u;
+  return latex
+    .split("\n")
+    .map((line) => {
+      if (!line.includes("$")) return line;
+      let out = "";
+      let last = 0;
+      // Walk the bare `$` left to right, tracking math mode: a `$` that would
+      // CLOSE a formula is never money ("$x \in R$ 5 times").
+      let inMath = false;
+      for (const m of line.matchAll(/(?<!\\)\$/g)) {
+        const i = m.index!;
+        const before = line.slice(0, i);
+        const after = line.slice(i + 1);
+        const money =
+          !inMath &&
+          ((prefixed.test(before) && /^\s?\d/.test(after)) ||
+            (!/[$\p{L}\d}]$/u.test(before) && amount.test(after)));
+        if (money) {
+          out += line.slice(last, i) + "\\$";
+          last = i + 1;
+        } else {
+          inMath = !inMath;
+        }
+      }
+      return out + line.slice(last);
+    })
+    .join("\n");
+}
