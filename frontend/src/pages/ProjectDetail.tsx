@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import DownloadPanel from "@/components/DownloadPanel";
 import BookFeedback from "@/components/BookFeedback";
+import BookAiEdit from "@/components/BookAiEdit";
 import GenerationProgress from "@/components/GenerationProgress";
 import StructureProgress from "@/components/StructureProgress";
 import apiClient from "@/lib/api";
@@ -609,6 +610,9 @@ export default function ProjectDetail() {
               }}
               onSaveAll={handleSaveAll}
             />
+
+            {/* AI edit: instruction → preview → keep or discard */}
+            <BookAiEdit projectId={id!} unsavedChanges={totalUnsaved} onBookChanged={() => refetch()} />
 
             {/* Rating + "Check by a human" */}
             <BookFeedback projectId={id!} />

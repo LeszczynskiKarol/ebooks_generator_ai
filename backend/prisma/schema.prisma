@@ -159,6 +159,7 @@ model Project {
   materials       ProjectMaterial[]
   feedback        BookFeedback?
   corrections     CorrectionRequest[]
+  editJobs        EditJob[]
   materialsDigest String?             @db.Text
 
   // Free pre-payment preview (title + table of contents) — see
@@ -549,4 +550,40 @@ model CorrectionRequest {
 
   @@index([status, createdAt])
   @@index([projectId])
+}
+
+/// One AI edit of a finished chapter (or one section of it), asked for by the
+/// customer in plain words ("shorten this", "add an example"). The chapter is
+/// NOT touched until the customer accepts the preview; `contentBefore` also
+/// lets an accepted edit be reverted. A fixed number per book (AI_EDIT_LIMIT).
+model EditJob {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+
+  chapterNumber Int
+  /// index of the \section within the chapter; null = the whole chapter
+  sectionIndex  Int?
+  /// human label of the scope, kept for the history list
+  scopeLabel    String
+  prompt        String
+
+  /// running → preview → accepted | rejected ; failed ; accepted → reverted
+  status String @default("running")
+
+  /// the fragment before the edit (snapshot) and the edited working copy
+  contentBefore String? @db.Text
+  contentAfter  String? @db.Text
+  /// what the gate measured: words/footnotes/images before and after, notes
+  gateResult    Json?
+
+  error   String?
+  costUsd Float   @default(0)
+
+  createdAt  DateTime  @default(now())
+  finishedAt DateTime?
+  decidedAt  DateTime?
+
+  @@index([projectId, status])
 }
