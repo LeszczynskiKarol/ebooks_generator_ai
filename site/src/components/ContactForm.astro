@@ -1,7 +1,9 @@
 ---
 // Public contact form — posts to the app's API (backend routes/contactRoutes.ts).
-// The honeypot field ("website") is hidden from people; a bot that fills it is
-// answered "ok" and dropped. `startedAt` lets the backend mark (not block)
+// The honeypot field is hidden from people. Its name and attributes are chosen
+// so that browsers, password managers and form fillers leave it alone; if one
+// fills it anyway, the backend still stores the message (marked), so nothing a
+// person writes is lost. `startedAt` lets the backend mark (not block)
 // messages sent implausibly fast. No captcha: a real message must get through.
 import { siteConfig } from "../config/site";
 import type { Lang } from "../i18n/ui";
@@ -112,10 +114,19 @@ const label = "block text-sm font-medium text-ink-800";
 
   {/* honeypot — hidden from people and from assistive technology */}
   <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
-    <label>
-      Website
-      <input type="text" name="website" tabindex="-1" autocomplete="off" />
-    </label>
+    <input
+      type="text"
+      name="ref_code"
+      tabindex="-1"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      aria-hidden="true"
+      data-lpignore="true"
+      data-1p-ignore="true"
+      data-bwignore="true"
+      data-form-type="other"
+    />
   </div>
 
   <p id="contact-status" role="status" aria-live="polite" class="hidden rounded-lg px-4 py-3 text-sm"></p>
@@ -166,7 +177,7 @@ const label = "block text-sm font-medium text-ink-800";
           topic: f.topic.value,
           message: message,
           lang: d.lang,
-          website: f.website.value,
+          ref_code: f.ref_code.value,
           startedAt: startedAt,
         }),
       })

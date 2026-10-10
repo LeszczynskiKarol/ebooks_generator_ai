@@ -557,7 +557,7 @@ function MessagesTab({ rows }: { rows: ContactRow[] }) {
             <span className="text-xs text-gray-500">{r.topic}</span>
             {r.flags.length > 0 && (
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">
-                check: {r.flags.join(", ")}
+                {r.flags.includes("honeypot") ? "not e-mailed · " : ""}check: {r.flags.join(", ")}
               </span>
             )}
           </div>

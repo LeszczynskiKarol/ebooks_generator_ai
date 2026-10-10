@@ -10,7 +10,11 @@
 //     the table);
 //   - nothing is ever sent TO the address typed in the form (no auto-reply),
 //     so the form cannot be used to mail third parties;
-//   - bots: a hidden honeypot field — filled → answered "ok" and dropped;
+//   - bots: a hidden honeypot field. A filled one is NOT proof of a bot (a
+//     password manager or a form-filling extension can fill hidden fields),
+//     so the message is still STORED, marked "honeypot" and shown in the
+//     admin tab — only the e-mail to the owner is skipped. Nothing a person
+//     writes can vanish;
 //   - soft signals (sent within 3 s of opening the form, many links) do NOT
 //     block: the message is delivered with a "[check]" mark;
 //   - hard limits only on volume: per IP and per sender address per hour, and
@@ -38,9 +42,9 @@ export async function contactRoutes(app: FastifyInstance) {
   app.post("/api/contact", async (request, reply) => {
     const b = (request.body ?? {}) as any;
 
-    // Honeypot: a field people never see. A bot that fills it gets a normal
-    // "ok" (nothing to learn from) and the message goes nowhere.
-    if (clip(b.website, 200)) return reply.send({ success: true });
+    // Honeypot: a field people never see. See the header: stored and marked,
+    // not e-mailed. Accepts the old field name while cached pages still send it.
+    const trapped = !!(clip(b.ref_code, 200) || clip(b.website, 200));
 
     const email = clip(b.email, 200).toLowerCase();
     const message = clip(b.message, 5000);
@@ -69,7 +73,7 @@ export async function contactRoutes(app: FastifyInstance) {
       });
 
     // Soft signals — delivered anyway, only marked for the reader.
-    const flags: string[] = [];
+    const flags: string[] = trapped ? ["honeypot"] : [];
     const startedAt = Number(b.startedAt);
     if (Number.isFinite(startedAt) && startedAt > 0 && Date.now() - startedAt < 3000) flags.push("fast");
     if ((message.match(/https?:\/\//gi) || []).length > 3) flags.push("links");
@@ -89,7 +93,7 @@ export async function contactRoutes(app: FastifyInstance) {
     });
 
     const to = process.env.CONTACT_INBOX || process.env.ADMIN_EMAIL;
-    if (to) {
+    if (to && !trapped) {
       const rows: [string, string][] = [
         ["Od", name ? `${name} <${email}>` : email],
         ["Temat", topic],
