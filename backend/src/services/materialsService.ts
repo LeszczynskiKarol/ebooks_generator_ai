@@ -337,6 +337,7 @@ HOW TO USE THE AUTHOR-PROVIDED MATERIALS:
 - The customer chose these files on purpose — where they are relevant to this chapter, prefer them over web research
 - Facts, figures and examples from them may be used freely; when you footnote one, cite the work by the author/title stated INSIDE the document, never by its file name — if the document names no author or title, don't footnote it
 - Example texts show the expected form and tone — imitate the approach, never copy sentences
+- Materials may be in a different language than the book: take their facts, ideas and structure, but write everything in the book's language — translate quotations and terms (keep the original only for proper names and titles of works), and never carry foreign sentences into the chapter
 - Do not mention to the reader that materials were "uploaded" or "provided"
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;

@@ -275,15 +275,36 @@ export function rtfToText(rtf: string): string {
 
 // ── Plain text / HTML ─────────────────────────────────────────────────
 
+// Telling a Polish legacy export (CP1250) from a Western one (CP1252:
+// Spanish, Portuguese, German, French) by which letters the bytes would be.
+// Letters Polish uses all the time and that are mere symbols in CP1252:
+// ą Ą ł Ł ś Ś ź Ź ć (¹ ¥ ³ £ œ Œ Ÿ  æ). ę ż ń are left out on purpose — the
+// same bytes are ê ¿ ñ, so they cannot tell the two pages apart.
+const CENTRAL_BYTES = new Set([0xb9, 0xa5, 0xb3, 0xa3, 0x9c, 0x8c, 0x9f, 0x8f, 0xe6]);
+// Letters Polish never uses but Spanish/Portuguese/French do: ã õ à è ì ò ù ¡
+// (CP1250: ă ő ŕ č ě ň ů ˇ) and á í ú é ç â ô (same letter in both pages).
+const WESTERN_BYTES = new Set([
+  0xe3, 0xf5, 0xe0, 0xe8, 0xec, 0xf2, 0xf9, 0xa1, 0xe1, 0xed, 0xfa, 0xe9, 0xe7, 0xe2, 0xf4,
+]);
+
 /** BOM-aware decode; non-UTF-8 files (old Windows exports) fall back to
- *  CP1250, which covers Polish and is a superset-ish of CP1252 for English. */
+ *  CP1250 (Polish) or CP1252 (Western European), whichever the bytes point
+ *  to. It used to be CP1250 always, which turned Spanish ñ ¿ into ń ż and
+ *  Portuguese ã õ ê into ă ő ę. Ties (plain ASCII, German ä ö ü ß, ó) keep
+ *  CP1250 — those bytes decode identically in both. */
 export function decodeText(buf: Buffer): string {
   if (buf[0] === 0xff && buf[1] === 0xfe) return new TextDecoder("utf-16le").decode(buf.subarray(2));
   if (buf[0] === 0xfe && buf[1] === 0xff) return new TextDecoder("utf-16be").decode(buf.subarray(2));
   try {
     return new TextDecoder("utf-8", { fatal: true }).decode(buf).replace(/^﻿/, "");
   } catch {
-    return new TextDecoder("windows-1250").decode(buf);
+    let central = 0;
+    let western = 0;
+    for (const b of buf) {
+      if (CENTRAL_BYTES.has(b)) central++;
+      else if (WESTERN_BYTES.has(b)) western++;
+    }
+    return new TextDecoder(western > central ? "windows-1252" : "windows-1250").decode(buf);
   }
 }
 

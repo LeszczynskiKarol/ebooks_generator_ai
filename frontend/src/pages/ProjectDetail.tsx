@@ -1,4 +1,5 @@
 import { languageLabelKey } from "@/lib/bookLanguages";
+import { LanguageFlag } from "@/components/LanguageSelect";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import TitlePageEditor, {
@@ -368,8 +369,11 @@ export default function ProjectDetail() {
               ["projectDetail.pages", project.targetPages],
               [
                 "projectDetail.language",
-                (languageLabelKey(project.language) ? t(languageLabelKey(project.language)!) : undefined) ??
-                  project.language.toUpperCase(),
+                <span className="inline-flex items-center gap-2">
+                  <LanguageFlag code={project.language} />
+                  {(languageLabelKey(project.language) ? t(languageLabelKey(project.language)!) : undefined) ??
+                    project.language.toUpperCase()}
+                </span>,
               ],
               [
                 "projectDetail.style",

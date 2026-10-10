@@ -1,4 +1,5 @@
-import { ORDER_LANGUAGES, LANGUAGE_LABEL_KEYS, languageLabelKey } from "@/lib/bookLanguages";
+import { ORDER_LANGUAGES, languageLabelKey } from "@/lib/bookLanguages";
+import LanguageSelect from "@/components/LanguageSelect";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -653,14 +654,16 @@ export default function NewProject() {
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelCls}>{t("newProject.languageLabel")}</label>
-              <select {...register("language")} className={inputCls}>
-                {ORDER_LANGUAGES.map((k) => (
-                  <option key={k} value={k}>
-                    {t(LANGUAGE_LABEL_KEYS[k])}
-                  </option>
-                ))}
-              </select>
+              <label id="book-language-label" className={labelCls}>
+                {t("newProject.languageLabel")}
+              </label>
+              <LanguageSelect
+                value={watch("language") || "en"}
+                onChange={(code) => setValue("language", code, { shouldDirty: true })}
+                options={ORDER_LANGUAGES}
+                className={inputCls}
+                labelId="book-language-label"
+              />
             </div>
             <div>
               <label className={labelCls}>{t("newProject.titleOptionalLabel")}</label>
