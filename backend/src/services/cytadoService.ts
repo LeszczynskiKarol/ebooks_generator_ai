@@ -124,7 +124,13 @@ export async function fetchAcademicSources(
         lang: String(s.language || langs[0] || "en"),
         academic: true as const,
       }));
-  } catch {
+  } catch (err: any) {
+    // cytado rejects the WHOLE request (400) when one of `langs` is not
+    // active there yet — the book would lose its English sources too. Retry
+    // once with English only instead of dropping academic sources entirely.
+    if (err?.response?.status === 400 && langs.some((l) => l !== "en")) {
+      return fetchAcademicSources(topic, ["en"], limit, timeoutMs);
+    }
     return [];
   }
 }

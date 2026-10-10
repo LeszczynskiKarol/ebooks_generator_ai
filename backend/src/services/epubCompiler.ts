@@ -639,7 +639,13 @@ function getColorVars(
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 function tocTitle(lang: string): string {
-  return lang === "pl" ? "Spis treści" : lang === "de" ? "Inhaltsverzeichnis" : "Table of Contents";
+  const titles: Record<string, string> = {
+    pl: "Spis treści",
+    de: "Inhaltsverzeichnis",
+    es: "Índice",
+    pt: "Índice",
+  };
+  return titles[(lang || "").slice(0, 2).toLowerCase()] || "Table of Contents";
 }
 
 function generateTitlePage(

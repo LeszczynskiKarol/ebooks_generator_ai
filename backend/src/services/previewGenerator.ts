@@ -278,6 +278,8 @@ function capitalizationRule(lang: string): string {
     return "Use Title Case for the book title and chapter titles.";
   if (lang === "de")
     return "Follow German orthography (nouns capitalized), no English Title Case. Quotations use German typographic quotes „…“ — never straight quotes. Write ä ö ü ß directly.";
+  if (lang === "es")
+    return 'Use SENTENCE CASE for the title and every chapter/section title — capitalize only the first word and proper nouns (e.g. "Guía práctica de finanzas personales", NOT "Guía Práctica De Finanzas Personales"). Quotations use Spanish angle quotes «…»; questions and exclamations open with ¿ and ¡.';
   return 'Use SENTENCE CASE for the title and every chapter/section title — capitalize only the first word and proper nouns (e.g. "Architektura rozproszenia", NOT "Architektura Rozproszenia").' +
     (lang === "pl" ? " Quotations use Polish typographic quotes „…” — never straight double or single quotes." : "");
 }

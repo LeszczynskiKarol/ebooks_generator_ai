@@ -707,7 +707,9 @@ function ResearchDetail({
                   ? t("generation.lang.english")
                   : language === "de"
                     ? t("generation.lang.german")
-                    : language.toUpperCase(),
+                    : language === "es"
+                      ? t("generation.lang.spanish")
+                      : language.toUpperCase(),
             n: chaptersCount * 2,
           })}
         </span>

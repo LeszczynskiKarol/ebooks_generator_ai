@@ -46,6 +46,7 @@ const LANGUAGE_KEYS: Record<string, string> = {
   en: "newProject.langEn",
   pl: "newProject.langPl",
   de: "newProject.langDe",
+  es: "newProject.langEs",
 };
 const STYLE_KEYS: Record<string, string> = {
   // default: the model picks the style for the topic (designPicker.ts)

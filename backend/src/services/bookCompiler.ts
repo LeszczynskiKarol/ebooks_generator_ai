@@ -82,7 +82,11 @@ const BABEL_LANG: Record<string, string> = {
   en: "english",
   pl: "polish",
   de: "ngerman",
-  es: "spanish",
+  // babel-spanish restyles the whole book by default (dots after section
+  // numbers, list bullets, first-paragraph indent, decimal comma in math,
+  // "Cuadro" for tables, active " < > shorthands). Our design owns the
+  // layout — keep only hyphenation + captions, and the everyday "Tabla".
+  es: "spanish,es-nolayout,es-nodecimaldot,es-noshorthands,es-tabla",
   fr: "french",
   it: "italian",
   pt: "portuguese",

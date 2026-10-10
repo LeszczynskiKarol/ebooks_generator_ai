@@ -1308,7 +1308,7 @@ RHYTHM & PUNCTUATION — these patterns expose machine-written text, avoid them:
 - Aphorism-style punchlines are a strong tell — HARD LIMIT 1-2 in the WHOLE chapter (count them before finishing). This includes symmetric closers ("X wymaga planowania, nie talentu"; "...nie pracą, lecz aktem wiary"; "Bez X nie ma Y, a bez Y nie ma Z"; "...niż wszystkie inne razem wzięte"). Almost every paragraph and box must end on a plain, informative sentence — not a quotable line
 - NUMERIC TABLES: before finalizing, recompute every derived value (sums, averages, weighted
   scores) by hand — all arithmetic in a table must check out exactly. Readers verify these
-- Quotes: use \`\`...'' (English), ,,...'' (Polish) or ,,...\`\` (German). NEVER the straight " character — it breaks typesetting
+- Quotes: use \`\`...'' (English), ,,...'' (Polish), ,,...\`\` (German) or «...» (Spanish). NEVER the straight " character — it breaks typesetting
 - Number ranges tight, no spaces: 5--15, s.~228--229
 - Polish only: use "oraz" solely as a second-level connector after "i" already appeared in the sentence; otherwise write "i"
 
@@ -1336,6 +1336,7 @@ ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "
 - Use --- for em-dash, -- for en-dash
 ${lang === "Polish" ? '- Polish typography: quotations ALWAYS as „..." (U+201E/U+201D) — NEVER "..." or “...”' : ""}
 ${lang === "German" ? '- German typography: quotations ALWAYS as „...“ (U+201E/U+201C) — NEVER "..." or “...”. Write ä, ö, ü, ß as plain characters — never ae/oe/ue/ss substitutes, never LaTeX accents like \\"a' : ""}
+${lang === "Spanish" ? "- Spanish typography: quotations ALWAYS as «...» (U+00AB/U+00BB) — NEVER \"...\" or “...”. Questions and exclamations open with ¿ and ¡. Write á, é, í, ó, ú, ü, ñ as plain characters — never LaTeX accents like \\'a or \\~n. Neutral international Spanish: no regionalisms, no \"vosotros\"" : ""}
 - NO \\usepackage, NO custom command definitions
 - NO decorative comment separators (lines like "% ────") — they leak into print
 - ALL text in correct, natural ${lang} (see LANGUAGE above)

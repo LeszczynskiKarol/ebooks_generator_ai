@@ -23,6 +23,7 @@ export const en: Record<string, string> = {
   "generation.lang.polish": "Polish",
   "generation.lang.english": "English",
   "generation.lang.german": "German",
+  "generation.lang.spanish": "Spanish",
 
   // Research steps
   "generation.research.0.label": "Searching web sources for the book topic",
@@ -125,6 +126,7 @@ export const pl: Record<string, string> = {
   "generation.lang.polish": "polskim",
   "generation.lang.english": "angielskim",
   "generation.lang.german": "niemieckim",
+  "generation.lang.spanish": "hiszpańskim",
 
   // Research steps
   "generation.research.0.label": "Wyszukiwanie źródeł internetowych na temat książki",

@@ -71,6 +71,20 @@ Gestaltung und Satz: InkMagnet
 Erste Ausgabe
 
 {{YEAR}}`,
+  es: `© {{YEAR}} {{AUTHOR}}
+Todos los derechos reservados.
+
+Título: {{TITLE}}
+
+Ninguna parte de esta publicación puede ser
+reproducida, almacenada en un sistema de recuperación
+ni transmitida de ninguna forma sin la autorización
+previa y por escrito del autor.
+
+Diseño y maquetación: InkMagnet
+Primera edición
+
+{{YEAR}}`,
 };
 
 const FONT_SIZES = [
@@ -136,7 +150,6 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
-    const isPolish = language === "pl";
 
     const hasChanges =
       text !== (currentText || "") ||
@@ -156,7 +169,7 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
         .replace(/\{\{YEAR\}\}/g, year)
         .replace(
           /\{\{AUTHOR\}\}/g,
-          authorName || (isPolish ? "Autor" : "Author"),
+          authorName || (language === "en" ? "Author" : "Autor"),
         )
         .replace(/\{\{TITLE\}\}/g, bookTitle);
       setText(result);

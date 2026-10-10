@@ -19,15 +19,17 @@
  *     model copied verbatim from the research material into the chapter body.
  */
 
-const PL_MAP: Record<string, string> = {
-  ą: "a", ć: "c", ę: "e", ł: "l", ń: "n", ó: "o", ś: "s", ź: "z", ż: "z",
-  // German: without these, tokens() split "Prüfung" into "pr"+"fung" and
-  // every umlaut word dropped out of the page-overlap check.
-  ä: "a", ö: "o", ü: "u", ß: "ss",
-};
-
+// Letters with diacritics → base letters, for every Latin-script language
+// (pl ą/ż, de ä/ü, es ñ/á, pt ã/ç…). Without it tokens() splits on the
+// accented letter ("Prüfung" → "pr"+"fung", "educación" → "educaci"+"n") and
+// those words drop out of the page-overlap check. ł and ß do not decompose.
 function normalize(s: string): string {
-  return s.toLowerCase().replace(/[ąćęłńóśźżäöüß]/g, (c) => PL_MAP[c] || c);
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/ł/g, "l")
+    .replace(/ß/g, "ss");
 }
 
 /** Strip LaTeX commands/braces down to plain words for tokenisation. */
