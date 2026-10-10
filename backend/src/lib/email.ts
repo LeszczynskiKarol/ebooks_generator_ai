@@ -68,7 +68,7 @@ export async function sendEmail({
 }
 
 // ── Shared shell ──
-function shell(content: string): string {
+export function shell(content: string): string {
   return `<!doctype html><html><body style="margin:0;padding:24px;background:#f4f4f7;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#1f2937">
 <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:14px;padding:32px;border:1px solid #e5e7eb">
 <p style="font-size:18px;font-weight:700;margin:0 0 20px;color:#4f46e5">InkMagnet</p>
@@ -284,7 +284,7 @@ export const WITHDRAWAL_CONSENT_TEXT: Record<string, string> = {
   pl: "Żądam rozpoczęcia pracy nad moją książką przed upływem 14-dniowego terminu na odstąpienie od umowy i przyjmuję do wiadomości, że z chwilą rozpoczęcia generowania książki tracę prawo do odstąpienia od umowy.",
 };
 
-function esc(s: string): string {
+export function esc(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

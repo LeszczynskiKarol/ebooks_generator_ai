@@ -20,6 +20,7 @@ import * as imageLibrary from "./dict/imageLibrary";
 import * as admin from "./dict/admin";
 import * as sample from "./dict/sample";
 import * as payment from "./dict/payment";
+import * as feedback from "./dict/feedback";
 
 export type AppLang = "en" | "pl";
 
@@ -157,7 +158,7 @@ const pl: Dict = {
   recaptchaPost: "Google.",
 };
 
-const AREAS = [common, layout, dashboard, newProject, projectDetail, forgotReset, generation, structure, download, editor, cover, titlePage, imageLibrary, admin, sample, payment];
+const AREAS = [common, layout, dashboard, newProject, projectDetail, forgotReset, generation, structure, download, editor, cover, titlePage, imageLibrary, admin, sample, payment, feedback];
 
 const DICT: Record<AppLang, Dict> = {
   en: Object.assign({}, en, ...AREAS.map((a) => a.en)),

@@ -71,6 +71,12 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <Link
+            to="/admin/feedback"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            Feedback
+          </Link>
+          <Link
             to="/admin/users"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors"
           >

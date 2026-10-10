@@ -3,6 +3,7 @@
 // Smart downloads + inline regeneration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { markBookDownloaded } from "@/components/BookFeedback";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Download,
@@ -152,6 +153,8 @@ export default function DownloadPanel({
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    // unlocks the rating form — a rating before reading says nothing
+    markBookDownloaded(projectId);
   };
 
   // ── Smart download: handles save → recompile → download ──

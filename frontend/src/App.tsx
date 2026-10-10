@@ -1,3 +1,4 @@
+import AdminFeedback from "@/pages/AdminFeedback";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import Layout from "@/components/Layout";
@@ -46,6 +47,7 @@ export default function App() {
       <Route path="/projects/:id" element={<Protected><Layout><ProjectDetail /></Layout></Protected>} />
       {/* Admin */}
       <Route path="/admin" element={<Protected><Layout><AdminDashboard /></Layout></Protected>} />
+      <Route path="/admin/feedback" element={<Protected><Layout><AdminFeedback /></Layout></Protected>} />
       <Route path="/admin/users" element={<Protected><Layout><AdminUsers /></Layout></Protected>} />
       <Route path="/admin/users/:id" element={<Protected><Layout><AdminUserActivity /></Layout></Protected>} />
       <Route path="/admin/projects/:id" element={<Protected><Layout><AdminProjectDetail /></Layout></Protected>} />

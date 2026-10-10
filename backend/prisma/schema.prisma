@@ -18,7 +18,7 @@ model User {
   emailVerified DateTime? // null = registration not confirmed (Google logins auto-verify)
   authTokens    AuthToken[]
 
-  stripeCustomerId     String? @unique
+  stripeCustomerId     String?           @unique
   stripeCustomerIdTest String?
   projects             Project[]
   projectMaterials     ProjectMaterial[]
@@ -35,9 +35,9 @@ model User {
   signupReferrer  String?
   signupLanding   String?
 
-  createdAt DateTime @default(now())
+  createdAt    DateTime  @default(now())
   lastActiveAt DateTime? // any authenticated API request, throttled to 10 min (middleware/auth.ts)
-  updatedAt DateTime @updatedAt
+  updatedAt    DateTime  @updatedAt
 }
 
 enum AuthTokenType {
@@ -69,25 +69,25 @@ model Project {
 
   currentStage ProjectStage @default(BRIEF)
 
-  title       String?
-  topic       String
-  language    String  @default("en")
-  authorName    String?   // Display name on title page
-  subtitle      String?   // Custom subtitle (replaces default)
-  guidelines  String? @db.Text
-  targetPages Int
-  stylePreset String  @default("modern")
-  bookFormat  String  @default("a5")
-  customColors  String?  @db.Text
+  title        String?
+  topic        String
+  language     String  @default("en")
+  authorName   String? // Display name on title page
+  subtitle     String? // Custom subtitle (replaces default)
+  guidelines   String? @db.Text
+  targetPages  Int
+  stylePreset  String  @default("modern")
+  bookFormat   String  @default("a5")
+  customColors String? @db.Text
 
-  priceUsdCents   Int?
-  currency        String        @default("usd")
-  exchangeRate    Float?        // USD→PLN rate used at checkout (when currency = "pln")
-  promoCode       String?       // Stripe promotion code used at checkout (e.g. WASZTEMAT25)
-  discountUsdCents Int?         // discount granted by promoCode, in USD cents (PLN converted at exchangeRate)
-  stripeSessionId String?
-  stripePaymentId String?
-  paymentStatus   PaymentStatus @default(PENDING)
+  priceUsdCents       Int?
+  currency            String        @default("usd")
+  exchangeRate        Float? // USD→PLN rate used at checkout (when currency = "pln")
+  promoCode           String? // Stripe promotion code used at checkout (e.g. WASZTEMAT25)
+  discountUsdCents    Int? // discount granted by promoCode, in USD cents (PLN converted at exchangeRate)
+  stripeSessionId     String?
+  stripePaymentId     String?
+  paymentStatus       PaymentStatus @default(PENDING)
   // Consumer's express request to start before the 14-day withdrawal period
   // ends + acknowledgement of losing the right (checkbox before Stripe).
   // Required for every Stripe checkout; kept as evidence.
@@ -96,7 +96,7 @@ model Project {
   // Order confirmation e-mail (durable-medium copy of the consent) — set once,
   // so a re-delivered Stripe webhook never sends it twice.
   orderEmailSentAt    DateTime?
-  paidAt          DateTime?
+  paidAt              DateTime?
 
   // Abandoned-checkout recovery (lib/paymentReminders.ts): how many reminder
   // emails went out for this unpaid order and when the last one was sent.
@@ -106,7 +106,7 @@ model Project {
   lastPaymentReminderAt DateTime?
 
   structure         ProjectStructure?
-  structureRedoUsed Boolean @default(false)
+  structureRedoUsed Boolean           @default(false)
 
   // Author brief — JSON decided by the LLM before structure generation:
   // genre, voice, reader address, narrative strategy, evidence policy,
@@ -118,37 +118,37 @@ model Project {
   numberingMode  String?
   numberingLabel String? // item label for `items` ("Przepis", "Project"...)
 
-  images      ProjectImage[]
-  useAiImages Boolean        @default(false)
-  imageGuidelines String?    @db.Text // optional user steering for AI illustrations
-  imageDensity String        @default("standard") // standard (~1/5 pages) | rich (~1/3 pages)
-  footnoteMode String        @default("auto") // auto (by style) | always | never
+  images          ProjectImage[]
+  useAiImages     Boolean        @default(false)
+  imageGuidelines String?        @db.Text // optional user steering for AI illustrations
+  imageDensity    String         @default("standard") // standard (~1/5 pages) | rich (~1/3 pages)
+  footnoteMode    String         @default("auto") // auto (by style) | always | never
 
-  chapters           Chapter[]
-  generationStatus   GenerationStatus @default(NOT_STARTED)
-  generationProgress Float            @default(0)
+  chapters            Chapter[]
+  generationStatus    GenerationStatus @default(NOT_STARTED)
+  generationProgress  Float            @default(0)
   // Wall-clock start of the CURRENT run (structure/content enqueue). Lets the
   // UI show a true elapsed timer that survives page refresh instead of
   // restarting from 0 on every mount.
   generationStartedAt DateTime?
   // Admin autopilot run: structure is auto-approved (no human gate) so the
   // pipeline goes research → structure → content → compile unattended.
-  autoPilot Boolean @default(false)
+  autoPilot           Boolean          @default(false)
   // Where the chapter LaTeX came from: "api" = backend generated it (normal
   // paid user — runs the backend vision QA); "routine" = a Claude Code routine
   // agent authored it on the subscription and already did its OWN visual QA, so
   // the backend skips the (API-billed) vision review.
-  contentSource String @default("api")
+  contentSource       String           @default("api")
 
-  colophonText     String?  @db.Text  
-  colophonFontSize Int?     @default(10)
-  colophonEnabled  Boolean  @default(false)
+  colophonText     String? @db.Text
+  colophonFontSize Int?    @default(10)
+  colophonEnabled  Boolean @default(false)
 
   outputPdfKey  String?
   outputEpubKey String?
 
   // ── Versioning ──
-  currentVersion Int @default(0)
+  currentVersion Int           @default(0)
   versions       BookVersion[]
 
   researchData String? @db.Text
@@ -156,33 +156,35 @@ model Project {
   // Files the customer attached in the order form (guidelines, examples,
   // sources, inspirations) — see src/services/materialsService.ts. The digest
   // is one LLM pass over all of them, injected wherever guidelines are.
-  materials        ProjectMaterial[]
-  materialsDigest  String? @db.Text
+  materials       ProjectMaterial[]
+  feedback        BookFeedback?
+  corrections     CorrectionRequest[]
+  materialsDigest String?             @db.Text
 
   // Free pre-payment preview (title + table of contents) — see
   // src/services/previewGenerator.ts. After payment the full structure is
   // generated with this preview as the contract the customer paid for.
-  preview      Json?
-  previewCount Int     @default(0)
-  previewHash  String?
+  preview               Json?
+  previewCount          Int       @default(0)
+  previewHash           String?
   // One AI redo per order, same rule as structureRedoUsed after payment.
-  previewRedoUsed Boolean @default(false)
+  previewRedoUsed       Boolean   @default(false)
   // After the redo the customer keeps both versions and picks one:
   // `preview` is the chosen one, `previewAlt` the other, and
   // previewActiveVersion says which (1 = first, 2 = redo) is chosen.
-  previewAlt           Json?
-  previewActiveVersion Int     @default(1)
+  previewAlt            Json?
+  previewActiveVersion  Int       @default(1)
   // What the customer asked to change when redoing the paid structure.
-  structureRedoFeedback String? @db.Text
+  structureRedoFeedback String?   @db.Text
   // Look left on "auto" by the customer: the model picks style and/or
   // colours for the topic (services/designPicker.ts), once.
-  autoStyle        Boolean   @default(false)
-  autoColors       Boolean   @default(false)
-  designResolvedAt DateTime?
+  autoStyle             Boolean   @default(false)
+  autoColors            Boolean   @default(false)
+  designResolvedAt      DateTime?
   // Free pre-payment style sample (2-3 rendered pages of chapter 1):
   // {status: RUNNING|READY|FAILED, attempts, pages, costUsd, error, rev}
   // — see src/services/sampleGenerator.ts.
-  sample Json?
+  sample                Json?
 
   totalTokensUsed Int   @default(0)
   totalCostUsd    Float @default(0)
@@ -190,18 +192,18 @@ model Project {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  coverType           CoverType @default(NONE)
+  coverLatex          String?   @db.Text // Generated LaTeX source for cover
+  coverImageS3Key     String? // Custom uploaded cover image (S3 key)
+  coverImageLocalPath String? // Custom uploaded cover image (local fallback)
+  coverPdfS3Key       String? // Compiled cover PDF (S3 key)
+  coverPdfLocalPath   String? // Compiled cover PDF (local fallback)
+  coverParams         String?   @db.Text // JSON: layout, font overrides, etc.
+  autoCoverRequested  Boolean   @default(false) // user ticked "Generate cover" in order form
+  coverUpdatedAt      DateTime? // last cover mutation — compared against the newest BookVersion to detect "cover not yet in compiled PDF"
+
   @@index([userId])
   @@index([currentStage])
-
-   coverType         CoverType @default(NONE)
-   coverLatex        String?   @db.Text        // Generated LaTeX source for cover
-   coverImageS3Key   String?                   // Custom uploaded cover image (S3 key)
-   coverImageLocalPath String?                 // Custom uploaded cover image (local fallback)
-   coverPdfS3Key     String?                   // Compiled cover PDF (S3 key)
-   coverPdfLocalPath String?                   // Compiled cover PDF (local fallback)
-   coverParams       String?   @db.Text        // JSON: layout, font overrides, etc.
-   autoCoverRequested Boolean  @default(false)  // user ticked "Generate cover" in order form
-   coverUpdatedAt    DateTime?                  // last cover mutation — compared against the newest BookVersion to detect "cover not yet in compiled PDF"
 }
 
 // Customer-uploaded reference file. Uploaded BEFORE the project exists (the
@@ -218,8 +220,8 @@ model ProjectMaterial {
   mimeType  String?
   sizeBytes Int
   charCount Int
-  truncated Boolean  @default(false)
-  text      String   @db.Text
+  truncated Boolean @default(false)
+  text      String  @db.Text
   // Set by the digest pass: guidelines | examples | sources | inspiration
   role      String?
 
@@ -251,7 +253,6 @@ model BookVersion {
   coverPdfS3Key     String?
   coverPdfLocalPath String?
 
-
   note      String?  @db.VarChar(500)
   createdAt DateTime @default(now())
 
@@ -262,22 +263,22 @@ model BookVersion {
 // Google Play one-time purchase (mobile app). One row per purchaseToken —
 // see src/lib/playBilling.ts. `granted` = the project was marked PAID.
 model PlayPurchase {
-  id            String   @id @default(cuid())
-  purchaseToken String   @unique
+  id            String    @id @default(cuid())
+  purchaseToken String    @unique
   productId     String
   packageName   String
   orderId       String?
   userId        String
   projectId     String?
-  purchaseState Int      @default(-1) // 0 purchased, 1 canceled, 2 pending
-  acknowledged  Boolean  @default(false)
-  isTest        Boolean  @default(false)
-  granted       Boolean  @default(false)
+  purchaseState Int       @default(-1) // 0 purchased, 1 canceled, 2 pending
+  acknowledged  Boolean   @default(false)
+  isTest        Boolean   @default(false)
+  granted       Boolean   @default(false)
   grantedAt     DateTime?
   voidedAt      DateTime?
   raw           Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([userId])
   @@index([projectId])
@@ -368,7 +369,7 @@ model Chapter {
   userEditedAt DateTime?
 
   imagePlacements ImagePlacement[]
-  status          ChapterStatus @default(PENDING)
+  status          ChapterStatus    @default(PENDING)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -426,7 +427,7 @@ model ImagePlacement {
 
   position String
   caption  String?
-  width    Float  @default(0.8)
+  width    Float   @default(0.8)
 
   createdAt DateTime @default(now())
 
@@ -498,4 +499,54 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([userId, createdAt])
+}
+
+/// Customer's rating of the finished book (1–5) + reasons at a low rating.
+/// One per book, the customer can change or remove it. No LLM involved:
+/// reasons are counted, comments are read.
+model BookFeedback {
+  id        String  @id @default(cuid())
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+
+  rating         Int
+  /// codes from FEEDBACK_REASONS (routes/feedbackRoutes.ts)
+  reasons        String[] @default([])
+  comment        String?
+  /// "You may show my review on the site" — offered at 4–5 stars only.
+  publishConsent Boolean  @default(false)
+  /// how the customer wants to be signed when published (optional)
+  publishName    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([rating, createdAt])
+}
+
+/// "Check by a human": the customer describes what to fix in the finished
+/// book; it lands in the admin queue and in the owner's mailbox. Free, with
+/// limits (one open request per book, three in total). The customer is told
+/// by e-mail + in-app notification when it is closed with a note.
+model CorrectionRequest {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+
+  /// null = the whole book
+  chapterNumber Int?
+  message       String
+  /// open → in_progress → done | rejected
+  status        String  @default("open")
+  /// the editor's answer — e-mailed to the customer and shown on the book page
+  adminNote     String?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([projectId])
 }

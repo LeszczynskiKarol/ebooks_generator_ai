@@ -22,6 +22,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import DownloadPanel from "@/components/DownloadPanel";
+import BookFeedback from "@/components/BookFeedback";
 import GenerationProgress from "@/components/GenerationProgress";
 import StructureProgress from "@/components/StructureProgress";
 import apiClient from "@/lib/api";
@@ -608,6 +609,9 @@ export default function ProjectDetail() {
               }}
               onSaveAll={handleSaveAll}
             />
+
+            {/* Rating + "Check by a human" */}
+            <BookFeedback projectId={id!} />
 
             {/* ★★★ Cover (Okładka) ★★★ */}
             <div className="border-t border-gray-200 dark:border-gray-700 my-6" />
