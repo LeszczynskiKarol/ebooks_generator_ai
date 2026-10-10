@@ -12,6 +12,7 @@
 //     so facts, examples and wording cues survive beyond the digest.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { llmLangName } from "../lib/languages";
 import { z } from "zod";
 import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { prisma } from "../lib/prisma";
@@ -88,7 +89,7 @@ function buildDigestPrompt(
 BOOK ORDER:
 Topic: ${p.topic}
 ${p.title ? `Title: ${p.title}` : ""}
-Language of the book: ${p.language}
+Language of the book: ${llmLangName(p.language)}
 ${p.guidelines ? `Customer's typed guidelines: ${p.guidelines}` : "Customer's typed guidelines: none."}
 
 ATTACHED FILES:

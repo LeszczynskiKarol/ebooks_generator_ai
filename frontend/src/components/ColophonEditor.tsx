@@ -3,6 +3,7 @@
 // Visual editor with live book-page preview
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { baseLang } from "@/lib/bookLanguages";
 import {
   useState,
   useMemo,
@@ -163,13 +164,13 @@ const ColophonEditor = forwardRef<ColophonEditorHandle, ColophonEditorProps>(
 
     // ── Generate default from template ──
     const generateDefault = () => {
-      const tpl = TEMPLATES[language] || TEMPLATES.en;
+      const tpl = TEMPLATES[language] || TEMPLATES[baseLang(language)] || TEMPLATES.en;
       const year = new Date().getFullYear().toString();
       const result = tpl
         .replace(/\{\{YEAR\}\}/g, year)
         .replace(
           /\{\{AUTHOR\}\}/g,
-          authorName || (language === "en" ? "Author" : "Autor"),
+          authorName || (baseLang(language) === "en" ? "Author" : "Autor"),
         )
         .replace(/\{\{TITLE\}\}/g, bookTitle);
       setText(result);

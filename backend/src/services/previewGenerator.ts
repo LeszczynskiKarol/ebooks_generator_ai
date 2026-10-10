@@ -13,6 +13,7 @@
 // with feedback). After payment, generateStructure() receives the (possibly
 // edited) preview as the contract the customer paid for.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import { baseLang, llmLangName, variantNote } from "../lib/languages";
 import crypto from "crypto";
 import { z } from "zod";
 import { createLLMClient, SONNET_MODEL } from "../lib/llm";
@@ -176,7 +177,7 @@ export function plannedItemCount(pv: BookPreview): number | null {
  *  ("5 przepisów" → "6 przepisów" is fine, → "4 przepisów" is not). */
 function pluralClass(n: number, lang: string): string {
   if (n === 1) return "one";
-  if (lang === "pl" && n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14))
+  if (baseLang(lang) === "pl" && n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14))
     return "few";
   return "many";
 }
@@ -263,23 +264,14 @@ export function previewInputHash(p: PreviewInput): string {
     .slice(0, 32);
 }
 
-const LANG_NAMES: Record<string, string> = {
-  pl: "Polish",
-  en: "English",
-  de: "German",
-  es: "Spanish",
-  fr: "French",
-  it: "Italian",
-  pt: "Portuguese",
-};
-
-function capitalizationRule(lang: string): string {
+function capitalizationRule(language: string): string {
+  const lang = baseLang(language);
   if (lang === "en")
     return "Use Title Case for the book title and chapter titles.";
   if (lang === "de")
     return "Follow German orthography (nouns capitalized), no English Title Case. Quotations use German typographic quotes „…“ — never straight quotes. Write ä ö ü ß directly.";
   if (lang === "es")
-    return 'Use SENTENCE CASE for the title and every chapter/section title — capitalize only the first word and proper nouns (e.g. "Guía práctica de finanzas personales", NOT "Guía Práctica De Finanzas Personales"). Quotations use Spanish angle quotes «…»; questions and exclamations open with ¿ and ¡.';
+    return 'Use SENTENCE CASE for the title and every chapter/section title — capitalize only the first word and proper nouns (e.g. "Guía práctica de finanzas personales", NOT "Guía Práctica De Finanzas Personales"). Questions and exclamations open with ¿ and ¡.';
   return 'Use SENTENCE CASE for the title and every chapter/section title — capitalize only the first word and proper nouns (e.g. "Architektura rozproszenia", NOT "Architektura Rozproszenia").' +
     (lang === "pl" ? " Quotations use Polish typographic quotes „…” — never straight double or single quotes." : "");
 }
@@ -306,7 +298,7 @@ export interface RedoInput {
 }
 
 export function buildPreviewPrompt(p: PreviewInput, redo?: RedoInput): string {
-  const lang = LANG_NAMES[p.language] || p.language;
+  const lang = llmLangName(p.language);
   const chLo = Math.min(10, Math.max(3, Math.round(p.targetPages / 18)));
   const chHi = Math.min(14, Math.max(chLo + 1, Math.round(p.targetPages / 8)));
 
@@ -343,7 +335,7 @@ HOW TO PLAN IT:
   · When the customer listed the categories of items (e.g. breakfasts, lunches and dinners), spread ALL items over exactly those categories. Do not add item categories they did not ask for (desserts, snacks, drinks…); a short prose chapter around the collection is fine.
 - The order settings win over the description: plan for ${p.targetPages} pages in ${lang} even if the description asks for another length or language — scale the plan down (fewer items, tighter scope) instead of refusing.
 - Vary title shapes (plain noun phrase, how-to, question, promise); the antithesis pattern "X, not Y" at most once; a colon in at most half the titles.
-- Write EVERYTHING (title, subtitle, promise, chapters, sections) in correct, natural ${lang}, as a native ${lang} editor would — correct grammar and inflection, no words or phrases from another language except proper names and terms ${lang} professionals really use. ${capitalizationRule(p.language)}
+${variantNote(p.language) ? "- " + variantNote(p.language) + "\n" : ""}- Write EVERYTHING (title, subtitle, promise, chapters, sections) in correct, natural ${lang}, as a native ${lang} editor would — correct grammar and inflection, no words or phrases from another language except proper names and terms ${lang} professionals really use. ${capitalizationRule(p.language)}
 
 Refuse ONLY when there is no real subject at all (random characters, a meaningless word, spam) or the content is something you would not write. Mismatched settings, an over-ambitious scope, a foreign-language description or vague wording are NEVER reasons to refuse — plan the best book you can. To refuse, return {"rejected": true, "reason": "<one short sentence for the customer, in ${lang}>"} and nothing else.
 

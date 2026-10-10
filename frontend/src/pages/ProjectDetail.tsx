@@ -1,3 +1,4 @@
+import { languageLabelKey } from "@/lib/bookLanguages";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import TitlePageEditor, {
@@ -367,7 +368,7 @@ export default function ProjectDetail() {
               ["projectDetail.pages", project.targetPages],
               [
                 "projectDetail.language",
-                ({ pl: t("newProject.langPl"), en: t("newProject.langEn"), de: t("newProject.langDe"), es: t("newProject.langEs") } as Record<string, string>)[project.language] ??
+                (languageLabelKey(project.language) ? t(languageLabelKey(project.language)!) : undefined) ??
                   project.language.toUpperCase(),
               ],
               [

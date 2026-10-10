@@ -13,6 +13,7 @@
 // Failures are non-fatal — a chapter simply stays unillustrated.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { byLang, llmLangName } from "../lib/languages";
 import { recordUnits } from "../lib/costTracker";
 import * as fs from "fs";
 import * as path from "path";
@@ -62,6 +63,8 @@ const LOCALE_PEOPLE_HINT: Record<string, string> = {
   en: "people of Western European or North American appearance",
   de: "people of German (Central European) appearance, realistic German setting",
   es: "people of Spanish (Southern European) appearance, realistic Spanish setting",
+  "es-419": "people of Latin American appearance, realistic Latin American setting",
+  "pt-BR": "people of Brazilian appearance (diverse), realistic Brazilian setting",
   fr: "people of French (Western European) appearance, realistic French setting",
   it: "people of Italian (Southern European) appearance, realistic Italian setting",
   pt: "people of Portuguese (Southern European) appearance, realistic Portuguese setting",
@@ -259,7 +262,7 @@ async function briefsForChapter(
 
 CHAPTER: "${chapterTitle}"
 BOOK STYLE: ${stylePreset}
-CAPTION LANGUAGE: ${language}
+CAPTION LANGUAGE: ${llmLangName(language)}
 TARGET: exactly ${count} illustration(s), spread through the WHOLE chapter (not clustered at the start)
 ${
   existingCaptions.length
@@ -284,7 +287,7 @@ Respond ONLY with JSON:
   "images": [
     {
       "anchor": "EXACT verbatim substring (40-80 chars) copied character-for-character from the chapter text above, ending at a sentence end — the image will be inserted right AFTER this fragment",
-      "caption": "figure caption in ${language}, 1 sentence, informative not decorative",
+      "caption": "figure caption in ${llmLangName(language)}, 1 sentence, informative not decorative",
       "prompt": "English image prompt: concrete subject, setting, composition. Describe a SCENE, never text/diagrams/charts",
       "kind": "photo-raw | photo-polished | illustration",
       "hasPeople": true/false
@@ -309,7 +312,7 @@ HARD RULES:
   prefer scenes, objects and environments where no readable surface dominates
 - never propose charts, diagrams with labels, or UI screenshots
 - if the scene contains people, their appearance and the environment MUST be
-  locally plausible for the book's audience (language: ${language}) — set hasPeople=true`;
+  locally plausible for the book's audience (language: ${llmLangName(language)}) — set hasPeople=true`;
 
   try {
     const response = await anthropic.messages.create({
@@ -407,7 +410,7 @@ export async function illustrateChapters(
         brief.prompt +
         // Locale credibility: people in a Polish book should look Polish etc.
         (brief.hasPeople
-          ? ", " + (LOCALE_PEOPLE_HINT[language] || LOCALE_PEOPLE_HINT.en)
+          ? ", " + (byLang(LOCALE_PEOPLE_HINT, language) || LOCALE_PEOPLE_HINT.en)
           : "") +
         ", " +
         (STYLE_HINT[stylePreset] || STYLE_HINT.modern) +

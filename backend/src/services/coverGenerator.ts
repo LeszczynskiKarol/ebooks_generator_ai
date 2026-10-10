@@ -12,6 +12,7 @@
 // Compiles with xelatex (fontspec) → fallback to pdflatex
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { byLang } from "../lib/languages";
 import { prisma } from "../lib/prisma";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -1873,7 +1874,7 @@ export function getDefaultCoverParams(project: {
   const featureText = project.targetPages
     ? `${project.targetPages}`
     : undefined;
-  const featureSubtext = GUIDE_LABEL[lang] || GUIDE_LABEL.en;
+  const featureSubtext = byLang(GUIDE_LABEL, lang) || GUIDE_LABEL.en;
 
   return {
     layout: layoutMap[project.stylePreset] || "techgrid",

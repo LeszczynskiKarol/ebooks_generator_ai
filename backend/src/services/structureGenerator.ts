@@ -3,6 +3,7 @@
 // Research → Structure generation with real-world data
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { baseLang, llmLangName, variantNote } from "../lib/languages";
 import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { prisma } from "../lib/prisma";
 import { getWordsPerPage, getPageSizeTier } from "../lib/types";
@@ -429,7 +430,8 @@ interface StructurePromptParams {
  * (German additionally capitalizes nouns). Getting this wrong is a tell-tale
  * sign of a machine-translated/English-authored book.
  */
-function getCapitalizationRule(lang: string): string {
+function getCapitalizationRule(language: string): string {
+  const lang = baseLang(language);
   if (lang === "en")
     return "CAPITALIZATION: use Title Case for the book title and all headings (capitalize the principal words).";
   if (lang === "de")
@@ -446,7 +448,7 @@ BOOK SPECS:
 Topic: ${p.topic}
 ${p.title ? `Title: ${p.title}` : ""}
 Target: ${p.targetPages} pages (${p.bookFormat.toUpperCase()}, ~${p.wpp} words/page = ~${p.totalWords} total words)
-Language: ${p.language} | Style: ${p.stylePreset}
+Language: ${llmLangName(p.language)} | Style: ${p.stylePreset}
 ${p.guidelines ? `Author guidelines: ${p.guidelines}` : ""}
 ${p.previewText ? `
 ${p.previewText}
@@ -573,14 +575,7 @@ Keep every "description" to 1–2 short sentences (max ~35 words). This keeps th
 }
 
 function getLangInstruction(lang: string): string {
-  const map: Record<string, string> = {
-    pl: "Write ALL titles and descriptions in Polish",
-    de: "Write ALL titles and descriptions in German",
-    es: "Write ALL titles and descriptions in Spanish",
-    fr: "Write ALL titles and descriptions in French",
-    it: "Write ALL titles and descriptions in Italian",
-    pt: "Write ALL titles and descriptions in Portuguese",
-    nl: "Write ALL titles and descriptions in Dutch",
-  };
-  return map[lang] || "Write all titles and descriptions in English";
+  if (baseLang(lang) === "en") return "Write all titles and descriptions in English";
+  const note = variantNote(lang);
+  return `Write ALL titles and descriptions in ${llmLangName(lang)}` + (note ? `. ${note}` : "");
 }

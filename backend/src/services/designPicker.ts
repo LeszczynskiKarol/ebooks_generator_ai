@@ -7,6 +7,7 @@
 // Runs once per order (designResolvedAt): alongside the free preview, or —
 // for orders that never had one (mobile app) — before the paid structure.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import { llmLangName } from "../lib/languages";
 import { withCost } from "../lib/costTracker";
 import { z } from "zod";
 import { createLLMClient, SONNET_MODEL } from "../lib/llm";
@@ -47,7 +48,7 @@ BOOK:
 Topic: ${p.topic}
 ${p.title ? `Title: ${p.title}` : ""}
 ${p.guidelines ? `Customer brief: ${p.guidelines.slice(0, 4000)}` : ""}
-Language: ${p.language} | ${p.targetPages} pages
+Language: ${llmLangName(p.language)} | ${p.targetPages} pages
 
 ${p.autoStyle ? `STYLE — pick exactly one preset key:\n${Object.entries(PRESETS).map(([k, d]) => `- ${k}: ${d}`).join("\n")}` : `STYLE is fixed by the customer: ${p.stylePreset} (return it unchanged).`}
 

@@ -10,7 +10,14 @@ import { createLLMClient, SONNET_MODEL } from "../lib/llm";
 import { reviewAndReviseBook } from "./reviewService";
 import { prisma } from "../lib/prisma";
 import { getWordsPerPage, footnotesEnabled } from "../lib/types";
-import { quoteMarks } from "../lib/languages";
+import {
+  quoteMarks,
+  quoteHint,
+  typographyNote,
+  variantNote,
+  llmLangName,
+  baseLang,
+} from "../lib/languages";
 import { applyCitationGuards } from "../lib/citationGuards";
 import { createPipelineLogger } from "../lib/logger";
 import {
@@ -117,10 +124,7 @@ export async function extractChapterRegistry(
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-  const langName =
-    { pl: "Polish", en: "English", de: "German", es: "Spanish", fr: "French" }[
-      language
-    ] || "English";
+  const langName = llmLangName(language);
 
   const prompt = `Extract a content registry from this book chapter. Respond ONLY with valid JSON.
 
@@ -1163,6 +1167,7 @@ spelling, punctuation and idiom. Never insert a word or phrase from another lang
 English connectors, phrases or calques — except proper names, titles of works and
 technical terms that ${lang} professionals genuinely use untranslated. If you catch a
 foreign word while writing, rewrite the sentence in ${lang}.
+${variantNote(p.language)}
 
 BOOK CONTEXT:
 Book: "${p.bookTitle}" | Topic: ${p.bookTopic} | Language: ${lang} | Style: ${p.stylePreset}
@@ -1308,7 +1313,7 @@ RHYTHM & PUNCTUATION — these patterns expose machine-written text, avoid them:
 - Aphorism-style punchlines are a strong tell — HARD LIMIT 1-2 in the WHOLE chapter (count them before finishing). This includes symmetric closers ("X wymaga planowania, nie talentu"; "...nie pracą, lecz aktem wiary"; "Bez X nie ma Y, a bez Y nie ma Z"; "...niż wszystkie inne razem wzięte"). Almost every paragraph and box must end on a plain, informative sentence — not a quotable line
 - NUMERIC TABLES: before finalizing, recompute every derived value (sums, averages, weighted
   scores) by hand — all arithmetic in a table must check out exactly. Readers verify these
-- Quotes: use \`\`...'' (English), ,,...'' (Polish), ,,...\`\` (German) or «...» (Spanish). NEVER the straight " character — it breaks typesetting
+- Quotes: use ${quoteHint(p.language)} — NEVER the straight " character — it breaks typesetting
 - Number ranges tight, no spaces: 5--15, s.~228--229
 - Polish only: use "oraz" solely as a second-level connector after "i" already appeared in the sentence; otherwise write "i"
 
@@ -1334,9 +1339,7 @@ ${
 ${p.allowFootnotes ? "- Use \\footnote{} for asides and source attributions" : "- \\footnote{} is FORBIDDEN in this book — weave any attribution into the sentence itself"}
 - Escape special chars: \\%, \\&, \\#, \\$, \\_, \\{, \\}
 - Use --- for em-dash, -- for en-dash
-${lang === "Polish" ? '- Polish typography: quotations ALWAYS as „..." (U+201E/U+201D) — NEVER "..." or “...”' : ""}
-${lang === "German" ? '- German typography: quotations ALWAYS as „...“ (U+201E/U+201C) — NEVER "..." or “...”. Write ä, ö, ü, ß as plain characters — never ae/oe/ue/ss substitutes, never LaTeX accents like \\"a' : ""}
-${lang === "Spanish" ? "- Spanish typography: quotations ALWAYS as «...» (U+00AB/U+00BB) — NEVER \"...\" or “...”. Questions and exclamations open with ¿ and ¡. Write á, é, í, ó, ú, ü, ñ as plain characters — never LaTeX accents like \\'a or \\~n. Neutral international Spanish: no regionalisms, no \"vosotros\"" : ""}
+${typographyNote(p.language)}
 - NO \\usepackage, NO custom command definitions
 - NO decorative comment separators (lines like "% ────") — they leak into print
 - ALL text in correct, natural ${lang} (see LANGUAGE above)
@@ -1805,6 +1808,7 @@ export async function proofreadLanguage(
 ): Promise<string> {
   const lang = getLangName(language);
   const prompt = `You are a professional proofreader of ${lang} books. Below is LaTeX source of a book passage written in ${lang}.
+${variantNote(language)}
 
 Find EVERY place where the prose is not correct, natural ${lang}:
 - words or phrases in another language (e.g. an English word in ${lang} text), unless it is a proper name, a title, or an established technical term that ${lang} writers really use;
@@ -2257,7 +2261,7 @@ function deAIfy(latex: string, language: string): string {
     latex = latex.replace(pattern, replacement);
   }
 
-  if (language === "pl") {
+  if (baseLang(language) === "pl") {
     for (const [pattern, replacement] of polish) {
       latex = latex.replace(pattern, replacement);
     }
@@ -2380,18 +2384,5 @@ function stripMetaCommentary(latex: string): string {
 }
 
 function getLangName(c: string): string {
-  return (
-    (
-      {
-        en: "English",
-        pl: "Polish",
-        de: "German",
-        es: "Spanish",
-        fr: "French",
-        it: "Italian",
-        pt: "Portuguese",
-        nl: "Dutch",
-      } as Record<string, string>
-    )[c] || "English"
-  );
+  return llmLangName(c);
 }

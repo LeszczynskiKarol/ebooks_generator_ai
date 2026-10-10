@@ -5,6 +5,7 @@
 // GenerationProgress.tsx
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { baseLang } from "@/lib/bookLanguages";
 import { useState, useEffect, useMemo } from "react";
 import { useT } from "@/lib/i18n";
 import {
@@ -34,6 +35,15 @@ import {
 } from "lucide-react";
 
 // ── Types ──
+
+// Sources are searched per BASE language (es-419 and es-ES share "es").
+const RESEARCH_LANG_KEYS: Record<string, string> = {
+  pl: "generation.lang.polish",
+  en: "generation.lang.english",
+  de: "generation.lang.german",
+  es: "generation.lang.spanish",
+  pt: "generation.lang.portuguese",
+};
 
 interface Chapter {
   chapterNumber: number;
@@ -700,16 +710,9 @@ function ResearchDetail({
         <Globe className="w-3 h-3 text-blue-400" />
         <span className="text-[10px] text-gray-500 dark:text-gray-400">
           {t("generation.research.searchingLine", {
-            lang:
-              language === "pl"
-                ? t("generation.lang.polish")
-                : language === "en"
-                  ? t("generation.lang.english")
-                  : language === "de"
-                    ? t("generation.lang.german")
-                    : language === "es"
-                      ? t("generation.lang.spanish")
-                      : language.toUpperCase(),
+            lang: RESEARCH_LANG_KEYS[baseLang(language)]
+              ? t(RESEARCH_LANG_KEYS[baseLang(language)])
+              : language.toUpperCase(),
             n: chaptersCount * 2,
           })}
         </span>

@@ -4,7 +4,7 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { recordUnits } from "../lib/costTracker";
-import { serperGl } from "../lib/languages";
+import { serperGl, serperHl, baseLang, byLang, llmLangName } from "../lib/languages";
 import axios from "axios";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
@@ -45,17 +45,6 @@ const LANGUAGE_NAMES: Record<string, string> = {
   pt: "português",
   nl: "Nederlands",
 };
-const LANGUAGE_CODES: Record<string, string> = {
-  pl: "pl",
-  en: "en",
-  de: "de",
-  es: "es",
-  fr: "fr",
-  it: "it",
-  pt: "pt",
-  nl: "nl",
-};
-
 // ━━━ Public interfaces ━━━
 
 export interface ResearchResult {
@@ -205,6 +194,7 @@ export async function conductResearch(
       googleQuery,
       project.language,
       log,
+      await buyerCountry(projectId),
     );
     log.ok(`Google: ${searchResults.length} results (${searchTimer()})`);
 
@@ -442,8 +432,9 @@ export async function conductChapterResearch(
       status: string;
     }> = [];
 
+    const country = await buyerCountry(projectId);
     for (const query of queries) {
-      const searchResults = await webSearch(query, language, chLog);
+      const searchResults = await webSearch(query, language, chLog, country);
       chLog.step(`"${query}" → ${searchResults.length} results`);
 
       // Filter out URLs already used globally or in this chapter
@@ -573,7 +564,7 @@ async function generateChapterQueries(
   language: string,
   log?: any,
 ): Promise<string[]> {
-  const langName = LANGUAGE_NAMES[language] || "English";
+  const langName = byLang(LANGUAGE_NAMES, language) || "English";
   const sectionsList = chapter.sections
     .map((s) => `- ${s.title}: ${s.description.substring(0, 100)}`)
     .join("\n");
@@ -875,7 +866,7 @@ async function generateSimpleQuery(
   language: string,
   log?: any,
 ): Promise<string> {
-  const langName = LANGUAGE_NAMES[language] || "English";
+  const langName = byLang(LANGUAGE_NAMES, language) || "English";
 
   const prompt = `Generate a simple Google search query for finding articles about this topic.
 
@@ -923,11 +914,14 @@ async function searchSerper(
   query: string,
   language: string,
   log: any,
+  country?: string | null,
 ): Promise<Array<{ title: string; link: string; snippet: string }>> {
-  const langCode = LANGUAGE_CODES[language] || "en";
+  const langCode = serperHl(language);
   // gl = country of the result set. It used to be "pl" or "us" only, so a
   // German book searched the US index with hl=de (thin, off-market results).
-  const gl = serperGl(langCode);
+  // Variants that span countries (Latin American Spanish) search in the
+  // buyer's own country when we know it.
+  const gl = serperGl(language, country);
   log.step?.(`  Serper: gl=${gl}, hl=${langCode}, q="${query}"`);
   const res = await axios.post(
     "https://google.serper.dev/search",
@@ -957,26 +951,42 @@ async function webSearch(
   query: string,
   language: string,
   log: any,
+  country?: string | null,
 ): Promise<Array<{ title: string; link: string; snippet: string }>> {
   if (SERPER_API_KEY) {
     try {
-      return await searchSerper(query, language, log);
+      return await searchSerper(query, language, log, country);
     } catch (error: any) {
       log.warn?.(`Serper failed (${error.message}) — falling back to Google CSE`);
     }
   }
   if (GOOGLE_API_KEY && GOOGLE_CX) {
-    return searchGoogle(query, language, log);
+    return searchGoogle(query, language, log, country);
   }
   return [];
+}
+
+/** Country the buyer signed up from (ISO-3166 alpha-2) — picks the search
+ *  market for language variants that span several countries. */
+async function buyerCountry(projectId: string): Promise<string | null> {
+  try {
+    const p = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { user: { select: { signupCountry: true } } },
+    });
+    return p?.user?.signupCountry ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function searchGoogle(
   query: string,
   language: string,
   log: any,
+  country?: string | null,
 ): Promise<Array<{ title: string; link: string; snippet: string }>> {
-  const langCode = LANGUAGE_CODES[language] || "en";
+  const langCode = serperHl(language);
   const allItems: any[] = [];
 
   for (let start = 1; start <= 11; start += 10) {
@@ -994,8 +1004,8 @@ async function searchGoogle(
             hl: langCode,
             // hl is only the UI language; gl + lr restrict the results to the
             // book's market and language (same intent as Serper's gl/hl).
-            gl: serperGl(langCode),
-            lr: `lang_${langCode}`,
+            gl: serperGl(language, country),
+            lr: `lang_${baseLang(language)}`,
             start,
           },
           timeout: 10000,
@@ -1150,7 +1160,7 @@ async function claudeSelectAndEvaluate(
   const prompt = `You are a research librarian selecting the BEST sources for writing an expert-level book.
 
 BOOK TOPIC: "${topic}"
-LANGUAGE: ${language}
+LANGUAGE: ${llmLangName(language)}
 
 YOUR TASK (two parts):
 

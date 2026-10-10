@@ -12,6 +12,7 @@
 // so a paid generation can never end up coverless because of this module.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { llmLangName } from "../lib/languages";
 import { recordUnits } from "../lib/costTracker";
 import * as fs from "fs";
 import * as path from "path";
@@ -256,7 +257,7 @@ Title (verbatim): ${book.title}
 ${book.subtitle ? `Subtitle: ${book.subtitle}` : "Subtitle: none"}
 ${book.authorName ? `Author: ${book.authorName}` : "Author: none (no author line)"}
 Topic: ${book.topic}
-Language: ${book.language}
+Language: ${llmLangName(book.language)}
 Interior style preset: ${book.stylePreset}
 ${
   book.customColors.length
@@ -670,7 +671,7 @@ Write the COMPLETE ${texName} now. Output ONLY the LaTeX code in a \`\`\`latex f
               type: "text",
               text: `You are a ruthless art director reviewing a book cover BEFORE print.
 Book title (must appear verbatim): "${book.title}"
-Language: ${book.language}
+Language: ${llmLangName(book.language)}
 Layout frame in use — "${effectiveFrameName}":
   ${effectivePlacement}
 

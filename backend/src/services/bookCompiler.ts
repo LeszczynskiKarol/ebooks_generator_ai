@@ -3,7 +3,7 @@
 // Assemble .tex → pdflatex → version → upload S3
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { quoteMarks } from "../lib/languages";
+import { quoteMarks, byLang, baseLang } from "../lib/languages";
 import { withCost } from "../lib/costTracker";
 import { prisma } from "../lib/prisma";
 import { exec } from "child_process";
@@ -90,6 +90,7 @@ const BABEL_LANG: Record<string, string> = {
   fr: "french",
   it: "italian",
   pt: "portuguese",
+  "pt-BR": "brazilian",
   nl: "dutch",
 };
 const FONT_SIZE: Record<string, string> = {
@@ -677,10 +678,10 @@ interface AssembleParams {
 }
 
 export function assembleLatexDocument(p: AssembleParams): string {
-  const babel = BABEL_LANG[p.language] || "english";
+  const babel = byLang(BABEL_LANG, p.language) || "english";
   const fontSize = FONT_SIZE[p.format] || "11pt";
   const paperSize = PAPER_SIZE[p.format] || "a5paper";
-  const isPolish = p.language === "pl";
+  const isPolish = baseLang(p.language) === "pl";
   const styleConfig = getStyleConfig(p.stylePreset, paperSize);
   const year = new Date().getFullYear();
   const title = escapeLatex(p.title);
@@ -1273,7 +1274,7 @@ export function assembleLatexDocument(p: AssembleParams): string {
   // Polish babel names tables "Tablica" — everyday Polish (and every report
   // the user reads) says "Tabela". Same idea applies to any language where
   // babel's default reads bookish; keep it a per-language map.
-  if (p.language === "pl") {
+  if (baseLang(p.language) === "pl") {
     add("\\addto\\captionspolish{\\renewcommand{\\tablename}{Tabela}}", "");
   }
 
@@ -1884,7 +1885,7 @@ export function breakTallTables(latex: string, format: string = "a5", language: 
     // narrow columns: let "Pakenham/Cranbourne", "Lilydale/Belgrave" break after "/"
     rest = rest.replace(/([A-Za-z])\/([A-Za-z])/g, "$1/\\allowbreak{}$2");
     const cap = caption ? `\\caption{${caption}}${labM ? labM[0] : ""}\\\\\n` : "";
-    const capCont = caption ? `\\caption[]{${caption} (${CONT_LABEL[language] || CONT_LABEL.en})}\\\\\n` : "";
+    const capCont = caption ? `\\caption[]{${caption} (${byLang(CONT_LABEL, language) || CONT_LABEL.en})}\\\\\n` : "";
     console.log(`  🔧 Tall table (~${lines} lines) → xltabular: ${caption.slice(0, 50)}`);
     // \small mirrors the \AtBeginEnvironment{table}{\small} hook the float
     // version gets; at body size a 4-column A5 table fits only 2 rows a page.

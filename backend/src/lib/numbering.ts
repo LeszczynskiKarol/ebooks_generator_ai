@@ -1,3 +1,4 @@
+import { byLang } from "./languages";
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Heading numbering scheme — decided per book, not global.
 //
@@ -77,7 +78,7 @@ export function resolveNumbering(project: {
   }
 
   const lang = project.language || "en";
-  const fallbackLabel = DEFAULT_ITEM_LABEL[lang] || DEFAULT_ITEM_LABEL.en;
+  const fallbackLabel = byLang(DEFAULT_ITEM_LABEL, lang) || DEFAULT_ITEM_LABEL.en;
 
   // 1. owner override on the project
   if (isNumberingMode(project.numberingMode)) {

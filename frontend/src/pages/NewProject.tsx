@@ -1,3 +1,4 @@
+import { ORDER_LANGUAGES, LANGUAGE_LABEL_KEYS, languageLabelKey } from "@/lib/bookLanguages";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,14 +41,8 @@ import BookPreviewPanel, {
 } from "@/components/BookPreviewPanel";
 
 // Language keys → i18n label keys (the select VALUES en/pl/de… stay code)
-// Book languages verified end to end (backend lib/languages.ts BOOK_LANGUAGES).
+// Book languages: lib/bookLanguages.ts (mirrors backend lib/languages.ts).
 // Default follows the UI locale (EN site → en, /pl → pl) — see defaultValues.
-const LANGUAGE_KEYS: Record<string, string> = {
-  en: "newProject.langEn",
-  pl: "newProject.langPl",
-  de: "newProject.langDe",
-  es: "newProject.langEs",
-};
 const STYLE_KEYS: Record<string, string> = {
   // default: the model picks the style for the topic (designPicker.ts)
   auto: "newProject.styleAuto",
@@ -660,9 +655,9 @@ export default function NewProject() {
             <div>
               <label className={labelCls}>{t("newProject.languageLabel")}</label>
               <select {...register("language")} className={inputCls}>
-                {Object.entries(LANGUAGE_KEYS).map(([k, vKey]) => (
+                {ORDER_LANGUAGES.map((k) => (
                   <option key={k} value={k}>
-                    {t(vKey)}
+                    {t(LANGUAGE_LABEL_KEYS[k])}
                   </option>
                 ))}
               </select>
@@ -1267,7 +1262,7 @@ export default function NewProject() {
                   {t("newProject.lookChange")}
                 </button>
                 {(watch("bookFormat") || "a5").toUpperCase()} ·{" "}
-                {t(LANGUAGE_KEYS[watch("language") || "en"] || "newProject.langEn")} ·{" "}
+                {t(languageLabelKey(watch("language")) || "newProject.langEn")} ·{" "}
                 {(watch("stylePreset") || "auto") === "auto"
                   ? t("newProject.styleAutoSummary")
                   : `${t(STYLE_NAME_KEYS[watch("stylePreset")] || "newProject.styleNameModern")} ${t("newProject.styleSuffix")}`}{" "}

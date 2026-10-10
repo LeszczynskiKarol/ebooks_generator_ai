@@ -3,6 +3,7 @@
 // Post-generation quality pass: review → targeted edits
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { llmLangName } from "../lib/languages";
 import { z } from "zod";
 import { createPipelineLogger } from "../lib/logger";
 import { createLLMClient, SONNET_MODEL } from "../lib/llm";
@@ -580,18 +581,5 @@ ${chapter.latex.substring(0, 15000)}`;
 // ━━━ Helpers ━━━
 
 function getLangName(c: string): string {
-  return (
-    (
-      {
-        en: "English",
-        pl: "Polish",
-        de: "German",
-        es: "Spanish",
-        fr: "French",
-        it: "Italian",
-        pt: "Portuguese",
-        nl: "Dutch",
-      } as Record<string, string>
-    )[c] || "English"
-  );
+  return llmLangName(c);
 }
