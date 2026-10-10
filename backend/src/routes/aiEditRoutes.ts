@@ -241,6 +241,84 @@ export async function aiEditRoutes(app: FastifyInstance) {
     return reply.send({ success: true, data: { ...(await editState({ ...project, currentStage: recompiling ? "COMPILING" : project.currentStage })), recompiling } });
   });
 
+  // ════════════════ ADMIN ════════════════
+  // Every edit is kept (instruction, before/after, gate, cost) — these two
+  // routes are the owner's window onto them.
+  const adminOnly = (request: FastifyRequest, reply: FastifyReply): boolean => {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail && request.user.email !== adminEmail) {
+      reply.status(403).send({ error: "Not admin" });
+      return false;
+    }
+    return true;
+  };
+
+  // ━━━ GET /api/admin/ai-edits ━━━ newest first + counters (no texts)
+  app.get("/api/admin/ai-edits", async (request, reply) => {
+    if (!adminOnly(request, reply)) return;
+    const rows = await prisma.editJob.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 500,
+      select: {
+        id: true,
+        chapterNumber: true,
+        sectionIndex: true,
+        scopeLabel: true,
+        prompt: true,
+        status: true,
+        error: true,
+        costUsd: true,
+        gateResult: true,
+        createdAt: true,
+        finishedAt: true,
+        decidedAt: true,
+        project: {
+          select: { id: true, title: true, topic: true, language: true, user: { select: { email: true, name: true } } },
+        },
+      },
+    });
+    const byStatus: Record<string, number> = {};
+    for (const r of rows) byStatus[r.status] = (byStatus[r.status] || 0) + 1;
+    const totals = await prisma.editJob.aggregate({ _sum: { costUsd: true }, _count: true });
+    return reply.send({
+      success: true,
+      data: {
+        rows,
+        stats: { count: totals._count, costUsd: totals._sum.costUsd || 0, byStatus },
+      },
+    });
+  });
+
+  // ━━━ GET /api/admin/ai-edits/:jobId ━━━ the change as the customer saw it
+  app.get("/api/admin/ai-edits/:jobId", async (request, reply) => {
+    if (!adminOnly(request, reply)) return;
+    const { jobId } = request.params as any;
+    const job = await prisma.editJob.findUnique({
+      where: { id: jobId },
+      include: { project: { select: { language: true } } },
+    });
+    if (!job) return reply.status(404).send({ success: false, error: "Not found" });
+    const diff =
+      job.contentBefore != null && job.contentAfter != null
+        ? diffParagraphs(
+            latexParagraphs(job.contentBefore, job.project.language),
+            latexParagraphs(job.contentAfter, job.project.language),
+          )
+        : null;
+    return reply.send({
+      success: true,
+      data: {
+        id: job.id,
+        diff,
+        // a refused edit has no "after": show what the instruction was aimed at
+        before: diff ? null : job.contentBefore ? latexParagraphs(job.contentBefore, job.project.language) : null,
+        gate: job.gateResult,
+        latexBefore: job.contentBefore,
+        latexAfter: job.contentAfter,
+      },
+    });
+  });
+
   /**
    * Replace `from` with `to` in the chapter. For an accept the fragment must
    * still sit exactly where the scope points; for a revert (`anywhere`) the

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Loader2, Star } from "lucide-react";
+import { ArrowLeft, ChevronDown, Loader2, Star } from "lucide-react";
 import toast from "react-hot-toast";
 import apiClient from "@/lib/api";
 
@@ -68,9 +68,12 @@ function Stars({ n }: { n: number }) {
   );
 }
 
+type Tab = "ratings" | "corrections" | "edits";
+
 export default function AdminFeedback() {
   const [params, setParams] = useSearchParams();
-  const tab = params.get("tab") === "corrections" ? "corrections" : "ratings";
+  const tabParam = params.get("tab");
+  const tab: Tab = tabParam === "corrections" || tabParam === "edits" ? tabParam : "ratings";
 
   const ratings = useQuery({
     queryKey: ["admin-feedback"],
@@ -81,7 +84,13 @@ export default function AdminFeedback() {
     queryFn: async () => (await apiClient.get("/admin/corrections")).data.data,
   });
 
-  const tabBtn = (key: "ratings" | "corrections", label: string, badge?: number) => (
+  const edits = useQuery({
+    queryKey: ["admin-ai-edits"],
+    queryFn: async () => (await apiClient.get("/admin/ai-edits")).data.data,
+    enabled: tab === "edits",
+  });
+
+  const tabBtn = (key: Tab, label: string, badge?: number) => (
     <button
       type="button"
       onClick={() => setParams(key === "ratings" ? {} : { tab: key })}
@@ -105,14 +114,21 @@ export default function AdminFeedback() {
         <ArrowLeft className="w-4 h-4" /> Admin
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Feedback</h1>
-      <p className="text-gray-500 dark:text-gray-400 mt-1">Customer ratings and correction requests</p>
+      <p className="text-gray-500 dark:text-gray-400 mt-1">Customer ratings, correction requests and AI edits</p>
 
       <div className="flex gap-2 mt-6 mb-6">
         {tabBtn("ratings", "Ratings")}
         {tabBtn("corrections", "Check by a human", corrections.data?.open)}
+        {tabBtn("edits", "AI edits")}
       </div>
 
-      {tab === "ratings" ? (
+      {tab === "edits" ? (
+        edits.isLoading ? (
+          <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+        ) : (
+          <EditsTab data={edits.data} />
+        )
+      ) : tab === "ratings" ? (
         ratings.isLoading ? (
           <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
         ) : (
@@ -311,6 +327,168 @@ function CorrectionCard({ row }: { row: CorrectionRow }) {
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── AI edits ──────────────────────────────────────────────────────────
+
+type EditStatus = "running" | "preview" | "accepted" | "rejected" | "reverted" | "failed";
+
+interface EditRow {
+  id: string;
+  scopeLabel: string;
+  prompt: string;
+  status: EditStatus;
+  error: string | null;
+  costUsd: number;
+  gateResult: { wordsBefore: number; wordsAfter: number; footnotesBefore: number; footnotesAfter: number; violations?: string[] } | null;
+  createdAt: string;
+  project: ProjectRef;
+}
+interface EditDetail {
+  diff: { type: "same" | "added" | "removed"; text: string }[] | null;
+  before: string[] | null;
+}
+
+const EDIT_LABEL: Record<EditStatus, string> = {
+  running: "Running",
+  preview: "Waiting for customer",
+  accepted: "Accepted",
+  rejected: "Rejected",
+  reverted: "Reverted",
+  failed: "Failed (not counted)",
+};
+const EDIT_CLS: Record<EditStatus, string> = {
+  running: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  preview: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  accepted: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  rejected: "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
+  reverted: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+  failed: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+};
+
+function EditsTab({ data }: { data: any }) {
+  const [filter, setFilter] = useState<EditStatus | null>(null);
+  const rows: EditRow[] = data?.rows ?? [];
+  const stats = data?.stats;
+  const shown = filter ? rows.filter((r) => r.status === filter) : rows;
+  const n = (s: EditStatus) => stats?.byStatus?.[s] ?? 0;
+  const chip = (active: boolean) =>
+    "px-3 py-1.5 rounded-full text-sm border cursor-pointer transition-colors " +
+    (active
+      ? "bg-primary-600 border-primary-600 text-white"
+      : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300");
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className={card}>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Edits</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{stats?.count ?? 0}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            {n("accepted")} accepted · {n("rejected")} rejected · {n("reverted")} reverted
+          </p>
+        </div>
+        <div className={card}>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Failed</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{n("failed")}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            {n("running") + n("preview")} in flight
+          </p>
+        </div>
+        <div className={card}>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Model cost</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">${(stats?.costUsd ?? 0).toFixed(2)}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            {stats?.count ? `$${((stats.costUsd ?? 0) / stats.count).toFixed(4)} per edit` : "no edits yet"}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className={chip(filter == null)} onClick={() => setFilter(null)}>All</button>
+        {(Object.keys(EDIT_LABEL) as EditStatus[]).map((s) => (
+          <button key={s} type="button" className={chip(filter === s)} onClick={() => setFilter(s)}>
+            {EDIT_LABEL[s]} ({n(s)})
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        {shown.length === 0 && <p className="text-gray-500">No AI edits.</p>}
+        {shown.map((r) => (
+          <EditCard key={r.id} row={r} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EditCard({ row }: { row: EditRow }) {
+  const [open, setOpen] = useState(false);
+  const detail = useQuery<EditDetail>({
+    queryKey: ["admin-ai-edit", row.id],
+    queryFn: async () => (await apiClient.get(`/admin/ai-edits/${row.id}`)).data.data,
+    enabled: open,
+  });
+  const g = row.gateResult;
+  return (
+    <div className={card}>
+      <div className="flex flex-wrap items-center gap-3">
+        <span className={"px-2 py-0.5 rounded-full text-xs font-medium " + EDIT_CLS[row.status]}>
+          {EDIT_LABEL[row.status]}
+        </span>
+        <Link to={`/admin/projects/${row.project.id}`} className="font-semibold text-gray-900 dark:text-white hover:underline">
+          {bookName(row.project)}
+        </Link>
+        <span className="text-xs text-gray-500">{row.project.language}</span>
+        <span className="text-xs text-gray-500 tabular-nums">${row.costUsd.toFixed(4)}</span>
+      </div>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        {row.project.user.email} · {new Date(row.createdAt).toLocaleString()} · {row.scopeLabel}
+      </p>
+      <p className="text-sm text-gray-800 dark:text-gray-200 mt-3 whitespace-pre-wrap">{row.prompt}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+        {g ? `${g.wordsBefore} → ${g.wordsAfter} words · footnotes ${g.footnotesBefore} → ${g.footnotesAfter}` : "no measurements"}
+        {row.error ? ` · reason: ${row.error}` : ""}
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="mt-3 inline-flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:underline cursor-pointer"
+      >
+        <ChevronDown className={"w-4 h-4 transition-transform " + (open ? "rotate-180" : "")} />
+        {open ? "Hide the change" : "Show the change"}
+      </button>
+      {open && (
+        <div className="mt-3 max-h-[32rem] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 p-3 space-y-2 text-sm leading-relaxed">
+          {detail.isLoading && <Loader2 className="w-5 h-5 animate-spin text-primary-600" />}
+          {detail.data?.diff?.map((d, i) => (
+            <p
+              key={i}
+              className={
+                d.type === "removed"
+                  ? "px-2 py-1 rounded bg-red-50 dark:bg-red-900/25 text-red-900 dark:text-red-200 line-through decoration-red-400/70"
+                  : d.type === "added"
+                    ? "px-2 py-1 rounded bg-green-50 dark:bg-green-900/25 text-green-900 dark:text-green-100"
+                    : "px-2 py-1 text-gray-500 dark:text-gray-500"
+              }
+            >
+              {d.text}
+            </p>
+          ))}
+          {detail.data && !detail.data.diff && (
+            <>
+              <p className="text-xs text-gray-500">No result was kept for this edit. The passage it was aimed at:</p>
+              {(detail.data.before ?? []).map((t, i) => (
+                <p key={i} className="px-2 py-1 text-gray-700 dark:text-gray-300">{t}</p>
+              ))}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
