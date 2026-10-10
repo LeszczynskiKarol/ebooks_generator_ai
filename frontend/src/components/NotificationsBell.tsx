@@ -1,3 +1,4 @@
+import { uiLocale } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
@@ -64,7 +65,7 @@ export default function NotificationsBell() {
   };
 
   const fmt = (s: string) =>
-    new Date(s).toLocaleString(undefined, {
+    new Date(s).toLocaleString(uiLocale(), {
       month: "short",
       day: "numeric",
       hour: "2-digit",

@@ -1,3 +1,4 @@
+import { uiLocale } from "@/lib/i18n";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -169,7 +170,7 @@ function CoverThumb({ project }: { project: ProjectSummary }) {
 
 function ProjectCard({ project }: { project: ProjectSummary }) {
   const t = useT();
-  const created = new Date(project.createdAt).toLocaleDateString(undefined, {
+  const created = new Date(project.createdAt).toLocaleDateString(uiLocale(), {
     day: "numeric",
     month: "short",
     year: "numeric",

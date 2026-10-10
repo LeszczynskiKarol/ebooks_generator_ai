@@ -3,6 +3,7 @@
 // Smart downloads + inline regeneration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { uiLocale } from "@/lib/i18n";
 import { markBookDownloaded } from "@/components/BookFeedback";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
@@ -293,7 +294,7 @@ export default function DownloadPanel({
   };
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString(undefined, {
+    new Date(iso).toLocaleDateString(uiLocale(), {
       month: "short",
       day: "numeric",
       hour: "2-digit",

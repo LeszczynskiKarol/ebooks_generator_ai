@@ -3,6 +3,7 @@
 // Editing-only — regeneration handled by DownloadPanel
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { uiLocale } from "@/lib/i18n";
 import {
   useState,
   useEffect,
@@ -547,7 +548,7 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
                 </span>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {t("editor.words", { n: currentWords.toLocaleString() })}
+                    {t("editor.words", { n: currentWords.toLocaleString(uiLocale()) })}
                   </span>
                   {isDirty && (
                     <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
@@ -688,11 +689,11 @@ const BookEditor = forwardRef<BookEditorHandle, Props>(function BookEditor(
 
                   {/* Stats */}
                   <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    <span>{t("editor.words", { n: currentWords.toLocaleString() })}</span>
+                    <span>{t("editor.words", { n: currentWords.toLocaleString(uiLocale()) })}</span>
                     <span>{t("editor.pages", { n: Math.round(currentWords / 300) })}</span>
                     <span>
                       {t("editor.chars", {
-                        n: chapter.latexContent.length.toLocaleString(),
+                        n: chapter.latexContent.length.toLocaleString(uiLocale()),
                       })}
                     </span>
                     <span className="ml-auto text-gray-400 dark:text-gray-500">

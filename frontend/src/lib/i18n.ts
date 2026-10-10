@@ -228,6 +228,12 @@ export function translate(lang: AppLang, key: string, vars?: Record<string, stri
   return s;
 }
 
+/** Locale for dates and numbers — follows the PANEL language, not the
+ *  browser's (a Polish browser showed Polish dates in the English panel). */
+export function uiLocale(): string {
+  return { en: "en-US", pl: "pl-PL", de: "de-DE" }[useLangStore.getState().lang];
+}
+
 /** React hook — re-renders on language change. */
 export function useT() {
   const lang = useLangStore((s) => s.lang);

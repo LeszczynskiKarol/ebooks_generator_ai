@@ -3,6 +3,7 @@
 // Shows all versions with per-format download buttons
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+import { uiLocale } from "@/lib/i18n";
 import { useState, useEffect, useCallback } from "react";
 import {
   History,
@@ -90,7 +91,7 @@ export default function VersionHistory({
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString(undefined, {
+    return d.toLocaleDateString(uiLocale(), {
       month: "short",
       day: "numeric",
       hour: "2-digit",

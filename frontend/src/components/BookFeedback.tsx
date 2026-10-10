@@ -1,3 +1,4 @@
+import { uiLocale } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import { Loader2, Star, UserCheck } from "lucide-react";
 import toast from "react-hot-toast";
@@ -504,7 +505,7 @@ function Corrections({
                   <span className={"px-2 py-0.5 rounded-full font-medium " + STATUS_CLS[c.status]}>
                     {t(`feedback.status.${c.status}`)}
                   </span>
-                  <span>{new Date(c.createdAt).toLocaleDateString()}</span>
+                  <span>{new Date(c.createdAt).toLocaleDateString(uiLocale())}</span>
                   <span>· {chapterLabel(c.chapterNumber)}</span>
                 </div>
                 <p className="text-sm text-gray-800 dark:text-gray-200 mt-2 whitespace-pre-wrap">{c.message}</p>
