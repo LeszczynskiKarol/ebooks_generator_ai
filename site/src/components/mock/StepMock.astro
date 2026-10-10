@@ -6,7 +6,7 @@
 // use violet-* to match it; ink-* are the site greys; phase colours mirror the
 // real generation pipeline.
 import { useTranslations, type Lang } from "../../i18n/ui";
-import { getUsdPlnRate, formatZl } from "../../lib/rate.ts";
+import { getUsdPlnRate, formatZl, getUsdEurRate, formatEur } from "../../lib/rate.ts";
 interface Props {
   i: number;
   lang: Lang;
@@ -20,7 +20,10 @@ const book = m.book;
 // demo prices shown in the mock — zł on /pl, $ otherwise
 const isPL = lang === "pl";
 const rate = isPL ? await getUsdPlnRate() : 0;
-const money = (usd: number) => (isPL ? formatZl(usd, rate) : `$${usd}`);
+const isDE = lang === "de";
+const eurRate = isDE ? await getUsdEurRate() : 0;
+const money = (usd: number) =>
+  isPL ? formatZl(usd, rate) : isDE ? formatEur(usd, eurRate) : `$${usd}`;
 const payParts = ui.payAndWrite.split("{price}");
 
 const genChapters = book.chapters.map((c, idx) => ({

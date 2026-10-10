@@ -9,7 +9,14 @@ import {
   MIN_PAGES,
   MAX_PAGES,
 } from "../lib/types";
-import { getUsdPlnRate } from "../services/exchangeRateService";
+import {
+  normCurrency,
+  currentRate,
+  chargedMinor,
+  formatCharged,
+  paymentMethodTypes,
+  lineDescription,
+} from "../lib/currency";
 import { Prisma } from "@prisma/client";
 import { attachMaterials } from "./materialRoutes";
 import { rebalancePages, carryStoredPages } from "../lib/pageBudget";
@@ -33,8 +40,8 @@ const CONSENT_REQUIRED = {
   error: "Confirm the withdrawal-right checkbox before paying",
 };
 
-/** Build a Stripe price_data line in the project's currency (USD base, or PLN
- *  converted at the given rate). PLN minor unit is grosze. */
+/** Build a Stripe price_data line in the project's currency: USD base, or
+ *  PLN / EUR converted at the given rate (lib/currency.ts). */
 function priceLine(
   currency: string,
   priceUsdCents: number,
@@ -42,15 +49,34 @@ function priceLine(
   name: string,
   description: string,
 ) {
-  const pln = currency === "pln" && rate;
+  // without a rate a non-USD order cannot be priced — charge the USD base
+  const cur = rate ? normCurrency(currency) : "usd";
   return {
     price_data: {
-      currency: pln ? "pln" : "usd",
-      unit_amount: pln ? Math.round(priceUsdCents * rate) : priceUsdCents,
+      currency: cur,
+      unit_amount: chargedMinor(priceUsdCents, cur, rate),
       product_data: { name, description },
     },
     quantity: 1,
   };
+}
+
+/**
+ * Create the Checkout session with the methods of that currency. Klarna (EUR)
+ * may be unavailable for an account or mode; then the same session is created
+ * with cards only instead of failing the customer's payment.
+ */
+async function createCheckoutSession(stripe: Stripe, currency: string, params: any): Promise<Stripe.Checkout.Session> {
+  const methods = paymentMethodTypes(currency);
+  try {
+    return await stripe.checkout.sessions.create({ ...params, payment_method_types: methods });
+  } catch (err: any) {
+    if (methods.length > 1 && /payment method|payment_method_types|klarna|blik/i.test(String(err?.message))) {
+      console.warn(`[STRIPE] ${methods.join("+")} refused (${err.message}) — retrying with card only`);
+      return await stripe.checkout.sessions.create({ ...params, payment_method_types: ["card"] });
+    }
+    throw err;
+  }
 }
 
 function isAdmin(email: string): boolean {
@@ -237,9 +263,9 @@ export async function projectRoutes(app: FastifyInstance) {
       }
     }
 
-    // ── Currency: USD base, PLN converted at the live NBP rate ──
-    const usePln = reqCurrency === "pln";
-    const fxRate = usePln ? (await getUsdPlnRate()).rate : null;
+    // ── Currency: USD base; PLN / EUR converted at the live NBP rate ──
+    const currency = normCurrency(reqCurrency);
+    const fxRate = await currentRate(currency);
 
     // Editing the order after seeing its preview updates the same unpaid
     // order instead of leaving an orphan behind.
@@ -270,7 +296,7 @@ export async function projectRoutes(app: FastifyInstance) {
         designResolvedAt: null,
         bookFormat: bookFormat || "a5",
         priceUsdCents: pricing.priceUsdCents,
-        currency: usePln ? "pln" : "usd",
+        currency,
         exchangeRate: fxRate,
         currentStage: "PAYMENT" as const,
         authorName: authorName || null,
@@ -351,19 +377,16 @@ export async function projectRoutes(app: FastifyInstance) {
       testMode,
     );
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await createCheckoutSession(stripe, currency, {
       customer: customerId,
       mode: "payment",
-      payment_method_types: usePln ? ["card", "blik"] : ["card"],
       line_items: [
         priceLine(
-          usePln ? "pln" : "usd",
+          currency,
           pricing.priceUsdCents,
           fxRate,
           `eBook: ${title || topic}`,
-          usePln
-            ? `Profesjonalny eBook (${pages} stron)`
-            : `${pages}-page professional eBook`,
+          lineDescription(currency, pages),
         ),
       ],
       // Promo codes are validated by Stripe itself (single-use, expiry, % off);
@@ -808,25 +831,20 @@ export async function projectRoutes(app: FastifyInstance) {
       testMode,
     );
 
-    // Charge in the project's currency; back-fill the rate for legacy PLN rows.
-    const usePln = project.currency === "pln";
-    const fxRate = usePln
-      ? project.exchangeRate ?? (await getUsdPlnRate()).rate
-      : null;
+    // Charge in the project's currency; back-fill the rate for legacy rows.
+    const currency = normCurrency(project.currency);
+    const fxRate = currency === "usd" ? null : project.exchangeRate ?? (await currentRate(currency));
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await createCheckoutSession(stripe, currency, {
       customer: customerId,
       mode: "payment",
-      payment_method_types: usePln ? ["card", "blik"] : ["card"],
       line_items: [
         priceLine(
-          usePln ? "pln" : "usd",
+          currency,
           project.priceUsdCents,
           fxRate,
           `eBook: ${project.title || project.topic}`,
-          usePln
-            ? `Profesjonalny eBook (${project.targetPages} stron)`
-            : `${project.targetPages}-page professional eBook`,
+          lineDescription(currency, project.targetPages),
         ),
       ],
       // Promo codes are validated by Stripe itself (single-use, expiry, % off);
@@ -846,7 +864,7 @@ export async function projectRoutes(app: FastifyInstance) {
       data: {
         stripeSessionId: session.id,
         currentStage: "PAYMENT",
-        ...(usePln && project.exchangeRate == null ? { exchangeRate: fxRate } : {}),
+        ...(currency !== "usd" && project.exchangeRate == null ? { exchangeRate: fxRate } : {}),
         withdrawalConsentAt: new Date(),
         withdrawalConsentIp: request.ip || null,
         uiLang: project.uiLang,
@@ -1173,16 +1191,9 @@ export async function projectRoutes(app: FastifyInstance) {
 function formatProject(p: any) {
   const usd = p.priceUsdCents;
   const priceUsdFormatted = usd ? `$${(usd / 100).toFixed(2)}` : null;
-  // Display in the charged currency. PLN reconstructs the exact charged amount
-  // from the rate stored at checkout (deterministic), using the "zł" symbol.
-  let priceFormatted = priceUsdFormatted;
-  if (usd && p.currency === "pln" && p.exchangeRate) {
-    const zl = Math.round(usd * p.exchangeRate) / 100;
-    priceFormatted = `${zl.toLocaleString("pl-PL", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })} zł`;
-  }
+  // Display in the charged currency: PLN / EUR reconstruct the exact charged
+  // amount from the rate stored with the order (deterministic).
+  const priceFormatted = usd ? formatCharged(p) : priceUsdFormatted;
   return {
     ...p,
     priceUsdFormatted,

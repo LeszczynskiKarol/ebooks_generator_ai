@@ -1,56 +1,388 @@
 ---
+// Terms of Service (EN) — counterpart of /pl/regulamin/ (the authoritative version)
+// and /de/agb/. Legal page, noindex. Any change in the Polish terms must be mirrored here.
+// Section numbering is shared by all three versions: the checkout checkbox in the app
+// refers to "(Terms, §6)" — the right of withdrawal MUST stay section 6 with
+// id="withdrawal".
 import LegalLayout from "../layouts/LegalLayout.astro";
+
+const NAME = "ecopywriting.pl Karol Leszczyński";
+const ADDRESS = "Papowo Biskupie 119/18, 86-221 Papowo Biskupie, Poland";
+const NIP = "9562203948";
+const EMAIL = "contact@inkmagnet.com";
+const OL = "list-decimal space-y-2 pl-6";
+const BOX = "space-y-2 rounded-xl border border-ink-200 p-5";
 ---
 
 <LegalLayout title="Terms of service" description="InkMagnet terms of service.">
-  <p>Last updated: June 10, 2026</p>
-
-  <h2>1. The service</h2>
   <p>
-    InkMagnet generates ebooks with the help of AI: it researches your topic, writes the
-    content, designs a cover and compiles a PDF and an EPUB file. The service is provided
-    through app.inkmagnet.com after creating an account.
+    Last updated: 10 October 2026. These terms are also available in
+    <a href="/pl/regulamin/">Polish</a> and <a href="/de/agb/">German</a>; in case of any
+    discrepancy the Polish version prevails (§12(4)).
   </p>
 
-  <h2>2. Payments</h2>
+  <h2>§1. General provisions</h2>
+  <ol class={OL}>
+    <li>
+      These terms govern the use of InkMagnet, available at inkmagnet.com, the application at
+      app.inkmagnet.com and the InkMagnet mobile app (together: the <strong>Service</strong>).
+    </li>
+    <li>
+      The provider and seller is Karol Leszczyński, a sole trader operating under the business
+      name <strong>{NAME}</strong>, {ADDRESS}, tax identification number (NIP): {NIP}, entered in
+      the Polish Central Register and Information on Economic Activity (CEIDG) (the
+      <strong>Provider</strong>).
+    </li>
+    <li>Contact: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</li>
+    <li>
+      Using the Service requires accepting these terms. They are provided free of charge in
+      a form that can be downloaded, stored and printed.
+    </li>
+    <li>
+      All you need is an internet-connected device with a current browser, with JavaScript and
+      the necessary cookies enabled, or the InkMagnet mobile app. To open a finished book you
+      need software that reads PDF or EPUB files.
+    </li>
+    <li>The contract may be concluded in Polish, English or German.</li>
+  </ol>
+
+  <h2>§2. Definitions</h2>
+  <ol class={OL}>
+    <li>
+      <strong>User</strong> — a natural person with full legal capacity, a legal person or an
+      organisational unit with legal capacity, who has created an account in the Service.
+    </li>
+    <li>
+      <strong>Consumer</strong> — a User acting for purposes outside their trade, business, craft
+      or profession, as well as a natural person entering into a contract directly related to
+      their business where the contract is not of a professional character for them.
+    </li>
+    <li>
+      <strong>Book</strong> — a non-fiction publication (ebook) prepared in the Service from the
+      description supplied by the User and delivered as PDF and EPUB files with a cover.
+    </li>
+    <li>
+      <strong>Order</strong> — a paid request to generate one Book of the selected length.
+    </li>
+    <li>
+      <strong>Generation</strong> — the automated process in which the Service, using artificial
+      intelligence, researches the topic, prepares an outline, writes the chapters, edits their
+      language, checks consistency and typesets the Book.
+    </li>
+  </ol>
+
+  <h2>§3. Scope of the service</h2>
+  <ol class={OL}>
+    <li>
+      The Service researches, writes and typesets non-fiction books using artificial
+      intelligence. The User describes the Book: the topic and the audience and, optionally,
+      their own files or notes.
+    </li>
+    <li>
+      <strong>Free of charge, before payment,</strong> the User receives:
+      <ul>
+        <li>
+          a title and a full table of contents, which the User can edit; once, the User can also
+          ask for a new version prepared by AI at no cost,
+        </li>
+        <li>a two-page sample of chapter 1 in the final typeset form.</li>
+      </ul>
+    </li>
+    <li>
+      <strong>For a fee,</strong> the Service generates the whole Book: it researches the topic
+      and prepares a detailed outline, which the User reviews, may edit (and may have re-planned
+      once at no cost) and approves; it then writes the chapters, edits their language, checks
+      consistency and typesets the Book. The result is a PDF and an EPUB file with a cover.
+    </li>
+    <li>
+      After delivery the User has the features described in §7: the built-in editor, AI-assisted
+      improvements and a check by a human.
+    </li>
+    <li>
+      The Service is not a subscription. Each Book is paid for separately, with a single
+      payment.
+    </li>
+  </ol>
+
+  <h2>§4. User account</h2>
+  <ol class={OL}>
+    <li>
+      Creating and keeping an account is free. Registration requires an email address and
+      a password, confirmed with a verification code, or signing in with a Google account.
+    </li>
+    <li>
+      The User must provide accurate details and must not share login credentials. Accounts are
+      personal and may not be shared.
+    </li>
+    <li>
+      The User may delete their account at any time. The procedure and the data removed are
+      described on the <a href="/delete-account/">Delete account</a> page. Deletion is
+      irreversible, also removes the User's Books and does not entitle the User to a refund for
+      Orders already performed.
+    </li>
+    <li>
+      Personal data processing is described in the <a href="/privacy/">privacy policy</a>.
+    </li>
+  </ol>
+
+  <h2>§5. Prices, payments and conclusion of the contract</h2>
+  <ol class={OL}>
+    <li>
+      The price of an Order depends on the selected length of the Book. Base prices are set in
+      United States dollars (USD):
+      <ul>
+        <li>30–45 pages — $9.99,</li>
+        <li>46–75 pages — $14.99,</li>
+        <li>76–115 pages — $19.99,</li>
+        <li>116–160 pages — $27.99,</li>
+        <li>161–200 pages — $34.99.</li>
+      </ul>
+    </li>
+    <li>
+      In the Polish version of the Service the price is shown and charged in Polish złoty (PLN),
+      in the German version in euro (EUR). These amounts are converted from the base USD price
+      at the current exchange rate when the Order is placed. <strong>The binding price is the
+      one shown immediately before payment.</strong>
+    </li>
+    <li>
+      The Provider is exempt from VAT under Polish law. Prices are final — no VAT or other
+      charges are added. The User's bank or card issuer may apply its own fees, for example for
+      currency conversion.
+    </li>
+    <li>The Service may accept promo codes at checkout.</li>
+    <li>
+      Payments are handled by Stripe. Available methods are payment cards, Apple Pay and Google
+      Pay, plus BLIK for payments in PLN and Klarna for payments in EUR. The Provider does not
+      store card details.
+    </li>
+    <li>
+      In the Android app, purchases are made through Google Play billing. Google's payment and
+      refund terms apply to those purchases.
+    </li>
+    <li>
+      Information about a Book and its price in the Service is not a binding offer but an
+      invitation to conclude a contract. The User places an Order by selecting the payment
+      button and completing the payment; before that, the User can check and correct their
+      details or abandon the purchase. The contract is concluded when the payment is confirmed.
+    </li>
+    <li>
+      The Provider sends confirmation of the contract to the User's email address. An electronic
+      invoice or other sales document is issued on request sent by email, to which the User
+      consents by accepting these terms.
+    </li>
+  </ol>
+
+  <h2 id="withdrawal">§6. Right of withdrawal</h2>
   <p>
-    Each book is paid once, at the price shown before payment, depending on the selected page
-    range. Payments are processed by Stripe (in the Android app, by Google Play). The preview of
-    the title and table of contents and the two-page style sample are free and are provided
-    before purchase, so you can assess the book before you pay. The paid generation starts
-    immediately after payment and produces personalized digital content, so the purchase is
-    non-refundable once that paid generation has started, except where consumer law provides
-    otherwise. If generation fails for technical reasons and
-    we cannot fix it, we refund the book.
+    This section applies to Consumers, including natural persons entering into a contract
+    directly related to their business where it is not of a professional character for them.
   </p>
+  <ol class={OL}>
+    <li>
+      <strong>Right of withdrawal.</strong> A Consumer may withdraw from a distance contract
+      within 14 days of the day it was concluded, without giving any reason, subject to
+      paragraph 4.
+    </li>
+    <li>
+      <strong>How to withdraw.</strong> To withdraw, it is enough to send the Provider an
+      unequivocal statement before the period expires, for example by email to
+      <a href={`mailto:${EMAIL}`}>{EMAIL}</a>. The
+      <a href="#withdrawal-form">model withdrawal form</a> at the end of these terms may be used,
+      but it is not obligatory.
+    </li>
+    <li>
+      <strong>Effects of withdrawal.</strong> If the Consumer validly withdraws, the Provider
+      reimburses all payments received from the Consumer without undue delay and no later than
+      14 days from the day the statement was received. The refund is made using the same means
+      of payment the Consumer used, unless the Consumer expressly agrees otherwise; the Consumer
+      bears no costs of the refund.
+    </li>
+    <li>
+      <strong>Early expiry of the right of withdrawal.</strong> The Book is digital content not
+      supplied on a tangible medium, produced to the Consumer's own specification, and
+      Generation starts immediately after payment. Before paying, the Consumer, by ticking the
+      corresponding box, expressly requests that performance begin before the withdrawal period
+      ends and acknowledges that <strong>they lose the right of withdrawal once Generation of
+      the Book begins</strong> (Article 16(m) of Directive 2011/83/EU; in Poland Article
+      38(1)(13) of the Act of 30 May 2014 on consumer rights; in Germany § 356(5) of the German
+      Civil Code, BGB). Payment is not possible without ticking that box.
+    </li>
+    <li>
+      <strong>Confirmation.</strong> The Consumer receives confirmation of the contract,
+      including the wording of the statement referred to in paragraph 4 and the time it was
+      made, on a durable medium — in the order confirmation email. This information is also
+      printed on the payment receipt.
+    </li>
+    <li>
+      Because Generation starts straight after payment, in practice the contract can no longer
+      be withdrawn from once the payment has been made. This is why the title, the table of
+      contents and the chapter sample (§3(2)) are provided free of charge before purchase, so
+      that the Book can be assessed before paying.
+    </li>
+    <li>
+      Losing the right of withdrawal does not limit the Consumer's rights where the digital
+      content does not conform with the contract, the right to complain (§11), or the right to
+      a refund in the case described in §7(3).
+    </li>
+  </ol>
 
-  <h2>3. Your content and rights</h2>
+  <h2>§7. Performance of the Order and use of the Book</h2>
+  <ol class={OL}>
+    <li>
+      Generation starts immediately after the payment is confirmed. Writing of the chapters
+      starts once the User has approved the outline (§3(3)).
+    </li>
+    <li>
+      Preparing a Book usually takes about an hour. This is not a contractual deadline: the time
+      depends on the length of the Book, the topic and when the User approves the outline. The
+      finished Book is downloaded in the Service.
+    </li>
+    <li>
+      If Generation fails for technical reasons and the Provider cannot fix it, the price of the
+      Book is refunded.
+    </li>
+    <li>
+      <strong>Editor.</strong> The User may edit a purchased Book in the built-in editor and
+      re-compile it into PDF and EPUB files without limit.
+    </li>
+    <li>
+      <strong>Improve with AI.</strong> For each Book the User may make up to 3 AI edits. Each
+      change is first shown as a preview, which the User accepts or discards.
+    </li>
+    <li>
+      <strong>Check by a human.</strong> For each Book the User may submit up to 3 correction
+      requests free of charge; they are handled by an editor.
+    </li>
+    <li>
+      <strong>Reviews.</strong> The User may rate the Book. A review is shown on the Service's
+      website only if the User gives separate, voluntary consent.
+    </li>
+  </ol>
+
+  <h2>§8. Rights to Books and the User's responsibility</h2>
+  <ol class={OL}>
+    <li>
+      The generated Books belong to the User, who may use them without restriction, including
+      commercially: publish, sell and distribute them.
+    </li>
+    <li>
+      AI-generated content may contain errors. The User should read and check the Book before
+      publishing or selling it.
+    </li>
+    <li>
+      The User is responsible for the topics, instructions and files they provide and for how
+      they use the Books. By uploading materials the User confirms that they hold the rights
+      needed to use them for preparing the Book.
+    </li>
+    <li>
+      The Service software, its design and the Provider's own materials are protected by
+      copyright and remain the Provider's property.
+    </li>
+  </ol>
+
+  <h2>§9. Rules of use</h2>
+  <ol class={OL}>
+    <li>
+      The following are prohibited:
+      <ul>
+        <li>
+          requesting or supplying content that is unlawful, defamatory or infringes third-party
+          rights,
+        </li>
+        <li>disrupting, reverse-engineering or overloading the Service,</li>
+        <li>sharing accounts and creating accounts in bulk.</li>
+      </ul>
+    </li>
+    <li>
+      The Provider may suspend an account that breaches these rules, informing the User of the
+      reason.
+    </li>
+  </ol>
+
+  <h2>§10. Availability</h2>
+  <ol class={OL}>
+    <li>
+      The Provider makes every effort to keep the Service running without interruption, but
+      does not guarantee uninterrupted availability and reserves the right to technical breaks
+      (maintenance, updates).
+    </li>
+    <li>
+      The Provider is not liable for interruptions caused by circumstances beyond its control,
+      in particular failures of third-party infrastructure or force majeure, but works to
+      remove their effects without undue delay.
+    </li>
+  </ol>
+
+  <h2>§11. Complaints and liability</h2>
+  <ol class={OL}>
+    <li>
+      Complaints may be sent by email to <a href={`mailto:${EMAIL}`}>{EMAIL}</a>. A complaint
+      should describe the problem and identify the account and the Book concerned.
+    </li>
+    <li>The Provider replies to a complaint within 14 days of receiving it.</li>
+    <li>
+      Towards Consumers the Provider is liable for the conformity of digital content and digital
+      services with the contract under the applicable statutory provisions. These terms do not
+      exclude or limit those rights.
+    </li>
+    <li>
+      Towards Users who are not Consumers, the Provider's liability is limited to the price paid
+      for the Book concerned and does not cover lost profits. This limitation does not apply to
+      damage caused intentionally, nor where excluding or limiting liability is not permitted by
+      law.
+    </li>
+    <li>
+      Consumers may use out-of-court complaint and redress procedures. In Poland these include
+      the assistance of a municipal or district consumer ombudsman and of the Trade Inspection.
+      Information on consumer dispute resolution in the European Union is available from the
+      European Commission at
+      <a href="https://europa.eu/youreurope/" rel="nofollow noopener" target="_blank">europa.eu/youreurope</a>.
+    </li>
+  </ol>
+
+  <h2>§12. Final provisions</h2>
+  <ol class={OL}>
+    <li>
+      The Provider may amend these terms for important reasons (changes in law, changes to the
+      scope or manner of the services, security). Users are informed of an amendment by email or
+      in the application. An amendment does not affect Books paid for before it takes effect.
+      A User who does not accept an amendment may delete their account.
+    </li>
+    <li>
+      These terms are governed by Polish law. This choice does not deprive a Consumer of the
+      protection afforded by the mandatory provisions of the law of their country of habitual
+      residence.
+    </li>
+    <li>
+      Disputes with Users who are not Consumers are settled by the court with jurisdiction over
+      the Provider's place of business. Disputes with Consumers are governed by the general
+      rules of jurisdiction.
+    </li>
+    <li>
+      These terms are available in Polish, English and German. In case of any discrepancy the
+      Polish version prevails; this does not affect mandatory consumer protection provisions.
+    </li>
+  </ol>
+
+  <h2 id="withdrawal-form">Annex: model withdrawal form</h2>
   <p>
-    You own the books you generate, including full commercial rights. You are responsible for
-    the topics and instructions you provide and for how you use the resulting books. AI-generated
-    content can contain errors, so review your book before publishing or selling it.
+    (Complete and return this form only if you wish to withdraw from the contract. Using it is
+    not obligatory.)
   </p>
-
-  <h2>4. Acceptable use</h2>
-  <ul>
-    <li>No generating content that is illegal, defamatory, or infringes third-party rights.</li>
-    <li>No attempts to disrupt, reverse engineer or overload the service.</li>
-    <li>No account sharing or automated mass account creation.</li>
-  </ul>
-  <p>We may suspend accounts that violate these rules.</p>
-
-  <h2>5. Availability and liability</h2>
-  <p>
-    We aim for high availability but do not guarantee uninterrupted operation. Our liability is
-    limited to the amount you paid for the affected book, to the extent permitted by law.
-  </p>
-
-  <h2>6. Changes</h2>
-  <p>
-    We may update these terms; material changes will be announced by email or in the
-    application. Continued use after a change means acceptance.
-  </p>
-
-  <h2>7. Contact</h2>
-  <p>Questions: <a href="mailto:contact@inkmagnet.com">contact@inkmagnet.com</a>.</p>
+  <div class={BOX}>
+    <p>To: {NAME}, {ADDRESS}, email: {EMAIL}</p>
+    <p>
+      I/We (*) hereby give notice that I/We (*) withdraw from my/our (*) contract for the supply
+      of the following digital content: ____________________
+    </p>
+    <p>Contract concluded on: ____________________</p>
+    <p>Name of consumer(s): ____________________</p>
+    <p>Address of consumer(s): ____________________</p>
+    <p>Email address of the account in the Service: ____________________</p>
+    <p>
+      Signature of consumer(s) (only if this form is notified on paper): ____________________
+    </p>
+    <p>Date: ____________________</p>
+    <p>(*) Delete as appropriate.</p>
+  </div>
 </LegalLayout>

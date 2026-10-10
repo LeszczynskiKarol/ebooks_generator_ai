@@ -1,0 +1,412 @@
+---
+// AGB (DE) — odpowiednik /pl/regulamin/ (wersja rozstrzygająca) i /terms/. Strona prawna,
+// noindex. Nie dosłowne tłumaczenie: dochodzi warstwa niemiecka — Widerrufsbelehrung
+// i Muster-Widerrufsformular (Art. 246a EGBGB) oraz informacja z § 36 VSBG.
+// Numeracja wspólna dla trzech wersji: checkbox przy płatności odsyła do „(AGB, §6)” —
+// Widerrufsrecht MUSI pozostać paragrafem 6 z id="widerruf".
+import LegalLayout from "../../layouts/LegalLayout.astro";
+
+const NAME = "ecopywriting.pl Karol Leszczyński";
+const ADDRESS = "Papowo Biskupie 119/18, 86-221 Papowo Biskupie, Polen";
+const NIP = "9562203948";
+const EMAIL = "contact@inkmagnet.com";
+const OL = "list-decimal space-y-2 pl-6";
+const H3 = "mt-6 font-display text-lg font-bold text-ink-900";
+const BOX = "space-y-2 rounded-xl border border-ink-200 p-5";
+---
+
+<LegalLayout
+  title="Allgemeine Geschäftsbedingungen"
+  description="Allgemeine Geschäftsbedingungen von InkMagnet."
+>
+  <p>
+    Fassung vom 10. Oktober 2026. Diese AGB sind auch auf
+    <a href="/pl/regulamin/">Polnisch</a> und <a href="/terms/">Englisch</a> verfügbar; bei
+    Abweichungen ist die polnische Fassung maßgeblich, zwingende Verbraucherschutzvorschriften
+    bleiben davon unberührt (§12 Abs. 4).
+  </p>
+
+  <h2>§1. Allgemeines</h2>
+  <ol class={OL}>
+    <li>
+      Diese Allgemeinen Geschäftsbedingungen (AGB) regeln die Nutzung von InkMagnet, erreichbar
+      unter inkmagnet.com, der Anwendung app.inkmagnet.com und der mobilen InkMagnet-App
+      (zusammen: der <strong>Dienst</strong>).
+    </li>
+    <li>
+      Anbieter und Verkäufer ist Karol Leszczyński, Einzelunternehmer unter der Firma
+      <strong>{NAME}</strong>, {ADDRESS}, Steuernummer (NIP): {NIP}, eingetragen im polnischen
+      Zentralregister und Informationssystem über die Gewerbetätigkeit (CEIDG) (der
+      <strong>Anbieter</strong>). Weitere Angaben finden Sie im
+      <a href="/de/impressum/">Impressum</a>.
+    </li>
+    <li>Kontakt: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</li>
+    <li>
+      Die Nutzung des Dienstes setzt die Annahme dieser AGB voraus. Sie werden unentgeltlich in
+      einer Form bereitgestellt, die das Herunterladen, Speichern und Ausdrucken ermöglicht.
+    </li>
+    <li>
+      Erforderlich ist lediglich ein internetfähiges Gerät mit einem aktuellen Browser,
+      aktiviertem JavaScript und den notwendigen Cookies oder die mobile InkMagnet-App. Zum
+      Öffnen des fertigen Buches benötigen Sie ein Programm, das PDF- oder EPUB-Dateien anzeigt.
+    </li>
+    <li>Vertragssprachen sind Polnisch, Englisch und Deutsch.</li>
+  </ol>
+
+  <h2>§2. Begriffsbestimmungen</h2>
+  <ol class={OL}>
+    <li>
+      <strong>Nutzer</strong> — eine voll geschäftsfähige natürliche Person, eine juristische
+      Person oder eine rechtsfähige Personenvereinigung, die im Dienst ein Konto angelegt hat.
+    </li>
+    <li>
+      <strong>Verbraucher</strong> — ein Nutzer, der zu Zwecken handelt, die überwiegend weder
+      seiner gewerblichen noch seiner selbständigen beruflichen Tätigkeit zugerechnet werden
+      können, sowie eine natürliche Person, die einen unmittelbar mit ihrer gewerblichen
+      Tätigkeit zusammenhängenden Vertrag schließt, sofern dieser für sie keinen beruflichen
+      Charakter hat.
+    </li>
+    <li>
+      <strong>Buch</strong> — ein Sachbuch (E-Book), das im Dienst auf Grundlage der Beschreibung
+      des Nutzers erstellt und als PDF- und EPUB-Datei mit Cover bereitgestellt wird.
+    </li>
+    <li>
+      <strong>Bestellung</strong> — der entgeltliche Auftrag, ein Buch im gewählten Umfang zu
+      generieren.
+    </li>
+    <li>
+      <strong>Generierung</strong> — der automatisierte Vorgang, bei dem der Dienst mithilfe
+      künstlicher Intelligenz das Thema recherchiert, eine Gliederung erstellt, die Kapitel
+      schreibt, sprachlich lektoriert, auf Konsistenz prüft und das Buch setzt.
+    </li>
+  </ol>
+
+  <h2>§3. Leistungsumfang</h2>
+  <ol class={OL}>
+    <li>
+      Der Dienst recherchiert, schreibt und setzt Sachbücher mithilfe künstlicher Intelligenz.
+      Der Nutzer beschreibt das Buch: Thema und Zielgruppe sowie, wenn er möchte, eigene Dateien
+      oder Notizen.
+    </li>
+    <li>
+      <strong>Kostenlos, vor der Zahlung,</strong> erhält der Nutzer:
+      <ul>
+        <li>
+          einen Titel und ein vollständiges Inhaltsverzeichnis, das er bearbeiten kann; einmal
+          kann er zudem kostenlos eine neue, von der KI erstellte Fassung anfordern,
+        </li>
+        <li>eine zweiseitige, fertig gesetzte Leseprobe aus Kapitel 1.</li>
+      </ul>
+    </li>
+    <li>
+      <strong>Entgeltlich</strong> generiert der Dienst das gesamte Buch: Er recherchiert das
+      Thema und erstellt eine detaillierte Gliederung, die der Nutzer prüft, bearbeiten kann
+      (und einmal kostenlos neu planen lassen kann) und freigibt; anschließend schreibt er die
+      Kapitel, lektoriert sie sprachlich, prüft die Konsistenz und setzt das Buch. Das Ergebnis
+      sind eine PDF- und eine EPUB-Datei mit Cover.
+    </li>
+    <li>
+      Nach der Bereitstellung stehen dem Nutzer die in §7 beschriebenen Funktionen zur
+      Verfügung: der integrierte Editor, Verbesserungen mit KI und die Prüfung durch einen
+      Menschen.
+    </li>
+    <li>
+      Der Dienst ist kein Abonnement. Jedes Buch wird gesondert und mit einer einmaligen Zahlung
+      bezahlt.
+    </li>
+  </ol>
+
+  <h2>§4. Nutzerkonto</h2>
+  <ol class={OL}>
+    <li>
+      Anlage und Führung eines Kontos sind kostenlos. Die Registrierung erfordert eine
+      E-Mail-Adresse und ein Passwort, bestätigt durch einen Verifizierungscode, oder die
+      Anmeldung mit einem Google-Konto.
+    </li>
+    <li>
+      Der Nutzer hat zutreffende Angaben zu machen und darf seine Zugangsdaten nicht
+      weitergeben. Konten sind persönlich und dürfen nicht geteilt werden.
+    </li>
+    <li>
+      Der Nutzer kann sein Konto jederzeit löschen. Das Vorgehen und den Umfang der gelöschten
+      Daten beschreibt die Seite <a href="/delete-account/">Konto löschen</a> (in englischer
+      Sprache). Die Löschung ist unwiderruflich, umfasst auch die Bücher des Nutzers und
+      begründet keinen Anspruch auf Erstattung bereits ausgeführter Bestellungen.
+    </li>
+    <li>
+      Die Verarbeitung personenbezogener Daten ist in der
+      <a href="/de/datenschutz/">Datenschutzerklärung</a> beschrieben.
+    </li>
+  </ol>
+
+  <h2>§5. Preise, Zahlungen und Vertragsschluss</h2>
+  <ol class={OL}>
+    <li>
+      Der Preis einer Bestellung richtet sich nach dem gewählten Umfang des Buches. Die
+      Basispreise sind in US-Dollar (USD) festgelegt:
+      <ul>
+        <li>30–45 Seiten — 9,99 USD,</li>
+        <li>46–75 Seiten — 14,99 USD,</li>
+        <li>76–115 Seiten — 19,99 USD,</li>
+        <li>116–160 Seiten — 27,99 USD,</li>
+        <li>161–200 Seiten — 34,99 USD.</li>
+      </ul>
+    </li>
+    <li>
+      In der deutschsprachigen Oberfläche wird der Preis in Euro (EUR) angezeigt und berechnet,
+      in der polnischsprachigen in polnischen Złoty (PLN). Diese Beträge werden zum aktuellen
+      Wechselkurs im Zeitpunkt der Bestellung aus dem Basispreis in USD umgerechnet.
+      <strong>Verbindlich ist der unmittelbar vor der Zahlung angezeigte Preis.</strong>
+    </li>
+    <li>
+      Der Anbieter ist nach polnischem Recht von der Mehrwertsteuer befreit
+      (Kleinunternehmerregelung). Die angezeigten Preise sind Endpreise — es kommen weder
+      Umsatzsteuer noch sonstige Kosten hinzu. Ihre Bank oder Ihr Kartenaussteller kann eigene
+      Gebühren berechnen, etwa für eine Währungsumrechnung.
+    </li>
+    <li>Beim Bezahlvorgang kann der Dienst Gutscheincodes annehmen.</li>
+    <li>
+      Zahlungen werden über Stripe abgewickelt. Verfügbar sind Zahlungskarten, Apple Pay und
+      Google Pay, bei Zahlungen in EUR zusätzlich Klarna und bei Zahlungen in PLN zusätzlich
+      BLIK. Der Anbieter speichert keine Kartendaten.
+    </li>
+    <li>
+      In der Android-App erfolgen Käufe über das Abrechnungssystem von Google Play. Für diese
+      Käufe gelten die Zahlungs- und Erstattungsbedingungen von Google.
+    </li>
+    <li>
+      Die Darstellung eines Buches und seines Preises im Dienst ist kein bindendes Angebot. Mit
+      dem Klick auf die Zahlungsschaltfläche und dem Abschluss der Zahlung gibt der Nutzer ein
+      verbindliches Angebot ab; zuvor kann er seine Angaben prüfen und korrigieren oder den
+      Vorgang abbrechen. Der Vertrag kommt mit der Bestätigung der Zahlung zustande.
+    </li>
+    <li>
+      Die Bestätigung des Vertrags sendet der Anbieter an die E-Mail-Adresse des Nutzers. Eine
+      elektronische Rechnung oder ein anderer Verkaufsbeleg wird auf Anforderung per E-Mail
+      ausgestellt; der Nutzer stimmt dem elektronischen Format mit der Annahme dieser AGB zu.
+    </li>
+  </ol>
+
+  <h2 id="widerruf">§6. Widerrufsrecht</h2>
+  <p>
+    Dieser Abschnitt gilt für Verbraucher, einschließlich natürlicher Personen, die einen
+    unmittelbar mit ihrer gewerblichen Tätigkeit zusammenhängenden Vertrag schließen, sofern
+    dieser für sie keinen beruflichen Charakter hat.
+  </p>
+
+  <h3 class={H3}>Widerrufsbelehrung</h3>
+  <p>
+    <strong>Widerrufsrecht.</strong> Sie haben das Recht, binnen vierzehn Tagen ohne Angabe von
+    Gründen diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag
+    des Vertragsabschlusses. Um Ihr Widerrufsrecht auszuüben, müssen Sie uns ({NAME},
+    {ADDRESS}, E-Mail: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>) mittels einer eindeutigen
+    Erklärung (z. B. eine E-Mail) über Ihren Entschluss, diesen Vertrag zu widerrufen,
+    informieren. Sie können dafür das beigefügte
+    <a href="#widerrufsformular">Muster-Widerrufsformular</a> verwenden, das jedoch nicht
+    vorgeschrieben ist. Zur Wahrung der Widerrufsfrist reicht es aus, dass Sie die Mitteilung
+    über die Ausübung des Widerrufsrechts vor Ablauf der Widerrufsfrist absenden.
+  </p>
+  <p>
+    <strong>Folgen des Widerrufs.</strong> Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen
+    alle Zahlungen, die wir von Ihnen erhalten haben, unverzüglich und spätestens binnen
+    vierzehn Tagen ab dem Tag zurückzuzahlen, an dem die Mitteilung über Ihren Widerruf dieses
+    Vertrags bei uns eingegangen ist. Für diese Rückzahlung verwenden wir dasselbe
+    Zahlungsmittel, das Sie bei der ursprünglichen Transaktion eingesetzt haben, es sei denn,
+    mit Ihnen wurde ausdrücklich etwas anderes vereinbart; in keinem Fall werden Ihnen wegen
+    dieser Rückzahlung Entgelte berechnet.
+  </p>
+  <p>
+    <strong>Vorzeitiges Erlöschen des Widerrufsrechts.</strong> Das Buch ist ein digitaler
+    Inhalt, der sich nicht auf einem körperlichen Datenträger befindet und nach Ihren eigenen
+    Vorgaben erstellt wird; die Generierung beginnt unmittelbar nach der Zahlung. Vor der
+    Zahlung verlangen Sie durch Ankreuzen des entsprechenden Feldes ausdrücklich, dass wir vor
+    Ablauf der Widerrufsfrist mit der Ausführung des Vertrags beginnen, und bestätigen Ihre
+    Kenntnis davon, dass <strong>Sie Ihr Widerrufsrecht verlieren, sobald die Generierung des
+    Buches beginnt</strong> (Art. 16 Buchst. m der Richtlinie 2011/83/EU; in Deutschland § 356
+    Abs. 5 BGB; in Polen Art. 38 Abs. 1 Nr. 13 des Verbraucherrechtegesetzes vom 30. Mai 2014).
+    Ohne Ankreuzen dieses Feldes ist die Zahlung nicht möglich.
+  </p>
+  <p>
+    <strong>Bestätigung.</strong> Die Bestätigung des Vertrags einschließlich des Wortlauts
+    dieser Erklärung und des Zeitpunkts ihrer Abgabe erhalten Sie auf einem dauerhaften
+    Datenträger — in der Bestellbestätigung per E-Mail. Diese Angabe wird außerdem auf dem
+    Zahlungsbeleg ausgewiesen.
+  </p>
+  <p>
+    Da die Generierung sofort nach der Zahlung beginnt, ist ein Widerruf nach erfolgter Zahlung
+    praktisch nicht mehr möglich. Deshalb stellen wir Titel, Inhaltsverzeichnis und Leseprobe
+    (§3 Abs. 2) vor dem Kauf kostenlos bereit, damit Sie das Buch vor der Zahlung beurteilen
+    können.
+  </p>
+  <p>
+    Der Verlust des Widerrufsrechts berührt weder Ihre Rechte bei Vertragswidrigkeit des
+    digitalen Inhalts noch Ihr Beschwerderecht (§11) noch den Anspruch auf Erstattung des
+    Preises im Fall des §7 Abs. 3.
+  </p>
+
+  <h2>§7. Ausführung der Bestellung und Nutzung des Buches</h2>
+  <ol class={OL}>
+    <li>
+      Die Generierung beginnt unmittelbar nach der Bestätigung der Zahlung. Das Schreiben der
+      Kapitel beginnt, sobald der Nutzer die Gliederung freigegeben hat (§3 Abs. 3).
+    </li>
+    <li>
+      Die Erstellung eines Buches dauert in der Regel etwa eine Stunde. Dies ist keine
+      vertragliche Frist: Die Dauer hängt vom Umfang des Buches, vom Thema und davon ab, wann
+      der Nutzer die Gliederung freigibt. Das fertige Buch lädt der Nutzer im Dienst herunter.
+    </li>
+    <li>
+      Schlägt die Generierung aus technischen Gründen fehl und kann der Anbieter dies nicht
+      beheben, erstattet er den Preis des Buches.
+    </li>
+    <li>
+      <strong>Editor.</strong> Ein gekauftes Buch kann der Nutzer im integrierten Editor
+      unbegrenzt bearbeiten und erneut als PDF- und EPUB-Datei erstellen lassen.
+    </li>
+    <li>
+      <strong>Mit KI verbessern.</strong> Je Buch kann der Nutzer bis zu 3 KI-Bearbeitungen
+      durchführen. Jede Änderung wird zunächst als Vorschau angezeigt, die der Nutzer übernimmt
+      oder verwirft.
+    </li>
+    <li>
+      <strong>Prüfung durch einen Menschen.</strong> Je Buch kann der Nutzer kostenlos bis zu
+      3 Korrekturanfragen stellen, die von einem Lektor bearbeitet werden.
+    </li>
+    <li>
+      <strong>Bewertungen.</strong> Der Nutzer kann das Buch bewerten. Eine Bewertung wird auf
+      der Website des Dienstes nur angezeigt, wenn der Nutzer hierzu gesondert und freiwillig
+      einwilligt.
+    </li>
+  </ol>
+
+  <h2>§8. Rechte an den Büchern und Verantwortung des Nutzers</h2>
+  <ol class={OL}>
+    <li>
+      Die generierten Bücher gehören dem Nutzer. Er darf sie ohne Einschränkung nutzen, auch
+      kommerziell: veröffentlichen, verkaufen und verbreiten.
+    </li>
+    <li>
+      Von künstlicher Intelligenz erzeugte Inhalte können Fehler enthalten. Der Nutzer sollte
+      das Buch vor einer Veröffentlichung oder einem Verkauf lesen und prüfen.
+    </li>
+    <li>
+      Der Nutzer ist für die von ihm angegebenen Themen, Vorgaben und hochgeladenen Dateien
+      sowie für die Verwendung der Bücher verantwortlich. Mit dem Hochladen von Materialien
+      sichert er zu, über die Rechte zu verfügen, die ihre Verwendung für die Erstellung des
+      Buches erlauben.
+    </li>
+    <li>
+      Die Software des Dienstes, seine Gestaltung und die eigenen Materialien des Anbieters sind
+      urheberrechtlich geschützt und verbleiben beim Anbieter.
+    </li>
+  </ol>
+
+  <h2>§9. Nutzungsregeln</h2>
+  <ol class={OL}>
+    <li>
+      Untersagt ist:
+      <ul>
+        <li>
+          das Beauftragen oder Bereitstellen von Inhalten, die rechtswidrig oder verleumderisch
+          sind oder Rechte Dritter verletzen,
+        </li>
+        <li>das Stören, Zurückentwickeln (Reverse Engineering) oder Überlasten des Dienstes,</li>
+        <li>das Teilen von Konten und das massenhafte Anlegen von Konten.</li>
+      </ul>
+    </li>
+    <li>
+      Ein Konto, das gegen diese Regeln verstößt, kann der Anbieter unter Angabe des Grundes
+      sperren.
+    </li>
+  </ol>
+
+  <h2>§10. Verfügbarkeit</h2>
+  <ol class={OL}>
+    <li>
+      Der Anbieter bemüht sich um einen unterbrechungsfreien Betrieb, garantiert jedoch keine
+      ununterbrochene Verfügbarkeit und behält sich technische Pausen (Wartung, Updates) vor.
+    </li>
+    <li>
+      Der Anbieter haftet nicht für Unterbrechungen aufgrund von Umständen außerhalb seines
+      Einflussbereichs, insbesondere Ausfälle der Infrastruktur Dritter oder höhere Gewalt,
+      wirkt jedoch auf eine unverzügliche Behebung ihrer Folgen hin.
+    </li>
+  </ol>
+
+  <h2>§11. Beschwerden, Gewährleistung und Haftung</h2>
+  <ol class={OL}>
+    <li>
+      Beschwerden können per E-Mail an <a href={`mailto:${EMAIL}`}>{EMAIL}</a> gerichtet werden.
+      Sie sollten das Problem beschreiben und das betroffene Konto und Buch bezeichnen.
+    </li>
+    <li>Der Anbieter beantwortet Beschwerden innerhalb von 14 Tagen nach Eingang.</li>
+    <li>
+      Gegenüber Verbrauchern haftet der Anbieter für die Vertragsmäßigkeit digitaler Inhalte und
+      digitaler Dienstleistungen nach den gesetzlichen Vorschriften (gesetzliche
+      Gewährleistung). Diese AGB schließen diese Rechte weder aus noch beschränken sie sie.
+    </li>
+    <li>
+      Gegenüber Nutzern, die keine Verbraucher sind, ist die Haftung des Anbieters auf den für
+      das betroffene Buch gezahlten Preis begrenzt und umfasst keinen entgangenen Gewinn. Dies
+      gilt nicht bei Vorsatz und nicht, soweit ein Ausschluss oder eine Beschränkung der Haftung
+      gesetzlich unzulässig ist.
+    </li>
+    <li>
+      Verbraucher können außergerichtliche Beschwerde- und Rechtsbehelfsverfahren nutzen.
+      Informationen zur Beilegung von Verbraucherstreitigkeiten in der EU stellt die Europäische
+      Kommission unter
+      <a href="https://europa.eu/youreurope/" rel="nofollow noopener" target="_blank">europa.eu/youreurope</a>
+      bereit. Der Anbieter ist nicht verpflichtet und nicht bereit, an einem
+      Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle im Sinne des deutschen
+      Verbraucherstreitbeilegungsgesetzes (VSBG) teilzunehmen; Beschwerden bearbeiten wir direkt
+      unter der oben genannten Adresse.
+    </li>
+  </ol>
+
+  <h2>§12. Schlussbestimmungen</h2>
+  <ol class={OL}>
+    <li>
+      Der Anbieter kann diese AGB aus wichtigem Grund ändern (Gesetzesänderungen, Änderungen von
+      Umfang oder Art der Leistungen, Sicherheit). Über eine Änderung werden die Nutzer per
+      E-Mail oder in der Anwendung informiert. Änderungen berühren keine Bücher, die vor ihrem
+      Wirksamwerden bezahlt wurden. Ein Nutzer, der eine Änderung nicht akzeptiert, kann sein
+      Konto löschen.
+    </li>
+    <li>
+      Diese AGB unterliegen polnischem Recht. Diese Rechtswahl entzieht einem Verbraucher nicht
+      den Schutz, den ihm die zwingenden Bestimmungen des Rechts des Staates seines gewöhnlichen
+      Aufenthalts gewähren.
+    </li>
+    <li>
+      Für Streitigkeiten mit Nutzern, die keine Verbraucher sind, ist das für den Sitz des
+      Anbieters zuständige Gericht zuständig. Für Streitigkeiten mit Verbrauchern gelten die
+      allgemeinen Zuständigkeitsregeln.
+    </li>
+    <li>
+      Diese AGB liegen in polnischer, englischer und deutscher Sprache vor. Bei Abweichungen ist
+      die polnische Fassung maßgeblich; zwingende Verbraucherschutzvorschriften bleiben davon
+      unberührt.
+    </li>
+  </ol>
+
+  <h2 id="widerrufsformular">Anlage: Muster-Widerrufsformular</h2>
+  <p>
+    (Wenn Sie den Vertrag widerrufen wollen, dann füllen Sie bitte dieses Formular aus und
+    senden Sie es zurück.)
+  </p>
+  <div class={BOX}>
+    <p>An: {NAME}, {ADDRESS}, E-Mail: {EMAIL}</p>
+    <p>
+      Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über die
+      Bereitstellung der folgenden digitalen Inhalte: ____________________
+    </p>
+    <p>Bestellt am (*) / erhalten am (*): ____________________</p>
+    <p>Name des/der Verbraucher(s): ____________________</p>
+    <p>Anschrift des/der Verbraucher(s): ____________________</p>
+    <p>
+      Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf Papier): ____________________
+    </p>
+    <p>Datum: ____________________</p>
+    <p>(*) Unzutreffendes streichen.</p>
+  </div>
+</LegalLayout>

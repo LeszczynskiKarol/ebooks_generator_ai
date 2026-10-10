@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
 import { siteConfig } from "../config/site";
-import { getLangFromUrl, type Lang } from "../i18n/ui";
+import { getLangFromUrl, deAlternates, type Lang } from "../i18n/ui";
 import Analytics from "../components/Analytics.astro";
 import AppLinkAttribution from "../components/AppLinkAttribution.astro";
 import CookieConsent from "../components/CookieConsent.astro";
@@ -38,11 +38,16 @@ const pageTitle = title.includes(siteConfig.name) ? title : `${title} | ${siteCo
 // hreflang pair: en path has no prefix, pl path is /pl<enPath> — unless the
 // slugs differ between languages and explicit paths were provided
 const enPath =
-  Astro.props.hreflangEnPath ?? Astro.url.pathname.replace(/^\/pl(\/|$)/, "/");
+  Astro.props.hreflangEnPath ?? Astro.url.pathname.replace(/^\/(pl|de)(\/|$)/, "/");
 const plPath =
   Astro.props.hreflangPlPath ?? (enPath === "/" ? "/pl/" : `/pl${enPath}`);
 const altEn = new URL(enPath, siteConfig.url).href;
 const altPl = new URL(plPath, siteConfig.url).href;
+// German exists only for the pages listed in deAlternates (v1: the landing);
+// every other page emits no hreflang="de".
+const dePath: string | undefined = deAlternates[enPath.endsWith("/") ? enPath : `${enPath}/`];
+const altDe = dePath ? new URL(dePath, siteConfig.url).href : null;
+const ogLocale = lang === "pl" ? "pl_PL" : lang === "de" ? "de_DE" : "en_US";
 ---
 
 <!doctype html>
@@ -64,7 +69,7 @@ const altPl = new URL(plPath, siteConfig.url).href;
         if (t === "dark") document.documentElement.classList.add("dark");
       })();
     </script>
-    {/* First-visit language auto-routing: send pl-PL browsers to /pl from the
+    {/* First-visit language auto-routing: send pl-PL browsers to /pl and de-* browsers to /de from the
         homepage, unless the visitor already made an explicit choice. Runs before
         paint to avoid a flash; homepage-only because EN/PL deep-link slugs differ. */}
     <script is:inline>
@@ -73,9 +78,9 @@ const altPl = new URL(plPath, siteConfig.url).href;
           if (location.pathname !== "/") return;
           // Explicit ?lang= (ads, partners, tests) wins and is remembered.
           var forced = new URLSearchParams(location.search).get("lang");
-          if (forced === "en" || forced === "pl") {
+          if (forced === "en" || forced === "pl" || forced === "de") {
             try { localStorage.setItem("im_lang", forced); } catch (_) {}
-            if (forced === "pl") location.replace("/pl/" + location.search + location.hash);
+            if (forced !== "en") location.replace("/" + forced + "/" + location.search + location.hash);
             return;
           }
           if (localStorage.getItem("im_lang")) return;
@@ -83,6 +88,7 @@ const altPl = new URL(plPath, siteConfig.url).href;
           if (/bot|crawl|spider|slurp|bingpreview|facebookexternalhit|embedly/i.test(ua)) return;
           var l = (navigator.language || navigator.userLanguage || "").toLowerCase();
           if (l.indexOf("pl") === 0) location.replace("/pl/" + location.search + location.hash);
+          else if (l.indexOf("de") === 0) location.replace("/de/" + location.search + location.hash);
         } catch (e) {}
       })();
       // Remember an explicit EN/PL choice when the user clicks the switcher.
@@ -102,6 +108,7 @@ const altPl = new URL(plPath, siteConfig.url).href;
         <>
           <link rel="alternate" hreflang="en" href={altEn} />
           <link rel="alternate" hreflang="pl" href={altPl} />
+          {altDe && <link rel="alternate" hreflang="de" href={altDe} />}
           <link rel="alternate" hreflang="x-default" href={altEn} />
         </>
       )
@@ -112,7 +119,7 @@ const altPl = new URL(plPath, siteConfig.url).href;
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImageAbs} />
-    <meta property="og:locale" content={lang === "pl" ? "pl_PL" : "en_US"} />
+    <meta property="og:locale" content={ogLocale} />
     <meta property="og:site_name" content={siteConfig.name} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={pageTitle} />

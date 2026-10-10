@@ -61,3 +61,47 @@ export async function usdCentsToPlnGrosze(usdCents: number): Promise<number> {
   const { rate } = await getUsdPlnRate();
   return Math.round(usdCents * rate);
 }
+
+// ── USD→EUR ──
+// NBP publishes PLN mid rates for USD and EUR; EUR per 1 USD is their ratio.
+// Same caching rules as the PLN rate above.
+let eurCache: ExchangeRateCache | null = null;
+const FALLBACK_EUR_RATE = 0.92;
+
+export async function getUsdEurRate(): Promise<ExchangeRateCache> {
+  if (eurCache && Date.now() - eurCache.fetchedAt < CACHE_TTL_MS) return eurCache;
+  try {
+    const [usd, res] = await Promise.all([
+      getUsdPlnRate(),
+      fetch("https://api.nbp.pl/api/exchangerates/rates/a/eur/?format=json", {
+        signal: AbortSignal.timeout(5000),
+      }),
+    ]);
+    if (!res.ok) throw new Error(`NBP HTTP ${res.status}`);
+    const data: any = await res.json();
+    const eurPln = data.rates[0].mid;
+    // a fallback USD rate would give a wrong cross rate — do not build on it
+    if (usd.tableNo === "FALLBACK" || !eurPln) throw new Error("no live USD/PLN rate");
+    eurCache = {
+      rate: Math.round((usd.rate / eurPln) * 10000) / 10000,
+      fetchedAt: Date.now(),
+      tableNo: `${data.table}/${data.rates[0].no}`,
+      effectiveDate: data.rates[0].effectiveDate,
+    };
+    console.log(`[NBP] USD/EUR rate: ${eurCache.rate} (${eurCache.effectiveDate})`);
+    return eurCache;
+  } catch (error: any) {
+    console.error(`[NBP] Failed to fetch EUR rate: ${error.message}`);
+    if (eurCache) {
+      eurCache.fetchedAt = Date.now() - CACHE_TTL_MS + 5 * 60 * 1000; // retry in ~5 min
+      return eurCache;
+    }
+    eurCache = {
+      rate: FALLBACK_EUR_RATE,
+      fetchedAt: Date.now() - CACHE_TTL_MS + 2 * 60 * 1000, // retry in ~2 min
+      tableNo: "FALLBACK",
+      effectiveDate: new Date().toISOString().slice(0, 10),
+    };
+    return eurCache;
+  }
+}

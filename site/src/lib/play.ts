@@ -16,7 +16,7 @@ export function playHref(lang: Lang, campaign: string): string {
   return `https://play.google.com/store/apps/details?${q.toString()}`;
 }
 
-/** Path of the mobile-app landing page in the given language. */
+/** Path of the mobile-app landing page in the given language (none in German: callers must not link it for "de"). */
 export function appPagePath(lang: Lang): string {
   return lang === "pl" ? "/pl/aplikacja-mobilna/" : "/mobile-app/";
 }

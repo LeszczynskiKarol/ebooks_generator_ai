@@ -1,14 +1,17 @@
-export const languages = { en: "English", pl: "Polski" } as const;
+import { de } from "./de";
+
+export const languages = { en: "English", pl: "Polski", de: "Deutsch" } as const;
 export type Lang = keyof typeof languages;
 export const defaultLang: Lang = "en";
 
 export function getLangFromUrl(url: URL): Lang {
   const [, first] = url.pathname.split("/");
   if (first === "pl") return "pl";
+  if (first === "de") return "de";
   return defaultLang;
 }
 
-/** Path prefix for a language ("" for en, "/pl" for pl). */
+/** Path prefix for a language ("" for en, "/pl" for pl, "/de" for de). */
 export function langPrefix(lang: Lang): string {
   return lang === defaultLang ? "" : `/${lang}`;
 }
@@ -548,7 +551,7 @@ export const ui = {
         },
         {
           q: "Which languages are supported?",
-          a: "You pick the book's language when you create the project. English and Polish are fully supported today, including language-aware typography and hyphenation.",
+          a: "You pick the book's language when you create the project. English, Polish, German, Spanish (Spain or Latin America) and Portuguese (Portugal or Brazil) are fully supported, including language-aware typography and hyphenation. The regional variants differ in vocabulary and wording, not just in spelling.",
         },
         {
           q: "Can I edit the content?",
@@ -1274,7 +1277,7 @@ export const ui = {
         },
         {
           q: "Jakie języki są obsługiwane?",
-          a: "Język książki wybierasz przy tworzeniu projektu. Polski i angielski działają w pełni, łącznie z typografią i dzieleniem wyrazów właściwym dla języka.",
+          a: "Język książki wybierasz przy tworzeniu projektu. Polski, angielski, niemiecki, hiszpański (Hiszpania albo Ameryka Łacińska) i portugalski (Portugalia albo Brazylia) działają w pełni, łącznie z typografią i dzieleniem wyrazów właściwym dla języka. Warianty regionalne różnią się słownictwem i sformułowaniami, a nie tylko pisownią.",
         },
         {
           q: "Czy mogę edytować treść?",
@@ -1474,7 +1477,23 @@ export const ui = {
       rights: "Wszelkie prawa zastrzeżone.",
     },
   },
+  de,
 } as const;
+
+/**
+ * German exists only for a subset of pages (v1: landing + legal pages).
+ * Key: English path, value: its German counterpart. `deAlternates` drives the
+ * hreflang="de" link and the "DE" switch in the header; `deToEnPaths` tells the
+ * "EN" switch on a German page where to go (fallback: the English landing).
+ */
+export const deAlternates: Record<string, string> = {
+  "/": "/de/",
+};
+export const deToEnPaths: Record<string, string> = {
+  "/de/": "/",
+  "/de/agb/": "/terms/",
+  "/de/datenschutz/": "/privacy/",
+};
 
 export function useTranslations(lang: Lang) {
   return ui[lang];

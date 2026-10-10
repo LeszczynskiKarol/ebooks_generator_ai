@@ -2,10 +2,10 @@ import { useId } from "react";
 import { useT } from "@/lib/i18n";
 
 // Payment marks shown next to the pay button — only what Stripe Checkout
-// really offers for that currency (backend projects.ts payment_method_types:
-// PLN → card + BLIK, else card; Apple Pay / Google Pay ride on "card" and are
-// enabled in the Stripe payment method configuration). Klarna is enabled in
-// the Stripe account but NOT offered here — it comes with the DE/EUR checkout.
+// really offers for that currency (backend lib/currency.ts paymentMethodTypes:
+// PLN → card + BLIK, EUR → card + Klarna, else card; Apple Pay / Google Pay
+// ride on "card" and are enabled in the Stripe payment method configuration).
+// Klarna is shown for EUR only (the German interface).
 //
 // Marks: Visa, Apple Pay, Google Pay from Simple Icons (CC0); Mastercard
 // circles in brand colours; BLIK from the official blik.com logo paths
@@ -108,11 +108,25 @@ function Blik() {
   );
 }
 
+// Klarna: the "K." mark (Simple Icons) on the brand pink, in both themes.
+function Klarna() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 text-black" fill="currentColor" aria-hidden>
+      <path d="M4.592 2v20H0V2h4.592zm11.46 0c0 4.194-1.583 8.105-4.415 11.068l-.278.283L17.702 22h-5.668l-6.893-9.4 1.779-1.332c2.858-2.14 4.535-5.378 4.637-8.924L11.562 2h4.49zM21.5 17a2.5 2.5 0 110 5 2.5 2.5 0 010-5z" />
+    </svg>
+  );
+}
+
+const klarnaChip =
+  "h-7 px-2.5 inline-flex items-center justify-center rounded-md border border-[#FFA8CD] bg-[#FFA8CD]";
+
 export default function PaymentMethods({ currency }: { currency?: string | null }) {
   const t = useT();
-  const pln = (currency || "").toLowerCase() === "pln";
+  const cur = (currency || "").toLowerCase();
+  const pln = cur === "pln";
   const marks: [string, JSX.Element][] = [
     ...(pln ? ([["BLIK", <Blik />]] as [string, JSX.Element][]) : []),
+    ...(cur === "eur" ? ([["Klarna", <Klarna />]] as [string, JSX.Element][]) : []),
     ["Visa", <Visa />],
     ["Mastercard", <Mastercard />],
     ["Apple Pay", <ApplePay />],
@@ -121,7 +135,7 @@ export default function PaymentMethods({ currency }: { currency?: string | null 
   return (
     <div className="flex flex-wrap items-center justify-center gap-1.5" aria-label={t("payment.methodsLabel")}>
       {marks.map(([name, mark]) => (
-        <span key={name} className={chip} title={name}>
+        <span key={name} className={name === "Klarna" ? klarnaChip : chip} title={name}>
           {mark}
           <span className="sr-only">{name}</span>
         </span>

@@ -1,64 +1,76 @@
-// Price formatting in the user's currency. Base prices are USD cents; for the
-// Polish UI we convert to zł at the live NBP rate (fetched from the backend,
-// cached). "zł" symbol, pl-PL grouping.
+// Price formatting in the user's currency. Base prices are USD cents; the
+// Polish UI shows and charges zł, the German UI €, both converted at the live
+// NBP rate (fetched from the backend, cached). The backend converts with the
+// same rate when the order is placed, so what is shown is what is charged.
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { useLangStore } from "@/lib/i18n";
+import { useLangStore, type AppLang } from "@/lib/i18n";
 
-const FALLBACK_RATE = 4.05;
-let cachedRate: number | null = null;
-let inflight: Promise<number> | null = null;
+export type Currency = "usd" | "pln" | "eur";
+type Rates = { pln: number; eur: number };
 
-function fetchRate(): Promise<number> {
-  if (cachedRate != null) return Promise.resolve(cachedRate);
+const FALLBACK: Rates = { pln: 4.05, eur: 0.92 };
+let cached: Rates | null = null;
+let inflight: Promise<Rates> | null = null;
+
+function fetchRates(): Promise<Rates> {
+  if (cached) return Promise.resolve(cached);
   if (inflight) return inflight;
   inflight = api
     .get("/exchange-rate")
     .then(({ data }) => {
-      cachedRate = data?.data?.rate ?? FALLBACK_RATE;
-      return cachedRate as number;
+      const d = data?.data ?? {};
+      cached = {
+        pln: d.rates?.pln ?? d.rate ?? FALLBACK.pln,
+        eur: d.rates?.eur ?? FALLBACK.eur,
+      };
+      return cached;
     })
-    .catch(() => FALLBACK_RATE)
+    .catch(() => FALLBACK)
     .finally(() => {
       inflight = null;
     });
   return inflight;
 }
 
+/** The currency that goes with a panel language. */
+export function currencyForLang(lang: AppLang): Currency {
+  return lang === "pl" ? "pln" : lang === "de" ? "eur" : "usd";
+}
+
 export function useMoney() {
   const lang = useLangStore((s) => s.lang);
-  const [rate, setRate] = useState<number | null>(cachedRate);
+  const [rates, setRates] = useState<Rates | null>(cached);
 
   useEffect(() => {
-    if (cachedRate != null) {
-      setRate(cachedRate);
+    if (cached) {
+      setRates(cached);
       return;
     }
-    fetchRate().then(setRate);
+    fetchRates().then(setRates);
   }, []);
 
-  const pln = lang === "pl";
-  const r = rate ?? FALLBACK_RATE;
+  const currency = currencyForLang(lang);
+  const r = rates ?? FALLBACK;
 
-  /** Format a USD-cents amount in the current currency (zł for PL, $ otherwise). */
+  /** Format a USD-cents amount in the current currency (zł for PL, € for DE, $ otherwise). */
   const formatUsdCents = (cents: number): string => {
-    if (pln) {
-      const zl = Math.round(cents * r) / 100;
-      return (
-        zl.toLocaleString("pl-PL", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }) + " zł"
-      );
+    if (currency === "pln") {
+      const zl = Math.round(cents * r.pln) / 100;
+      return zl.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " zł";
+    }
+    if (currency === "eur") {
+      const eur = Math.round(cents * r.eur) / 100;
+      return eur.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
     }
     return "$" + (cents / 100).toFixed(2);
   };
 
   return {
     /** Stripe currency to send with checkout. */
-    currency: pln ? "pln" : "usd",
-    rate: r,
-    ready: rate != null,
+    currency,
+    rate: currency === "pln" ? r.pln : currency === "eur" ? r.eur : 1,
+    ready: rates != null,
     formatUsdCents,
   };
 }

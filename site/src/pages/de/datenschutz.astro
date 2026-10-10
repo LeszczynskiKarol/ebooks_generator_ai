@@ -1,0 +1,98 @@
+---
+// Datenschutzerklärung (DE) — wierna niemiecka wersja /privacy/ (te same fakty
+// o przetwarzaniu, nic ponad to) + tożsamość administratora. Zmiana w /privacy/
+// lub /pl/polityka-prywatnosci/ = zmiana tutaj.
+import LegalLayout from "../../layouts/LegalLayout.astro";
+
+const NAME = "ecopywriting.pl Karol Leszczyński";
+const ADDRESS = "Papowo Biskupie 119/18, 86-221 Papowo Biskupie, Polen";
+const NIP = "9562203948";
+const EMAIL = "contact@inkmagnet.com";
+---
+
+<LegalLayout title="Datenschutzerklärung" description="Datenschutzerklärung von InkMagnet.">
+  <p>Fassung vom 10. Oktober 2026</p>
+
+  <h2>1. Wer wir sind</h2>
+  <p>
+    InkMagnet („wir“) betreibt die Website inkmagnet.com und die Anwendung app.inkmagnet.com.
+    Verantwortlicher für die Verarbeitung personenbezogener Daten ist
+    <strong>{NAME}</strong>, {ADDRESS}, Steuernummer (NIP): {NIP}. In allen Fragen des
+    Datenschutzes erreichen Sie uns unter <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.
+  </p>
+
+  <h2>2. Welche Daten wir erheben</h2>
+  <ul>
+    <li>
+      Kontodaten: E-Mail-Adresse, Name, Passwort-Hash oder die Kennung Ihres Google-Kontos, wenn
+      Sie sich mit Google anmelden.
+    </li>
+    <li>
+      Von Ihnen erstellte Inhalte: Buchthemen, Vorgaben sowie die generierten und bearbeiteten
+      Buchinhalte.
+    </li>
+    <li>Zahlungsdaten: werden von Stripe verarbeitet; Kartennummern speichern wir nie.</li>
+    <li>
+      Technische Daten: IP-Adresse, Browserinformationen und einfache Nutzungsprotokolle, die der
+      Sicherheit und dem Schutz vor Missbrauch dienen (einschließlich Google reCAPTCHA).
+    </li>
+  </ul>
+
+  <h2>3. Wozu wir sie verarbeiten</h2>
+  <ul>
+    <li>
+      Zur Erbringung des Dienstes: Generieren, Speichern und Erstellen Ihrer Bücher
+      (Vertragserfüllung).
+    </li>
+    <li>
+      Zur Abwicklung von Zahlungen und zur Ausstellung von Belegen (rechtliche Verpflichtung,
+      Vertrag).
+    </li>
+    <li>
+      Zum Versand von Transaktions-E-Mails wie Verifizierungscodes und Passwortzurücksetzungen
+      (Vertrag).
+    </li>
+    <li>
+      Zur Sicherheit des Dienstes und zum Schutz vor automatisiertem Missbrauch (berechtigtes
+      Interesse).
+    </li>
+  </ul>
+
+  <h2>4. Auftragsverarbeiter</h2>
+  <p>
+    Für den Betrieb des Dienstes setzen wir eine kleine Zahl von Infrastrukturanbietern ein:
+    Amazon Web Services (Hosting, Speicherung, E-Mail-Versand), Stripe (Zahlungen), Anthropic und
+    weitere Anbieter von KI-Modellen (Erstellung der Inhalte; Ihre Angaben zum Buch werden ihnen
+    ausschließlich zur Generierung Ihres Buches übermittelt) sowie Google (Anmeldung und
+    reCAPTCHA).
+  </p>
+
+  <h2>5. Speicherdauer</h2>
+  <p>
+    Ihr Konto und Ihre Bücher werden gespeichert, bis Sie sie oder Ihr Konto löschen. Die
+    Löschung können Sie jederzeit per E-Mail verlangen; personenbezogene Daten entfernen wir
+    innerhalb von 30 Tagen, außer soweit das Buchführungsrecht eine längere Aufbewahrung von
+    Abrechnungsunterlagen vorschreibt.
+  </p>
+
+  <h2>6. Ihre Rechte</h2>
+  <p>
+    Sie können Auskunft über Ihre personenbezogenen Daten sowie deren Berichtigung, Herausgabe
+    (Datenübertragbarkeit) oder Löschung verlangen, einer auf berechtigtem Interesse beruhenden
+    Verarbeitung widersprechen und sich bei Ihrer Datenschutz-Aufsichtsbehörde beschweren.
+    Schreiben Sie an <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.
+  </p>
+
+  <h2>7. Cookies</h2>
+  <p>
+    Die Marketing-Website verwendet keine Tracking-Cookies. Die Anwendung nutzt ausschließlich
+    unbedingt erforderliche Speicherung, damit Sie angemeldet bleiben. reCAPTCHA kann eigene
+    Cookies setzen, wie in der Datenschutzerklärung von Google beschrieben.
+  </p>
+
+  <h2>8. Weitere Informationen</h2>
+  <p>
+    Die Regeln des Dienstes finden Sie in den <a href="/de/agb/">AGB</a>, Angaben zum Anbieter
+    im <a href="/de/impressum/">Impressum</a>.
+  </p>
+</LegalLayout>

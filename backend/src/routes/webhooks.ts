@@ -109,7 +109,7 @@ export async function webhookRoutes(app: FastifyInstance) {
           const pc = full.total_details?.breakdown?.discounts?.[0]?.discount?.promotion_code;
           const code = pc && typeof pc === "object" ? pc.code : null;
           const proj = await prisma.project.findUnique({ where: { id: projectId }, select: { exchangeRate: true } });
-          const usdCents = session.currency === "pln" && proj?.exchangeRate
+          const usdCents = session.currency !== "usd" && proj?.exchangeRate
             ? Math.round(discountMinor / proj.exchangeRate)
             : discountMinor;
           await prisma.project.update({ where: { id: projectId }, data: { promoCode: code, discountUsdCents: usdCents } });
@@ -147,12 +147,8 @@ export async function webhookRoutes(app: FastifyInstance) {
           if (p && to) {
             const minor = session.amount_total ?? 0;
             const cur = (session.currency || p.currency || "usd").toLowerCase();
-            const amountLabel =
-              cur === "pln"
-                ? (minor / 100).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " zł"
-                : cur === "usd"
-                  ? "$" + (minor / 100).toFixed(2)
-                  : (minor / 100).toFixed(2) + " " + cur.toUpperCase();
+            const { formatMinor } = await import("../lib/currency");
+            const amountLabel = formatMinor(minor, cur);
             const { sendOrderConfirmationEmail, projectLang } = await import("../lib/email");
             const appUrl = process.env.PUBLIC_APP_URL || "https://app.inkmagnet.com";
             // The language the consent was ticked in (uiLang); older orders:

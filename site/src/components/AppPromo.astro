@@ -4,6 +4,7 @@
 import { useTranslations, type Lang } from "../i18n/ui";
 import { playHref, appPagePath } from "../lib/play";
 import Shot from "./Shot.astro";
+import PhoneMock from "./mock/PhoneMock.astro";
 
 interface Props {
   lang: Lang;
@@ -13,6 +14,10 @@ const { lang, campaign = "home-band" } = Astro.props;
 const t = useTranslations(lang);
 const a = t.appPromo;
 const href = playHref(lang, campaign);
+// German: no localized store badge, app page or screenshots yet, so the band
+// uses a text button, drops the "more about the app" link and shows the
+// localized HTML phone mocks instead of English/Polish screenshots.
+const isDE = lang === "de";
 const badge = lang === "pl" ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
 ---
 
@@ -48,22 +53,41 @@ const badge = lang === "pl" ? "/badges/google-play-pl.png" : "/badges/google-pla
       </ul>
 
       <div class="mt-9 flex flex-wrap items-center gap-5">
-        <a href={href} rel="noopener" class="inline-block transition-opacity hover:opacity-90">
-          <img src={badge} alt={a.cta} width="180" height="70" loading="lazy" decoding="async" />
-        </a>
-        <a
-          href={appPagePath(lang)}
-          class="text-sm font-semibold text-brand-300 underline-offset-4 transition-colors hover:text-brand-200 hover:underline"
-        >
-          {a.more} &rarr;
-        </a>
+        {
+          isDE ? (
+            <a
+              href={href}
+              rel="noopener"
+              class="inline-block rounded-xl bg-white px-6 py-3 text-base font-semibold text-ink-900 shadow-lg transition-colors hover:bg-ink-100"
+            >
+              {a.cta}
+            </a>
+          ) : (
+            <>
+              <a href={href} rel="noopener" class="inline-block transition-opacity hover:opacity-90">
+                <img src={badge} alt={a.cta} width="180" height="70" loading="lazy" decoding="async" />
+              </a>
+              <a
+                href={appPagePath(lang)}
+                class="text-sm font-semibold text-brand-300 underline-offset-4 transition-colors hover:text-brand-200 hover:underline"
+              >
+                {a.more} &rarr;
+              </a>
+            </>
+          )
+        }
       </div>
       <p class="mt-5 text-xs text-ink-500">{a.note}</p>
     </div>
 
     <div class="relative flex justify-center lg:justify-end">
       {
-        lang === "pl" ? (
+        isDE ? (
+          <div class="flex items-center">
+            <PhoneMock lang={lang} screen="books" class="z-10 -mr-10 hidden rotate-[-4deg] sm:block" />
+            <PhoneMock lang={lang} screen="detail" class="z-20 rotate-[3deg]" />
+          </div>
+        ) : lang === "pl" ? (
           <div class="flex items-center">
             <Shot src="/app/pl/m-books" w={390} h={831} kind="phone" class="z-10 -mr-10 hidden w-[200px] rotate-[-4deg] sm:block" alt="Lista książek w aplikacji InkMagnet na Androida" />
             <Shot src="/app/pl/m-book" w={390} h={831} kind="phone" class="z-20 w-[220px] rotate-[3deg]" alt="Gotowa książka w aplikacji: pobieranie PDF i EPUB" />

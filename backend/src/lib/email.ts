@@ -340,9 +340,9 @@ ${note}`;
 // keep these strings identical to "payment.consent" in
 // frontend/src/lib/dict/payment.ts.
 export const WITHDRAWAL_CONSENT_TEXT: Record<string, string> = {
-  en: "I request that work on my book starts immediately, before the 14-day withdrawal period ends, and I acknowledge that I lose my right of withdrawal once generation of the book begins.",
-  pl: "Żądam rozpoczęcia pracy nad moją książką przed upływem 14-dniowego terminu na odstąpienie od umowy i przyjmuję do wiadomości, że z chwilą rozpoczęcia generowania książki tracę prawo do odstąpienia od umowy.",
-  de: "Ich verlange ausdrücklich, dass vor Ablauf der 14-tägigen Widerrufsfrist mit der Erstellung meines Buches begonnen wird, und bestätige meine Kenntnis davon, dass ich mit Beginn der Erstellung des Buches mein Widerrufsrecht verliere.",
+  en: "I request that work on my book starts immediately, before the 14-day withdrawal period ends, and I acknowledge that I lose my right of withdrawal once generation of the book begins (Terms, §6).",
+  pl: "Żądam rozpoczęcia pracy nad moją książką przed upływem 14-dniowego terminu na odstąpienie od umowy i przyjmuję do wiadomości, że z chwilą rozpoczęcia generowania książki tracę prawo do odstąpienia od umowy (Regulamin, §6).",
+  de: "Ich verlange ausdrücklich, dass vor Ablauf der 14-tägigen Widerrufsfrist mit der Erstellung meines Buches begonnen wird, und bestätige meine Kenntnis davon, dass ich mit Beginn der Erstellung des Buches mein Widerrufsrecht verliere (AGB, §6).",
 };
 
 /** Language for e-mails and notifications about a book: the UI language of
@@ -351,6 +351,22 @@ export function projectLang(p: { uiLang?: string | null; language?: string | nul
   if (p.uiLang) return orderLang(p.uiLang);
   return p.language === "pl" || p.currency === "pln" ? "pl" : "en";
 }
+
+/** The seller, as in the terms (§1) and the German Impressum — an order
+ *  confirmation must name who the contract is with and where to complain. */
+export const SELLER = {
+  name: "ecopywriting.pl Karol Leszczyński",
+  address: "Papowo Biskupie 119/18, 86-221 Papowo Biskupie",
+  nip: "9562203948",
+  email: "contact@inkmagnet.com",
+};
+
+const TERMS_URL = {
+  pl: "https://inkmagnet.com/pl/regulamin/",
+  en: "https://inkmagnet.com/terms/",
+  de: "https://inkmagnet.com/de/agb/",
+};
+const WITHDRAWAL_ANCHOR = { pl: "#odstapienie", en: "#withdrawal", de: "#widerruf" };
 
 /** pl | de | en — the languages the order texts exist in. */
 export function orderLang(v: unknown): "pl" | "en" | "de" {
@@ -425,10 +441,8 @@ export function buildOrderConfirmationEmail(args: OrderConfirmationArgs) {
       timeZoneName: "short",
     });
   const consentText = WITHDRAWAL_CONSENT_TEXT[l];
-  // no German terms page yet — the English one
-  const termsUrl = pl
-    ? "https://inkmagnet.com/pl/regulamin/"
-    : "https://inkmagnet.com/terms/";
+  const termsUrl = TERMS_URL[l];
+  const withdrawalUrl = termsUrl + WITHDRAWAL_ANCHOR[l];
 
   const subject = tr(
     l,
@@ -493,6 +507,25 @@ export function buildOrderConfirmationEmail(args: OrderConfirmationArgs) {
     : "";
   const cta = tr(l, "Przejdź do zamówienia", "Go to your order", "Zur Bestellung");
   const terms = tr(l, "Regulamin", "Terms", "AGB");
+  // who the contract is with, how to complain, where the withdrawal rules are
+  const sellerLines = tr<string[]>(
+    l,
+    [
+      `Sprzedawca: ${SELLER.name}, ${SELLER.address}, Polska, NIP ${SELLER.nip}.`,
+      `Kontakt i reklamacje: ${SELLER.email} (odpowiadamy w ciągu 14 dni).`,
+      `Prawo odstąpienia od umowy i jego utrata: Regulamin, §6 (${withdrawalUrl}).`,
+    ],
+    [
+      `Seller: ${SELLER.name}, ${SELLER.address}, Poland, tax ID (NIP) ${SELLER.nip}.`,
+      `Contact and complaints: ${SELLER.email} (we reply within 14 days).`,
+      `Right of withdrawal and its loss: Terms, §6 (${withdrawalUrl}).`,
+    ],
+    [
+      `Anbieter: ${SELLER.name}, ${SELLER.address}, Polen, Steuernummer (NIP) ${SELLER.nip}.`,
+      `Kontakt und Beschwerden: ${SELLER.email} (wir antworten innerhalb von 14 Tagen).`,
+      `Widerrufsrecht und sein Erlöschen: AGB, §6 (${withdrawalUrl}).`,
+    ],
+  );
 
   const html = shell(`
 <p style="font-size:15px;margin:0 0 16px">${intro}</p>
@@ -501,7 +534,7 @@ ${consentBlock}
 <p style="text-align:center;margin:20px 0">
 <a href="${link}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;
    font-weight:700;padding:13px 28px;border-radius:10px">${cta}</a></p>
-<p style="font-size:13px;color:#6b7280;margin:0"><a href="${termsUrl}" style="color:#4f46e5">${terms}</a></p>`);
+<p style="font-size:12px;color:#6b7280;margin:0;line-height:1.6">${sellerLines.map(esc).join("<br>")}<br><a href="${termsUrl}" style="color:#4f46e5">${terms}</a></p>`);
 
   const text = [
     intro,
@@ -513,6 +546,7 @@ ${consentBlock}
     "",
     link,
     "",
+    ...sellerLines,
     `${terms}: ${termsUrl}`,
   ].join("\n");
   return { subject, html, text };

@@ -16,6 +16,7 @@
 // previous counter value), so the sweep is idempotent and safe to run from
 // more than one process.
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import { formatCharged } from "./currency";
 import { projectLang } from "./email";
 import { prisma } from "./prisma";
 import { sendPaymentReminderEmail } from "./email";
@@ -34,12 +35,7 @@ function priceLabel(p: {
   currency: string;
   exchangeRate: number | null;
 }): string {
-  const cents = p.priceUsdCents ?? 0;
-  if (p.currency === "pln" && p.exchangeRate) {
-    const zl = Math.round(cents * p.exchangeRate) / 100;
-    return `${zl.toFixed(2).replace(".", ",")} zł`;
-  }
-  return `$${(cents / 100).toFixed(2)}`;
+  return formatCharged(p);
 }
 
 /** The book's name for a subject line: title, else the topic's first line,

@@ -1,0 +1,53 @@
+---
+// Impressum (§ 5 DDG) — wymagane dla stron kierowanych do odbiorców w Niemczech.
+// Dane identyczne jak w AGB §1, /terms/ i /pl/regulamin/ — zmiana tam = zmiana tutaj.
+import LegalLayout from "../../layouts/LegalLayout.astro";
+
+const NAME = "ecopywriting.pl Karol Leszczyński";
+const EMAIL = "contact@inkmagnet.com";
+---
+
+<LegalLayout
+  title="Impressum"
+  description="Impressum und Anbieterkennzeichnung von inkmagnet.com."
+>
+  <h2>Angaben gemäß § 5 DDG</h2>
+  <p>
+    <strong>{NAME}</strong><br />
+    Einzelunternehmen, Inhaber: Karol Leszczyński<br />
+    Papowo Biskupie 119/18<br />
+    86-221 Papowo Biskupie<br />
+    Polen
+  </p>
+
+  <h2>Kontakt</h2>
+  <p>
+    E-Mail: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+  </p>
+
+  <h2>Register und Steuern</h2>
+  <p>
+    Eingetragen im polnischen Zentralregister und Informationssystem über die Gewerbetätigkeit
+    (CEIDG).<br />
+    Steuernummer (NIP): 9562203948<br />
+    Der Anbieter ist nach polnischem Recht von der Mehrwertsteuer befreit
+    (Kleinunternehmerregelung); eine Umsatzsteuer wird daher nicht ausgewiesen.
+  </p>
+
+  <h2>Verantwortlich für den Inhalt</h2>
+  <p>Karol Leszczyński, Anschrift wie oben.</p>
+
+  <h2>Verbraucherstreitbeilegung</h2>
+  <p>
+    Wir sind nicht verpflichtet und nicht bereit, an einem Streitbeilegungsverfahren vor einer
+    Verbraucherschlichtungsstelle teilzunehmen. Informationen zur Beilegung von
+    Verbraucherstreitigkeiten in der EU bietet die Europäische Kommission unter
+    <a href="https://europa.eu/youreurope/" rel="nofollow noopener" target="_blank">europa.eu/youreurope</a>.
+  </p>
+
+  <h2>Weitere Informationen</h2>
+  <p>
+    <a href="/de/agb/">Allgemeine Geschäftsbedingungen</a> ·
+    <a href="/de/datenschutz/">Datenschutzerklärung</a>
+  </p>
+</LegalLayout>

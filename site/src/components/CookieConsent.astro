@@ -18,6 +18,15 @@ const texts =
         decline: "Tylko niezbędne",
         accept: "Akceptuję",
       }
+    : lang === "de"
+      ? {
+          aria: "Cookie-Einwilligung",
+          body: "Wir verwenden Cookies für eine anonyme Besuchsstatistik. Ohne Ihre Einwilligung werden keine Daten erhoben.",
+          link: "Datenschutzerklärung",
+          href: "/de/datenschutz/",
+          decline: "Nur notwendige",
+          accept: "Akzeptieren",
+        }
     : {
         aria: "Cookie consent",
         body: "We use cookies for anonymous traffic analytics. Nothing is collected without your consent.",

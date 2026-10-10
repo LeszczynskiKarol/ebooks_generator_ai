@@ -5,9 +5,9 @@
 export const en: Record<string, string> = {
   "payment.methodsLabel": "Accepted payment methods",
   "payment.consent":
-    "I request that work on my book starts immediately, before the 14-day withdrawal period ends, and I acknowledge that I lose my right of withdrawal once generation of the book begins.",
+    "I request that work on my book starts immediately, before the 14-day withdrawal period ends, and I acknowledge that I lose my right of withdrawal once generation of the book begins (Terms, §6).",
   "payment.consentTerms": "Terms",
-  "payment.consentTermsUrl": "https://inkmagnet.com/terms/",
+  "payment.consentTermsUrl": "https://inkmagnet.com/terms/#withdrawal",
   "payment.consentRequired": "Tick the box above to continue to payment.",
   "payment.waitRedo": "Wait for the new version of the outline. You can pay once it is ready.",
   "payment.waitSample": "Your sample pages are being prepared. You can pay once they are ready.",
@@ -16,9 +16,9 @@ export const en: Record<string, string> = {
 export const de: Record<string, string> = {
   "payment.methodsLabel": "Akzeptierte Zahlungsarten",
   "payment.consent":
-    "Ich verlange ausdrücklich, dass vor Ablauf der 14-tägigen Widerrufsfrist mit der Erstellung meines Buches begonnen wird, und bestätige meine Kenntnis davon, dass ich mit Beginn der Erstellung des Buches mein Widerrufsrecht verliere.",
+    "Ich verlange ausdrücklich, dass vor Ablauf der 14-tägigen Widerrufsfrist mit der Erstellung meines Buches begonnen wird, und bestätige meine Kenntnis davon, dass ich mit Beginn der Erstellung des Buches mein Widerrufsrecht verliere (AGB, §6).",
   "payment.consentTerms": "AGB",
-  "payment.consentTermsUrl": "https://inkmagnet.com/terms/",
+  "payment.consentTermsUrl": "https://inkmagnet.com/de/agb/#widerruf",
   "payment.consentRequired": "Bitte setzen Sie das Häkchen oben, um zur Zahlung zu gelangen.",
   "payment.waitRedo": "Bitte warten Sie auf die neue Version der Gliederung. Danach können Sie bezahlen.",
   "payment.waitSample": "Ihre Leseprobe wird vorbereitet. Danach können Sie bezahlen.",
@@ -27,9 +27,9 @@ export const de: Record<string, string> = {
 export const pl: Record<string, string> = {
   "payment.methodsLabel": "Akceptowane metody płatności",
   "payment.consent":
-    "Żądam rozpoczęcia pracy nad moją książką przed upływem 14-dniowego terminu na odstąpienie od umowy i przyjmuję do wiadomości, że z chwilą rozpoczęcia generowania książki tracę prawo do odstąpienia od umowy.",
+    "Żądam rozpoczęcia pracy nad moją książką przed upływem 14-dniowego terminu na odstąpienie od umowy i przyjmuję do wiadomości, że z chwilą rozpoczęcia generowania książki tracę prawo do odstąpienia od umowy (Regulamin, §6).",
   "payment.consentTerms": "Regulamin",
-  "payment.consentTermsUrl": "https://inkmagnet.com/pl/regulamin/",
+  "payment.consentTermsUrl": "https://inkmagnet.com/pl/regulamin/#odstapienie",
   "payment.consentRequired": "Zaznacz pole powyżej, aby przejść do płatności.",
   "payment.waitRedo": "Poczekaj na nową wersję planu. Zapłacisz, gdy będzie gotowa.",
   "payment.waitSample": "Przygotowujemy strony próbki. Zapłacisz, gdy będą gotowe.",

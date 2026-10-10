@@ -8,7 +8,7 @@ export default defineConfig({
 
   i18n: {
     defaultLocale: "en",
-    locales: ["en", "pl"],
+    locales: ["en", "pl", "de"],
     routing: {
       prefixDefaultLocale: false,
     },
@@ -23,9 +23,16 @@ export default defineConfig({
         !page.includes("/privacy") &&
         !page.includes("/terms") &&
         !page.includes("/polityka-prywatnosci") &&
-        !page.includes("/regulamin"),
+        !page.includes("/regulamin") &&
+        !page.includes("/de/agb") &&
+        !page.includes("/de/datenschutz") &&
+        !page.includes("/de/impressum"),
       serialize(item) {
-        if (item.url === "https://inkmagnet.com/" || item.url === "https://inkmagnet.com/pl/") {
+        if (
+          item.url === "https://inkmagnet.com/" ||
+          item.url === "https://inkmagnet.com/pl/" ||
+          item.url === "https://inkmagnet.com/de/"
+        ) {
           item.priority = 1.0;
         }
         return item;

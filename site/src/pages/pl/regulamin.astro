@@ -1,56 +1,394 @@
 ---
+// Regulamin InkMagnet (PL) — wersja ROZSTRZYGAJĄCA. Strona prawna, noindex.
+// Każda zmiana tutaj musi trafić także do /terms/ (EN) i /de/agb/ (DE).
+// Numeracja jest wspólna dla trzech wersji: checkbox przy płatności w aplikacji
+// odsyła do „(Regulamin, §6)” — prawo odstąpienia MUSI pozostać paragrafem 6
+// z kotwicą id="odstapienie".
 import LegalLayout from "../../layouts/LegalLayout.astro";
+
+const NAME = "ecopywriting.pl Karol Leszczyński";
+const ADDRESS = "Papowo Biskupie 119/18, 86-221 Papowo Biskupie, Polska";
+const NIP = "9562203948";
+const EMAIL = "contact@inkmagnet.com";
+const OL = "list-decimal space-y-2 pl-6";
+const BOX = "space-y-2 rounded-xl border border-ink-200 p-5";
 ---
 
 <LegalLayout title="Regulamin" description="Regulamin serwisu InkMagnet.">
-  <p>Ostatnia aktualizacja: 10 czerwca 2026</p>
-
-  <h2>1. Usługa</h2>
   <p>
-    InkMagnet generuje ebooki z pomocą AI: bada temat, pisze treść, projektuje okładkę i
-    kompiluje pliki PDF i EPUB. Usługa jest dostępna w aplikacji app.inkmagnet.com po założeniu
-    konta.
+    Ostatnia aktualizacja: 10 października 2026. Regulamin jest dostępny także po
+    <a href="/terms/">angielsku</a> i <a href="/de/agb/">niemiecku</a>; w razie rozbieżności
+    rozstrzyga wersja polska (§12 ust. 4).
   </p>
 
-  <h2>2. Płatności</h2>
+  <h2>§1. Postanowienia ogólne</h2>
+  <ol class={OL}>
+    <li>
+      Regulamin określa zasady korzystania z serwisu InkMagnet, dostępnego pod adresem
+      inkmagnet.com, oraz z aplikacji app.inkmagnet.com i aplikacji mobilnej InkMagnet (dalej
+      łącznie: <strong>Serwis</strong>).
+    </li>
+    <li>
+      Usługodawcą i sprzedawcą jest Karol Leszczyński, prowadzący jednoosobową działalność
+      gospodarczą pod firmą <strong>{NAME}</strong>, {ADDRESS}, NIP: {NIP}, wpisany do Centralnej
+      Ewidencji i Informacji o Działalności Gospodarczej (CEIDG) (dalej:
+      <strong>Usługodawca</strong>).
+    </li>
+    <li>Kontakt z Usługodawcą: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</li>
+    <li>
+      Korzystanie z Serwisu wymaga akceptacji regulaminu. Regulamin jest udostępniany
+      nieodpłatnie, w formie, która pozwala go pobrać, zapisać i wydrukować.
+    </li>
+    <li>
+      Do korzystania z Serwisu wystarczy urządzenie z dostępem do internetu i aktualną
+      przeglądarką z włączoną obsługą JavaScriptu oraz niezbędnych plików cookies albo aplikacja
+      mobilna InkMagnet. Do otwarcia gotowej książki potrzebny jest program odczytujący pliki PDF
+      lub EPUB.
+    </li>
+    <li>Umowę można zawrzeć w języku polskim, angielskim albo niemieckim.</li>
+  </ol>
+
+  <h2>§2. Definicje</h2>
+  <ol class={OL}>
+    <li>
+      <strong>Użytkownik</strong> — osoba fizyczna posiadająca pełną zdolność do czynności
+      prawnych, osoba prawna albo jednostka organizacyjna posiadająca zdolność prawną, która
+      założyła konto w Serwisie.
+    </li>
+    <li>
+      <strong>Konsument</strong> — Użytkownik będący konsumentem w rozumieniu art. 22¹ Kodeksu
+      cywilnego, a także osoba fizyczna zawierająca umowę bezpośrednio związaną z jej
+      działalnością gospodarczą, gdy z treści umowy wynika, że nie ma ona dla niej charakteru
+      zawodowego.
+    </li>
+    <li>
+      <strong>Książka</strong> — publikacja niebeletrystyczna (ebook) przygotowywana w Serwisie
+      na podstawie opisu podanego przez Użytkownika, dostarczana jako pliki PDF i EPUB wraz
+      z okładką.
+    </li>
+    <li>
+      <strong>Zamówienie</strong> — odpłatne zlecenie wygenerowania jednej Książki o wybranej
+      objętości.
+    </li>
+    <li>
+      <strong>Generowanie</strong> — zautomatyzowany proces, w którym Serwis z użyciem sztucznej
+      inteligencji bada temat, przygotowuje konspekt, pisze rozdziały, redaguje je językowo,
+      sprawdza spójność i składa Książkę.
+    </li>
+  </ol>
+
+  <h2>§3. Zakres usługi</h2>
+  <ol class={OL}>
+    <li>
+      Serwis bada temat, pisze i składa książki niebeletrystyczne z użyciem sztucznej
+      inteligencji. Użytkownik opisuje Książkę: podaje temat i odbiorców, a jeśli chce, dołącza
+      własne pliki lub notatki.
+    </li>
+    <li>
+      <strong>Bezpłatnie, przed płatnością,</strong> Użytkownik otrzymuje:
+      <ul>
+        <li>
+          tytuł i pełny spis treści Książki, który może edytować; jeden raz może też bezpłatnie
+          poprosić o nową wersję przygotowaną przez AI,
+        </li>
+        <li>dwustronicową próbkę rozdziału 1 w docelowym składzie.</li>
+      </ul>
+    </li>
+    <li>
+      <strong>Odpłatnie</strong> Serwis generuje całą Książkę: bada temat i przygotowuje
+      szczegółowy konspekt, który Użytkownik przegląda, może edytować (oraz jeden raz bezpłatnie
+      zlecić jego ponowne zaplanowanie) i zatwierdza; następnie pisze rozdziały, redaguje je
+      językowo, sprawdza spójność i składa Książkę. Wynikiem są pliki PDF i EPUB z okładką.
+    </li>
+    <li>
+      Po dostarczeniu Książki Użytkownik korzysta z funkcji opisanych w §7: wbudowanego edytora,
+      poprawek z pomocą AI i sprawdzenia przez człowieka.
+    </li>
+    <li>
+      Serwis nie działa w modelu abonamentowym. Każda Książka jest opłacana osobno
+      i jednorazowo.
+    </li>
+  </ol>
+
+  <h2>§4. Konto Użytkownika</h2>
+  <ol class={OL}>
+    <li>
+      Założenie i prowadzenie konta jest bezpłatne. Rejestracja wymaga podania adresu e-mail
+      i hasła oraz potwierdzenia adresu kodem weryfikacyjnym albo zalogowania się kontem Google.
+    </li>
+    <li>
+      Użytkownik podaje prawdziwe dane i nie udostępnia danych logowania innym osobom. Konto
+      jest osobiste i nie może być współdzielone.
+    </li>
+    <li>
+      Użytkownik może w każdej chwili usunąć konto. Sposób postępowania i zakres usuwanych
+      danych opisuje strona <a href="/pl/usun-konto/">Usuń konto</a>. Usunięcie konta jest
+      nieodwracalne, obejmuje także Książki Użytkownika i nie uprawnia do zwrotu opłat za
+      wykonane już Zamówienia.
+    </li>
+    <li>
+      Zasady przetwarzania danych osobowych opisuje
+      <a href="/pl/polityka-prywatnosci/">polityka prywatności</a>.
+    </li>
+  </ol>
+
+  <h2>§5. Ceny, płatności i zawarcie umowy</h2>
+  <ol class={OL}>
+    <li>
+      Cena Zamówienia zależy od wybranej objętości Książki. Ceny bazowe są określone w dolarach
+      amerykańskich (USD):
+      <ul>
+        <li>30–45 stron — 9,99 USD,</li>
+        <li>46–75 stron — 14,99 USD,</li>
+        <li>76–115 stron — 19,99 USD,</li>
+        <li>116–160 stron — 27,99 USD,</li>
+        <li>161–200 stron — 34,99 USD.</li>
+      </ul>
+    </li>
+    <li>
+      W polskiej wersji Serwisu cena jest prezentowana i pobierana w złotych (PLN),
+      w niemieckiej — w euro (EUR). Kwoty te są przeliczane z ceny bazowej w USD po bieżącym
+      kursie z chwili składania Zamówienia. <strong>Wiążąca jest cena wyświetlona bezpośrednio
+      przed płatnością.</strong>
+    </li>
+    <li>
+      Usługodawca korzysta ze zwolnienia z podatku VAT. Ceny są cenami ostatecznymi — nie
+      dolicza się do nich podatku VAT ani innych opłat. Bank albo wystawca karty Użytkownika może
+      pobrać własne opłaty, na przykład za przewalutowanie.
+    </li>
+    <li>Przy płatności Serwis może przyjmować kody rabatowe.</li>
+    <li>
+      Płatności obsługuje Stripe. Dostępne metody to karta płatnicza, Apple Pay i Google Pay,
+      przy płatności w PLN także BLIK, a przy płatności w EUR także Klarna. Usługodawca nie
+      przechowuje danych kart płatniczych.
+    </li>
+    <li>
+      W aplikacji na Androida zakupy są realizowane przez system rozliczeń Google Play. Do
+      takich płatności i ich zwrotów stosują się zasady Google.
+    </li>
+    <li>
+      Informacje o Książce i cenie w Serwisie nie są ofertą, lecz zaproszeniem do zawarcia
+      umowy. Użytkownik składa Zamówienie, wybierając przycisk płatności i dokonując zapłaty;
+      wcześniej może sprawdzić i poprawić swoje dane albo przerwać zakup. Umowa zostaje zawarta
+      z chwilą potwierdzenia płatności.
+    </li>
+    <li>
+      Potwierdzenie zawarcia umowy Usługodawca przesyła na adres e-mail Użytkownika. Fakturę
+      albo inny dokument sprzedaży w formie elektronicznej wystawia na żądanie zgłoszone
+      e-mailem, na co Użytkownik wyraża zgodę, akceptując regulamin.
+    </li>
+  </ol>
+
+  <h2 id="odstapienie">§6. Prawo odstąpienia od umowy</h2>
   <p>
-    Każda książka jest opłacana jednorazowo, w cenie widocznej przed płatnością, zależnej od
-    wybranego zakresu stron. Płatności obsługuje Stripe (a w aplikacji na Androida Google Play).
-    Podgląd tytułu i spisu treści oraz dwustronicowa próbka stylu są bezpłatne i udostępniamy je
-    przed zakupem, żeby można było ocenić książkę przed zapłatą. Płatne generowanie zaczyna się
-    od razu po płatności i tworzy spersonalizowaną treść cyfrową, dlatego po jego rozpoczęciu
-    zakup nie podlega zwrotowi, chyba że przepisy konsumenckie stanowią inaczej. Jeśli generowanie nie powiedzie
-    się z przyczyn technicznych i nie zdołamy tego naprawić, zwracamy pieniądze za książkę.
+    Niniejszy paragraf dotyczy Konsumentów, w tym osób fizycznych zawierających umowę
+    bezpośrednio związaną z ich działalnością gospodarczą, gdy nie ma ona dla nich charakteru
+    zawodowego.
   </p>
+  <ol class={OL}>
+    <li>
+      <strong>Prawo odstąpienia.</strong> Konsument może odstąpić od umowy zawartej na odległość
+      w terminie 14 dni od dnia jej zawarcia, bez podawania przyczyny, z zastrzeżeniem ust. 4.
+    </li>
+    <li>
+      <strong>Sposób wykonania.</strong> Aby odstąpić od umowy, wystarczy przed upływem terminu
+      wysłać Usługodawcy jednoznaczne oświadczenie, na przykład e-mailem na adres
+      <a href={`mailto:${EMAIL}`}>{EMAIL}</a>. Można skorzystać z
+      <a href="#wzor-odstapienia">wzoru formularza</a> zamieszczonego na końcu regulaminu, ale nie
+      jest to obowiązkowe.
+    </li>
+    <li>
+      <strong>Skutki odstąpienia.</strong> W razie skutecznego odstąpienia Usługodawca zwraca
+      Konsumentowi wszystkie otrzymane od niego płatności niezwłocznie, nie później niż
+      w terminie 14 dni od dnia otrzymania oświadczenia. Zwrot następuje przy użyciu tego samego
+      sposobu płatności, którego użył Konsument, chyba że wyraźnie zgodzi się on na inny sposób;
+      Konsument nie ponosi żadnych kosztów zwrotu.
+    </li>
+    <li>
+      <strong>Wcześniejsze wygaśnięcie prawa odstąpienia.</strong> Książka jest treścią cyfrową
+      niedostarczaną na nośniku materialnym, przygotowywaną według wskazań Konsumenta,
+      a Generowanie rozpoczyna się natychmiast po płatności. Przed zapłatą Konsument, zaznaczając
+      odpowiednie pole, wyraźnie żąda rozpoczęcia świadczenia przed upływem terminu odstąpienia
+      i przyjmuje do wiadomości, że <strong>z chwilą rozpoczęcia Generowania Książki traci prawo
+      odstąpienia od umowy</strong> (art. 16 lit. m dyrektywy 2011/83/UE; w Polsce art. 38 ust. 1
+      pkt 13 ustawy z dnia 30 maja 2014 r. o prawach konsumenta; w Niemczech § 356 ust. 5 BGB).
+      Bez zaznaczenia tego pola płatność nie jest możliwa.
+    </li>
+    <li>
+      <strong>Potwierdzenie.</strong> Potwierdzenie zawarcia umowy wraz z treścią oświadczenia,
+      o którym mowa w ust. 4, i czasem jego złożenia Konsument otrzymuje na trwałym nośniku —
+      w wiadomości e-mail potwierdzającej Zamówienie. Informacja ta jest też umieszczana na
+      potwierdzeniu płatności.
+    </li>
+    <li>
+      Ponieważ Generowanie rozpoczyna się od razu po płatności, w praktyce po zapłacie nie można
+      już odstąpić od umowy. Dlatego tytuł, spis treści i próbkę rozdziału (§3 ust. 2) Serwis
+      udostępnia bezpłatnie przed zakupem, aby można było ocenić Książkę przed zapłatą.
+    </li>
+    <li>
+      Utrata prawa odstąpienia nie ogranicza uprawnień Konsumenta z tytułu niezgodności treści
+      cyfrowej z umową, prawa do reklamacji (§11) ani prawa do zwrotu ceny w przypadku
+      opisanym w §7 ust. 3.
+    </li>
+  </ol>
 
-  <h2>3. Twoje treści i prawa</h2>
+  <h2>§7. Realizacja Zamówienia i korzystanie z Książki</h2>
+  <ol class={OL}>
+    <li>
+      Generowanie rozpoczyna się natychmiast po potwierdzeniu płatności. Pisanie rozdziałów
+      zaczyna się po zatwierdzeniu konspektu przez Użytkownika (§3 ust. 3).
+    </li>
+    <li>
+      Przygotowanie Książki trwa zwykle około godziny. Nie jest to termin umowny: czas zależy
+      od objętości Książki, tematu i tego, kiedy Użytkownik zatwierdzi konspekt. Gotową Książkę
+      Użytkownik pobiera w Serwisie.
+    </li>
+    <li>
+      Jeżeli Generowanie nie powiedzie się z przyczyn technicznych i Usługodawca nie zdoła tego
+      naprawić, zwraca cenę Książki.
+    </li>
+    <li>
+      <strong>Edytor.</strong> Zakupioną Książkę Użytkownik może bez ograniczeń edytować we
+      wbudowanym edytorze i ponownie składać do plików PDF i EPUB.
+    </li>
+    <li>
+      <strong>Popraw z AI.</strong> Dla każdej Książki Użytkownik może wykonać do 3 edycji
+      z pomocą AI. Każda zmiana jest najpierw pokazywana jako podgląd, który Użytkownik
+      przyjmuje albo odrzuca.
+    </li>
+    <li>
+      <strong>Sprawdzenie przez człowieka.</strong> Dla każdej Książki Użytkownik może
+      bezpłatnie zgłosić do 3 próśb o poprawki, którymi zajmuje się redaktor.
+    </li>
+    <li>
+      <strong>Opinie.</strong> Użytkownik może ocenić Książkę. Opinia jest pokazywana na stronie
+      Serwisu tylko wtedy, gdy Użytkownik wyrazi na to odrębną, dobrowolną zgodę.
+    </li>
+  </ol>
+
+  <h2>§8. Prawa do Książek i odpowiedzialność Użytkownika</h2>
+  <ol class={OL}>
+    <li>
+      Wygenerowane Książki należą do Użytkownika. Może on z nich korzystać bez ograniczeń,
+      także komercyjnie: publikować je, sprzedawać i rozpowszechniać.
+    </li>
+    <li>
+      Treści generowane przez sztuczną inteligencję mogą zawierać błędy. Przed publikacją albo
+      sprzedażą Użytkownik powinien przeczytać i sprawdzić Książkę.
+    </li>
+    <li>
+      Użytkownik odpowiada za podane tematy, wytyczne i przesłane pliki oraz za sposób
+      wykorzystania Książek. Przesyłając materiały, zapewnia, że ma do nich prawa pozwalające
+      wykorzystać je do przygotowania Książki.
+    </li>
+    <li>
+      Oprogramowanie Serwisu, jego wygląd i materiały własne Usługodawcy podlegają ochronie
+      prawa autorskiego i pozostają własnością Usługodawcy.
+    </li>
+  </ol>
+
+  <h2>§9. Zasady korzystania</h2>
+  <ol class={OL}>
+    <li>
+      Zabronione jest:
+      <ul>
+        <li>
+          zlecanie i dostarczanie treści bezprawnych, zniesławiających albo naruszających prawa
+          osób trzecich,
+        </li>
+        <li>zakłócanie działania Serwisu, jego inżynieria wsteczna i przeciążanie,</li>
+        <li>współdzielenie kont oraz masowe zakładanie kont.</li>
+      </ul>
+    </li>
+    <li>
+      Konto naruszające te zasady Usługodawca może zawiesić, informując Użytkownika o przyczynie.
+    </li>
+  </ol>
+
+  <h2>§10. Dostępność Serwisu</h2>
+  <ol class={OL}>
+    <li>
+      Usługodawca dokłada starań, aby Serwis działał bez przerw, ale nie gwarantuje jego
+      nieprzerwanej dostępności i zastrzega możliwość przerw technicznych (konserwacja,
+      aktualizacje).
+    </li>
+    <li>
+      Usługodawca nie odpowiada za przerwy wynikające z przyczyn od niego niezależnych,
+      w szczególności z awarii infrastruktury dostawców zewnętrznych albo działania siły
+      wyższej; dokłada jednak starań, aby ich skutki usuwać bez zbędnej zwłoki.
+    </li>
+  </ol>
+
+  <h2>§11. Reklamacje i odpowiedzialność</h2>
+  <ol class={OL}>
+    <li>
+      Reklamacje można składać e-mailem na adres <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.
+      Reklamacja powinna opisywać problem oraz wskazywać konto i Książkę, których dotyczy.
+    </li>
+    <li>Usługodawca odpowiada na reklamację w terminie 14 dni od jej otrzymania.</li>
+    <li>
+      Wobec Konsumenta Usługodawca odpowiada za zgodność treści cyfrowych i usługi cyfrowej
+      z umową na zasadach określonych w przepisach, w szczególności w ustawie o prawach
+      konsumenta. Regulamin nie wyłącza ani nie ogranicza tych uprawnień.
+    </li>
+    <li>
+      Wobec Użytkowników niebędących Konsumentami odpowiedzialność Usługodawcy jest ograniczona
+      do ceny zapłaconej za Książkę, której dotyczy roszczenie, i nie obejmuje utraconych
+      korzyści. Ograniczenie to nie dotyczy szkody wyrządzonej umyślnie ani przypadków,
+      w których wyłączenie lub ograniczenie odpowiedzialności jest niedopuszczalne z mocy prawa.
+    </li>
+    <li>
+      Konsument może skorzystać z pozasądowych sposobów rozpatrywania reklamacji i dochodzenia
+      roszczeń, między innymi z pomocy miejskiego lub powiatowego rzecznika konsumentów albo
+      wojewódzkiego inspektoratu Inspekcji Handlowej. Informacje o pozasądowym rozwiązywaniu
+      sporów konsumenckich w Unii Europejskiej Komisja Europejska udostępnia pod adresem
+      <a href="https://europa.eu/youreurope/" rel="nofollow noopener" target="_blank">europa.eu/youreurope</a>.
+    </li>
+  </ol>
+
+  <h2>§12. Postanowienia końcowe</h2>
+  <ol class={OL}>
+    <li>
+      Usługodawca może zmienić regulamin z ważnych przyczyn (zmiana przepisów, zmiana zakresu
+      lub sposobu świadczenia usług, względy bezpieczeństwa). O zmianie informuje Użytkowników
+      e-mailem albo w aplikacji. Zmiana nie wpływa na Książki opłacone przed jej wejściem
+      w życie. Użytkownik, który nie akceptuje zmiany, może usunąć konto.
+    </li>
+    <li>
+      Prawem właściwym jest prawo polskie. Wybór ten nie pozbawia Konsumenta ochrony, którą
+      zapewniają mu bezwzględnie obowiązujące przepisy państwa jego zwykłego pobytu.
+    </li>
+    <li>
+      Spory z Użytkownikami niebędącymi Konsumentami rozstrzyga sąd właściwy dla siedziby
+      Usługodawcy. W sporach z Konsumentami właściwość sądu określają przepisy ogólne.
+    </li>
+    <li>
+      Regulamin jest dostępny w języku polskim, angielskim i niemieckim. W razie rozbieżności
+      rozstrzyga wersja polska; nie narusza to bezwzględnie obowiązujących przepisów chroniących
+      konsumentów.
+    </li>
+  </ol>
+
+  <h2 id="wzor-odstapienia">Załącznik: wzór formularza odstąpienia od umowy</h2>
   <p>
-    Wygenerowane książki należą do Ciebie razem z pełnymi prawami komercyjnymi. Odpowiadasz za
-    podawane tematy i wytyczne, a także za sposób wykorzystania gotowych książek. Treści
-    generowane przez AI mogą zawierać błędy, dlatego przejrzyj książkę przed publikacją albo sprzedażą.
+    (Formularz należy wypełnić i odesłać tylko w przypadku chęci odstąpienia od umowy.
+    Skorzystanie z niego nie jest obowiązkowe.)
   </p>
-
-  <h2>4. Zasady korzystania</h2>
-  <ul>
-    <li>Zakaz generowania treści bezprawnych, zniesławiających albo naruszających prawa osób trzecich.</li>
-    <li>Zakaz zakłócania pracy serwisu, inżynierii wstecznej i przeciążania infrastruktury.</li>
-    <li>Zakaz współdzielenia kont i masowego, automatycznego zakładania kont.</li>
-  </ul>
-  <p>Konta łamiące te zasady możemy zawiesić.</p>
-
-  <h2>5. Dostępność i odpowiedzialność</h2>
-  <p>
-    Dbamy o wysoką dostępność, ale nie gwarantujemy nieprzerwanego działania. Nasza
-    odpowiedzialność jest ograniczona do kwoty zapłaconej za daną książkę, w granicach
-    dopuszczalnych przez prawo.
-  </p>
-
-  <h2>6. Zmiany regulaminu</h2>
-  <p>
-    Regulamin może się zmieniać; o istotnych zmianach poinformujemy mailem albo w aplikacji.
-    Dalsze korzystanie z serwisu po zmianie oznacza jej akceptację.
-  </p>
-
-  <h2>7. Kontakt</h2>
-  <p>Pytania: <a href="mailto:contact@inkmagnet.com">contact@inkmagnet.com</a>.</p>
+  <div class={BOX}>
+    <p>Adresat: {NAME}, {ADDRESS}, e-mail: {EMAIL}</p>
+    <p>
+      Ja/My (*) niniejszym informuję/informujemy (*) o moim/naszym (*) odstąpieniu od umowy
+      o dostarczenie następujących treści cyfrowych: ____________________
+    </p>
+    <p>Data zawarcia umowy: ____________________</p>
+    <p>Imię i nazwisko konsumenta(-ów): ____________________</p>
+    <p>Adres konsumenta(-ów): ____________________</p>
+    <p>Adres e-mail konta w Serwisie: ____________________</p>
+    <p>
+      Podpis konsumenta(-ów) (tylko jeżeli formularz jest przesyłany w wersji papierowej):
+      ____________________
+    </p>
+    <p>Data: ____________________</p>
+    <p>(*) Niepotrzebne skreślić.</p>
+  </div>
 </LegalLayout>

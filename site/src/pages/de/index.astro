@@ -1,0 +1,50 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Landing from "../../components/Landing.astro";
+import { siteConfig } from "../../config/site";
+import { useTranslations } from "../../i18n/ui";
+import { getUsdEurRate, formatEur } from "../../lib/rate.ts";
+
+const t = useTranslations("de");
+
+// EUR is converted from the USD base price at build time; the app charges EUR
+// at its own current rate, hence "ca." instead of an exact promise.
+const priceFrom = formatEur(9.99, await getUsdEurRate());
+
+const title = "KI-E-Book-Generator: ganze Bücher, Cover, PDF und EPUB";
+const description = `InkMagnet ist ein KI-E-Book-Generator: Aus einem Thema wird ein vollständiges, professionell gesetztes Buch, mit Web-Recherche, Text, Illustrationen, Cover sowie PDF und EPUB in Druckqualität. Ab ca. ${priceFrom} pro Buch.`;
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: siteConfig.name,
+    applicationCategory: "DesignApplication",
+    operatingSystem: "Web",
+    url: `${siteConfig.url}/de/`,
+    inLanguage: "de",
+    description,
+    // base prices are set in USD; EUR amounts on the page are converted
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "USD",
+      lowPrice: "9.99",
+      highPrice: "34.99",
+      offerCount: 5,
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: t.faq.items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  },
+];
+---
+
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <Landing lang="de" />
+</BaseLayout>

@@ -16,9 +16,18 @@ const { lang } = Astro.props;
 const t = useTranslations(lang);
 const p = langPrefix(lang);
 const pl = lang === "pl";
+// German (v1): no examples gallery, blog or app page, so those columns and
+// links are left out; a legal column (with the mandatory Impressum) replaces them.
+const de = lang === "de";
 const year = new Date().getFullYear();
 
-const legalLinks = pl
+const legalLinks = de
+  ? [
+      { href: "/de/agb/", label: t.footer.terms },
+      { href: "/de/datenschutz/", label: t.footer.privacy },
+      { href: "/de/impressum/", label: "Impressum" },
+    ]
+  : pl
   ? [
       { href: "/pl/polityka-prywatnosci/", label: t.footer.privacy },
       { href: "/pl/regulamin/", label: t.footer.terms },
@@ -42,7 +51,9 @@ const posts = (await getCollection("blog", (e) => e.data.lang === lang && !e.dat
   .slice(0, 3);
 const postHref = (id: string) => (pl ? `/pl/blog/${id}/` : `/blog/${id}/`);
 
-const L = pl
+const L = de
+  ? { books: "", allBooks: "", blog: "", allPosts: "", badgeAlt: "Jetzt bei Google Play" }
+  : pl
   ? { books: "Przykładowe książki", allBooks: "Wszystkie przykłady", blog: "Z bloga", allPosts: "Wszystkie wpisy", badgeAlt: "Pobierz z Google Play" }
   : { books: "Sample books", allBooks: "All examples", blog: "From the blog", allPosts: "All posts", badgeAlt: "Get it on Google Play" };
 const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
@@ -50,7 +61,7 @@ const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
 
 <footer class="theme-fixed border-t border-ink-800 bg-ink-950 text-ink-300">
   <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1.2fr_1.2fr]">
+    <div class:list={["grid gap-10 sm:grid-cols-2", de ? "lg:grid-cols-[1.3fr_1fr_1fr]" : "lg:grid-cols-[1.3fr_1fr_1.2fr_1.2fr]"]}>
       {/* brand */}
       <div>
         <div class="flex items-center gap-2.5">
@@ -65,9 +76,19 @@ const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
           <span class="font-display text-lg font-bold tracking-tight text-white">InkMagnet</span>
         </div>
         <p class="mt-4 max-w-xs text-sm leading-relaxed text-ink-400">{t.footer.tagline}</p>
-        <a href={siteConfig.playUrl} class="mt-5 inline-block" rel="noopener">
-          <img src={badge} alt={L.badgeAlt} width="150" height="58" loading="lazy" decoding="async" class="h-[46px] w-auto" />
-        </a>
+        {
+          de ? (
+            <p class="mt-5 text-sm">
+              <a href={`${siteConfig.playUrl}&hl=de`} rel="noopener" class="font-semibold text-brand-400 transition-colors hover:text-brand-300">
+                {L.badgeAlt} →
+              </a>
+            </p>
+          ) : (
+            <a href={siteConfig.playUrl} class="mt-5 inline-block" rel="noopener">
+              <img src={badge} alt={L.badgeAlt} width="150" height="58" loading="lazy" decoding="async" class="h-[46px] w-auto" />
+            </a>
+          )
+        }
         <p class="mt-4 text-sm">
           <a href={`mailto:${siteConfig.email}`} class="text-ink-400 transition-colors hover:text-white">
             {siteConfig.email}
@@ -80,6 +101,7 @@ const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
         <h3 class="text-sm font-semibold text-white">{t.footer.product}</h3>
         <ul class="mt-4 space-y-2.5 text-sm">
           <li><a href={`${p}/#how`} class="transition-colors hover:text-white">{t.nav.how}</a></li>
+          {de && <li><a href="/de/#features" class="transition-colors hover:text-white">{t.nav.features}</a></li>}
           <li>
             <a href={`${p}/#pricing`} class="transition-colors hover:text-white">{t.nav.pricing}</a>
           </li>
@@ -106,11 +128,16 @@ const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
               </li>
             )
           }
-          <li>
-            <a href={appPagePath(lang)} class="transition-colors hover:text-white">
-              {t.nav.app}
-            </a>
-          </li>
+          {de && <li><a href="/de/#faq" class="transition-colors hover:text-white">{t.nav.faq}</a></li>}
+          {
+            !de && (
+              <li>
+                <a href={appPagePath(lang)} class="transition-colors hover:text-white">
+                  {t.nav.app}
+                </a>
+              </li>
+            )
+          }
           <li>
             <a
               href={`${siteConfig.appUrl}/auth/login?lang=${lang}`}
@@ -120,6 +147,22 @@ const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
         </ul>
       </div>
 
+      {
+        de ? (
+          <div>
+            <h3 class="text-sm font-semibold text-white">{t.footer.legal}</h3>
+            <ul class="mt-4 space-y-2.5 text-sm">
+              {legalLinks.map((l) => (
+                <li>
+                  <a href={l.href} class="transition-colors hover:text-white">
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <>
       {/* sample books */}
       <div>
         <h3 class="text-sm font-semibold text-white">{L.books}</h3>
@@ -167,6 +210,9 @@ const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
           </li>
         </ul>
       </div>
+          </>
+        )
+      }
     </div>
 
     <div class="mt-12 flex flex-col gap-3 border-t border-ink-800 pt-6 text-sm text-ink-500 sm:flex-row sm:items-center sm:justify-between">
