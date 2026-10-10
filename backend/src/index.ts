@@ -19,6 +19,7 @@ import { imageRoutes } from "./routes/imageRoutes";
 import { materialRoutes } from "./routes/materialRoutes";
 import { feedbackRoutes } from "./routes/feedbackRoutes";
 import { aiEditRoutes } from "./routes/aiEditRoutes";
+import { contactRoutes } from "./routes/contactRoutes";
 import { exchangeRateRoutes } from "./routes/exchangeRate";
 import { funnelRoutes } from "./routes/funnel";
 import { notificationRoutes } from "./routes/notifications";
@@ -57,7 +58,11 @@ async function start() {
 
   // ── Plugins ──
   await app.register(cors, {
-    origin: [process.env.FRONTEND_URL || "http://localhost:5173"],
+    // the app, plus the public site (its contact form posts to /api/contact)
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:5173",
+      process.env.PUBLIC_SITE_URL || "https://inkmagnet.com",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
@@ -96,6 +101,7 @@ async function start() {
   await app.register(materialRoutes);
   await app.register(feedbackRoutes);
   await app.register(aiEditRoutes);
+  await app.register(contactRoutes);
 
   // ── Health check ──
   app.get("/api/health", async () => ({

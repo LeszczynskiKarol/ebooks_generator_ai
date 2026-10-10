@@ -26,15 +26,18 @@ const legalLinks = de
       { href: "/de/agb/", label: t.footer.terms },
       { href: "/de/datenschutz/", label: t.footer.privacy },
       { href: "/de/impressum/", label: "Impressum" },
+      { href: "/de/kontakt/", label: "Kontakt" },
     ]
   : pl
   ? [
       { href: "/pl/polityka-prywatnosci/", label: t.footer.privacy },
       { href: "/pl/regulamin/", label: t.footer.terms },
+      { href: "/pl/kontakt/", label: "Kontakt" },
     ]
   : [
       { href: "/privacy/", label: t.footer.privacy },
       { href: "/terms/", label: t.footer.terms },
+      { href: "/contact/", label: "Contact" },
     ];
 
 // 5 książek w języku stopki, wyróżnione najpierw — linki do landingów.
@@ -61,7 +64,7 @@ const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
 
 <footer class="theme-fixed border-t border-ink-800 bg-ink-950 text-ink-300">
   <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-    <div class:list={["grid gap-10 sm:grid-cols-2", de ? "lg:grid-cols-[1.3fr_1fr_1fr]" : "lg:grid-cols-[1.3fr_1fr_1.2fr_1.2fr]"]}>
+    <div class:list={["grid gap-10 sm:grid-cols-2", de ? "lg:grid-cols-[1.3fr_1fr_1.2fr_1fr]" : "lg:grid-cols-[1.3fr_1fr_1.2fr_1.2fr]"]}>
       {/* brand */}
       <div>
         <div class="flex items-center gap-2.5">
@@ -147,6 +150,33 @@ const badge = pl ? "/badges/google-play-pl.png" : "/badges/google-play-en.png";
         </ul>
       </div>
 
+      {
+        de && (
+          /* no German gallery yet: the English sample books, labelled as such */
+          <div>
+            <h3 class="text-sm font-semibold text-white">Beispielbücher (Englisch)</h3>
+            <ul class="mt-4 space-y-2.5 text-sm">
+              {examples
+                .filter((b) => b.lang === "en")
+                .slice()
+                .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+                .slice(0, 5)
+                .map((b) => (
+                  <li>
+                    <a href={`/examples/${b.slug}/`} class="line-clamp-1 transition-colors hover:text-white" title={b.title}>
+                      {b.title}
+                    </a>
+                  </li>
+                ))}
+              <li>
+                <a href="/examples/" class="font-semibold text-brand-400 transition-colors hover:text-brand-300">
+                  Alle Beispiele →
+                </a>
+              </li>
+            </ul>
+          </div>
+        )
+      }
       {
         de ? (
           <div>

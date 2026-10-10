@@ -591,3 +591,25 @@ model EditJob {
 
   @@index([projectId, status])
 }
+
+/// Message from the public contact form (routes/contactRoutes.ts). Stored
+/// before it is e-mailed, so nothing is lost if the mail fails.
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String
+  topic     String   @default("other")
+  message   String   @db.Text
+  lang      String   @default("en")
+  ip        String?
+  country   String?
+  userAgent String?
+  /// soft spam signals ("fast", "links") — the message is delivered anyway
+  flags     String[] @default([])
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([ip, createdAt])
+  @@index([email, createdAt])
+}

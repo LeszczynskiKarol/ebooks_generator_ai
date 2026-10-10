@@ -47,6 +47,8 @@ const appQ = `?lang=${lang}`;
 const navItems: { href: string; label: string; lgOnly?: boolean }[] = lang === "de" ? [
   { href: "/de/#how", label: t.nav.how },
   { href: "/de/#features", label: t.nav.features },
+  // no German gallery yet: every language except Polish gets the English one
+  { href: "/examples/", label: t.nav.examples },
   { href: "/de/#pricing", label: t.nav.pricing },
   { href: "/de/#faq", label: t.nav.faq },
 ] : [

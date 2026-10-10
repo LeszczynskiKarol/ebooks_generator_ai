@@ -32,6 +32,8 @@ interface SendArgs {
   html: string;
   text: string;
   tag: string;
+  /** where a reply should go (contact form: the sender); default: our address */
+  replyTo?: string;
 }
 
 export async function sendEmail({
@@ -40,12 +42,13 @@ export async function sendEmail({
   html,
   text,
   tag,
+  replyTo,
 }: SendArgs): Promise<{ ok: boolean; messageId?: string; error?: string }> {
   try {
     const res = await ses().send(
       new SendEmailCommand({
         FromEmailAddress: FROM,
-        ReplyToAddresses: [REPLY_TO],
+        ReplyToAddresses: [replyTo || REPLY_TO],
         Destination: { ToAddresses: [to] },
         Content: {
           Simple: {

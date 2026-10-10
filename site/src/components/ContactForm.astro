@@ -1,0 +1,195 @@
+---
+// Public contact form — posts to the app's API (backend routes/contactRoutes.ts).
+// The honeypot field ("website") is hidden from people; a bot that fills it is
+// answered "ok" and dropped. `startedAt` lets the backend mark (not block)
+// messages sent implausibly fast. No captcha: a real message must get through.
+import { siteConfig } from "../config/site";
+import type { Lang } from "../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+
+const T = {
+  en: {
+    name: "Your name (optional)",
+    email: "Your e-mail",
+    topic: "What is it about?",
+    topics: { question: "A question about the product", order: "My order or book", invoice: "Invoice", problem: "Something does not work", privacy: "Privacy and my data", other: "Something else" },
+    message: "Message",
+    messageHint: "At least 10 characters. If it concerns a book, add its title.",
+    send: "Send message",
+    sending: "Sending…",
+    ok: "Thank you. Your message has been sent; we usually reply within one working day.",
+    errEmail: "Enter a valid e-mail address.",
+    errMessage: "The message is too short.",
+    errRate: "Too many messages in a short time. Please write to us at",
+    errOther: "The message could not be sent. Please write to us at",
+    privacy: "We use your details only to answer this message.",
+    privacyLink: "Privacy policy",
+    privacyHref: "/privacy/",
+  },
+  pl: {
+    name: "Imię i nazwisko (opcjonalnie)",
+    email: "Twój e-mail",
+    topic: "Czego dotyczy wiadomość?",
+    topics: { question: "Pytanie o produkt", order: "Moje zamówienie albo książka", invoice: "Faktura", problem: "Coś nie działa", privacy: "Prywatność i moje dane", other: "Inna sprawa" },
+    message: "Wiadomość",
+    messageHint: "Co najmniej 10 znaków. Jeśli sprawa dotyczy książki, podaj jej tytuł.",
+    send: "Wyślij wiadomość",
+    sending: "Wysyłanie…",
+    ok: "Dziękujemy. Wiadomość została wysłana; zwykle odpowiadamy w ciągu jednego dnia roboczego.",
+    errEmail: "Podaj poprawny adres e-mail.",
+    errMessage: "Wiadomość jest za krótka.",
+    errRate: "Za dużo wiadomości w krótkim czasie. Napisz do nas na",
+    errOther: "Nie udało się wysłać wiadomości. Napisz do nas na",
+    privacy: "Twoje dane wykorzystamy wyłącznie do odpowiedzi na tę wiadomość.",
+    privacyLink: "Polityka prywatności",
+    privacyHref: "/pl/polityka-prywatnosci/",
+  },
+  de: {
+    name: "Ihr Name (optional)",
+    email: "Ihre E-Mail-Adresse",
+    topic: "Worum geht es?",
+    topics: { question: "Frage zum Produkt", order: "Meine Bestellung oder mein Buch", invoice: "Rechnung", problem: "Etwas funktioniert nicht", privacy: "Datenschutz und meine Daten", other: "Etwas anderes" },
+    message: "Nachricht",
+    messageHint: "Mindestens 10 Zeichen. Wenn es um ein Buch geht, nennen Sie bitte den Titel.",
+    send: "Nachricht senden",
+    sending: "Wird gesendet…",
+    ok: "Vielen Dank. Ihre Nachricht wurde gesendet; wir antworten in der Regel innerhalb eines Werktags.",
+    errEmail: "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+    errMessage: "Die Nachricht ist zu kurz.",
+    errRate: "Zu viele Nachrichten in kurzer Zeit. Bitte schreiben Sie uns an",
+    errOther: "Die Nachricht konnte nicht gesendet werden. Bitte schreiben Sie uns an",
+    privacy: "Wir verwenden Ihre Angaben ausschließlich zur Beantwortung dieser Nachricht.",
+    privacyLink: "Datenschutzerklärung",
+    privacyHref: "/de/datenschutz/",
+  },
+}[lang];
+
+const input =
+  "mt-1 w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-[15px] text-ink-900 outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20";
+const label = "block text-sm font-medium text-ink-800";
+---
+
+<form
+  id="contact-form"
+  class="not-prose space-y-4"
+  novalidate
+  data-endpoint={`${siteConfig.appUrl}/api/contact`}
+  data-lang={lang}
+  data-ok={T.ok}
+  data-sending={T.sending}
+  data-send={T.send}
+  data-err-email={T.errEmail}
+  data-err-message={T.errMessage}
+  data-err-rate={T.errRate}
+  data-err-other={T.errOther}
+  data-mail={siteConfig.email}
+>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <label class={label}>
+      {T.name}
+      <input class={input} type="text" name="name" maxlength="100" autocomplete="name" />
+    </label>
+    <label class={label}>
+      {T.email}
+      <input class={input} type="email" name="email" maxlength="200" required autocomplete="email" />
+    </label>
+  </div>
+  <label class={label}>
+    {T.topic}
+    <select class={input} name="topic">
+      {Object.entries(T.topics).map(([value, text]) => <option value={value}>{text}</option>)}
+    </select>
+  </label>
+  <label class={label}>
+    {T.message}
+    <textarea class={input} name="message" rows="7" maxlength="5000" required></textarea>
+    <span class="mt-1 block text-xs font-normal text-ink-500">{T.messageHint}</span>
+  </label>
+
+  {/* honeypot — hidden from people and from assistive technology */}
+  <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
+    <label>
+      Website
+      <input type="text" name="website" tabindex="-1" autocomplete="off" />
+    </label>
+  </div>
+
+  <p id="contact-status" role="status" aria-live="polite" class="hidden rounded-lg px-4 py-3 text-sm"></p>
+
+  <button
+    type="submit"
+    class="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-60"
+  >
+    {T.send}
+  </button>
+  <p class="text-xs text-ink-500">
+    {T.privacy} <a href={T.privacyHref} class="underline">{T.privacyLink}</a>
+  </p>
+</form>
+
+<script is:inline>
+  (function () {
+    var form = document.getElementById("contact-form");
+    if (!form) return;
+    var status = document.getElementById("contact-status");
+    var btn = form.querySelector('button[type="submit"]');
+    var d = form.dataset;
+    var startedAt = Date.now();
+
+    function show(ok, text, mail) {
+      status.textContent = text + (mail ? " " + mail + "." : "");
+      status.className =
+        "rounded-lg px-4 py-3 text-sm " +
+        (ok ? "bg-green-50 text-green-900 dark:bg-green-900/30 dark:text-green-100" : "bg-amber-50 text-amber-900 dark:bg-amber-900/30 dark:text-amber-100");
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var f = form.elements;
+      var email = f.email.value.trim();
+      var message = f.message.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return show(false, d.errEmail);
+      if (message.length < 10) return show(false, d.errMessage);
+
+      btn.disabled = true;
+      btn.textContent = d.sending;
+      fetch(d.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: f.name.value,
+          email: email,
+          topic: f.topic.value,
+          message: message,
+          lang: d.lang,
+          website: f.website.value,
+          startedAt: startedAt,
+        }),
+      })
+        .then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (json) { return { status: res.status, json: json }; });
+        })
+        .then(function (r) {
+          if (r.status === 200 || r.status === 201) {
+            form.reset();
+            startedAt = Date.now();
+            show(true, d.ok);
+          } else if (r.json && r.json.code === "EMAIL") show(false, d.errEmail);
+          else if (r.json && r.json.code === "MESSAGE") show(false, d.errMessage);
+          else if (r.status === 429) show(false, d.errRate, d.mail);
+          else show(false, d.errOther, d.mail);
+        })
+        .catch(function () {
+          show(false, d.errOther, d.mail);
+        })
+        .then(function () {
+          btn.disabled = false;
+          btn.textContent = d.send;
+        });
+    });
+  })();
+</script>

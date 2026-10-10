@@ -68,12 +68,13 @@ function Stars({ n }: { n: number }) {
   );
 }
 
-type Tab = "ratings" | "corrections" | "edits";
+type Tab = "ratings" | "corrections" | "edits" | "messages";
 
 export default function AdminFeedback() {
   const [params, setParams] = useSearchParams();
   const tabParam = params.get("tab");
-  const tab: Tab = tabParam === "corrections" || tabParam === "edits" ? tabParam : "ratings";
+  const tab: Tab =
+    tabParam === "corrections" || tabParam === "edits" || tabParam === "messages" ? tabParam : "ratings";
 
   const ratings = useQuery({
     queryKey: ["admin-feedback"],
@@ -88,6 +89,11 @@ export default function AdminFeedback() {
     queryKey: ["admin-ai-edits"],
     queryFn: async () => (await apiClient.get("/admin/ai-edits")).data.data,
     enabled: tab === "edits",
+  });
+
+  const messages = useQuery({
+    queryKey: ["admin-contact"],
+    queryFn: async () => (await apiClient.get("/admin/contact")).data.data,
   });
 
   const tabBtn = (key: Tab, label: string, badge?: number) => (
@@ -114,15 +120,22 @@ export default function AdminFeedback() {
         <ArrowLeft className="w-4 h-4" /> Admin
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Feedback</h1>
-      <p className="text-gray-500 dark:text-gray-400 mt-1">Customer ratings, correction requests and AI edits</p>
+      <p className="text-gray-500 dark:text-gray-400 mt-1">Customer ratings, correction requests, AI edits and contact messages</p>
 
       <div className="flex gap-2 mt-6 mb-6">
         {tabBtn("ratings", "Ratings")}
         {tabBtn("corrections", "Check by a human", corrections.data?.open)}
         {tabBtn("edits", "AI edits")}
+        {tabBtn("messages", "Messages", messages.data?.open)}
       </div>
 
-      {tab === "edits" ? (
+      {tab === "messages" ? (
+        messages.isLoading ? (
+          <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
+        ) : (
+          <MessagesTab rows={messages.data?.rows ?? []} />
+        )
+      ) : tab === "edits" ? (
         edits.isLoading ? (
           <Loader2 className="w-6 h-6 animate-spin text-primary-600" />
         ) : (
@@ -489,6 +502,87 @@ function EditCard({ row }: { row: EditRow }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Contact form messages ─────────────────────────────────────────────
+
+interface ContactRow {
+  id: string;
+  name: string | null;
+  email: string;
+  topic: string;
+  message: string;
+  lang: string;
+  country: string | null;
+  flags: string[];
+  handled: boolean;
+  createdAt: string;
+}
+
+function MessagesTab({ rows }: { rows: ContactRow[] }) {
+  const qc = useQueryClient();
+  const [onlyOpen, setOnlyOpen] = useState(true);
+  const shown = onlyOpen ? rows.filter((r) => !r.handled) : rows;
+  const toggle = async (r: ContactRow) => {
+    try {
+      await apiClient.patch(`/admin/contact/${r.id}`, { handled: !r.handled });
+      await qc.invalidateQueries({ queryKey: ["admin-contact"] });
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed");
+    }
+  };
+  return (
+    <div className="space-y-3">
+      <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+        <input type="checkbox" checked={onlyOpen} onChange={(e) => setOnlyOpen(e.target.checked)} />
+        Only not handled
+      </label>
+      {shown.length === 0 && <p className="text-gray-500">No messages.</p>}
+      {shown.map((r) => (
+        <div key={r.id} className={card}>
+          <div className="flex flex-wrap items-center gap-3">
+            <span
+              className={
+                "px-2 py-0.5 rounded-full text-xs font-medium " +
+                (r.handled
+                  ? "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                  : "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300")
+              }
+            >
+              {r.handled ? "Handled" : "New"}
+            </span>
+            <span className="font-semibold text-gray-900 dark:text-white">{r.name || r.email}</span>
+            <span className="text-xs text-gray-500">{r.topic}</span>
+            {r.flags.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">
+                check: {r.flags.join(", ")}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {r.email} · {new Date(r.createdAt).toLocaleString()} · {r.lang}
+            {r.country ? ` · ${r.country}` : ""}
+          </p>
+          <p className="text-sm text-gray-800 dark:text-gray-200 mt-3 whitespace-pre-wrap">{r.message}</p>
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            <a
+              href={`mailto:${r.email}?subject=${encodeURIComponent("Re: InkMagnet")}`}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-600 text-white hover:bg-primary-700"
+            >
+              Reply by e-mail
+            </a>
+            <button
+              type="button"
+              onClick={() => toggle(r)}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 cursor-pointer"
+            >
+              {r.handled ? "Mark as new" : "Mark as handled"}
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
