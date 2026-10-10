@@ -7,6 +7,7 @@ import { getCollection } from "astro:content";
 import { siteConfig } from "../config/site";
 import { useTranslations, langPrefix, type Lang } from "../i18n/ui";
 import { appPagePath } from "../lib/play";
+import { isHeld } from "../lib/blogHold";
 import { examples } from "../data/examples.js";
 
 interface Props {
@@ -49,7 +50,7 @@ const footerBooks = examples
 const bookHref = (slug: string) => (pl ? `/pl/przyklady/${slug}/` : `/examples/${slug}/`);
 
 // 3 najnowsze wpisy bloga w języku stopki.
-const posts = (await getCollection("blog", (e) => e.data.lang === lang && !e.data.draft))
+const posts = (await getCollection("blog", (e) => e.data.lang === lang && !e.data.draft && !isHeld(e.id)))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3);
 const postHref = (id: string) => (pl ? `/pl/blog/${id}/` : `/blog/${id}/`);

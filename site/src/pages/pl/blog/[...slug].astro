@@ -3,6 +3,7 @@ import { getCollection, render } from "astro:content";
 import { getImage } from "astro:assets";
 import ArticleLayout from "../../../layouts/ArticleLayout.astro";
 import { siteConfig } from "../../../config/site";
+import { isHeld } from "../../../lib/blogHold";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog", (p) => p.data.lang === "pl" && !p.data.draft);
@@ -49,6 +50,7 @@ const articleLd = {
   heroImage={post.data.heroImage}
   heroAlt={post.data.heroAlt}
   ogImage={ogImage}
+  noindexFollow={isHeld(post.id)}
 >
   <Content />
 </ArticleLayout>

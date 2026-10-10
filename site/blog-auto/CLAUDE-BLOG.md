@@ -7,6 +7,17 @@ NIE API). Piszesz JEDEN temat TYGODNIOWO: parę wpisów PL+EN (albo pojedynczy p
 
 Wzorzec systemu: sitario blog-auto + cytado autoblog (2026-08-23).
 
+## 0a. PAUZA do 2026-11-17 (decyzja Karola 2026-10-10)
+
+Jeśli dzisiejsza data jest wcześniejsza niż 2026-11-17 → zakończ bez pisania i
+bez commita. Zaraportuj "pauza do 2026-11-17". Nie obchodź pauzy.
+
+**Dlaczego:** Search Console 2026-10-10 — Google indeksuje 10 z 88 wpisów,
+42 w ogóle nie zna, 33 odkrył i nie pobrał. Wąskim gardłem jest autorytet
+domeny, nie liczba tekstów. 60 nadmiarowych wpisów dostało noindex
+(`site/blog-auto/index-hold.json`); nowych wpisów na tę listę NIE dopisujesz
+i nie zdejmujesz z niej istniejących. Po pauzie obowiązuje limit z §0.
+
 ## 0. Throttle (JEDEN temat na 7 dni — twardy limit)
 
 Policz najnowszy `pubDate` spośród wszystkich plików w `site/src/content/blog/`.

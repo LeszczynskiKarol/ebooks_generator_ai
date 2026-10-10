@@ -2,6 +2,16 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
+import { readFileSync } from "node:fs";
+
+// blog posts held back from indexing (see blog-auto/index-hold.json)
+const heldPosts = new Set(
+  JSON.parse(readFileSync(new URL("./blog-auto/index-hold.json", import.meta.url), "utf8")).slugs,
+);
+const isHeldUrl = (page) => {
+  const m = page.match(/\/blog\/([^/]+)\/?$/);
+  return !!m && heldPosts.has(m[1]);
+};
 
 export default defineConfig({
   site: "https://inkmagnet.com",
@@ -18,8 +28,9 @@ export default defineConfig({
     sitemap({
       changefreq: "weekly",
       priority: 0.7,
-      // legal pages are noindex — keep them out of the sitemap
+      // legal pages and held blog posts are noindex — keep them out of the sitemap
       filter: (page) =>
+        !isHeldUrl(page) &&
         !page.includes("/privacy") &&
         !page.includes("/terms") &&
         !page.includes("/polityka-prywatnosci") &&

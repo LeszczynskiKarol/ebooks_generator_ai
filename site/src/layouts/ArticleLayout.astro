@@ -35,6 +35,8 @@ interface Props {
   heroAlt?: string;
   /** absolute or site-relative og:image override (forwarded to BaseLayout) */
   ogImage?: string;
+  /** forwarded to BaseLayout: out of the index, links still followed */
+  noindexFollow?: boolean;
 }
 
 const {
@@ -53,6 +55,7 @@ const {
   heroImage,
   heroAlt,
   ogImage,
+  noindexFollow = false,
 } = Astro.props;
 
 const lang: Lang = getLangFromUrl(Astro.url);
@@ -90,6 +93,7 @@ const dateFmt = new Intl.DateTimeFormat(lang === "pl" ? "pl-PL" : "en-US", {
   hreflangPlPath={hreflangPlPath}
   jsonLd={allJsonLd}
   ogImage={ogImage}
+  noindexFollow={noindexFollow}
 >
   <Header lang={lang} />
   <main class="pt-16">

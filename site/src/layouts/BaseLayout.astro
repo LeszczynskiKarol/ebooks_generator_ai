@@ -12,6 +12,8 @@ interface Props {
   ogImage?: string;
   canonicalUrl?: string;
   noindex?: boolean;
+  /** keep the page out of the index but let its links count (held blog posts) */
+  noindexFollow?: boolean;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   /** Set when the page exists in both languages — enables hreflang alternates. */
   translated?: boolean;
@@ -26,6 +28,7 @@ const {
   ogImage = "/og-image.png",
   canonicalUrl,
   noindex = false,
+  noindexFollow = false,
   jsonLd,
   translated = true,
 } = Astro.props;
@@ -102,9 +105,10 @@ const ogLocale = lang === "pl" ? "pl_PL" : lang === "de" ? "de_DE" : "en_US";
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {!noindex && noindexFollow && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={canonical} />
     {
-      translated && !noindex && (
+      translated && !noindex && !noindexFollow && (
         <>
           <link rel="alternate" hreflang="en" href={altEn} />
           <link rel="alternate" hreflang="pl" href={altPl} />
