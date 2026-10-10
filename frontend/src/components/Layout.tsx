@@ -4,12 +4,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { LogOut, Plus, User, Moon, Sun, Shield, Lock } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useThemeStore } from "@/stores/themeStore";
-import { useT } from "@/lib/i18n";
+import { useT, useLangStore, APP_LANGS, type AppLang } from "@/lib/i18n";
 import api from "@/lib/api";
 import NotificationsBell from "@/components/NotificationsBell";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const t = useT();
+  const lang = useLangStore((s) => s.lang);
+  const setLang = useLangStore((s) => s.setLang);
   const { user, logout } = useAuthStore();
   const { dark, toggle } = useThemeStore();
   const navigate = useNavigate();
@@ -63,6 +65,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
 
             <NotificationsBell />
+
+            {/* panel language (the auth screens have their own switch) */}
+            <select
+              value={lang}
+              onChange={(e) => setLang(e.target.value as AppLang)}
+              aria-label="Language"
+              className="bg-transparent text-xs font-bold text-gray-500 dark:text-gray-400 rounded-lg px-1.5 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer outline-none"
+            >
+              {APP_LANGS.map((l) => (
+                <option key={l} value={l} className="text-gray-900">
+                  {l.toUpperCase()}
+                </option>
+              ))}
+            </select>
 
             <button onClick={toggle} className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title={t("layout.toggleTheme")}>
               {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
